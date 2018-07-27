@@ -2,6 +2,8 @@ var btSave = document.getElementById("bt_save");
 var btDelete = document.getElementById("bt_delete");
 var t = TrelloPowerUp.iframe();
 
+var panta;
+
 btDelete.addEventListener('click', function (event) {
     event.preventDefault();
     return t.remove('card', 'shared', 'panta.Artikel')
@@ -9,6 +11,25 @@ btDelete.addEventListener('click', function (event) {
             t.closeModal();
         });
 });
+
+function showTab(what) {
+    console.log("Show tab: " + what);
+    var content = document.getElementById("tab-content");
+    while (content.firstChild) {
+        content.removeChild(content.firstChild);
+    }
+
+    var input = document.createElement("textarea");
+    input.setAttribute("name", what + "_data");
+    input.setAttribute("placeholder", "Eingabefeld für " + what);
+    if (panta) {
+        var options = panta["options"];
+        if (options && options[what + "_data"]) {
+            input.appendChild(document.createTextNode(options[what + "_data"]));
+        }
+    }
+    content.appendChild(input);
+}
 
 // Get all of the information about the list from a public board
 btSave.addEventListener('click', function (event) {
@@ -27,9 +48,9 @@ btSave.addEventListener('click', function (event) {
     var season = document.getElementsByName("season")[0].value;
     var charCount = document.getElementsByName("char_count")[0].value;
 
-    var option_onsite = document.getElementsByName("option_onsite")[0].checked === true;
-    var option_text = document.getElementsByName("option_text")[0].checked === true;
-    var option_photo = document.getElementsByName("option_photo")[0].checked === true;
+    var option_onsite = document.getElementsByName("option_onsite")[0].checked === true || getData("onsite").length > 0;
+    var option_text = document.getElementsByName("option_text")[0].checked === true || getData("text").length > 0;
+    var option_photo = document.getElementsByName("option_photo")[0].checked === true || getData("photo").length > 0;
     var option_video = document.getElementsByName("option_video")[0].checked === true;
     var option_illu = document.getElementsByName("option_illu")[0].checked === true;
     var option_pubs = document.getElementsByName("option_pubs")[0].checked === true;
@@ -39,8 +60,7 @@ btSave.addEventListener('click', function (event) {
     var saldo_video = document.getElementsByName("saldo_video")[0].checked === true;
     var saldo_illu = document.getElementsByName("saldo_illu")[0].checked === true;
     var saldo_pubs = document.getElementsByName("saldo_pubs")[0].checked === true;
-
-    return t.set('card', 'shared', 'panta.Artikel', {
+    panta = {
         "thema": thema,
         "pagina": pagina,
         "pageLayout": pageLayout,
@@ -52,8 +72,11 @@ btSave.addEventListener('click', function (event) {
         "charCount": charCount,
         "options": {
             "onsite": option_onsite,
+            "onsite_data": getData("onsite"),
             "text": option_text,
+            "text_data": getData("text"),
             "photo": option_photo,
+            "photo_data": getData("photo"),
             "video": option_video,
             "illu": option_illu,
             "pubs": option_pubs
@@ -65,13 +88,15 @@ btSave.addEventListener('click', function (event) {
             "illu": saldo_illu,
             "pubs": saldo_pubs
         }
-    });
+    };
+    return t.set('card', 'shared', 'panta.Artikel', panta);
 });
 
 t.render(function () {
     return t.get('card', 'shared', 'panta.Artikel')
         .then(function (artikel) {
             if (artikel) {
+                panta = artikel;
                 document.getElementsByName("thema")[0].value = artikel["thema"];
 
                 document.getElementsByName("pagina")[0].value = artikel["pagina"];
@@ -86,9 +111,9 @@ t.render(function () {
                 document.getElementsByName("char_count")[0].value = artikel["charCount"];
                 const options = artikel["options"];
                 if (options) {
-                    document.getElementsByName("option_onsite")[0].checked = options["onsite"] === true;
-                    document.getElementsByName("option_text")[0].checked = options["text"] === true;
-                    document.getElementsByName("option_photo")[0].checked = options["photo"] === true;
+                    document.getElementsByName("option_onsite")[0].checked = options["onsite"] === true || options["onsite_data"];
+                    document.getElementsByName("option_text")[0].checked = options["text"] === true || options["text_data"];
+                    document.getElementsByName("option_photo")[0].checked = options["photo"] === true || options["photo_data"];
                     document.getElementsByName("option_video")[0].checked = options["video"] === true;
                     document.getElementsByName("option_illu")[0].checked = options["illu"] === true;
                     document.getElementsByName("option_pubs")[0].checked = options["pubs"] === true;
@@ -111,7 +136,6 @@ t.render(function () {
             return t.cards('customFieldItems');
         })
         .then(function(customFields) {
-            console.log("CustomFields: ");
             console.log(JSON.stringify(customFields));
             var Promise = window.TrelloPowerUp.Promise;
             return new Promise(function (resolve, reject) {
@@ -154,3 +178,13 @@ t.render(function () {
             t.sizeTo('#panta\\.artikel').done();
         })
 });
+
+function getData(what) {
+    if (document.getElementsByName(what + "_data").length === 1) {
+        return option_onsite_data = document.getElementsByName(what + "_data")[0].value;
+    } else if (panta && panta.options && panta.options[what + "_data"]) {
+        return option_onsite_data = panta.options[what + "_data"];
+    } else {
+        return option_onsite_data = "";
+    }
+}
