@@ -1,4 +1,3 @@
-var form = document.getElementById("panta.artikel");
 var btSave = document.getElementById("bt_save");
 var btDelete = document.getElementById("bt_delete");
 var t = TrelloPowerUp.iframe();
@@ -66,8 +65,6 @@ btSave.addEventListener('click', function (event) {
             "illu": saldo_illu,
             "pubs": saldo_pubs
         }
-    }).then(function () {
-        t.closeModal();
     });
 });
 
@@ -111,7 +108,6 @@ t.render(function () {
             return t.card('all')
         })
         .then(function (card) {
-            document.getElementById("card_name").innerText = card.name;
             return t.cards('customFieldItems');
         })
         .then(function(customFields) {

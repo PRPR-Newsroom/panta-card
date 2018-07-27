@@ -4,9 +4,9 @@ TrelloPowerUp.initialize({
             icon: 'https://cdn.glitch.com/1b42d7fe-bda8-4af8-a6c8-eff0cea9e08a%2Frocket-ship.png?1494946700421',
             text: 'panta.Card',
             callback: function(t) {
-              return t.modal({
-                  title: "panta.Artikel",
-                  url: "artikel.html"
+              return t.popup({
+                  title: "Einstellungen",
+                  url: "settings.html"
               })
             }
         }];
@@ -51,9 +51,15 @@ TrelloPowerUp.initialize({
                 return badges;
             })
     },
-    'board-buttons': function (t, opts) {
-        return [{
-            text: 'Test'
-        }]
+    'card-back-section': function(t, opts) {
+        return {
+            title: 'panta.Artikel',
+            icon: './assets/ic_pantarhei.png',
+            content: {
+                type: 'iframe',
+                url: t.signUrl('./artikel.html', {}),
+                height: 500 // Max height is 500
+            }
+        }
     }
 });
