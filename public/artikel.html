@@ -6,12 +6,16 @@
     <link rel="stylesheet" href="https://p.trellocdn.com/power-up.min.css" />
     <style>
         html, body {
-            padding: 5px;
+            background-color: #FFFBAB;
         }
         * {
             box-sizing: border-box;
         }
+        h2 {
+            padding: 4px;
+        }
         .row {
+            padding: 4px;
             display: flex;
         }
         .row::after {
@@ -37,13 +41,12 @@
         .col-12 {width: 100%;}
 
         textarea {
-            display: inline-table;
+            overflow: hidden; word-wrap: break-word; resize: none; height: 108px;
         }
     </style>
 </head>
 <body>
-    <form id="panta.artikel" style="min-width: 600px">
-        <h1 id="card_name"></h1>
+    <form id="panta.artikel">
         <div class="row">
             <div class="col-6"><textarea name="thema" placeholder="Thema" style="height: 100%;margin-bottom: 2px"></textarea></div>
             <div class="col-6">
@@ -93,8 +96,10 @@
             <div class="col-12">Inhalt für das ausgewählte Tab (Saldo)</div>
         </div>
 
-        <button type="button" id="bt_save" name="save" class="mod-primary">Speichern</button>
-        <button type="button" id="bt_delete" name="delete" class="mod-danger">Löschen</button>
+        <div class="row">
+            <button type="button" id="bt_save" name="save" class="mod-primary">Speichern</button>
+            <button type="button" id="bt_delete" name="delete" class="mod-danger">Löschen</button>
+        </div>
 
         <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
         <script src="https://p.trellocdn.com/power-up.min.js"></script>
