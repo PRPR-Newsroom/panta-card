@@ -1,0 +1,64 @@
+<html>
+<head>
+    <title>Test</title>
+    <script src="js/helpers/json_serialization.js"></script>
+    <script src="js/models/artikel.js"></script>
+    <script src="js/models/beteiligt.js"></script>
+    <link rel="stylesheet" href="https://p.trellocdn.com/power-up.min.css" />
+    <link rel="stylesheet" href="css/bootstrap-grid.css" />
+    <link rel="stylesheet" href="css/panta.css" />
+</head>
+<body>
+
+<script language="JavaScript">
+    window.addEventListener("load", function () {
+        let artikel = new Artikel();
+        artikel.involved = new Beteiligt();
+        artikel.involved.onsite = "Belp";
+        artikel.topic = "Test";
+        let om = new JsonSerialization();
+        let serialized = om.serialize(artikel);
+        console.log("Test: " + serialized);
+        let copy = new Artikel();
+        om.deserialize(serialized, copy);
+        console.log("Copy: " + om.serialize(copy));
+
+    });
+</script>
+
+<form style="width: 600px">
+    <div class="row">
+        <div class="col-6">
+            <div class="field">
+                <textarea id="name" name="name" type="text" placeholder="Name"></textarea>
+                <label for="name">Your Name</label>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="field">
+                <input id="eingabe" type="text" placeholder="Eingabe"/>
+                <label for="eingabe">Author</label>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="field">
+                <input id="lauftext" type="text" placeholder="Lauftext"/>
+                <label for="lauftext">Beschreibung, Notizen etc.</label>
+            </div>
+        </div>
+    </div>
+    <div class="row navigation-bar">
+        <div class="col-2 tab"><span>vor Ort</span></div>
+        <div class="col-2 tab content"><span>Text</span></div>
+        <div class="col-2 tab"><span>Foto</span></div>
+        <div class="col-2 tab"><span>Video</span></div>
+        <div class="col-2 tab"><span>Illu. Grafik</span></div>
+        <div class="col-2 tab"><span>Inserat</span></div>
+    </div>
+
+</form>
+
+</body>
+</html>
