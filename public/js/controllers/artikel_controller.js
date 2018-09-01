@@ -41,43 +41,29 @@ class ArtikelController {
      * @param (Artikel) artikel
      */
     render(artikel) {
-        if (artikel) {
-            new MultiLineInput(this.document, "Thema", artikel.topic, "pa.topic").render();
+        new MultiLineInput(this.document, "Thema", null, "pa.topic", "Lauftext", 8).render();
+        new SingleLineInput(this.document, "Input von", null, "pa.input-from", "Name").render();
+        new SingleLineInput(this.document, "Textautor* in", null, "pa.author", "Name").render();
+        new MultiLineInput(this.document, "Textbox", null, "pa.text", "Lauftext", 7).render();
 
-            this.document.getElementsByName("pagina")[0].value = artikel.pagina;
-            this.document.getElementsByName("page_layout")[0].value = artikel.layout;
-            this.document.getElementsByName("page_total")[0].value = artikel.total;
+        new SingleLineInput(this.document, "Pagina", null, "pa.pagina", "Zahl").render();
+        new SingleLineInput(this.document, "S. Layout", null, "pa.layout", "Zahl").render();
+        new SingleLineInput(this.document, "S. Total", null, "pa.total", "Summe").render();
+        new SingleLineInput(this.document, "Online", null, "pa.tags", "Liste-Tag").render();
+        new SingleLineInput(this.document, "Visual", null, "pa.visual", "x-Liste").render();
+        new SingleLineInput(this.document, "Region", null, "pa.region", "x-Liste").render();
+        new SingleLineInput(this.document, "Saison", null, "pa.season", "x-Liste").render();
 
-            this.document.getElementsByName("textbox")[0].value = artikel.text;
+        // beteiligt: onsite
+        new SingleLineInput(this.document, "Name", null, "pa.onsite.name", "").render();
+        new MultiLineInput(this.document, "Telefon.Mail.Webseite", null, "pa.onsite.social", "", 3).render();
+        new MultiLineInput(this.document, "Adresse", null, "pa.onsite.address", "", 3).render();
 
-            this.document.getElementsByName("region")[0].value = artikel.region;
-            this.document.getElementsByName("season")[0].value = artikel.season;
-        } else {
-            new MultiLineInput(this.document, "Thema", null, "pa.topic", "Lauftext", 8).render();
-            new SingleLineInput(this.document, "Input von", null, "pa.input-from", "Name").render();
-            new SingleLineInput(this.document, "Textautor* in", null, "pa.author", "Name").render();
-            new MultiLineInput(this.document, "Textbox", null, "pa.text", "Lauftext", 7).render();
-
-            new SingleLineInput(this.document, "Pagina", null, "pa.pagina", "Zahl").render();
-            new SingleLineInput(this.document, "S. Layout", null, "pa.layout", "Zahl").render();
-            new SingleLineInput(this.document, "S. Total", null, "pa.total", "Summe").render();
-            new SingleLineInput(this.document, "Online", null, "pa.tags", "Liste-Tag").render();
-            new SingleLineInput(this.document, "Visual", null, "pa.visual", "x-Liste").render();
-            new SingleLineInput(this.document, "Region", null, "pa.region", "x-Liste").render();
-            new SingleLineInput(this.document, "Saison", null, "pa.season", "x-Liste").render();
-
-            // beteiligt: onsite
-            new SingleLineInput(this.document, "Name", null, "pa.onsite.name", "").render();
-            new MultiLineInput(this.document, "Telefon.Mail.Webseite", null, "pa.onsite.social", "", 3).render();
-            new MultiLineInput(this.document, "Adresse", null, "pa.onsite.address", "", 3).render();
-
-            new SingleLineInput(this.document, "Format", null, "pa.onsite.format", "Beispiel: A4").render();
-            new SingleLineInput(this.document, "Platzierung", null, "pa.onsite.placement", "").render();
-            new MultiLineInput(this.document, "Notiz", null, "pa.onsite.notes", "", 4).render();
-            new SingleLineInput(this.document, "Preis CHF", null, "pa.onsite.price", "").render();
-            new SingleLineInput(this.document, "Total CHF", null, "pa.onsite.total", "", true).render();
-        }
-
+        new SingleLineInput(this.document, "Format", null, "pa.onsite.format", "Beispiel: A4").render();
+        new SingleLineInput(this.document, "Platzierung", null, "pa.onsite.placement", "").render();
+        new MultiLineInput(this.document, "Notiz", null, "pa.onsite.notes", "", 4).render();
+        new SingleLineInput(this.document, "Preis CHF", null, "pa.onsite.price", "").render();
+        new SingleLineInput(this.document, "Total CHF", null, "pa.onsite.total", "", true).render();
         /*
         const options = artikel["options"];
                 if (options) {
