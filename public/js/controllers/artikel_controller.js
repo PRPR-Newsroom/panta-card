@@ -41,14 +41,14 @@ class ArtikelController {
      * @param (Artikel) artikel
      */
     render(artikel) {
-        new MultiLineInput(this.document, "Thema", null, "pa.topic", "Lauftext", 8).render();
+        new MultiLineInput(this.document, "Thema", null, "pa.topic", "Lauftext", 2).render();
         new SingleLineInput(this.document, "Input von", null, "pa.input-from", "Name").render();
-        new SingleLineInput(this.document, "Textautor* in", null, "pa.author", "Name").render();
-        new MultiLineInput(this.document, "Textbox", null, "pa.text", "Lauftext", 7).render();
+        new SingleLineInput(this.document, "Textautor*in", null, "pa.author", "Name").render();
+        new MultiLineInput(this.document, "Textbox", null, "pa.text", "Lauftext", 2).render();
 
         new SingleLineInput(this.document, "Pagina", null, "pa.pagina", "Zahl").render();
-        new SingleLineInput(this.document, "S. Layout", null, "pa.layout", "Zahl").render();
-        new SingleLineInput(this.document, "S. Total", null, "pa.total", "Summe").render();
+        new SingleLineInput(this.document, "Seiten Layout", null, "pa.layout", "Zahl").render();
+        new SingleLineInput(this.document, "Seiten Total", null, "pa.total", "Summe").render();
         new SingleLineInput(this.document, "Online", null, "pa.tags", "Liste-Tag").render();
         new SingleLineInput(this.document, "Visual", null, "pa.visual", "x-Liste").render();
         new SingleLineInput(this.document, "Region", null, "pa.region", "x-Liste").render();
@@ -56,12 +56,12 @@ class ArtikelController {
 
         // beteiligt: onsite
         new SingleLineInput(this.document, "Name", null, "pa.onsite.name", "").render();
-        new MultiLineInput(this.document, "Telefon.Mail.Webseite", null, "pa.onsite.social", "", 3).render();
-        new MultiLineInput(this.document, "Adresse", null, "pa.onsite.address", "", 3).render();
+        new MultiLineInput(this.document, "Telefon.Mail.Webseite", null, "pa.onsite.social", "", 2).render();
+        new MultiLineInput(this.document, "Adresse", null, "pa.onsite.address", "", 2).render();
 
         new SingleLineInput(this.document, "Format", null, "pa.onsite.format", "Beispiel: A4").render();
         new SingleLineInput(this.document, "Platzierung", null, "pa.onsite.placement", "").render();
-        new MultiLineInput(this.document, "Notiz", null, "pa.onsite.notes", "", 4).render();
+        new MultiLineInput(this.document, "Notiz", null, "pa.onsite.notes", "", 2).render();
         new SingleLineInput(this.document, "Preis CHF", null, "pa.onsite.price", "").render();
         new SingleLineInput(this.document, "Total CHF", null, "pa.onsite.total", "", true).render();
         /*
