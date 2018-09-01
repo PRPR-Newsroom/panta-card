@@ -64,6 +64,7 @@ PInput.prototype.render = function() {
   var b = this._document.createElement(this._type);
   b.setAttribute("name", this._name);
   b.placeholder = this._placeholder;
+  b.setAttribute("title", this._label);
   this._value && (b.value = this._value, "textarea" === this._type && b.appendChild(this._document.createTextNode(this._value)));
   "input" === this._type && b.setAttribute("type", "text");
   this._readonly && b.setAttribute("readonly", "readonly");
@@ -97,11 +98,25 @@ ArtikelController.prototype.getArtikel = function() {
   return new Artikel(this.document.getElementsByName("thema")[0].value, this.document.getElementsByName("pagina")[0].value, this.document.getElementsByName("page_layout")[0].value, this.document.getElementsByName("page_total")[0].value, null, null, this.document.getElementsByName("region")[0].value, this.document.getElementsByName("season")[0].value, null, this.document.getElementsByName("textbox")[0].value);
 };
 ArtikelController.prototype.render = function(a) {
-  a ? ((new MultiLineInput(this.document, "Thema", a.topic, "pa.topic")).render(), this.document.getElementsByName("pagina")[0].value = a.pagina, this.document.getElementsByName("page_layout")[0].value = a.layout, this.document.getElementsByName("page_total")[0].value = a.total, this.document.getElementsByName("textbox")[0].value = a.text, this.document.getElementsByName("region")[0].value = a.region, this.document.getElementsByName("season")[0].value = a.season) : ((new MultiLineInput(this.document, 
-  "Thema", null, "pa.topic", "Lauftext", 8)).render(), (new SingleLineInput(this.document, "Input von", null, "pa.input-from", "Name")).render(), (new SingleLineInput(this.document, "Textautor* in", null, "pa.author", "Name")).render(), (new MultiLineInput(this.document, "Textbox", null, "pa.text", "Lauftext", 7)).render(), (new SingleLineInput(this.document, "Pagina", null, "pa.pagina", "Zahl")).render(), (new SingleLineInput(this.document, "S. Layout", null, "pa.layout", "Zahl")).render(), (new SingleLineInput(this.document, 
-  "S. Total", null, "pa.total", "Summe")).render(), (new SingleLineInput(this.document, "Online", null, "pa.tags", "Liste-Tag")).render(), (new SingleLineInput(this.document, "Visual", null, "pa.visual", "x-Liste")).render(), (new SingleLineInput(this.document, "Region", null, "pa.region", "x-Liste")).render(), (new SingleLineInput(this.document, "Saison", null, "pa.season", "x-Liste")).render(), (new SingleLineInput(this.document, "Name", null, "pa.onsite.name", "")).render(), (new MultiLineInput(this.document, 
-  "Telefon.Mail.Webseite", null, "pa.onsite.social", "", 3)).render(), (new MultiLineInput(this.document, "Adresse", null, "pa.onsite.address", "", 3)).render(), (new SingleLineInput(this.document, "Format", null, "pa.onsite.format", "Beispiel: A4")).render(), (new SingleLineInput(this.document, "Platzierung", null, "pa.onsite.placement", "")).render(), (new MultiLineInput(this.document, "Notiz", null, "pa.onsite.notes", "", 4)).render(), (new SingleLineInput(this.document, "Preis CHF", null, "pa.onsite.price", 
-  "")).render(), (new SingleLineInput(this.document, "Total CHF", null, "pa.onsite.total", "", !0)).render());
+  (new MultiLineInput(this.document, "Thema", null, "pa.topic", "Lauftext", 2)).render();
+  (new SingleLineInput(this.document, "Input von", null, "pa.input-from", "Name")).render();
+  (new SingleLineInput(this.document, "Textautor*in", null, "pa.author", "Name")).render();
+  (new MultiLineInput(this.document, "Textbox", null, "pa.text", "Lauftext", 2)).render();
+  (new SingleLineInput(this.document, "Pagina", null, "pa.pagina", "Zahl")).render();
+  (new SingleLineInput(this.document, "Seiten Layout", null, "pa.layout", "Zahl")).render();
+  (new SingleLineInput(this.document, "Seiten Total", null, "pa.total", "Summe")).render();
+  (new SingleLineInput(this.document, "Online", null, "pa.tags", "Liste-Tag")).render();
+  (new SingleLineInput(this.document, "Visual", null, "pa.visual", "x-Liste")).render();
+  (new SingleLineInput(this.document, "Region", null, "pa.region", "x-Liste")).render();
+  (new SingleLineInput(this.document, "Saison", null, "pa.season", "x-Liste")).render();
+  (new SingleLineInput(this.document, "Name", null, "pa.onsite.name", "")).render();
+  (new MultiLineInput(this.document, "Telefon.Mail.Webseite", null, "pa.onsite.social", "", 2)).render();
+  (new MultiLineInput(this.document, "Adresse", null, "pa.onsite.address", "", 2)).render();
+  (new SingleLineInput(this.document, "Format", null, "pa.onsite.format", "Beispiel: A4")).render();
+  (new SingleLineInput(this.document, "Platzierung", null, "pa.onsite.placement", "")).render();
+  (new MultiLineInput(this.document, "Notiz", null, "pa.onsite.notes", "", 2)).render();
+  (new SingleLineInput(this.document, "Preis CHF", null, "pa.onsite.price", "")).render();
+  (new SingleLineInput(this.document, "Total CHF", null, "pa.onsite.total", "", !0)).render();
 };
 ArtikelController.prototype.getData = function(a, b) {
   return 1 === this.document.getElementsByName(b + "_data").length ? this.document.getElementsByName(b + "_data")[0].value : a && a.options && a.options[b + "_data"] ? a.options[b + "_data"] : "";

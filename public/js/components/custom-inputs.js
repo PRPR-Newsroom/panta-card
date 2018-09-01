@@ -17,6 +17,7 @@ class PInput {
         let input = this._document.createElement(this._type);
         input.setAttribute("name", this._name);
         input.placeholder = this._placeholder;
+        input.setAttribute("title", this._label);
         if (this._value) {
             input.value = this._value;
             if (this._type === 'textarea') {

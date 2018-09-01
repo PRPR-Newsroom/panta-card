@@ -1,4 +1,4 @@
 #!/bin/sh
 
 
-docker run -it --rm --name trello-poc -v "$PWD":/usr/src/app -w /usr/src/app -p 8443:8443 trello-poc
+docker run -d --rm --name panta-card-dev -v "$PWD":/usr/src/app -w /usr/src/app -p 8443:8443 panta-card-dev
