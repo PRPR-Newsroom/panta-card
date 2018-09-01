@@ -1,0 +1,165 @@
+html, body {
+    background-color: #EFF0F0;
+}
+
+input, textarea {
+    background: #edeff0;
+    min-height: 32px;
+}
+
+/*.col-2.tab {*/
+    /*padding-right: 0.1em;*/
+    /*padding-left: 0.1em;*/
+/*}*/
+
+.tab span {
+    background-color: #A7A7A6;
+    margin: 0.1em;
+    padding: 0.1em 0.15em;
+    display: block;
+    border-bottom: 0.2em solid transparent;
+    font-weight: 600;
+    font-size: 1.1em;
+}
+
+.tab.content span {
+    border-bottom: 0.2em solid #F68712;
+}
+.tab:first-child span {
+    margin-left: 0px;
+}
+
+.navigation-bar {
+    margin-left: 0px;
+    margin-right: 0px;
+}
+.navigation-bar .tab {
+    padding: 0.1em;
+}
+
+.tab:first-child {
+    padding-left: 0px;
+}
+
+input[type="text"] {
+    padding: 1.5rem 0.5em 0.5em 0.5em;
+}
+
+label {
+    color: #57C9F5;
+    pointer-events: none;
+}
+
+textarea, input {
+    color: #F266B9;
+    padding-top: 1rem;
+    padding-left: 0.5em;
+    margin-bottom: 0em;
+}
+
+.field {
+    display: flex;
+    flex-flow: column-reverse;
+}
+
+.field input, .field textarea {
+    margin-bottom: 0.5em;
+    margin-top: -22px;
+}
+
+input + label, textarea + label {
+    /*input + label, textarea + label {*/
+    cursor: text;
+    max-width: 66.66%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    z-index: 100;
+    padding-left: 0.5em;
+}
+
+.col-6:first-child, .col-9:first-child {
+    padding-right: 2px;
+}
+.col-6:last-child, .col-3:last-child {
+    padding-left: 2px;
+}
+
+
+
+/*!***/
+/** Add a transition to the label and input.*/
+/** I'm not even sure that touch-action: manipulation works on*/
+/** inputs, but hey, it's new and cool and could remove the*/
+/** pesky delay.*/
+/**!*/
+/*label, input, textarea {*/
+/*transition: all 0.2s;*/
+/*touch-action: manipulation;*/
+/*}*/
+
+/*input, textarea {*/
+/*font-size: 1.5em;*/
+/*border: 0;*/
+/*border-bottom: 1px solid #ccc;*/
+/*font-family: inherit;*/
+/*-webkit-appearance: none;*/
+/*border-radius: 0;*/
+/*padding: 0;*/
+/*cursor: text;*/
+/*}*/
+
+/*input:focus, textarea:focus {*/
+/*outline: 0;*/
+/*border-bottom: 1px solid #666;*/
+/*}*/
+
+/*label {*/
+/*letter-spacing: 0.05em;*/
+/*}*/
+/*!***/
+/** Translate down and scale the label up to cover the placeholder,*/
+/** when following an input (with placeholder-shown support).*/
+/** Also make sure the label is only on one row, at max 2/3rds of the*/
+/** field—to make sure it scales properly and doesn't wrap.*/
+/**!*/
+/*input:placeholder-shown + label, textarea:placeholder-shown + label {*/
+/*!*input + label, textarea + label {*!*/
+/*cursor: text;*/
+/*max-width: 66.66%;*/
+/*white-space: nowrap;*/
+/*overflow: hidden;*/
+/*text-overflow: ellipsis;*/
+/*transform-origin: left bottom;*/
+/*transform: translate(0, 2.125rem) scale(1.5);*/
+/*}*/
+/*!***/
+/** By default, the placeholder should be transparent. Also, it should*/
+/** inherit the transition.*/
+/**!*/
+/*::-webkit-input-placeholder {*/
+/*opacity: 0;*/
+/*transition: inherit;*/
+/*}*/
+/*!***/
+/** Show the placeholder when the input is focused.*/
+/**!*/
+/*input:focus::-webkit-input-placeholder, textarea:focus::-webkit-input-placeholder {*/
+/*opacity: 1;*/
+/*}*/
+/*!***/
+/** When the element is focused, remove the label transform.*/
+/** Also, do this when the placeholder is _not_ shown, i.e. when*/
+/** there's something in the input at all.*/
+/**!*/
+/*input:not(:placeholder-shown) + label,*/
+/*input:focus + label {*/
+/*transform: translate(0, 0) scale(1);*/
+/*cursor: pointer;*/
+/*}*/
+
+/*textarea:not(:placeholder-shown) + label,*/
+/*textarea:focus + label {*/
+/*transform: translate(0, 0) scale(1);*/
+/*cursor: pointer;*/
+/*}*/

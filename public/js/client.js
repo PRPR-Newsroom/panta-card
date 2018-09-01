@@ -33,7 +33,7 @@ TrelloPowerUp.initialize({
                         }
                         badges.push({
                             text: count,
-                            icon: './assets/ic_involved.png'
+                            icon: './assets/ic_beteiligt.png'
                         });
                     }
                     if (artikel.saldo) {
@@ -54,15 +54,16 @@ TrelloPowerUp.initialize({
             })
     },
     'card-back-section': function(t, opts) {
-        return {
-            title: 'panta.Artikel',
-            icon: './assets/ic_pantarhei.png',
+        // Your Power-Up can have only one card back section and a maximum height of 500 pixels.
+        return [{
+            title: 'Artikel',
+            icon: './assets/ic_artikel.png',
             content: {
                 type: 'iframe',
                 url: t.signUrl('./artikel.html', {}),
                 height: 500 // Max height is 500
             }
-        }
+        }]
     },
     'list-sorters': function(t) {
         var cards;

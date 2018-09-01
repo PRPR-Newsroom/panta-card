@@ -13,6 +13,8 @@ ENV NODE_ENV production
 RUN npm -q install
 
 COPY . $APPDIR
+COPY key.pem $APPDIR
+COPY cert.pem $APPDIR
 RUN chown -R nobody:nogroup $APPDIR && chmod -R a-w $APPDIR && ls -ld
 
 # Certs
@@ -24,5 +26,4 @@ USER nobody
 # Ports > 1024 since we're not root.
 EXPOSE 8888 8443 5001
 
-ENTRYPOINT ["node"]
-CMD ["./server.js"]
+CMD ["npm", "start"]

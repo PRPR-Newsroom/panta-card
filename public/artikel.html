@@ -2,110 +2,111 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>panta.Artikel</title>
-    <link rel="stylesheet" href="https://p.trellocdn.com/power-up.min.css" />
-    <style>
-        html, body {
-            background-color: #FFFBAB;
-        }
-        * {
-            box-sizing: border-box;
-        }
-        h2 {
-            padding: 4px;
-        }
-        .row {
-            padding: 4px;
-            display: flex;
-        }
-        .row::after {
-            content: "";
-            clear: both;
-            display: table;
-        }
-        [class*="col-"] {
-            float: left;
-            padding: 2px;
-        }
-        .col-1 {width: 8.33%;}
-        .col-2 {width: 16.66%;}
-        .col-3 {width: 25%;}
-        .col-4 {width: 33.33%;}
-        .col-5 {width: 41.66%;}
-        .col-6 {width: 50%;}
-        .col-7 {width: 58.33%;}
-        .col-8 {width: 66.66%;}
-        .col-9 {width: 75%;}
-        .col-10 {width: 83.33%;}
-        .col-11 {width: 91.66%;}
-        .col-12 {width: 100%;}
-
-        textarea {
-            overflow: hidden; word-wrap: break-word; resize: none; height: 108px;
-        }
-    </style>
+    <title>Artikel</title>
+    <link rel="stylesheet" href="https://p.trellocdn.com/power-up.min.css"/>
+    <link rel="stylesheet" href="/css/bootstrap-grid.css"/>
+    <link rel="stylesheet" href="/css/panta.css"/>
 </head>
 <body>
-    <form id="panta.artikel">
-        <div class="row">
-            <div class="col-6"><textarea name="thema" placeholder="Thema" style="height: 100%;margin-bottom: 2px"></textarea></div>
-            <div class="col-6">
-                <div class="row">
-                    <div class="col-4"><textarea name="pagina" placeholder="Pagina"></textarea></div>
-                    <div class="col-4"><textarea name="page_layout" placeholder="Seitem im Layout"></textarea></div>
-                    <div class="col-4"><textarea name="page_total" placeholder="Seiten Total"></textarea></div>
-                </div>
-                <div class="row">
-                    <div class="col-8"><textarea name="textbox" placeholder="Textbox"></textarea></div>
-                    <div class="col-4"><textarea name="unnamed" placeholder=""></textarea></div>
-                </div>
-                <div class="row">
-                    <div class="col-4"><textarea name="region" placeholder="Region"></textarea></div>
-                    <div class="col-4"><textarea name="season" placeholder="Saison"></textarea></div>
-                    <div class="col-4"><textarea name="char_count" placeholder="Zeichenzahl"></textarea></div>
+<form id="panta.artikel" autocomplete="off">
+    <div class="row">
+        <div class="col-9">
+            <div class="row">
+                <div class="col-12">
+                    <div id="pa.topic"></div>
                 </div>
             </div>
-            <div class="clear"></div>
+            <div class="row">
+                <div class="col-6">
+                    <div id="pa.input-from"></div>
+                </div>
+                <div class="col-6">
+                    <div id="pa.author"></div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div id="pa.text"></div>
+                </div>
+            </div>
         </div>
+        <div class="col-3">
+            <div id="pa.pagina"></div>
+            <div id="pa.layout"></div>
+            <div id="pa.total"></div>
+            <div id="pa.tags"></div>
+            <div id="pa.visual"></div>
+            <div id="pa.region"></div>
+            <div id="pa.season"></div>
+        </div>
+    </div>
 
-        <hr/>
-        <h2>panta.Involved</h2>
-        <div class="row">
-            <div class="col-2" onclick="showTab('onsite')"><input type="checkbox" name="option_onsite"/> Vor Ort</div>
-            <div class="col-2" onclick="showTab('text')"><input type="checkbox" name="option_text"/> Text</div>
-            <div class="col-2" onclick="showTab('photo')"><input type="checkbox" name="option_photo"/> Foto</div>
-            <div class="col-2"><input type="checkbox" name="option_video"/> Video</div>
-            <div class="col-2"><input type="checkbox" name="option_illu"/> Illu</div>
-            <div class="col-2"><input type="checkbox" name="option_pubs"/> Inserat</div>
+    <!-- because we can only have one card-back-section per power-up we implement the panta.Beteiligt
+    on this page -->
+    <div class="row">
+        <div class="col-12">
+            <h3>Beteiligt</h3>
         </div>
-        <div class="row" id="tab-content">
-            <div class="col-12">Inhalt für das ausgewählte Tab</div>
-        </div>
+    </div>
+    <div class="row navigation-bar">
+        <div class="col-2 tab"><span>vor Ort</span></div>
+        <div class="col-2 tab content"><span>Text</span></div>
+        <div class="col-2 tab"><span>Foto</span></div>
+        <div class="col-2 tab"><span>Video</span></div>
+        <div class="col-2 tab"><span>Illu.Grafik</span></div>
+        <div class="col-2 tab"><span>Inserat</span></div>
+    </div>
 
-        <hr/>
-        <h2>panta.Saldo</h2>
-        <div class="row">
-            <div class="col-2"></div>
-            <div class="col-2"><input type="checkbox" name="saldo_text"/> Text</div>
-            <div class="col-2"><input type="checkbox" name="saldo_photo"/> Foto</div>
-            <div class="col-2"><input type="checkbox" name="saldo_video"/> Video</div>
-            <div class="col-2"><input type="checkbox" name="saldo_illu"/> Illu</div>
-            <div class="col-2"><input type="checkbox" name="saldo_pubs"/> Inserat</div>
+    <div class="row">
+        <div class="col-6">
+            <div class="row">
+                <div class="col-12">
+                    <div id="pa.onsite.name"></div>
+                </div>
+                <div class="col-12">
+                    <div id="pa.onsite.social"></div>
+                </div>
+                <div class="col-12">
+                    <div id="pa.onsite.address"></div>
+                </div>
+            </div>
         </div>
-        <div class="row" id="saldo-tab-content">
-            <div class="col-12">Inhalt für das ausgewählte Tab (Saldo)</div>
+        <div class="col-6">
+            <div class="row">
+                <div class="col-6">
+                    <div id="pa.onsite.format"></div>
+                </div>
+                <div class="col-6">
+                    <div id="pa.onsite.placement"></div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div id="pa.onsite.notes"></div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6">
+                    <div id="pa.onsite.price"></div>
+                </div>
+                <div class="col-6">
+                    <div id="pa.onsite.total"></div>
+                </div>
+            </div>
         </div>
+    </div>
 
-        <div class="row">
-            <button type="button" id="bt_save" name="save" class="mod-primary">Speichern</button>
+<!--    <div class="row">
+        &lt;!&ndash;<button type="button" id="bt_save" name="save" class="mod-primary">Speichern</button>&ndash;&gt;
+        <div class="col-12">
             <button type="button" id="bt_delete" name="delete" class="mod-danger">Löschen</button>
         </div>
+    </div>-->
 
-        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-        <script src="https://p.trellocdn.com/power-up.min.js"></script>
-
-        <script src="/js/artikel.js"></script>
-    </form>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://p.trellocdn.com/power-up.min.js"></script>
+    <script src="/bin/panta.js"></script>
+</form>
 
 </body>
 </html>
