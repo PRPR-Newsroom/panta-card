@@ -1,7 +1,7 @@
 class JsonSerialization {
 
     serialize(obj) {
-        if (obj === null) {
+        if (obj == null) {
             return null;
         }
         let serialized = {};
