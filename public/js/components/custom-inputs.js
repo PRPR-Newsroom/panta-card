@@ -2,9 +2,9 @@ class PInput {
 
     constructor(document, label, value, targetId, placeholder, type, readonly) {
         this._document = document;
-        this._label = label;
+        this._label = (label.length === 0 ? "" : label);
         this._value = value;
-        this._name = "name_" + this._label;
+        this._name = "name_" + targetId;
         this._target = this._document.getElementById(targetId);
         this._type = type;
         this._placeholder = placeholder;
@@ -13,7 +13,7 @@ class PInput {
 
     render() {
         let container = this._document.createElement("div");
-        container.setAttribute("class", "field");
+
         let input = this._document.createElement(this._type);
         input.setAttribute("name", this._name);
         input.placeholder = this._placeholder;
@@ -38,6 +38,12 @@ class PInput {
         label.setAttribute("for", input.getAttribute("name"));
         container.appendChild(input);
         container.appendChild(label);
+
+        if (this._label.length === 0) {
+            container.setAttribute("class", "field hidden");
+        } else {
+            container.setAttribute("class", "field");
+        }
 
         this._target.appendChild(container);
     }

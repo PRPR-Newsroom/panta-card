@@ -50,18 +50,16 @@ $jscomp.getGlobal = function(a) {
 $jscomp.global = $jscomp.getGlobal(this);
 var PInput = function(a, b, c, d, e, f, g) {
   this._document = a;
-  this._label = b;
+  this._label = 0 === b.length ? "" : b;
   this._value = c;
-  this._name = "name_" + this._label;
+  this._name = "name_" + d;
   this._target = this._document.getElementById(d);
   this._type = f;
   this._placeholder = e;
   this._readonly = g;
 };
 PInput.prototype.render = function() {
-  var a = this._document.createElement("div");
-  a.setAttribute("class", "field");
-  var b = this._document.createElement(this._type);
+  var a = this._document.createElement("div"), b = this._document.createElement(this._type);
   b.setAttribute("name", this._name);
   b.placeholder = this._placeholder;
   b.setAttribute("title", this._label);
@@ -74,6 +72,7 @@ PInput.prototype.render = function() {
   c.setAttribute("for", b.getAttribute("name"));
   a.appendChild(b);
   a.appendChild(c);
+  0 === this._label.length ? a.setAttribute("class", "field hidden") : a.setAttribute("class", "field");
   this._target.appendChild(a);
 };
 PInput.prototype.custom = function(a) {
@@ -109,6 +108,8 @@ ArtikelController.prototype.render = function(a) {
   (new SingleLineInput(this.document, "Visual", null, "pa.visual", "x-Liste")).render();
   (new SingleLineInput(this.document, "Region", null, "pa.region", "x-Liste")).render();
   (new SingleLineInput(this.document, "Saison", null, "pa.season", "x-Liste")).render();
+  (new SingleLineInput(this.document, "", null, "pa.additional.1", "", !0)).render();
+  (new SingleLineInput(this.document, "", null, "pa.additional.2", "", !0)).render();
   (new SingleLineInput(this.document, "Name", null, "pa.onsite.name", "")).render();
   (new MultiLineInput(this.document, "Telefon.Mail.Webseite", null, "pa.onsite.social", "", 2)).render();
   (new MultiLineInput(this.document, "Adresse", null, "pa.onsite.address", "", 2)).render();

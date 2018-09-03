@@ -53,6 +53,8 @@ class ArtikelController {
         new SingleLineInput(this.document, "Visual", null, "pa.visual", "x-Liste").render();
         new SingleLineInput(this.document, "Region", null, "pa.region", "x-Liste").render();
         new SingleLineInput(this.document, "Saison", null, "pa.season", "x-Liste").render();
+        new SingleLineInput(this.document, "", null, "pa.additional.1", "", true).render();
+        new SingleLineInput(this.document, "", null, "pa.additional.2", "", true).render();
 
         // beteiligt: onsite
         new SingleLineInput(this.document, "Name", null, "pa.onsite.name", "").render();
