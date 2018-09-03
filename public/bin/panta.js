@@ -251,7 +251,7 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {from:{configurable:!0
 var JsonSerialization = function() {
 };
 JsonSerialization.prototype.serialize = function(a) {
-  if (null === a) {
+  if (null == a) {
     return null;
   }
   var b = {}, c = this.getAllProperties(a), d;
