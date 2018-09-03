@@ -138,7 +138,7 @@ TrelloPowerUp.initialize({
 
 function GET(path) {
     return new Promise(function (resolve, reject) {
-        var xhr = new XMLHttpRequest;
+        let xhr = new XMLHttpRequest;
         xhr.addEventListener("error", reject);
         xhr.onload = function () {
             if (this.status >= 200 && this.status < 300) {

@@ -1,7 +1,7 @@
-let btSave = document.getElementById("bt_save");
+// let btSave = document.getElementById("bt_save");
 let btDelete = document.getElementById("bt_delete");
 let t = TrelloPowerUp.iframe();
-let articleController = new ArtikelController(document);
+
 if (btDelete) {
     btDelete.addEventListener('click', function (event) {
         event.preventDefault();
@@ -37,9 +37,14 @@ function showTab(what) {
 //     return t.set('card', 'shared', ArtikelController.SHARED_NAME, articleController.getArtikel());
 // });
 
+let articleController = new ArtikelController(document, t);
+let om = new JsonSerialization();
+
 t.render(function () {
     return t.get('card', 'shared', ArtikelController.SHARED_NAME)
-        .then(function (artikel) {
+        .then(function (jsonobj) {
+            let artikel = new Artikel();
+            om.deserialize(om.serialize(jsonobj), artikel);
             articleController.render(artikel);
         })
         .then(function () {

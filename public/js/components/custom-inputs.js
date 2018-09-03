@@ -9,34 +9,48 @@ class PInput {
         this._type = type;
         this._placeholder = placeholder;
         this._readonly = readonly;
+        this._onchange = function() {};
+        this._input = this._document.createElement(this._type);
+        this._property = null;
+    }
+
+    bind(entity, property) {
+        this._entity = entity;
+        this._property = property;
+        this._value = entity[property];
+        return this;
+    }
+
+    update() {
+        this._input.value = this.getValue();
+        return this;
     }
 
     render() {
         let container = this._document.createElement("div");
 
-        let input = this._document.createElement(this._type);
-        input.setAttribute("name", this._name);
-        input.placeholder = this._placeholder;
-        input.setAttribute("title", this._label);
+        this._input.setAttribute("name", this._name);
+        this._input.placeholder = this._placeholder;
+        this._input.setAttribute("title", this._label);
         if (this._value) {
-            input.value = this._value;
+            this._input.value = this._value;
             if (this._type === 'textarea') {
-                input.appendChild(this._document.createTextNode(this._value));
+                this._input.appendChild(this._document.createTextNode(this._value));
             }
         }
         if (this._type === 'input') {
-            input.setAttribute("type", "text");
+            this._input.setAttribute("type", "text");
         }
         if (this._readonly) {
-            input.setAttribute("readonly", "readonly");
+            this._input.setAttribute("readonly", "readonly");
         }
 
-        this.custom(input);
+        this.doCustomization(this._input);
 
         let label = this._document.createElement("label");
         label.appendChild(this._document.createTextNode(this._label));
-        label.setAttribute("for", input.getAttribute("name"));
-        container.appendChild(input);
+        label.setAttribute("for", this._input.getAttribute("name"));
+        container.appendChild(this._input);
         container.appendChild(label);
 
         if (this._label.length === 0) {
@@ -46,10 +60,35 @@ class PInput {
         }
 
         this._target.appendChild(container);
+        return this;
     }
 
-    custom(element) {
+    onChange(func, ctx) {
+        let that = this;
+        this._input.onchange = function() {
+            func(that, ctx);
+        };
+        return this;
+    }
 
+    doCustomization(element) {
+
+    }
+
+    getValue() {
+        return this._input.value;
+    }
+
+    getBoundProperty() {
+        return this._property;
+    }
+
+    getBinding() {
+        return this._entity;
+    }
+
+    setProperty() {
+        this._entity[this.getBoundProperty()] = this.getValue();
     }
 }
 
@@ -61,9 +100,9 @@ class MultiLineInput extends PInput {
     }
 
 
-    custom(element) {
+    doCustomization(element) {
         element.setAttribute("rows", this._rows);
-        return super.custom(element);
+        return super.doCustomization(element);
     }
 }
 

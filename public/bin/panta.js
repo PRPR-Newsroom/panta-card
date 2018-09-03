@@ -57,67 +57,94 @@ var PInput = function(a, b, c, d, e, f, g) {
   this._type = f;
   this._placeholder = e;
   this._readonly = g;
+  this._onchange = function() {
+  };
+  this._input = this._document.createElement(this._type);
+  this._property = null;
+};
+PInput.prototype.bind = function(a, b) {
+  this._entity = a;
+  this._property = b;
+  this._value = a[b];
+  return this;
+};
+PInput.prototype.update = function() {
+  this._input.value = this.getValue();
+  return this;
 };
 PInput.prototype.render = function() {
-  var a = this._document.createElement("div"), b = this._document.createElement(this._type);
-  b.setAttribute("name", this._name);
-  b.placeholder = this._placeholder;
-  b.setAttribute("title", this._label);
-  this._value && (b.value = this._value, "textarea" === this._type && b.appendChild(this._document.createTextNode(this._value)));
-  "input" === this._type && b.setAttribute("type", "text");
-  this._readonly && b.setAttribute("readonly", "readonly");
-  this.custom(b);
-  var c = this._document.createElement("label");
-  c.appendChild(this._document.createTextNode(this._label));
-  c.setAttribute("for", b.getAttribute("name"));
+  var a = this._document.createElement("div");
+  this._input.setAttribute("name", this._name);
+  this._input.placeholder = this._placeholder;
+  this._input.setAttribute("title", this._label);
+  this._value && (this._input.value = this._value, "textarea" === this._type && this._input.appendChild(this._document.createTextNode(this._value)));
+  "input" === this._type && this._input.setAttribute("type", "text");
+  this._readonly && this._input.setAttribute("readonly", "readonly");
+  this.doCustomization(this._input);
+  var b = this._document.createElement("label");
+  b.appendChild(this._document.createTextNode(this._label));
+  b.setAttribute("for", this._input.getAttribute("name"));
+  a.appendChild(this._input);
   a.appendChild(b);
-  a.appendChild(c);
   0 === this._label.length ? a.setAttribute("class", "field hidden") : a.setAttribute("class", "field");
   this._target.appendChild(a);
+  return this;
 };
-PInput.prototype.custom = function(a) {
+PInput.prototype.onChange = function(a, b) {
+  var c = this;
+  this._input.onchange = function() {
+    a(c, b);
+  };
+  return this;
+};
+PInput.prototype.doCustomization = function(a) {
+};
+PInput.prototype.getValue = function() {
+  return this._input.value;
+};
+PInput.prototype.getBoundProperty = function() {
+  return this._property;
+};
+PInput.prototype.getBinding = function() {
+  return this._entity;
+};
+PInput.prototype.setProperty = function() {
+  this._entity[this.getBoundProperty()] = this.getValue();
 };
 var MultiLineInput = function(a, b, c, d, e, f, g) {
   PInput.call(this, a, b, c, d, e, "textarea", !!g);
   this._rows = f;
 };
 $jscomp.inherits(MultiLineInput, PInput);
-MultiLineInput.prototype.custom = function(a) {
+MultiLineInput.prototype.doCustomization = function(a) {
   a.setAttribute("rows", this._rows);
-  return PInput.prototype.custom.call(this, a);
+  return PInput.prototype.doCustomization.call(this, a);
 };
 var SingleLineInput = function(a, b, c, d, e, f) {
   PInput.call(this, a, b, c, d, e, "input", !!f);
 };
 $jscomp.inherits(SingleLineInput, PInput);
-var ArtikelController = function(a) {
+var ArtikelController = function(a, b) {
   this.document = a;
+  this.trelloApi = b;
+  this._topic = this._entity = null;
 };
 ArtikelController.prototype.getArtikel = function() {
-  return new Artikel(this.document.getElementsByName("thema")[0].value, this.document.getElementsByName("pagina")[0].value, this.document.getElementsByName("page_layout")[0].value, this.document.getElementsByName("page_total")[0].value, null, null, this.document.getElementsByName("region")[0].value, this.document.getElementsByName("season")[0].value, null, this.document.getElementsByName("textbox")[0].value);
+  return new Artikel;
 };
 ArtikelController.prototype.render = function(a) {
-  (new MultiLineInput(this.document, "Thema", null, "pa.topic", "Lauftext", 2)).render();
-  (new SingleLineInput(this.document, "Input von", null, "pa.input-from", "Name")).render();
-  (new SingleLineInput(this.document, "Textautor*in", null, "pa.author", "Name")).render();
-  (new MultiLineInput(this.document, "Textbox", null, "pa.text", "Lauftext", 2)).render();
-  (new SingleLineInput(this.document, "Pagina", null, "pa.pagina", "Zahl")).render();
-  (new SingleLineInput(this.document, "Seiten Layout", null, "pa.layout", "Zahl")).render();
-  (new SingleLineInput(this.document, "Seiten Total", null, "pa.total", "Summe")).render();
-  (new SingleLineInput(this.document, "Online", null, "pa.tags", "Liste-Tag")).render();
-  (new SingleLineInput(this.document, "Visual", null, "pa.visual", "x-Liste")).render();
-  (new SingleLineInput(this.document, "Region", null, "pa.region", "x-Liste")).render();
-  (new SingleLineInput(this.document, "Saison", null, "pa.season", "x-Liste")).render();
-  (new SingleLineInput(this.document, "", null, "pa.additional.1", "", !0)).render();
-  (new SingleLineInput(this.document, "", null, "pa.additional.2", "", !0)).render();
-  (new SingleLineInput(this.document, "Name", null, "pa.onsite.name", "")).render();
-  (new MultiLineInput(this.document, "Telefon.Mail.Webseite", null, "pa.onsite.social", "", 2)).render();
-  (new MultiLineInput(this.document, "Adresse", null, "pa.onsite.address", "", 2)).render();
-  (new SingleLineInput(this.document, "Format", null, "pa.onsite.format", "Beispiel: A4")).render();
-  (new SingleLineInput(this.document, "Platzierung", null, "pa.onsite.placement", "")).render();
-  (new MultiLineInput(this.document, "Notiz", null, "pa.onsite.notes", "", 2)).render();
-  (new SingleLineInput(this.document, "Preis CHF", null, "pa.onsite.price", "")).render();
-  (new SingleLineInput(this.document, "Total CHF", null, "pa.onsite.total", "", !0)).render();
+  this._entity = a ? a : new Artikel;
+  null === this._topic ? (this._topic = (new MultiLineInput(this.document, "Thema", null, "pa.topic", "Lauftext", 2)).bind(this._entity, "topic").onChange(this.putData, this).render(), (new SingleLineInput(this.document, "Input von", null, "pa.input-from", "Name")).bind(this._entity, "from").onChange(this.putData, this).render(), (new SingleLineInput(this.document, "Textautor*in", null, "pa.author", "Name")).bind(this._entity, "author").onChange(this.putData, this).render(), (new MultiLineInput(this.document, 
+  "Textbox", null, "pa.text", "Lauftext", 2)).bind(this._entity, "text").onChange(this.putData, this).render(), (new SingleLineInput(this.document, "Pagina", null, "pa.pagina", "Zahl")).bind(this._entity, "pagina").onChange(this.putData, this).render(), (new SingleLineInput(this.document, "Seiten Layout", null, "pa.layout", "Zahl")).bind(this._entity, "layout").onChange(this.putData, this).render(), (new SingleLineInput(this.document, "Seiten Total", null, "pa.total", "Summe")).bind(this._entity, 
+  "total").onChange(this.putData, this).render(), (new SingleLineInput(this.document, "Online", null, "pa.tags", "Liste-Tag")).bind(this._entity, "tags").onChange(this.putData, this).render(), (new SingleLineInput(this.document, "Visual", null, "pa.visual", "x-Liste")).bind(this._entity, "visual").onChange(this.putData, this).render(), (new SingleLineInput(this.document, "Region", null, "pa.region", "x-Liste")).bind(this._entity, "region").onChange(this.putData, this).render(), (new SingleLineInput(this.document, 
+  "Saison", null, "pa.season", "x-Liste")).bind(this._entity, "season").onChange(this.putData, this).render(), (new SingleLineInput(this.document, "", null, "pa.additional.1", "", !0)).onChange(this.putData, this).render(), (new SingleLineInput(this.document, "", null, "pa.additional.2", "", !0)).onChange(this.putData, this).render(), (new SingleLineInput(this.document, "Name", null, "pa.onsite.name", "")).onChange(this.putData, this).render(), (new MultiLineInput(this.document, "Telefon.Mail.Webseite", 
+  null, "pa.onsite.social", "", 2)).onChange(this.putData, this).render(), (new MultiLineInput(this.document, "Adresse", null, "pa.onsite.address", "", 2)).onChange(this.putData, this).render(), (new SingleLineInput(this.document, "Format", null, "pa.onsite.format", "Beispiel: A4")).onChange(this.putData, this).render(), (new SingleLineInput(this.document, "Platzierung", null, "pa.onsite.placement", "")).onChange(this.putData, this).render(), (new MultiLineInput(this.document, "Notiz", null, "pa.onsite.notes", 
+  "", 2)).onChange(this.putData, this).render(), (new SingleLineInput(this.document, "Preis CHF", null, "pa.onsite.price", "")).render(), (new SingleLineInput(this.document, "Total CHF", null, "pa.onsite.total", "", !0)).render()) : this._topic.update(this._entity);
+};
+ArtikelController.prototype.putData = function(a, b) {
+  a.setProperty();
+  b.trelloApi.set("card", "shared", ArtikelController.SHARED_NAME, a.getBinding());
+  console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue());
 };
 ArtikelController.prototype.getData = function(a, b) {
   return 1 === this.document.getElementsByName(b + "_data").length ? this.document.getElementsByName(b + "_data")[0].value : a && a.options && a.options[b + "_data"] ? a.options[b + "_data"] : "";
@@ -158,20 +185,25 @@ $jscomp.global.Object.defineProperties(Beteiligt.prototype, {onsite:{configurabl
 }, set:function(a) {
   this._publications = a;
 }}});
-var Artikel = function(a, b, c, d, e, f, g, h, k, l) {
+var Artikel = function(a, b, c, d, e, f, g, h, k, l, m) {
   this._topic = a;
-  this._involved = null;
   this._pagina = b;
-  this._layout = c;
-  this._total = d;
-  this._tags = e;
-  this._visual = f;
-  this._region = g;
-  this._season = h;
-  this._author = k;
-  this._text = l;
+  this._from = c;
+  this._involved = null;
+  this._layout = d;
+  this._total = e;
+  this._tags = f;
+  this._visual = g;
+  this._region = h;
+  this._season = k;
+  this._author = l;
+  this._text = m;
 };
-$jscomp.global.Object.defineProperties(Artikel.prototype, {topic:{configurable:!0, enumerable:!0, get:function() {
+$jscomp.global.Object.defineProperties(Artikel.prototype, {from:{configurable:!0, enumerable:!0, get:function() {
+  return this._from;
+}, set:function(a) {
+  this._from = a;
+}}, topic:{configurable:!0, enumerable:!0, get:function() {
   return this._topic;
 }, set:function(a) {
   this._topic = a;
@@ -231,6 +263,7 @@ JsonSerialization.prototype.serialize = function(a) {
 };
 JsonSerialization.prototype.deserialize = function(a, b) {
   var c = this, d = this.getAllProperties(b);
+  console.log(a);
   JSON.parse(a, function(a, f) {
     var e = c.denomalize(a);
     -1 != d.indexOf(e) && (b[a] = f);
@@ -245,7 +278,7 @@ JsonSerialization.prototype.denomalize = function(a) {
 JsonSerialization.prototype.getAllProperties = function(a) {
   return Object.getOwnPropertyNames(a);
 };
-var btSave = document.getElementById("bt_save"), btDelete = document.getElementById("bt_delete"), t = TrelloPowerUp.iframe(), articleController = new ArtikelController(document);
+var btDelete = document.getElementById("bt_delete"), t = TrelloPowerUp.iframe();
 btDelete && btDelete.addEventListener("click", function(a) {
   a.preventDefault();
   return t.remove("card", "shared", ArtikelController.SHARED_NAME).then(function() {
@@ -265,9 +298,12 @@ function showTab(a) {
   }
   b.appendChild(c);
 }
+var articleController = new ArtikelController(document, t), om = new JsonSerialization;
 t.render(function() {
   return t.get("card", "shared", ArtikelController.SHARED_NAME).then(function(a) {
-    articleController.render(a);
+    var b = new Artikel;
+    om.deserialize(om.serialize(a), b);
+    articleController.render(b);
   }).then(function() {
     return t.card("all");
   }).then(function(a) {

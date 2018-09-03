@@ -4,7 +4,9 @@ class Artikel {
      *
      * @param topic Textfeld – Stichwort zum Inhalt immer fix hinterlegt
      * @param pagina Fixe Zahl, entspricht der Seitenzahl = Start des Arikels in einem Projekt. Ist zentral für das SORTIEREN innerhalb der Liste
+     * @param from Input von
      * @param layout Zahlenfeld = Anzahl Seiten dieses Artikels im Layout
+     * @param total Total Anzahl Seiten
      * @param tags ?
      * @param visual ?
      * @param region Beispiele für Dropdown-Felder, nach Projekt anpassbar
@@ -12,11 +14,11 @@ class Artikel {
      * @param author Name des Authors
      * @param text Ein Textfeld für eine kurze Inhaltsangabe
      */
-    constructor(topic, pagina, layout, total, tags, visual, region, season, author, text) {
+    constructor(topic, pagina, from, layout, total, tags, visual, region, season, author, text) {
         this._topic = topic;
         this._pagina = pagina;
+        this._from = from;
         this._involved = null;
-        this._pagina = pagina;
         this._layout = layout;
         this._total = total;
         this._tags = tags;
@@ -25,6 +27,14 @@ class Artikel {
         this._season = season;
         this._author = author;
         this._text = text;
+    }
+
+    get from() {
+        return this._from;
+    }
+
+    set from(value) {
+        this._from = value;
     }
 
     get topic() {
