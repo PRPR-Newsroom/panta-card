@@ -22,6 +22,7 @@ class JsonSerialization {
     deserialize(raw, type) {
         let that = this;
         let properties = this.getAllProperties(type);
+        console.log(raw);
         JSON.parse(raw, function(key, value) {
             let propertyName = that.denomalize(key);
             if (properties.indexOf(propertyName)!=-1) {
