@@ -1,59 +1,125 @@
-class Beteiligt {
+class CommonBeteiligt {
 
-    constructor(onsite, text, photo, video, graphics, publications) {
-        this._onsite = onsite;
-        this._text = text;
-        this._photo = photo;
-        this._video = video;
-        this._graphics = graphics;
-        this._publications = publications;
+    constructor(name, social, address, notes) {
+        this._name = name;
+        this._social = social;
+        this._address = address;
+        this._notes = notes;
     }
 
-    get onsite() {
-        return this._onsite;
+    get name() {
+        return this._name;
     }
 
-    set onsite(value) {
-        this._onsite = value;
+    set name(value) {
+        this._name = value;
     }
 
-    get text() {
-        return this._text;
+    get social() {
+        return this._social;
     }
 
-    set text(value) {
-        this._text = value;
+    set social(value) {
+        this._social = value;
     }
 
-    get photo() {
-        return this._photo;
+    get address() {
+        return this._address;
     }
 
-    set photo(value) {
-        this._photo = value;
+    set address(value) {
+        this._address = value;
     }
 
-    get video() {
-        return this._video;
+    get notes() {
+        return this._notes;
     }
 
-    set video(value) {
-        this._video = value;
+    set notes(value) {
+        this._notes = value;
     }
 
-    get graphics() {
-        return this._graphics;
+    isEmpty() {
+        return !this.name && !this.social && !this.address && !this.notes;
+    }
+}
+
+class OtherBeteiligt extends CommonBeteiligt {
+
+    static create(jsonObj) {
+        return new OtherBeteiligt(
+            JsonSerialization.getProperty(jsonObj, 'name'),
+            JsonSerialization.getProperty(jsonObj, 'social'),
+            JsonSerialization.getProperty(jsonObj, 'address'),
+            JsonSerialization.getProperty(jsonObj, 'notes'),
+            JsonSerialization.getProperty(jsonObj, 'duedate')
+        )
     }
 
-    set graphics(value) {
-        this._graphics = value;
+    constructor(name, social, address, notes, duedate) {
+        super(name, social, address, notes);
+        this._duedate = duedate;
     }
 
-    get publications() {
-        return this._publications;
+    get duedate() {
+        return this._duedate;
     }
 
-    set publications(value) {
-        this._publications = value;
+    set duedate(value) {
+        this._duedate = value;
+    }
+
+    isEmpty() {
+        return super.isEmpty() && !this.duedate;
+    }
+}
+
+class AdBeteiligt extends CommonBeteiligt {
+
+    static create(jsonObj) {
+        return new AdBeteiligt(
+            JsonSerialization.getProperty(jsonObj, 'name'),
+            JsonSerialization.getProperty(jsonObj, 'social'),
+            JsonSerialization.getProperty(jsonObj, 'address'),
+            JsonSerialization.getProperty(jsonObj, 'notes'),
+            JsonSerialization.getProperty(jsonObj, 'format'),
+            JsonSerialization.getProperty(jsonObj, 'placement'),
+            JsonSerialization.getProperty(jsonObj, 'price')
+        )
+    }
+
+    constructor(name, social, address, notes, format, placement, price) {
+        super(name, social, address, notes);
+        this._format = format;
+        this._placement = placement;
+        this._price = price;
+    }
+
+    get format() {
+        return this._format;
+    }
+
+    set format(value) {
+        this._format = value;
+    }
+
+    get placement() {
+        return this._placement;
+    }
+
+    set placement(value) {
+        this._placement = value;
+    }
+
+    get price() {
+        return this._price;
+    }
+
+    set price(value) {
+        this._price = value;
+    }
+
+    isEmpty() {
+        return super.isEmpty() && !this.format && !this.placement && !this.price;
     }
 }

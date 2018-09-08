@@ -1,5 +1,25 @@
 class Artikel {
 
+    static create(json) {
+        let artikel = new Artikel(
+            JsonSerialization.getProperty(json, 'topic'),
+            JsonSerialization.getProperty(json, 'pagina'),
+            JsonSerialization.getProperty(json, 'from'),
+            JsonSerialization.getProperty(json, 'layout'),
+            JsonSerialization.getProperty(json, 'total'),
+            JsonSerialization.getProperty(json, 'tags'),
+            JsonSerialization.getProperty(json, 'visual'),
+            JsonSerialization.getProperty(json, 'region'),
+            JsonSerialization.getProperty(json, 'season'),
+            JsonSerialization.getProperty(json, 'author'),
+            JsonSerialization.getProperty(json, 'text')
+        );
+        artikel.involved = JsonSerialization.getProperty(json, 'involved');
+        return artikel;
+    }
+
+
+
     /**
      *
      * @param topic Textfeld – Stichwort zum Inhalt immer fix hinterlegt
@@ -18,7 +38,6 @@ class Artikel {
         this._topic = topic;
         this._pagina = pagina;
         this._from = from;
-        this._involved = null;
         this._layout = layout;
         this._total = total;
         this._tags = tags;
@@ -27,6 +46,47 @@ class Artikel {
         this._season = season;
         this._author = author;
         this._text = text;
+        this._involved = {};
+        this.putInvolved('onsite', new OtherBeteiligt());
+        this.putInvolved('text', new OtherBeteiligt());
+        this.putInvolved('photo', new OtherBeteiligt());
+        this.putInvolved('video', new OtherBeteiligt());
+        this.putInvolved('illu', new OtherBeteiligt());
+        this.putInvolved('ad', new AdBeteiligt());
+    }
+
+    getInvolvedFor(name) {
+        return this._involved[name];
+    }
+
+    putInvolved(name, involved) {
+        this._involved[name] = involved;
+    }
+
+    get involved() {
+        return this._involved;
+    }
+
+    set involved(involved) {
+        for (let key in involved) {
+            if (involved.hasOwnProperty(key)) {
+                switch (key) {
+                    case 'onsite':
+                    case 'text':
+                    case 'photo':
+                    case 'video':
+                    case 'illu':
+                        this.putInvolved(key, OtherBeteiligt.create(involved[key]));
+                        break;
+                    case 'ad':
+                        this.putInvolved(key, AdBeteiligt.create(involved[key]));
+                        break;
+                    default:
+                        console.log("Unknown involved part: " + key);
+                        break;
+                }
+            }
+        }
     }
 
     get from() {
@@ -117,11 +177,4 @@ class Artikel {
         this._text = value;
     }
 
-    get involved() {
-        return this._involved;
-    }
-
-    set involved(value) {
-        this._involved = value;
-    }
 }

@@ -5,7 +5,11 @@ class PInput {
         this._label = (label.length === 0 ? "" : label);
         this._value = value;
         this._name = "name_" + targetId;
-        this._target = this._document.getElementById(targetId);
+        if (targetId.startsWith(".", 0)) {
+            this._target = this._document.getElementsByClassName(targetId.substr(1)).item(0);
+        } else {
+            this._target = this._document.getElementById(targetId);
+        }
         this._type = type;
         this._placeholder = placeholder;
         this._readonly = readonly;
@@ -59,7 +63,17 @@ class PInput {
             container.setAttribute("class", "field");
         }
 
-        this._target.appendChild(container);
+        if (this._target instanceof HTMLCollection) {
+            /**
+             * @var HTMLCollection collection
+             */
+            let collection = this._target;
+            for (let i=0;i<collection.length; i++) {
+                collection.item(i).appendChild(container.cloneNode(true));
+            }
+        } else {
+            this._target.appendChild(container);
+        }
         return this;
     }
 
@@ -112,3 +126,27 @@ class SingleLineInput extends PInput {
     }
 }
 
+class SingleSelectInput extends PInput {
+    constructor(document, label, value, targetId, placeholder, readonly) {
+        super(document, label, value, targetId, placeholder, "select", !!readonly);
+        this._options = [];
+    }
+
+    addOption(value, text) {
+        this._options.push({
+            "value": value,
+            "text": text
+        });
+        return this;
+    }
+
+    doCustomization(element) {
+        this._options.forEach(function(item, index) {
+            let opt = document.createElement("option");
+            opt.value = item.value;
+            opt.text = item.text;
+            element.appendChild(opt);
+        });
+        return super.doCustomization(element);
+    }
+}

@@ -43,8 +43,7 @@ let om = new JsonSerialization();
 t.render(function () {
     return t.get('card', 'shared', ArtikelController.SHARED_NAME)
         .then(function (jsonobj) {
-            let artikel = new Artikel();
-            om.deserialize(om.serialize(jsonobj), artikel);
+            let artikel = Artikel.create(jsonobj);
             articleController.render(artikel);
         })
         .then(function () {

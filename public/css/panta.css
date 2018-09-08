@@ -2,7 +2,15 @@ html, body {
     background-color: #EFF0F0;
 }
 
-.field input, .field textarea {
+form {
+    padding-top: 5px;
+}
+
+.before-last-row {
+    margin-bottom: 48px;
+}
+
+.field input, .field textarea, .field select {
     /*background: #edeff0;*/
     background: rgba(0,0,0,.03);
     min-height: 32px;
@@ -10,7 +18,7 @@ html, body {
     box-shadow: inset 0 1px 6px rgba(0,0,0,.1);
 }
 
-.field textarea:focus {
+.field textarea:focus, .field select:focus {
     box-shadow: inset 0 1px 6px rgba(0,0,0,.1);
 }
 
@@ -28,8 +36,9 @@ html, body {
     border-bottom: 0.2em solid #F68712;
 }
 
-.tab.content.selected span {
+.tab.selected span {
     background-color: white;
+    border-bottom: 0.2em solid #F68712;
 }
 
 .tab:first-child span {
@@ -50,11 +59,11 @@ html, body {
     padding-left: 0px;
 }
 
-input[type="text"] {
+input[type="text"], select {
     padding: 1rem 0.5em 0.5em 0.5em;
 }
 
-textarea, input {
+textarea, input, select {
     padding-top: 1rem;
     padding-left: 0.5em;
     margin-bottom: 0.5em;
@@ -65,14 +74,13 @@ textarea, input {
     flex-flow: column-reverse;
 }
 
-.field input, .field textarea {
+.field input, .field textarea, .field select {
     margin-bottom: 0.5em;
-    margin-top: -22px;
+    margin-top: -20px;
 }
 
-input + label, textarea + label {
+input + label, textarea + label, select + label {
     cursor: text;
-    max-width: 66.66%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -81,6 +89,9 @@ input + label, textarea + label {
     font-weight: normal;
     pointer-events: none;
     font-size: 13px;
+    background-color: #E7E9E9;
+    margin: 0px 16px 0px 1px;
+    padding-top: 1px;
 }
 
 .ic-beteiligt {
