@@ -47,13 +47,21 @@ class CommonBeteiligt {
 class OtherBeteiligt extends CommonBeteiligt {
 
     static create(jsonObj) {
-        return new OtherBeteiligt(
-            JsonSerialization.getProperty(jsonObj, 'name'),
-            JsonSerialization.getProperty(jsonObj, 'social'),
-            JsonSerialization.getProperty(jsonObj, 'address'),
-            JsonSerialization.getProperty(jsonObj, 'notes'),
-            JsonSerialization.getProperty(jsonObj, 'duedate')
-        )
+        return this._create(jsonObj);
+    }
+
+    static _create(jsonObj) {
+        if (jsonObj) {
+            return new OtherBeteiligt(
+                JsonSerialization.getProperty(jsonObj, 'name'),
+                JsonSerialization.getProperty(jsonObj, 'social'),
+                JsonSerialization.getProperty(jsonObj, 'address'),
+                JsonSerialization.getProperty(jsonObj, 'notes'),
+                JsonSerialization.getProperty(jsonObj, 'duedate')
+            )
+        } else {
+            return new OtherBeteiligt();
+        }
     }
 
     constructor(name, social, address, notes, duedate) {
@@ -77,15 +85,23 @@ class OtherBeteiligt extends CommonBeteiligt {
 class AdBeteiligt extends CommonBeteiligt {
 
     static create(jsonObj) {
-        return new AdBeteiligt(
-            JsonSerialization.getProperty(jsonObj, 'name'),
-            JsonSerialization.getProperty(jsonObj, 'social'),
-            JsonSerialization.getProperty(jsonObj, 'address'),
-            JsonSerialization.getProperty(jsonObj, 'notes'),
-            JsonSerialization.getProperty(jsonObj, 'format'),
-            JsonSerialization.getProperty(jsonObj, 'placement'),
-            JsonSerialization.getProperty(jsonObj, 'price')
-        )
+        return this._create(jsonObj);
+    }
+
+    static _create(jsonObj) {
+        if (jsonObj) {
+            return new AdBeteiligt(
+                JsonSerialization.getProperty(jsonObj, 'name'),
+                JsonSerialization.getProperty(jsonObj, 'social'),
+                JsonSerialization.getProperty(jsonObj, 'address'),
+                JsonSerialization.getProperty(jsonObj, 'notes'),
+                JsonSerialization.getProperty(jsonObj, 'format'),
+                JsonSerialization.getProperty(jsonObj, 'placement'),
+                JsonSerialization.getProperty(jsonObj, 'price')
+            )
+        } else {
+            return new AdBeteiligt();
+        }
     }
 
     constructor(name, social, address, notes, format, placement, price) {

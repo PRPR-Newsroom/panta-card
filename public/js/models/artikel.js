@@ -1,21 +1,30 @@
 class Artikel {
 
     static create(json) {
-        let artikel = new Artikel(
-            JsonSerialization.getProperty(json, 'topic'),
-            JsonSerialization.getProperty(json, 'pagina'),
-            JsonSerialization.getProperty(json, 'from'),
-            JsonSerialization.getProperty(json, 'layout'),
-            JsonSerialization.getProperty(json, 'total'),
-            JsonSerialization.getProperty(json, 'tags'),
-            JsonSerialization.getProperty(json, 'visual'),
-            JsonSerialization.getProperty(json, 'region'),
-            JsonSerialization.getProperty(json, 'season'),
-            JsonSerialization.getProperty(json, 'author'),
-            JsonSerialization.getProperty(json, 'text')
-        );
-        artikel.involved = JsonSerialization.getProperty(json, 'involved');
+        let artikel = this._create(json);
         return artikel;
+    }
+
+    static _create(json) {
+        if (json) {
+            let artikel = new Artikel(
+                JsonSerialization.getProperty(json, 'topic'),
+                JsonSerialization.getProperty(json, 'pagina'),
+                JsonSerialization.getProperty(json, 'from'),
+                JsonSerialization.getProperty(json, 'layout'),
+                JsonSerialization.getProperty(json, 'total'),
+                JsonSerialization.getProperty(json, 'tags'),
+                JsonSerialization.getProperty(json, 'visual'),
+                JsonSerialization.getProperty(json, 'region'),
+                JsonSerialization.getProperty(json, 'season'),
+                JsonSerialization.getProperty(json, 'author'),
+                JsonSerialization.getProperty(json, 'text')
+            );
+            artikel.involved = JsonSerialization.getProperty(json, 'involved');
+            return artikel;
+        } else {
+            return new Artikel();
+        }
     }
 
 

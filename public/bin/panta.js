@@ -353,7 +353,10 @@ var OtherBeteiligt = function(a, b, c, d, e) {
 };
 $jscomp.inherits(OtherBeteiligt, CommonBeteiligt);
 OtherBeteiligt.create = function(a) {
-  return new OtherBeteiligt(JsonSerialization.getProperty(a, "name"), JsonSerialization.getProperty(a, "social"), JsonSerialization.getProperty(a, "address"), JsonSerialization.getProperty(a, "notes"), JsonSerialization.getProperty(a, "duedate"));
+  return this._create(a);
+};
+OtherBeteiligt._create = function(a) {
+  return a ? new OtherBeteiligt(JsonSerialization.getProperty(a, "name"), JsonSerialization.getProperty(a, "social"), JsonSerialization.getProperty(a, "address"), JsonSerialization.getProperty(a, "notes"), JsonSerialization.getProperty(a, "duedate")) : new OtherBeteiligt;
 };
 OtherBeteiligt.prototype.isEmpty = function() {
   return CommonBeteiligt.prototype.isEmpty.call(this) && !this.duedate;
@@ -371,7 +374,10 @@ var AdBeteiligt = function(a, b, c, d, e, f, g) {
 };
 $jscomp.inherits(AdBeteiligt, CommonBeteiligt);
 AdBeteiligt.create = function(a) {
-  return new AdBeteiligt(JsonSerialization.getProperty(a, "name"), JsonSerialization.getProperty(a, "social"), JsonSerialization.getProperty(a, "address"), JsonSerialization.getProperty(a, "notes"), JsonSerialization.getProperty(a, "format"), JsonSerialization.getProperty(a, "placement"), JsonSerialization.getProperty(a, "price"));
+  return this._create(a);
+};
+AdBeteiligt._create = function(a) {
+  return a ? new AdBeteiligt(JsonSerialization.getProperty(a, "name"), JsonSerialization.getProperty(a, "social"), JsonSerialization.getProperty(a, "address"), JsonSerialization.getProperty(a, "notes"), JsonSerialization.getProperty(a, "format"), JsonSerialization.getProperty(a, "placement"), JsonSerialization.getProperty(a, "price")) : new AdBeteiligt;
 };
 AdBeteiligt.prototype.isEmpty = function() {
   return CommonBeteiligt.prototype.isEmpty.call(this) && !this.format && !this.placement && !this.price;
@@ -411,9 +417,15 @@ var Artikel = function(a, b, c, d, e, f, g, h, k, l, m) {
   this.putInvolved("ad", new AdBeteiligt);
 };
 Artikel.create = function(a) {
-  var b = new Artikel(JsonSerialization.getProperty(a, "topic"), JsonSerialization.getProperty(a, "pagina"), JsonSerialization.getProperty(a, "from"), JsonSerialization.getProperty(a, "layout"), JsonSerialization.getProperty(a, "total"), JsonSerialization.getProperty(a, "tags"), JsonSerialization.getProperty(a, "visual"), JsonSerialization.getProperty(a, "region"), JsonSerialization.getProperty(a, "season"), JsonSerialization.getProperty(a, "author"), JsonSerialization.getProperty(a, "text"));
-  b.involved = JsonSerialization.getProperty(a, "involved");
-  return b;
+  return this._create(a);
+};
+Artikel._create = function(a) {
+  if (a) {
+    var b = new Artikel(JsonSerialization.getProperty(a, "topic"), JsonSerialization.getProperty(a, "pagina"), JsonSerialization.getProperty(a, "from"), JsonSerialization.getProperty(a, "layout"), JsonSerialization.getProperty(a, "total"), JsonSerialization.getProperty(a, "tags"), JsonSerialization.getProperty(a, "visual"), JsonSerialization.getProperty(a, "region"), JsonSerialization.getProperty(a, "season"), JsonSerialization.getProperty(a, "author"), JsonSerialization.getProperty(a, "text"));
+    b.involved = JsonSerialization.getProperty(a, "involved");
+    return b;
+  }
+  return new Artikel;
 };
 Artikel.prototype.getInvolvedFor = function(a) {
   return this._involved[a];
