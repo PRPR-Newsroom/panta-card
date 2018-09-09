@@ -11,7 +11,7 @@ class PForms {
     }
 
     bind(entity, property) {
-        this._entity = entity;
+        this._artikel = entity;
         this._property = property;
         this.valueHolder.data = entity.getInvolvedFor(property);
         return this;

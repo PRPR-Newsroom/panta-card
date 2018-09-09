@@ -38,8 +38,6 @@ function showTab(what) {
 // });
 
 let articleController = new ArtikelController(document, t);
-let om = new JsonSerialization();
-
 t.render(function () {
     return t.get('card', 'shared', ArtikelController.SHARED_NAME)
         .then(function (jsonobj) {
@@ -53,10 +51,9 @@ t.render(function () {
             return t.cards('customFieldItems');
         })
         .then(function (customFields) {
-            console.log(JSON.stringify(customFields));
-            var Promise = window.TrelloPowerUp.Promise;
+            let Promise = window.TrelloPowerUp.Promise;
             return new Promise(function (resolve, reject) {
-                var xhr = new XMLHttpRequest;
+                let xhr = new XMLHttpRequest;
                 xhr.addEventListener("error", reject);
                 xhr.onload = function () {
                     if (this.status >= 200 && this.status < 300) {
@@ -73,14 +70,14 @@ t.render(function () {
             });
         })
         .then(function (data) {
-            var fields = JSON.parse(data);
-            for (var cf in fields) {
-                var name = fields[cf].name;
-                var elname = document.getElementsByName(name);
+            let fields = JSON.parse(data);
+            for (let cf in fields) {
+                let name = fields[cf].name;
+                let elname = document.getElementsByName(name);
                 if (elname && elname[0]) {
-                    var selectname = document.createElement("select");
-                    for (var opt in fields[cf].options) {
-                        var optname = document.createElement("option");
+                    let selectname = document.createElement("select");
+                    for (let opt in fields[cf].options) {
+                        let optname = document.createElement("option");
                         optname.value = fields[cf].options[opt].value.text;
                         optname.appendChild(document.createTextNode(fields[cf].options[opt].value.text));
                         selectname.appendChild(optname);
@@ -88,7 +85,6 @@ t.render(function () {
                     elname[0].style.display = "none";
                     elname[0].parentElement.appendChild(selectname);
                 }
-                console.log("Region: " + JSON.stringify(fields[cf].name));
             }
         })
         .then(function () {

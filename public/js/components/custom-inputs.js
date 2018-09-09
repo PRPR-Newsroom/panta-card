@@ -13,13 +13,12 @@ class PInput {
         this._type = type;
         this._placeholder = placeholder;
         this._readonly = readonly;
-        this._onchange = function() {};
         this._input = this._document.createElement(this._type);
         this._property = null;
     }
 
     bind(entity, property) {
-        this._entity = entity;
+        this._artikel = entity;
         this._property = property;
         this._value = entity[property];
         return this;
@@ -71,7 +70,7 @@ class PInput {
             for (let i=0;i<collection.length; i++) {
                 collection.item(i).appendChild(container.cloneNode(true));
             }
-        } else {
+        } else if (this._target !== null) {
             this._target.appendChild(container);
         }
         return this;
@@ -98,11 +97,11 @@ class PInput {
     }
 
     getBinding() {
-        return this._entity;
+        return this._artikel;
     }
 
     setProperty() {
-        this._entity[this.getBoundProperty()] = this.getValue();
+        this._artikel[this.getBoundProperty()] = this.getValue();
     }
 }
 
@@ -141,10 +140,14 @@ class SingleSelectInput extends PInput {
     }
 
     doCustomization(element) {
-        this._options.forEach(function(item, index) {
+        let that = this;
+        this._options.forEach(function(item, _) {
             let opt = document.createElement("option");
             opt.value = item.value;
             opt.text = item.text;
+            if (item.value === that._value) {
+                opt.setAttribute("selected", "selected");
+            }
             element.appendChild(opt);
         });
         return super.doCustomization(element);
