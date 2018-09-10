@@ -90,6 +90,26 @@ $jscomp.polyfill("String.prototype.startsWith", function(a) {
     return g >= f;
   };
 }, "es6", "es3");
+$jscomp.findInternal = function(a, b, c) {
+  a instanceof String && (a = String(a));
+  for (var d = a.length, e = 0; e < d; e++) {
+    var f = a[e];
+    if (b.call(c, f, e, a)) {
+      return {i:e, v:f};
+    }
+  }
+  return {i:-1, v:void 0};
+};
+$jscomp.polyfill("Array.prototype.findIndex", function(a) {
+  return a ? a : function(a, c) {
+    return $jscomp.findInternal(this, a, c).i;
+  };
+}, "es6", "es3");
+$jscomp.polyfill("Array.prototype.find", function(a) {
+  return a ? a : function(a, c) {
+    return $jscomp.findInternal(this, a, c).v;
+  };
+}, "es6", "es3");
 var PInput = function(a, b, c, d, e, f, g) {
   this._document = a;
   this._label = 0 === b.length ? "" : b;
@@ -99,19 +119,18 @@ var PInput = function(a, b, c, d, e, f, g) {
   this._type = f;
   this._placeholder = e;
   this._readonly = g;
-  this._onchange = function() {
-  };
   this._input = this._document.createElement(this._type);
   this._property = null;
 };
 PInput.prototype.bind = function(a, b) {
-  this._entity = a;
+  this._artikel = a;
   this._property = b;
-  this._value = a[b];
+  this._value = a[b] || 0.0;
   return this;
 };
-PInput.prototype.update = function() {
-  this._input.value = this.getValue();
+PInput.prototype.update = function(a) {
+  this._artikel = a;
+  this._input.value = this._artikel[this.getBoundProperty()];
   return this;
 };
 PInput.prototype.render = function() {
@@ -135,7 +154,7 @@ PInput.prototype.render = function() {
       b.item(c).appendChild(a.cloneNode(!0));
     }
   } else {
-    this._target.appendChild(a);
+    null !== this._target && this._target.appendChild(a);
   }
   return this;
 };
@@ -155,10 +174,10 @@ PInput.prototype.getBoundProperty = function() {
   return this._property;
 };
 PInput.prototype.getBinding = function() {
-  return this._entity;
+  return this._artikel;
 };
 PInput.prototype.setProperty = function() {
-  this._entity[this.getBoundProperty()] = this.getValue();
+  this._artikel[this.getBoundProperty()] = this.getValue();
 };
 var MultiLineInput = function(a, b, c, d, e, f, g) {
   PInput.call(this, a, b, c, d, e, "textarea", !!g);
@@ -183,11 +202,13 @@ SingleSelectInput.prototype.addOption = function(a, b) {
   return this;
 };
 SingleSelectInput.prototype.doCustomization = function(a) {
-  this._options.forEach(function(b, c) {
-    c = document.createElement("option");
-    c.value = b.value;
-    c.text = b.text;
-    a.appendChild(c);
+  var b = this;
+  this._options.forEach(function(c, d) {
+    d = document.createElement("option");
+    d.value = c.value;
+    d.text = c.text;
+    c.value === b._value && d.setAttribute("selected", "selected");
+    a.appendChild(d);
   });
   return PInput.prototype.doCustomization.call(this, a);
 };
@@ -198,13 +219,13 @@ var PForms = function(a, b, c) {
   this.valueHolder = c;
 };
 PForms.prototype.bind = function(a, b) {
-  this._entity = a;
+  this._artikel = a;
   this._property = b;
   this.valueHolder.data = a.getInvolvedFor(b);
   return this;
 };
 PForms.prototype.render = function() {
-  this.update();
+  this.update(this._artikel);
   this.valueHolder.tab.innerHTML = "<span>" + this.label + "</span>";
   var a = this;
   this.valueHolder.tab.addEventListener("click", function(b) {
@@ -212,7 +233,8 @@ PForms.prototype.render = function() {
   });
   return this;
 };
-PForms.prototype.update = function() {
+PForms.prototype.update = function(a) {
+  null !== a && (this.valueHolder.data = a.getInvolvedFor(this._property));
   this.valueHolder.data.isEmpty() ? this.valueHolder.tab.removeClass("content") : this.valueHolder.tab.addClass("content");
   return this;
 };
@@ -221,44 +243,185 @@ PForms.prototype.activate = function() {
   this.valueHolder.tab.addClass("selected");
 };
 // Input 2
+var ArtikelRepository = function() {
+  this._repository = [];
+  this._contains = function(a) {
+    return function(b, c) {
+      return b.id === a.id;
+    };
+  };
+};
+ArtikelRepository.prototype.all = function() {
+  return this._repository;
+};
+ArtikelRepository.prototype.add = function(a) {
+  this._repository.push(a);
+  console.debug("Artikel added: " + a.id + " (size=" + this._repository.length + ")");
+};
+ArtikelRepository.prototype.replace = function(a) {
+  var b = this._repository.findIndex(this._contains(a));
+  -1 !== b ? (this._repository[b] = a, console.debug("Artikel updated: " + a.id + " (size=" + this._repository.length + ")")) : console.debug("Cannot replace artikel because it's not yet in the repo");
+};
+ArtikelRepository.prototype.isNew = function(a) {
+  return null == this._repository.find(this._contains(a));
+};
+// Input 3
 var ArtikelController = function(a, b) {
   this.document = a;
   this.trelloApi = b;
-  this._activated = this._ad = this._illu = this._video = this._photo = this._text = this._onsite = this._topic = this._entity = null;
-  this._involvements = {onsite:this._buildValueHolder("onsite", "pa.involved.onsite", this.onRegularLayout), text:this._buildValueHolder("text", "pa.involved.text", this.onRegularLayout), photo:this._buildValueHolder("photo", "pa.involved.photo", this.onRegularLayout), video:this._buildValueHolder("video", "pa.involved.video", this.onRegularLayout), illu:this._buildValueHolder("illu", "pa.involved.illu", this.onRegularLayout), ad:this._buildValueHolder("ad", "pa.involved.ad", this.onAdLayout)};
+  this._beteiligtBinding = this._artikelBinding = this._artikel = null;
+  this._repository = new ArtikelRepository;
 };
-ArtikelController.prototype._buildValueHolder = function(a, b, c) {
+ArtikelController.prototype.insert = function(a) {
+  a && this._repository.isNew(a) ? this._repository.add(a) : a && this._repository.replace(a);
+};
+ArtikelController.prototype.isManaged = function(a) {
+  return null !== a.id;
+};
+ArtikelController.prototype.manage = function(a) {
+  a.id = uuid();
+  return a;
+};
+ArtikelController.prototype.update = function() {
+  this._artikel.total = this._repository.all().map(function(a, b) {
+    a = parseInt(a.layout);
+    return isNaN(a) ? 0 : a;
+  }).reduce(function(a, b) {
+    return a + b;
+  }, 0);
+  this._artikel.getInvolvedFor("ad").total = this._repository.all().map(function(a, b) {
+    return a.getInvolvedFor("ad");
+  }).filter(function(a, b) {
+    return a instanceof AdBeteiligt && !isNaN(parseFloat(a.price));
+  }).map(function(a, b) {
+    return a.price;
+  }).reduce(function(a, b) {
+    return parseFloat(a) + parseFloat(b);
+  }, 0.0);
+  this._artikelBinding.update(this._artikel);
+  this._beteiligtBinding.update(this._artikel);
+};
+ArtikelController.prototype.render = function(a) {
+  this._artikel = a ? a : Artikel.create();
+  this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._artikel) : (new ArtikelBinding(this.document, this._artikel, this.onArtikelChanged, this)).bind();
+  this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(this._artikel) : (new BeteiligtBinding(this.document, this._artikel, this.onDataInvolvedChanged, this)).bind();
+};
+ArtikelController.prototype.onDataInvolvedChanged = function(a, b) {
+  a.setProperty();
+  var c = b.context, d = b.valueHolder;
+  b = b.artikel;
+  var e = a.getBinding();
+  b.putInvolved(d["involved-in"], e);
+  c._persistArtikel(c.trelloApi, b);
+  console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue());
+};
+ArtikelController.prototype.onArtikelChanged = function(a, b) {
+  a.setProperty();
+  b.context._persistArtikel(b.context.trelloApi, a.getBinding());
+  console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue());
+};
+ArtikelController.prototype._persistArtikel = function(a, b) {
+  a.set("card", "shared", ArtikelController.SHARED_NAME, b);
+};
+$jscomp.global.Object.defineProperties(ArtikelController, {SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.Artikel";
+}}});
+// Input 4
+var ArtikelBinding = function(a, b, c, d) {
+  this.document = a;
+  this._action = c;
+  this._context = d;
+  this._artikel = b;
+};
+ArtikelBinding.prototype.update = function(a) {
+  this._total.update(a);
+  return this;
+};
+ArtikelBinding.prototype.bind = function() {
+  this._topic = (new MultiLineInput(this.document, "Thema", null, "pa.topic", "Lauftext", 2)).bind(this._artikel, "topic").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._from = (new SingleLineInput(this.document, "Input von", null, "pa.input-from", "Name")).bind(this._artikel, "from").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._author = (new SingleLineInput(this.document, "Textautor*in", null, "pa.author", "Name")).bind(this._artikel, "author").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._text = (new MultiLineInput(this.document, "Textbox", null, "pa.text", "Lauftext", 2)).bind(this._artikel, "text").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._pagina = (new SingleLineInput(this.document, "Pagina", null, "pa.pagina", "Zahl")).bind(this._artikel, "pagina").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._layout = (new SingleLineInput(this.document, "Seiten Layout", null, "pa.layout", "Zahl")).bind(this._artikel, "layout").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._total = (new SingleLineInput(this.document, "Seiten Total", null, "pa.total", "Summe", !0)).bind(this._artikel, "total").render();
+  this._tags = (new SingleSelectInput(this.document, "Online", null, "pa.tags", "Liste-Tag")).addOption("monday", "Mo.").addOption("tuesday", "Di.").addOption("wednesday", "Mi.").addOption("thursday", "Do.").addOption("friday", "Fr.").addOption("saturday", "Sa.").addOption("sunday", "So.").bind(this._artikel, "tags").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._visual = (new SingleSelectInput(this.document, "Visual", null, "pa.visual", "x-Liste")).addOption("picture", "Bild").addOption("icon", "Icon").addOption("graphics", "Grafik").addOption("videos", "Video").addOption("illustrations", "Illu").bind(this._artikel, "visual").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._region = (new SingleSelectInput(this.document, "Region", null, "pa.region", "x-Liste")).addOption("nord", "Nord").addOption("south", "S\u00fcd").bind(this._artikel, "region").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._season = (new SingleSelectInput(this.document, "Saison", null, "pa.season", "x-Liste")).addOption("summer", "Sommer").addOption("fall", "Herbst").bind(this._artikel, "season").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  (new SingleLineInput(this.document, "", null, "pa.additional.1", "", !0)).render();
+  (new SingleLineInput(this.document, "", null, "pa.additional.2", "", !0)).render();
+  return this;
+};
+// Input 5
+var BeteiligtBinding = function(a, b, c, d) {
+  this.document = a;
+  this._artikel = b;
+  this._action = c;
+  this._context = d;
+  this._involvements = {onsite:this._buildValueHolder("onsite", "pa.involved.onsite", this.onRegularLayout), text:this._buildValueHolder("text", "pa.involved.text", this.onRegularLayout), photo:this._buildValueHolder("photo", "pa.involved.photo", this.onRegularLayout), video:this._buildValueHolder("video", "pa.involved.video", this.onRegularLayout), illu:this._buildValueHolder("illu", "pa.involved.illu", this.onRegularLayout), ad:this._buildValueHolder("ad", "pa.involved.ad", this.onAdLayout)};
+  this._activated = this._ad = this._illu = this._video = this._photo = this._text = this._onsite = null;
+};
+BeteiligtBinding.prototype._buildValueHolder = function(a, b, c) {
   var d = this;
   return {"involved-in":a, data:null, renderer:function(a) {
     c.call(d, this, a);
-  }, tab:d.document.getElementById(b)};
+  }, tab:d.document.getElementById(b), binding:d};
 };
-ArtikelController.prototype.onAdLayout = function(a, b) {
-  var c = this.document.createElement("div");
-  c.innerHTML = template_ad;
-  c = c.cloneNode(!0);
-  this._switchContent(a, c);
-  (new SingleLineInput(this.document, "Name", null, ".pa.name", "")).bind(b.data, "name").onChange(this.putDataInvolved, {trelloApi:this.trelloApi, valueHolder:b, artikel:this._entity}).render();
-  (new MultiLineInput(this.document, "Telefon.Mail.Webseite", null, ".pa.social", "", 2, !1)).bind(b.data, "social").onChange(this.putDataInvolved, {trelloApi:this.trelloApi, valueHolder:b, artikel:this._entity}).render();
-  (new MultiLineInput(this.document, "Adresse", null, ".pa.address", "", 2, !1)).bind(b.data, "address").onChange(this.putDataInvolved, {trelloApi:this.trelloApi, valueHolder:b, artikel:this._entity}).render();
-  (new SingleLineInput(this.document, "Format", null, ".pa.format", "")).bind(b.data, "format").onChange(this.putDataInvolved, {trelloApi:this.trelloApi, valueHolder:b, artikel:this._entity}).render();
-  (new SingleLineInput(this.document, "Platzierung", null, ".pa.placement", "")).bind(b.data, "placement").onChange(this.putDataInvolved, {trelloApi:this.trelloApi, valueHolder:b, artikel:this._entity}).render();
-  (new MultiLineInput(this.document, "Notiz", null, ".pa.notes", "", 2, !1)).bind(b.data, "notes").onChange(this.putDataInvolved, {trelloApi:this.trelloApi, valueHolder:b, artikel:this._entity}).render();
-  (new SingleLineInput(this.document, "Preis CHF", null, ".pa.price", "")).bind(b.data, "price").onChange(this.putDataInvolved, {trelloApi:this.trelloApi, valueHolder:b, artikel:this._entity}).render();
-  (new SingleLineInput(this.document, "Total CHF", null, ".pa.total", "", !0)).onChange(this.putDataInvolved, {trelloApi:this.trelloApi, valueHolder:b, artikel:this._entity}).render();
+BeteiligtBinding.prototype.update = function(a) {
+  this._activated.activate();
+  this._activated.update(a);
+  this._ad.update(a);
+  return this;
 };
-ArtikelController.prototype.onRegularLayout = function(a, b) {
+BeteiligtBinding.prototype.bind = function() {
+  this._onsite = null !== this._onsite ? this._onsite.update(this._artikel) : this._onsite = (new PForms(this.document, "vor Ort", this._involvements.onsite)).bind(this._artikel, "onsite").render();
+  this._text = null !== this._text ? this._text.update(this._artikel) : this._text = (new PForms(this.document, "Text", this._involvements.text)).bind(this._artikel, "text").render();
+  this._photo = null !== this._photo ? this._photo.update(this._artikel) : this._photo = (new PForms(this.document, "Foto", this._involvements.photo)).bind(this._artikel, "photo").render();
+  this._video = null !== this._video ? this._video.update(this._artikel) : this._video = (new PForms(this.document, "Video", this._involvements.video)).bind(this._artikel, "video").render();
+  this._illu = null !== this._illu ? this._illu.update(this._artikel) : this._illu = (new PForms(this.document, "Illu.Grafik", this._involvements.illu)).bind(this._artikel, "illu").render();
+  this._ad = null !== this._ad ? this._ad.update(this._artikel) : this._ad = (new PForms(this.document, "Inserat", this._involvements.ad)).bind(this._artikel, "ad").render();
+  this._activated = this._onsite;
+  this._activated.activate();
+  return this;
+};
+BeteiligtBinding.prototype.onRegularLayout = function(a, b) {
   var c = this.document.createElement("div");
   c.innerHTML = template_regular;
   c = c.cloneNode(!0);
   this._switchContent(a, c);
-  (new SingleLineInput(this.document, "Name", null, ".pa.name", "")).bind(b.data, "name").onChange(this.putDataInvolved, {trelloApi:this.trelloApi, valueHolder:b, artikel:this._entity}).render();
-  (new MultiLineInput(this.document, "Telefon.Mail.Webseite", null, ".pa.social", "", 2, !1)).bind(b.data, "social").onChange(this.putDataInvolved, {trelloApi:this.trelloApi, valueHolder:b, artikel:this._entity}).render();
-  (new MultiLineInput(this.document, "Adresse", null, ".pa.address", "", 2, !1)).bind(b.data, "address").onChange(this.putDataInvolved, {trelloApi:this.trelloApi, valueHolder:b, artikel:this._entity}).render();
-  (new MultiLineInput(this.document, "Notiz", null, ".pa.notes", "", 5, !1)).bind(b.data, "notes").onChange(this.putDataInvolved, {trelloApi:this.trelloApi, valueHolder:b, artikel:this._entity}).render();
-  (new SingleLineInput(this.document, "Deadline", null, ".pa.duedate", "")).bind(b.data, "duedate").onChange(this.putDataInvolved, {trelloApi:this.trelloApi, valueHolder:b, artikel:this._entity}).render();
+  this.newSingleLineInput(b, ".pa.name", "name", "Name");
+  this.newMultiLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite");
+  this.newMultiLineInput(b, ".pa.address", "address", "Adresse");
+  this.newMultiLineInput(b, ".pa.notes", "notes", "Notiz");
+  this.newSingleLineInput(b, ".pa.duedate", "duedate", "Deadline");
 };
-ArtikelController.prototype._switchContent = function(a, b) {
+BeteiligtBinding.prototype.onAdLayout = function(a, b) {
+  var c = this.document.createElement("div");
+  c.innerHTML = template_ad;
+  c = c.cloneNode(!0);
+  this._switchContent(a, c);
+  this.newSingleLineInput(b, ".pa.name", "name", "Name");
+  this.newMultiLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite");
+  this.newMultiLineInput(b, ".pa.address", "address", "Adresse");
+  this.newSingleLineInput(b, ".pa.format", "format", "Format");
+  this.newSingleLineInput(b, ".pa.placement", "placement", "Platzierung");
+  this.newMultiLineInput(b, ".pa.notes", "notes", "Notiz");
+  this.newSingleLineInput(b, ".pa.price", "price", "Preis CHF");
+  this.newSingleLineInput(b, ".pa.total", "total", "Total CHF", !0);
+};
+BeteiligtBinding.prototype.newMultiLineInput = function(a, b, c, d) {
+  c = void 0 === c ? "social" : c;
+  return (new MultiLineInput(this.document, void 0 === d ? "Telefon.Mail.Webseite" : d, null, void 0 === b ? ".pa.social" : b, "", 2, !1)).bind(a.data, c).onChange(this._action, {context:this._context, valueHolder:a, artikel:this._artikel}).render();
+};
+BeteiligtBinding.prototype.newSingleLineInput = function(a, b, c, d, e) {
+  c = void 0 === c ? null : c;
+  b = new SingleLineInput(this.document, void 0 === d ? "Name" : d, null, void 0 === b ? ".pa.name" : b, "", void 0 === e ? !1 : e);
+  null !== c && b.bind(a.data, c);
+  b.onChange(this._action, {context:this._context, valueHolder:a, artikel:this._artikel}).render();
+  return b;
+};
+BeteiligtBinding.prototype._switchContent = function(a, b) {
   var c = this.document.getElementById("pa.tab.content");
   c.removeChildren();
   this._onsite.valueHolder.tab.removeClass("selected");
@@ -270,57 +433,7 @@ ArtikelController.prototype._switchContent = function(a, b) {
   c.appendChild(b);
   this._activated = a;
 };
-ArtikelController.prototype.render = function(a) {
-  this._entity = a ? a : new Artikel;
-  null == this._topic ? this._doArtikel() : this._topic.update(this._entity);
-  this._doInvolvements();
-  this._activated || (this._activated = this._onsite);
-  this._activated.activate();
-};
-ArtikelController.prototype._doInvolvements = function() {
-  this._onsite = null !== this._onsite ? this._onsite.update() : this._onsite = (new PForms(this.document, "vor Ort", this._involvements.onsite)).bind(this._entity, "onsite").render();
-  this._text = null !== this._text ? this._text.update() : this._text = (new PForms(this.document, "Text", this._involvements.text)).bind(this._entity, "text").render();
-  this._photo = null !== this._photo ? this._photo.update() : this._photo = (new PForms(this.document, "Foto", this._involvements.photo)).bind(this._entity, "photo").render();
-  this._video = null !== this._video ? this._video.update() : this._video = (new PForms(this.document, "Video", this._involvements.video)).bind(this._entity, "video").render();
-  this._illu = null !== this._illu ? this._illu.update() : this._illu = (new PForms(this.document, "Illu.Grafik", this._involvements.illu)).bind(this._entity, "illu").render();
-  this._ad = null !== this._ad ? this._ad.update() : this._ad = (new PForms(this.document, "Inserat", this._involvements.ad)).bind(this._entity, "ad").render();
-};
-ArtikelController.prototype._doArtikel = function() {
-  this._topic = (new MultiLineInput(this.document, "Thema", null, "pa.topic", "Lauftext", 2)).bind(this._entity, "topic").onChange(this.putData, this).render();
-  (new SingleLineInput(this.document, "Input von", null, "pa.input-from", "Name")).bind(this._entity, "from").onChange(this.putData, this).render();
-  (new SingleLineInput(this.document, "Textautor*in", null, "pa.author", "Name")).bind(this._entity, "author").onChange(this.putData, this).render();
-  (new MultiLineInput(this.document, "Textbox", null, "pa.text", "Lauftext", 2)).bind(this._entity, "text").onChange(this.putData, this).render();
-  (new SingleLineInput(this.document, "Pagina", null, "pa.pagina", "Zahl")).bind(this._entity, "pagina").onChange(this.putData, this).render();
-  (new SingleLineInput(this.document, "Seiten Layout", null, "pa.layout", "Zahl")).bind(this._entity, "layout").onChange(this.putData, this).render();
-  (new SingleLineInput(this.document, "Seiten Total", null, "pa.total", "Summe")).bind(this._entity, "total").onChange(this.putData, this).render();
-  (new SingleSelectInput(this.document, "Online", null, "pa.tags", "Liste-Tag")).addOption("monday", "Mo.").addOption("tuesday", "Di.").addOption("wednesday", "Mi.").addOption("thursday", "Do.").addOption("friday", "Fr.").addOption("saturday", "Sa.").addOption("sunday", "So.").bind(this._entity, "tags").onChange(this.putData, this).render();
-  (new SingleSelectInput(this.document, "Visual", null, "pa.visual", "x-Liste")).addOption("picture", "Bild").addOption("icon", "Icon").addOption("graphics", "Grafik").addOption("videos", "Video").addOption("illustrations", "Illu").bind(this._entity, "visual").onChange(this.putData, this).render();
-  (new SingleLineInput(this.document, "Region", null, "pa.region", "x-Liste")).bind(this._entity, "region").onChange(this.putData, this).render();
-  (new SingleSelectInput(this.document, "Saison", null, "pa.season", "x-Liste")).addOption("summer", "Sommer").addOption("fall", "Herbst").bind(this._entity, "season").onChange(this.putData, this).render();
-  (new SingleLineInput(this.document, "", null, "pa.additional.1", "", !0)).onChange(this.putData, this).render();
-  (new SingleLineInput(this.document, "", null, "pa.additional.2", "", !0)).onChange(this.putData, this).render();
-};
-ArtikelController.prototype.putDataInvolved = function(a, b) {
-  a.setProperty();
-  var c = b.trelloApi, d = b.valueHolder;
-  b = b.artikel;
-  var e = a.getBinding();
-  b.putInvolved(d["involved-in"], e);
-  c.set("card", "shared", ArtikelController.SHARED_NAME, b);
-  console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue());
-};
-ArtikelController.prototype.putData = function(a, b) {
-  a.setProperty();
-  b.trelloApi.set("card", "shared", ArtikelController.SHARED_NAME, a.getBinding());
-  console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue());
-};
-ArtikelController.prototype.getData = function(a, b) {
-  return 1 === this.document.getElementsByName(b + "_data").length ? this.document.getElementsByName(b + "_data")[0].value : a && a.options && a.options[b + "_data"] ? a.options[b + "_data"] : "";
-};
-$jscomp.global.Object.defineProperties(ArtikelController, {SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
-  return "panta.Artikel";
-}}});
-// Input 3
+// Input 6
 var CommonBeteiligt = function(a, b, c, d) {
   this._name = a;
   this._social = b;
@@ -371,6 +484,7 @@ var AdBeteiligt = function(a, b, c, d, e, f, g) {
   this._format = e;
   this._placement = f;
   this._price = g;
+  this._total = 0;
 };
 $jscomp.inherits(AdBeteiligt, CommonBeteiligt);
 AdBeteiligt.create = function(a) {
@@ -394,20 +508,25 @@ $jscomp.global.Object.defineProperties(AdBeteiligt.prototype, {format:{configura
   return this._price;
 }, set:function(a) {
   this._price = a;
+}}, total:{configurable:!0, enumerable:!0, get:function() {
+  return this._total;
+}, set:function(a) {
+  this._total = a;
 }}});
-// Input 4
-var Artikel = function(a, b, c, d, e, f, g, h, k, l, m) {
-  this._topic = a;
-  this._pagina = b;
-  this._from = c;
-  this._layout = d;
-  this._total = e;
-  this._tags = f;
-  this._visual = g;
-  this._region = h;
-  this._season = k;
-  this._author = l;
-  this._text = m;
+// Input 7
+var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, n) {
+  this._id = a || uuid();
+  this._topic = b;
+  this._pagina = c;
+  this._from = d;
+  this._layout = e;
+  this._total = f;
+  this._tags = g;
+  this._visual = h;
+  this._region = k;
+  this._season = l;
+  this._author = m;
+  this._text = n;
   this._involved = {};
   this.putInvolved("onsite", new OtherBeteiligt);
   this.putInvolved("text", new OtherBeteiligt);
@@ -421,7 +540,8 @@ Artikel.create = function(a) {
 };
 Artikel._create = function(a) {
   if (a) {
-    var b = new Artikel(JsonSerialization.getProperty(a, "topic"), JsonSerialization.getProperty(a, "pagina"), JsonSerialization.getProperty(a, "from"), JsonSerialization.getProperty(a, "layout"), JsonSerialization.getProperty(a, "total"), JsonSerialization.getProperty(a, "tags"), JsonSerialization.getProperty(a, "visual"), JsonSerialization.getProperty(a, "region"), JsonSerialization.getProperty(a, "season"), JsonSerialization.getProperty(a, "author"), JsonSerialization.getProperty(a, "text"));
+    var b = new Artikel(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "topic"), JsonSerialization.getProperty(a, "pagina"), JsonSerialization.getProperty(a, "from"), JsonSerialization.getProperty(a, "layout"), JsonSerialization.getProperty(a, "total"), JsonSerialization.getProperty(a, "tags"), JsonSerialization.getProperty(a, "visual"), JsonSerialization.getProperty(a, "region"), JsonSerialization.getProperty(a, "season"), JsonSerialization.getProperty(a, "author"), JsonSerialization.getProperty(a, 
+    "text"));
     b.involved = JsonSerialization.getProperty(a, "involved");
     return b;
   }
@@ -433,7 +553,11 @@ Artikel.prototype.getInvolvedFor = function(a) {
 Artikel.prototype.putInvolved = function(a, b) {
   this._involved[a] = b;
 };
-$jscomp.global.Object.defineProperties(Artikel.prototype, {involved:{configurable:!0, enumerable:!0, get:function() {
+$jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, enumerable:!0, get:function() {
+  return this._id;
+}, set:function(a) {
+  this._id = a;
+}}, involved:{configurable:!0, enumerable:!0, get:function() {
   return this._involved;
 }, set:function(a) {
   for (var b in a) {
@@ -499,7 +623,7 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {involved:{configurabl
 }, set:function(a) {
   this._text = a;
 }}});
-// Input 5
+// Input 8
 HTMLElement.prototype.addClass = function(a) {
   -1 === this.className.split(" ").indexOf(a) && (this.className += " " + a, this.className = this.className.trim());
 };
@@ -518,10 +642,19 @@ HTMLElement.prototype.removeChildren = function() {
     this.removeChild(this.firstChild);
   }
 };
-// Input 6
+function uuid() {
+  var a = (new Date).getTime();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(b) {
+    var c = (a + 16 * Math.random()) % 16 | 0;
+    a = Math.floor(a / 16);
+    return ("x" === b ? c : c & 3 | 8).toString(16);
+  });
+}
+;
+// Input 9
 var template_regular = '<div id="template" class="row">    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-right">                <div class="pa.name"></div>            </div>            <div class="col-12 less-padding-right">                <div class="pa.social"></div>            </div>            <div class="col-12 less-padding-right">                <div class="pa.address"></div>            </div>        </div>    </div>    <div class="col-6">        <div class="row before-last-row">            <div class="col-12 less-padding-left">                <div class="pa.notes"></div>            </div>        </div>        <div class="row align-bottom">            <div class="col-12 less-padding">                <div class="pa.duedate"></div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">        <div class="col-6">            <div class="row">                <div class="col-12 less-padding-right">                    <div class="pa.name"></div>                </div>                <div class="col-12 less-padding-right">                    <div class="pa.social"></div>                </div>                <div class="col-12 less-padding-right">                    <div class="pa.address"></div>                </div>            </div>        </div>        <div class="col-6">            <div class="row">                <div class="col-6 less-padding">                    <div class="pa.format"></div>                </div>                <div class="col-6 less-padding-left">                    <div class="pa.placement"></div>                </div>            </div>            <div class="row before-last-row">                <div class="col-12 less-padding-left">                    <div class="pa.notes"></div>                </div>            </div>            <div class="row align-bottom">                <div class="col-6 less-padding">                    <div class="pa.price"></div>                </div>                <div class="col-6 less-padding-left">                    <div class="pa.total"></div>                </div>            </div>        </div>    </div>';
-// Input 7
+// Input 10
 var JsonSerialization = function() {
 };
 JsonSerialization.prototype.serialize = function(a) {
@@ -550,7 +683,7 @@ JsonSerialization.getProperty = function(a, b) {
 JsonSerialization.prototype.getAllProperties = function(a) {
   return Object.getOwnPropertyNames(a);
 };
-// Input 8
+// Input 11
 var btDelete = document.getElementById("bt_delete"), t = TrelloPowerUp.iframe();
 btDelete && btDelete.addEventListener("click", function(a) {
   a.preventDefault();
@@ -571,43 +704,20 @@ function showTab(a) {
   }
   b.appendChild(c);
 }
-var articleController = new ArtikelController(document, t), om = new JsonSerialization;
+var articleController = new ArtikelController(document, t);
 t.render(function() {
   return t.get("card", "shared", ArtikelController.SHARED_NAME).then(function(a) {
     a = Artikel.create(a);
     articleController.render(a);
   }).then(function() {
-    return t.card("all");
-  }).then(function(a) {
-    return t.cards("customFieldItems");
-  }).then(function(a) {
-    console.log(JSON.stringify(a));
-    return new window.TrelloPowerUp.Promise(function(a, c) {
-      var b = new XMLHttpRequest;
-      b.addEventListener("error", c);
-      b.onload = function() {
-        200 <= this.status && 300 > this.status ? a(b.response) : c({status:this.status, statusText:b.statusText});
-      };
-      b.open("GET", "https://api.trello.com/1/cards/5b49a8c00e5a2f4f5ba0111e/customFields?key=86a73cafa11d3834d4768a20a96b6786&token=5f7ab7be941155ed024f3d024a5043d198c23764c9ee5988543d4679dc411563");
-      b.send(null);
+    return t.cards("id");
+  }).each(function(a) {
+    return t.get(a.id, "shared", ArtikelController.SHARED_NAME).then(function(a) {
+      a = Artikel.create(a);
+      articleController.insert(a);
     });
-  }).then(function(a) {
-    a = JSON.parse(a);
-    for (var b in a) {
-      var c = document.getElementsByName(a[b].name);
-      if (c && c[0]) {
-        var d = document.createElement("select"), e;
-        for (e in a[b].options) {
-          var f = document.createElement("option");
-          f.value = a[b].options[e].value.text;
-          f.appendChild(document.createTextNode(a[b].options[e].value.text));
-          d.appendChild(f);
-        }
-        c[0].style.display = "none";
-        c[0].parentElement.appendChild(d);
-      }
-      console.log("Region: " + JSON.stringify(a[b].name));
-    }
+  }).then(function() {
+    articleController.update();
   }).then(function() {
     t.sizeTo("#panta\\.artikel").done();
   });

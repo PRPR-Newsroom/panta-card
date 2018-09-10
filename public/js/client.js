@@ -19,7 +19,6 @@ TrelloPowerUp.initialize({
                 if (Object.keys(sharedData).length < 1) {
                     return [];
                 }
-                console.log(JSON.stringify(sharedData));
                 var card = sharedData.card;
                 var badges = [];
                 if (card && card.shared && card.shared["panta.Artikel"]) {
@@ -49,7 +48,6 @@ TrelloPowerUp.initialize({
                         });
                     }
                 }
-                console.log(JSON.stringify(badges));
                 return badges;
             })
     },
@@ -69,12 +67,10 @@ TrelloPowerUp.initialize({
         var cards;
         return t.list('name', 'id')
             .then(function(list) {
-                console.log("List: " + list.id);
                 return GET("/lists/" + list.id + "/cards");
             })
             .then(function(data) {
                 cards = JSON.parse(data);
-                console.log("Cards in list: " + cards.length);
                 var promises = [];
                 for (var card in cards) {
                     promises.push(new Promise(function(resolve,reject) {

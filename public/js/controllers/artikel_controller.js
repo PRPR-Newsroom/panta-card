@@ -5,321 +5,131 @@ class ArtikelController {
     }
 
     constructor(document, trelloApi) {
+        /**
+         * @type {HTMLDocument}
+         */
         this.document = document;
         this.trelloApi = trelloApi;
         /**
          * @type {Artikel}
          * @private
          */
-        this._entity = null;
+        this._artikel = null;
 
         /**
-         * @type {MultiLineInput}
+         * @type {ArtikelBinding}
          * @private
          */
-        this._topic = null;
+        this._artikelBinding = null;
 
         /**
-         * @type {PForms}
+         * @type {BeteiligtBinding}
          * @private
          */
-        this._onsite = null;
+        this._beteiligtBinding = null;
 
         /**
-         * @type {PForms}
+         * @type {ArtikelRepository}
          * @private
          */
-        this._text = null;
-
-        /**
-         * @type {PForms}
-         * @private
-         */
-        this._photo = null;
-
-        /**
-         * @type {PForms}
-         * @private
-         */
-        this._video = null;
-
-        /**
-         * @type {PForms}
-         * @private
-         */
-        this._illu = null;
-
-        /**
-         * @type {PForms}
-         * @private
-         */
-        this._ad = null;
-
-        /**
-         * @type {PForms}
-         * @private
-         */
-        this._activated = null;
-
-        this._involvements = {
-            'onsite': this._buildValueHolder('onsite', 'pa.involved.onsite', this.onRegularLayout),
-            'text': this._buildValueHolder('text', 'pa.involved.text', this.onRegularLayout),
-            'photo': this._buildValueHolder('photo', 'pa.involved.photo', this.onRegularLayout),
-            'video': this._buildValueHolder('video', 'pa.involved.video', this.onRegularLayout),
-            'illu': this._buildValueHolder('illu', 'pa.involved.illu', this.onRegularLayout),
-            'ad': this._buildValueHolder('ad', 'pa.involved.ad', this.onAdLayout)
-        };
+        this._repository = new ArtikelRepository();
     }
 
     /**
-     * Creates a new value-holder element
-     * @param tabId
-     * @returns {{data: null, renderer: renderer, tab: HTMLElement | null}}
+     *
+     * @param {Artikel} artikel
      */
-    _buildValueHolder(involvedIn, tabId, renderer) {
-        let that = this;
-        return {
-            'involved-in': involvedIn,
-            'data': null,
-            'renderer': function(valueHolder) {
-                renderer.call(that, this, valueHolder);
-            },
-            'tab': that.document.getElementById(tabId)
-        };
+    insert(artikel) {
+        if (artikel && this._repository.isNew(artikel)) {
+            this._repository.add(artikel);
+        } else if (artikel) {
+            this._repository.replace(artikel);
+        }
     }
 
-    onAdLayout(forms, valueHolder) {
-        let virtual = this.document.createElement('div');
-        virtual.innerHTML = template_ad;
-        let templ = virtual.cloneNode(true);
-
-        this._switchContent(forms, templ);
-
-        new SingleLineInput(this.document, "Name", null, ".pa.name", "")
-            .bind(valueHolder.data, 'name')
-            .onChange(this.putDataInvolved, { 'trelloApi': this.trelloApi, 'valueHolder': valueHolder, 'artikel': this._entity })
-            .render();
-
-        new MultiLineInput(this.document, "Telefon.Mail.Webseite", null, ".pa.social", "", 2, false)
-            .bind(valueHolder.data, 'social')
-            .onChange(this.putDataInvolved, { 'trelloApi': this.trelloApi, 'valueHolder': valueHolder, 'artikel': this._entity })
-            .render();
-
-        new MultiLineInput(this.document, "Adresse", null, ".pa.address", "", 2, false)
-            .bind(valueHolder.data, 'address')
-            .onChange(this.putDataInvolved, { 'trelloApi': this.trelloApi, 'valueHolder': valueHolder, 'artikel': this._entity })
-            .render();
-
-        new SingleLineInput(this.document, "Format", null, ".pa.format", "")
-            .bind(valueHolder.data, 'format')
-            .onChange(this.putDataInvolved, { 'trelloApi': this.trelloApi, 'valueHolder': valueHolder, 'artikel': this._entity })
-            .render();
-
-        new SingleLineInput(this.document, "Platzierung", null, ".pa.placement", "")
-            .bind(valueHolder.data, 'placement')
-            .onChange(this.putDataInvolved, { 'trelloApi': this.trelloApi, 'valueHolder': valueHolder, 'artikel': this._entity })
-            .render();
-
-        new MultiLineInput(this.document, "Notiz", null, ".pa.notes", "", 2, false)
-            .bind(valueHolder.data, 'notes')
-            .onChange(this.putDataInvolved, { 'trelloApi': this.trelloApi, 'valueHolder': valueHolder, 'artikel': this._entity })
-            .render();
-
-        new SingleLineInput(this.document, "Preis CHF", null, ".pa.price", "")
-            .bind(valueHolder.data, 'price')
-            .onChange(this.putDataInvolved, { 'trelloApi': this.trelloApi, 'valueHolder': valueHolder, 'artikel': this._entity })
-            .render();
-
-        new SingleLineInput(this.document, "Total CHF", null, ".pa.total", "", true)
-            .onChange(this.putDataInvolved, { 'trelloApi': this.trelloApi, 'valueHolder': valueHolder, 'artikel': this._entity })
-            .render();
+    isManaged(artikel) {
+        return artikel.id !== null;
+    }
+    
+    manage(artikel) {
+        artikel.id = uuid();
+        return artikel;
     }
 
-    onRegularLayout(forms, valueHolder) {
-        let virtual = this.document.createElement('div');
-        virtual.innerHTML = template_regular;
-        let templ = virtual.cloneNode(true);
-        this._switchContent(forms, templ);
+    update() {
+        // calc total
+        this._artikel.total = this._repository.all().map(function(item, index) {
+            let number = parseInt(item.layout);
+            if (isNaN(number)) {
+                return 0;
+            }
+            return number;
+        }).reduce(function(previousValue, currentValue) {
+            return previousValue + currentValue;
+        }, 0);
 
-        new SingleLineInput(this.document, "Name", null, ".pa.name", "")
-            .bind(valueHolder.data, 'name')
-            .onChange(this.putDataInvolved, { 'trelloApi': this.trelloApi, 'valueHolder': valueHolder, 'artikel': this._entity })
-            .render();
+        // calc price in involved
+        this._artikel.getInvolvedFor('ad').total = this._repository.all().map(function(item, index) {
+            return item.getInvolvedFor('ad');
+        }).filter(function(item, index) {
+            return item instanceof AdBeteiligt && !isNaN(parseFloat(item.price));
+        }).map(function(item, index) {
+            return item.price;
+        }).reduce(function(previousValue, currentValue) {
+            return parseFloat(previousValue) + parseFloat(currentValue);
+        }, 0.0);
 
-        new MultiLineInput(this.document, "Telefon.Mail.Webseite", null, ".pa.social", "", 2, false)
-            .bind(valueHolder.data, 'social')
-            .onChange(this.putDataInvolved, { 'trelloApi': this.trelloApi, 'valueHolder': valueHolder, 'artikel': this._entity })
-            .render();
-
-        new MultiLineInput(this.document, "Adresse", null, ".pa.address", "", 2, false)
-            .bind(valueHolder.data, 'address')
-            .onChange(this.putDataInvolved, { 'trelloApi': this.trelloApi, 'valueHolder': valueHolder, 'artikel': this._entity })
-            .render();
-
-        new MultiLineInput(this.document, "Notiz", null, ".pa.notes", "", 5, false)
-            .bind(valueHolder.data, 'notes')
-            .onChange(this.putDataInvolved, { 'trelloApi': this.trelloApi, 'valueHolder': valueHolder, 'artikel': this._entity })
-            .render();
-
-        new SingleLineInput(this.document, "Deadline", null, ".pa.duedate", "")
-            .bind(valueHolder.data, 'duedate')
-            .onChange(this.putDataInvolved, { 'trelloApi': this.trelloApi, 'valueHolder': valueHolder, 'artikel': this._entity })
-            .render();
-    }
-
-    _switchContent(forms, templ) {
-        let content = this.document.getElementById("pa.tab.content");
-        content.removeChildren();
-        this._onsite.valueHolder.tab.removeClass("selected");
-        this._text.valueHolder.tab.removeClass("selected");
-        this._photo.valueHolder.tab.removeClass("selected");
-        this._video.valueHolder.tab.removeClass("selected");
-        this._illu.valueHolder.tab.removeClass("selected");
-        this._ad.valueHolder.tab.removeClass("selected");
-
-        content.appendChild(templ);
-        this._activated = forms;
+        this._artikelBinding.update(this._artikel);
+        this._beteiligtBinding.update(this._artikel);
     }
 
     /**
      * @param (Artikel) artikel
      */
     render(artikel) {
-        this._entity = artikel ? artikel : new Artikel();
-        if (this._topic == null) {
-            this._doArtikel();
-        } else {
-            this._topic.update(this._entity);
-        }
-        this._doInvolvements();
-        if (!this._activated) {
-            this._activated = this._onsite;
-        }
-        this._activated.activate();
-    }
-    
-    _doInvolvements() {
-        this._onsite = this._onsite !== null ? this._onsite.update() : (this._onsite = new PForms(this.document, 'vor Ort', this._involvements.onsite)
-            .bind(this._entity, 'onsite')
-            .render());
-
-        this._text = this._text !== null ? this._text.update() : (this._text = new PForms(this.document, 'Text', this._involvements.text)
-            .bind(this._entity, 'text')
-            .render());
-
-        this._photo = this._photo !== null ? this._photo.update() : (this._photo = new PForms(this.document, 'Foto', this._involvements.photo)
-            .bind(this._entity, 'photo')
-            .render());
-
-        this._video = this._video !== null ? this._video.update() : (this._video = new PForms(this.document, 'Video', this._involvements.video)
-            .bind(this._entity, 'video')
-            .render());
-
-        this._illu = this._illu !== null ? this._illu.update() : (this._illu = new PForms(this.document, 'Illu.Grafik', this._involvements.illu)
-            .bind(this._entity, 'illu')
-            .render());
-
-        this._ad  = this._ad !== null ? this._ad.update() : (this._ad = new PForms(this.document, 'Inserat', this._involvements.ad)
-            .bind(this._entity, 'ad')
-            .render());
+        this._artikel = artikel ? artikel : Artikel.create();
+        this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._artikel) : new ArtikelBinding(this.document, this._artikel, this.onArtikelChanged, this).bind();
+        this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(this._artikel) : new BeteiligtBinding(this.document, this._artikel, this.onDataInvolvedChanged, this).bind();
     }
 
-    _doArtikel() {
-        this._topic = new MultiLineInput(this.document, "Thema", null, "pa.topic", "Lauftext", 2)
-            .bind(this._entity, 'topic')
-            .onChange(this.putData, this)
-            .render();
-        new SingleLineInput(this.document, "Input von", null, "pa.input-from", "Name")
-            .bind(this._entity, 'from')
-            .onChange(this.putData, this)
-            .render();
-        new SingleLineInput(this.document, "Textautor*in", null, "pa.author", "Name")
-            .bind(this._entity, 'author')
-            .onChange(this.putData, this)
-            .render();
-        new MultiLineInput(this.document, "Textbox", null, "pa.text", "Lauftext", 2)
-            .bind(this._entity, 'text')
-            .onChange(this.putData, this)
-            .render();
-
-        new SingleLineInput(this.document, "Pagina", null, "pa.pagina", "Zahl")
-            .bind(this._entity, 'pagina')
-            .onChange(this.putData, this)
-            .render();
-        new SingleLineInput(this.document, "Seiten Layout", null, "pa.layout", "Zahl")
-            .bind(this._entity, 'layout')
-            .onChange(this.putData, this)
-            .render();
-        new SingleLineInput(this.document, "Seiten Total", null, "pa.total", "Summe")
-            .bind(this._entity, 'total')
-            .onChange(this.putData, this)
-            .render();
-        new SingleSelectInput(this.document, "Online", null, "pa.tags", "Liste-Tag")
-            .addOption("monday", "Mo.")
-            .addOption("tuesday", "Di.")
-            .addOption("wednesday", "Mi.")
-            .addOption("thursday", "Do.")
-            .addOption("friday", "Fr.")
-            .addOption("saturday", "Sa.")
-            .addOption("sunday", "So.")
-            .bind(this._entity, 'tags')
-            .onChange(this.putData, this)
-            .render();
-        new SingleSelectInput(this.document, "Visual", null, "pa.visual", "x-Liste")
-            .addOption("picture", "Bild")
-            .addOption("icon", "Icon")
-            .addOption("graphics", "Grafik")
-            .addOption("videos", "Video")
-            .addOption("illustrations", "Illu")
-            .bind(this._entity, 'visual')
-            .onChange(this.putData, this)
-            .render();
-        new SingleLineInput(this.document, "Region", null, "pa.region", "x-Liste")
-            .bind(this._entity, 'region')
-            .onChange(this.putData, this)
-            .render();
-        new SingleSelectInput(this.document, "Saison", null, "pa.season", "x-Liste")
-            .addOption("summer", "Sommer")
-            .addOption("fall", "Herbst")
-            .bind(this._entity, 'season')
-            .onChange(this.putData, this)
-            .render();
-        new SingleLineInput(this.document, "", null, "pa.additional.1", "", true)
-            .onChange(this.putData, this)
-            .render();
-        new SingleLineInput(this.document, "", null, "pa.additional.2", "", true)
-            .onChange(this.putData, this)
-            .render();
-    }
-
-    putDataInvolved(source, args) {
+    /**
+     * Called when the data in panta.Beteiligt has changed
+     * @param source the source input element
+     * @param args a dictionary object with 'context', 'valueHolder' and 'artikel'
+     */
+    onDataInvolvedChanged(source, args) {
         source.setProperty();
 
-        let trelloApi = args['trelloApi'];
+        let ctx = args['context'];
         let valueHolder = args['valueHolder'];
         let artikel = args['artikel'];
         let involved = source.getBinding();
 
-        // update the involved
+        // update the involved part of the artikel
         artikel.putInvolved(valueHolder['involved-in'], involved);
-        trelloApi.set('card', 'shared', ArtikelController.SHARED_NAME, artikel);
+        ctx._persistArtikel(ctx.trelloApi, artikel);
         console.log("Stored: " + source.getBoundProperty() + " = " + source.getValue());
     }
 
-    putData(source, ctx) {
+    /**
+     * Called when the panta.Artikel part has changed
+     * @param source the source input element
+     * @param ctx dictionary object with 'context' and 'artikel'
+     */
+    onArtikelChanged(source, ctx) {
         source.setProperty();
-        ctx.trelloApi.set('card', 'shared', ArtikelController.SHARED_NAME, source.getBinding());
+        ctx['context']._persistArtikel(ctx['context'].trelloApi, source.getBinding());
         console.log("Stored: " + source.getBoundProperty() + " = " + source.getValue());
     }
 
-    getData(artikel, what) {
-        if (this.document.getElementsByName(what + "_data").length === 1) {
-            return this.document.getElementsByName(what + "_data")[0].value;
-        } else if (artikel && artikel.options && artikel.options[what + "_data"]) {
-            return artikel.options[what + "_data"];
-        } else {
-            return "";
-        }
+    /**
+     * Persist the artikel with the trelloApi
+     * @param trelloApi the API
+     * @param artikel the artikel to persist
+     * @private
+     */
+    _persistArtikel(trelloApi, artikel) {
+        trelloApi.set('card', 'shared', ArtikelController.SHARED_NAME, artikel);
     }
 
 }

@@ -109,6 +109,7 @@ class AdBeteiligt extends CommonBeteiligt {
         this._format = format;
         this._placement = placement;
         this._price = price;
+        this._total = 0;
     }
 
     get format() {
@@ -133,6 +134,14 @@ class AdBeteiligt extends CommonBeteiligt {
 
     set price(value) {
         this._price = value;
+    }
+
+    get total() {
+        return this._total;
+    }
+
+    set total(value) {
+        this._total = value;
     }
 
     isEmpty() {
