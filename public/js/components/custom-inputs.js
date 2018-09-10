@@ -20,12 +20,13 @@ class PInput {
     bind(entity, property) {
         this._artikel = entity;
         this._property = property;
-        this._value = entity[property];
+        this._value = entity[property] || 0.0;
         return this;
     }
 
-    update() {
-        this._input.value = this.getValue();
+    update(artikel) {
+        this._artikel = artikel;
+        this._input.value = this._artikel[this.getBoundProperty()];
         return this;
     }
 

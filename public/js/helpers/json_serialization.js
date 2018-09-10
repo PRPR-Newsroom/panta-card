@@ -21,28 +21,6 @@ class JsonSerialization {
 
     deserialize(jsonObj, type) {
         return Artikel.create(jsonObj);
-        //
-        // let that = this;
-        // let properties = this.getAllProperties(type);
-        // let json = raw + "";
-        // console.log(json);
-        // let parsed = JSON.parse(json, function(key, value) {
-        //     let propertyName = that.denomalize(key);
-        //     if (properties.indexOf(propertyName) !== -1) {
-        //         // when the property exists on the target
-        //         let sample = type.getSampleOf(key);
-        //         if (sample === null) {
-        //             return value;
-        //         } else {
-        //             return that.deserialize.call(that, value, sample);
-        //         }
-        //     } else {
-        //         console.log("invalid property: " + propertyName);
-        //         return value;
-        //     }
-        // });
-        // console.log("Parsed: " + parsed);
-        // return parsed;
     }
 
     static normalize(name) {

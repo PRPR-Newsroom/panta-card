@@ -21,7 +21,8 @@ class ArtikelBinding {
         this._artikel = entity;
     }
 
-    update() {
+    update(artikel) {
+        this._total.update(artikel);
         return this;
     }
 
@@ -50,9 +51,8 @@ class ArtikelBinding {
             .bind(this._artikel, 'layout')
             .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
             .render();
-        this._total = new SingleLineInput(this.document, "Seiten Total", null, "pa.total", "Summe")
+        this._total = new SingleLineInput(this.document, "Seiten Total", null, "pa.total", "Summe", true)
             .bind(this._artikel, 'total')
-            .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
             .render();
         this._tags = new SingleSelectInput(this.document, "Online", null, "pa.tags", "Liste-Tag")
             .addOption("monday", "Mo.")

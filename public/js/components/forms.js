@@ -18,7 +18,7 @@ class PForms {
     }
 
     render() {
-        this.update();
+        this.update(this._artikel);
         this.valueHolder.tab.innerHTML = "<span>" + this.label + "</span>";
         let that = this;
         this.valueHolder.tab.addEventListener('click', function(e) {
@@ -27,12 +27,17 @@ class PForms {
         return this;
     }
 
-    update() {
+    update(artikel) {
+        if (artikel !== null) {
+            this.valueHolder.data = artikel.getInvolvedFor(this._property);
+        }
+
         if (!this.valueHolder.data.isEmpty()) {
             this.valueHolder.tab.addClass("content");
         } else {
             this.valueHolder.tab.removeClass("content");
         }
+
         return this;
     }
 

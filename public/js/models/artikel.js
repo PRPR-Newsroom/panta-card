@@ -1,13 +1,13 @@
 class Artikel {
 
     static create(json) {
-        let artikel = this._create(json);
-        return artikel;
+        return this._create(json);
     }
 
     static _create(json) {
         if (json) {
             let artikel = new Artikel(
+                JsonSerialization.getProperty(json, 'id'),
                 JsonSerialization.getProperty(json, 'topic'),
                 JsonSerialization.getProperty(json, 'pagina'),
                 JsonSerialization.getProperty(json, 'from'),
@@ -20,6 +20,7 @@ class Artikel {
                 JsonSerialization.getProperty(json, 'author'),
                 JsonSerialization.getProperty(json, 'text')
             );
+            // involved constains the whole panta.Beteiligt datastore
             artikel.involved = JsonSerialization.getProperty(json, 'involved');
             return artikel;
         } else {
@@ -27,10 +28,9 @@ class Artikel {
         }
     }
 
-
-
     /**
      *
+     * @param id string
      * @param topic Textfeld – Stichwort zum Inhalt immer fix hinterlegt
      * @param pagina Fixe Zahl, entspricht der Seitenzahl = Start des Arikels in einem Projekt. Ist zentral für das SORTIEREN innerhalb der Liste
      * @param from Input von
@@ -43,7 +43,8 @@ class Artikel {
      * @param author Name des Authors
      * @param text Ein Textfeld für eine kurze Inhaltsangabe
      */
-    constructor(topic, pagina, from, layout, total, tags, visual, region, season, author, text) {
+    constructor(id, topic, pagina, from, layout, total, tags, visual, region, season, author, text) {
+        this._id = id || uuid();
         this._topic = topic;
         this._pagina = pagina;
         this._from = from;
@@ -64,12 +65,24 @@ class Artikel {
         this.putInvolved('ad', new AdBeteiligt());
     }
 
+    /**
+     * @param name
+     * @returns {CommonBeteiligt}
+     */
     getInvolvedFor(name) {
         return this._involved[name];
     }
 
     putInvolved(name, involved) {
         this._involved[name] = involved;
+    }
+
+    get id() {
+        return this._id;
+    }
+
+    set id(value) {
+        this._id = value;
     }
 
     get involved() {

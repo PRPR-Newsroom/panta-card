@@ -79,38 +79,40 @@ class BeteiligtBinding {
             'renderer': function (valueHolder) {
                 renderer.call(that, this, valueHolder);
             },
-            'tab': that.document.getElementById(tabId)
+            'tab': that.document.getElementById(tabId),
+            'binding': that
         };
     }
 
-    update() {
+    update(artikel) {
         this._activated.activate();
-        this._activated.update();
+        this._activated.update(artikel);
+        this._ad.update(artikel);
         return this;
     }
 
     bind() {
-        this._onsite = this._onsite !== null ? this._onsite.update() : (this._onsite = new PForms(this.document, 'vor Ort', this._involvements.onsite)
+        this._onsite = this._onsite !== null ? this._onsite.update(this._artikel) : (this._onsite = new PForms(this.document, 'vor Ort', this._involvements.onsite)
             .bind(this._artikel, 'onsite')
             .render());
 
-        this._text = this._text !== null ? this._text.update() : (this._text = new PForms(this.document, 'Text', this._involvements.text)
+        this._text = this._text !== null ? this._text.update(this._artikel) : (this._text = new PForms(this.document, 'Text', this._involvements.text)
             .bind(this._artikel, 'text')
             .render());
 
-        this._photo = this._photo !== null ? this._photo.update() : (this._photo = new PForms(this.document, 'Foto', this._involvements.photo)
+        this._photo = this._photo !== null ? this._photo.update(this._artikel) : (this._photo = new PForms(this.document, 'Foto', this._involvements.photo)
             .bind(this._artikel, 'photo')
             .render());
 
-        this._video = this._video !== null ? this._video.update() : (this._video = new PForms(this.document, 'Video', this._involvements.video)
+        this._video = this._video !== null ? this._video.update(this._artikel) : (this._video = new PForms(this.document, 'Video', this._involvements.video)
             .bind(this._artikel, 'video')
             .render());
 
-        this._illu = this._illu !== null ? this._illu.update() : (this._illu = new PForms(this.document, 'Illu.Grafik', this._involvements.illu)
+        this._illu = this._illu !== null ? this._illu.update(this._artikel) : (this._illu = new PForms(this.document, 'Illu.Grafik', this._involvements.illu)
             .bind(this._artikel, 'illu')
             .render());
 
-        this._ad = this._ad !== null ? this._ad.update() : (this._ad = new PForms(this.document, 'Inserat', this._involvements.ad)
+        this._ad = this._ad !== null ? this._ad.update(this._artikel) : (this._ad = new PForms(this.document, 'Inserat', this._involvements.ad)
             .bind(this._artikel, 'ad')
             .render());
         this._activated = this._onsite;
@@ -124,30 +126,11 @@ class BeteiligtBinding {
         let templ = virtual.cloneNode(true);
         this._switchContent(forms, templ);
 
-        new SingleLineInput(this.document, "Name", null, ".pa.name", "")
-            .bind(valueHolder.data, 'name')
-            .onChange(this._action, {'context': this._context, 'valueHolder': valueHolder, 'artikel': this._artikel})
-            .render();
-
-        new MultiLineInput(this.document, "Telefon.Mail.Webseite", null, ".pa.social", "", 2, false)
-            .bind(valueHolder.data, 'social')
-            .onChange(this._action, {'context': this._context, 'valueHolder': valueHolder, 'artikel': this._artikel})
-            .render();
-
-        new MultiLineInput(this.document, "Adresse", null, ".pa.address", "", 2, false)
-            .bind(valueHolder.data, 'address')
-            .onChange(this._action, {'context': this._context, 'valueHolder': valueHolder, 'artikel': this._artikel})
-            .render();
-
-        new MultiLineInput(this.document, "Notiz", null, ".pa.notes", "", 5, false)
-            .bind(valueHolder.data, 'notes')
-            .onChange(this._action, {'context': this._context, 'valueHolder': valueHolder, 'artikel': this._artikel})
-            .render();
-
-        new SingleLineInput(this.document, "Deadline", null, ".pa.duedate", "")
-            .bind(valueHolder.data, 'duedate')
-            .onChange(this._action, {'context': this._context, 'valueHolder': valueHolder, 'artikel': this._artikel})
-            .render();
+        this.newSingleLineInput(valueHolder, ".pa.name", "name", "Name");
+        this.newMultiLineInput(valueHolder, ".pa.social", "social", "Telefon.Mail.Webseite");
+        this.newMultiLineInput(valueHolder, ".pa.address", "address", "Adresse");
+        this.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Notiz");
+        this.newSingleLineInput(valueHolder, ".pa.duedate", "duedate", "Deadline");
     }
 
     onAdLayout(forms, valueHolder) {
@@ -164,23 +147,24 @@ class BeteiligtBinding {
         this.newSingleLineInput(valueHolder, ".pa.placement", "placement", "Platzierung");
         this.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Notiz");
         this.newSingleLineInput(valueHolder, ".pa.price", "price", "Preis CHF");
-        this.newSingleLineInput(valueHolder, ".pa.total", null, "Total CHF");
+        this.newSingleLineInput(valueHolder, ".pa.total", "total", "Total CHF", true);
     }
 
     newMultiLineInput(valueHolder, targetId = ".pa.social", property = 'social', label = "Telefon.Mail.Webseite") {
-        new MultiLineInput(this.document, label, null, targetId, "", 2, false)
+        return new MultiLineInput(this.document, label, null, targetId, "", 2, false)
             .bind(valueHolder.data, property)
             .onChange(this._action, {'context': this._context, 'valueHolder': valueHolder, 'artikel': this._artikel})
             .render();
     }
 
-    newSingleLineInput(valueHolder, targetId = ".pa.name", property = null, label = "Name") {
-        let sli = new SingleLineInput(this.document, label, null, targetId, "");
+    newSingleLineInput(valueHolder, targetId = ".pa.name", property = null, label = "Name", readonly = false) {
+        let sli = new SingleLineInput(this.document, label, null, targetId, "", readonly);
         if (property !== null) {
             sli.bind(valueHolder.data, property);
         }
         sli.onChange(this._action, {'context': this._context, 'valueHolder': valueHolder, 'artikel': this._artikel})
             .render();
+        return sli;
     }
 
     _switchContent(forms, templ) {
