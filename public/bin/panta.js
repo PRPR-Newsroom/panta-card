@@ -203,16 +203,17 @@ PInput.prototype.bind = function(a, b) {
   return this;
 };
 PInput.prototype._updateProperty = function() {
-  this._input.setAttribute("data-value", this._artikel[this.getBoundProperty()]);
+  var a = this._artikel[this.getBoundProperty()];
+  a || (this._input.value = null);
   switch(this.propertyType) {
     case "number":
-      this._input.value = parseFloat(this._artikel[this.getBoundProperty()]).toLocaleString();
+      this._input.value = this._formatNumber(a);
       break;
     case "money":
-      this._input.value = parseFloat(this._artikel[this.getBoundProperty()]).toLocaleString(void 0, {minimumFractionDigits:2});
+      this._input.value = this._formatNumber(a, {minimumFractionDigits:2});
       break;
     default:
-      this._input.value = this._artikel[this.getBoundProperty()] || "";
+      this._input.value = a || "";
   }
 };
 PInput.prototype.update = function(a) {
@@ -307,9 +308,17 @@ PInput.prototype.setProperty = function() {
       this._artikel[this.getBoundProperty()] = this.getValue();
   }
 };
+PInput.prototype._formatNumber = function(a, b) {
+  a = parseFloat(a);
+  return isNaN(a) ? null : a.toLocaleString(void 0, b);
+};
 PInput.prototype._parseNumber = function(a) {
+  if (!a) {
+    return null;
+  }
   var b = (1.23).toLocaleString().substr(1, 1);
-  return parseFloat(a.replace(new RegExp("[^\\d" + b + "]"), "").replace(b, "."));
+  a = parseFloat(a.replace(new RegExp("[^\\d" + b + "]"), "").replace(b, "."));
+  return isNaN(a) ? null : a;
 };
 $jscomp.global.Object.defineProperties(PInput.prototype, {propertyType:{configurable:!0, enumerable:!0, get:function() {
   return this._propertyType;

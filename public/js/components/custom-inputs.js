@@ -40,17 +40,20 @@ class PInput {
     }
 
     _updateProperty() {
-        this._input.setAttribute('data-value', this._artikel[this.getBoundProperty()]);
+        let propertyValue = this._artikel[this.getBoundProperty()];
+        if (!propertyValue) {
+            this._input.value = null;
+        }
         switch (this.propertyType) {
             case "number":
-                this._input.value = parseFloat(this._artikel[this.getBoundProperty()]).toLocaleString();
+                this._input.value = this._formatNumber(propertyValue);
                 break;
             case "money":
-                this._input.value = parseFloat(this._artikel[this.getBoundProperty()]).toLocaleString(undefined, {minimumFractionDigits: 2});
+                this._input.value = this._formatNumber(propertyValue, {minimumFractionDigits: 2});
                 break;
             case 'text':
             default:
-                this._input.value = this._artikel[this.getBoundProperty()] || "";
+                this._input.value = propertyValue || "";
                 break;
         }
     }
@@ -190,11 +193,24 @@ class PInput {
 
     }
 
+    _formatNumber(number, options) {
+        let parsed = parseFloat(number);
+        if (!isNaN(parsed)) {
+            return parsed.toLocaleString(undefined, options);
+        } else {
+            return null;
+        }
+    }
+
     _parseNumber(number) {
+        if (!number) {
+            return null;
+        }
         let decimal = 1.23.toLocaleString();
         let sep = decimal.substr(1,1);
         let re = new RegExp("[^\\d" + sep + "]");
-        return parseFloat(number.replace(re, '').replace(sep, '.'));
+        let parsed = parseFloat(number.replace(re, '').replace(sep, '.'));
+        return isNaN(parsed) ? null : parsed;
     }
 
 }
