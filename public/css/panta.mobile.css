@@ -6,20 +6,50 @@ form {
     padding-top: 5px;
 }
 
-.before-last-row {
-    margin-bottom: 48px;
+form label.hovered:not(.prop-select) {
+    border-color: #b6bbbf;
+}
+form label.focused:not(.prop-select) {
+    border-color: #a5acb0;
 }
 
-.field input, .field textarea, .field select {
-    /*background: #edeff0;*/
+form label:not(.prop-select) {
+    border-radius: 3px 3px 0 0;
     background: rgba(0,0,0,.03);
-    min-height: 32px;
-    resize: vertical;
-    box-shadow: inset 0 1px 6px rgba(0,0,0,.1);
+    margin-bottom: 0;
+    padding: 0 0 0 0.5em;
+    border-left: 1px solid #cdd2d4;
+    border-right: 1px solid #cdd2d4;
+    border-top: 1px solid #cdd2d4;
+    border-bottom: 0;
+    color: #606565;
+    font-weight: normal;
 }
 
-.field textarea:focus, .field select:focus {
-    box-shadow: inset 0 1px 6px rgba(0,0,0,.1);
+form .u-border:not(select), form .u-border:focus:not(select) {
+    border-top: none;
+    overflow: auto;
+    outline: none;
+    outline: 0 !important;
+    border-radius: 0 0 3px 3px;
+    background: rgba(0,0,0,.03);
+    padding-top: 0;
+
+    -webkit-appearance:none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none !important;
+    resize: vertical;
+    min-height: 32px;
+    margin-bottom: 0.5em;
+}
+
+.number, .money {
+    text-align: right;
+}
+
+.before-last-row {
+    margin-bottom: 60px;
 }
 
 .tab span {
@@ -57,41 +87,6 @@ form {
 
 .tab:first-child {
     padding-left: 0px;
-}
-
-input[type="text"], select {
-    padding: 1rem 0.5em 0.5em 0.5em;
-}
-
-textarea, input, select {
-    padding-top: 1rem;
-    padding-left: 0.5em;
-    margin-bottom: 0.5em;
-}
-
-.field {
-    display: flex;
-    flex-flow: column-reverse;
-}
-
-.field input, .field textarea, .field select {
-    margin-bottom: 0.5em;
-    margin-top: -20px;
-}
-
-input + label, textarea + label, select + label {
-    cursor: text;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    z-index: 100;
-    padding-left: 0.5em;
-    font-weight: normal;
-    pointer-events: none;
-    font-size: 13px;
-    background-color: #E7E9E9;
-    margin: 0px 16px 0px 1px;
-    padding-top: 1px;
 }
 
 .ic-beteiligt {

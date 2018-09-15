@@ -25,6 +25,17 @@ HTMLElement.prototype.removeChildren = function () {
     }
 };
 
+HTMLElement.prototype.setEventListener = function(event, callback) {
+    this.removeEventListener(event, callback);
+    this.addEventListener(event, callback);
+};
+
+HTMLCollection.prototype.forEach = function(item, callback) {
+    for (let i=0; i<this.length; i++) {
+        callback(this[i]);
+    }
+};
+
 function uuid() {
     let dt = new Date().getTime();
     let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {

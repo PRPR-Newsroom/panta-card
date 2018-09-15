@@ -1,57 +1,41 @@
-var Promise = window.TrelloPowerUp.Promise;
-
 TrelloPowerUp.initialize({
-    'card-buttons': function(t, options){
+    'card-buttons': function (t, options) {
         return [{
-            icon: 'https://cdn.glitch.com/1b42d7fe-bda8-4af8-a6c8-eff0cea9e08a%2Frocket-ship.png?1494946700421',
+            icon: './assets/ic_artikel.png',
             text: 'panta.Card',
-            callback: function(t) {
-              return t.popup({
-                  title: "Einstellungen",
-                  url: "settings.html"
-              })
+            callback: function (t) {
+                return t.popup({
+                    title: "Einstellungen",
+                    url: "settings.html"
+                })
             }
         }];
     },
-    'card-badges': function(t, options) {
-        return t.getAll('card', 'shared')
-            .then(function(sharedData) {
-                if (Object.keys(sharedData).length < 1) {
-                    return [];
-                }
-                var card = sharedData.card;
-                var badges = [];
-                if (card && card.shared && card.shared["panta.Artikel"]) {
-                    var artikel = card.shared["panta.Artikel"];
-                    if (artikel.options) {
-                        var count = 0;
-                        for (var option in artikel.options) {
-                            if (artikel.options[option] === true) {
-                                count++;
-                            }
-                        }
-                        badges.push({
-                            text: count,
-                            icon: './assets/ic_beteiligt.png'
-                        });
-                    }
-                    if (artikel.saldo) {
-                        var count = 0;
-                        for (var _saldo in artikel.saldo) {
-                            if (artikel.saldo[_saldo] === true) {
-                                count++;
-                            }
-                        }
-                        badges.push({
-                            text: count,
-                            icon: './assets/ic_saldo.png'
-                        });
-                    }
-                }
+    'card-badges': function (t, options) {
+        window.articleController = new ArtikelController(document, t);
+        return t.card('id')
+            .then(function (card) {
+                return t.get(card.id, 'shared', ArtikelController.SHARED_NAME)
+                    .then(function (list_data) {
+                        return Artikel.create(list_data);
+                    })
+                    .then(function (artikel) {
+                        window.articleController.insert(artikel, card);
+                        return card;
+                    });
+            })
+            .then(function (card) {
+                let badges = [];
+                let artikel = window.articleController.getByCard(card);
+                let counter = artikel.hasInvolved();
+                badges.push({
+                    text: counter,
+                    icon: './assets/ic_beteiligt.png'
+                });
                 return badges;
             })
     },
-    'card-back-section': function(t, opts) {
+    'card-back-section': function (t, opts) {
         // Your Power-Up can have only one card back section and a maximum height of 500 pixels.
         return [{
             title: 'Artikel',
@@ -63,92 +47,135 @@ TrelloPowerUp.initialize({
             }
         }]
     },
-    'list-sorters': function(t) {
-        var cards;
-        return t.list('name', 'id')
-            .then(function(list) {
-                return GET("/lists/" + list.id + "/cards");
+    'list-sorters': function (t) {
+        window.articleController = new ArtikelController(document, t);
+        return t.cards('id')
+            .each(function (card) {
+                return t.get(card.id, 'shared', ArtikelController.SHARED_NAME)
+                    .then(function (list_data) {
+                        return Artikel.create(list_data);
+                    })
+                    .then(function (artikel) {
+                        window.articleController.insert(artikel, card);
+                        return window.articleController;
+                    });
             })
-            .then(function(data) {
-                cards = JSON.parse(data);
-                var promises = [];
-                for (var card in cards) {
-                    promises.push(new Promise(function(resolve,reject) {
-                        resolve({
-                            card: cards[card].id,
-                            pluginData: GET("/cards/" + cards[card].id + "/plugindata")
-                        })
-                    }));
-                }
-                return Promise.all(promises)
-            })
-            .then(function(data) {
-                var pagina = [];
-                // for (var _key in data) {
-                //     JSON.parse(data[_key]["pluginData"]).forEach(function(pluginData) {
-                //         if (pluginData.idPlugin === "5b562cc1dd427b2c37d032d2") {
-                //             var panta = JSON.parse(pluginData.value);
-                //             if (panta && panta.pagina) {
-                //                 var pvalue = -1;
-                //                 try {
-                //                     pvalue = parseInt(panta.pagina);
-                //                 } catch (e) {
-                //                     // ignore
-                //                 }
-                //                 pagina.push({
-                //                     id: data[_key]["card"],
-                //                     value: pvalue
-                //                 });
-                //             } else {
-                //                 pagina.push({
-                //                     id: data[_key]["card"],
-                //                     value: -1
-                //                 })
-                //             }
-                //         }
-                //     });
-                // }
+            .then(function (list) {
                 return [{
-                    text: "Pagina",
+                    text: "Pagina (aufsteigend)",
                     callback: function (t, opts) {
-                        // Trello will call this if the user clicks on this sort
-                        // opts.cards contains all card objects in the list
-                        var sortedCards = opts.cards.sort(
-                            function(a,b) {
-                                if (a.name > b.name) {
-                                    return 1;
-                                } else if (b.name > a.name) {
-                                    return -1;
-                                }
-                                return 0;
-                            });
-
-                        return {
-                            sortedIds: sortedCards.map(function (c) { return c.id; })
-                        };
+                        return sortOnPagina(t, opts, "asc");
+                    }
+                }, {
+                    text: "Pagina (absteigend)",
+                    callback: function (t, opts) {
+                        return sortOnPagina(t, opts, "desc");
+                    }
+                }, {
+                    text: "Online (aufsteigend)",
+                    callback: function (t, opts) {
+                        return sortOnTags(t, opts, "asc");
+                    }
+                }, {
+                    text: "Online (absteigend)",
+                    callback: function (t, opts) {
+                        return sortOnTags(t, opts, "desc");
                     }
                 }];
-            })
+            });
     }
 });
 
-function GET(path) {
-    return new Promise(function (resolve, reject) {
-        let xhr = new XMLHttpRequest;
-        xhr.addEventListener("error", reject);
-        xhr.onload = function () {
-            if (this.status >= 200 && this.status < 300) {
-                resolve(xhr.response);
-            } else {
-                reject({
-                    status: this.status,
-                    statusText: xhr.statusText
-                });
+function sortOnPagina(t, opts, sort) {
+    // Trello will call this if the user clicks on this sort
+    // opts.cards contains all card objects in the list
+    let sortedCards = opts.cards.sort(
+        function (lhs_card, rhs_card) {
+            let lhs = window.articleController.getByCard(lhs_card);
+            let rhs = window.articleController.getByCard(rhs_card);
+            let lhsp = parseInt(lhs.pagina || "0");
+            let rhsp = parseInt(rhs.pagina || "0");
+            if (lhsp > rhsp) {
+                return sort === "asc" ? 1 : -1;
+            } else if (rhsp > lhsp) {
+                return sort === "asc" ? -1 : 1;
             }
-        };
-        const key = "86a73cafa11d3834d4768a20a96b6786";
-        const token = "5f7ab7be941155ed024f3d024a5043d198c23764c9ee5988543d4679dc411563"
-        xhr.open("GET", "https://api.trello.com/1" + path + "?key=" + key + "&token=" + token);
-        xhr.send(null);
-    });
+            return 0;
+        });
+
+    return {
+        sortedIds: sortedCards.map(function (c) {
+            return c.id;
+        })
+    };
 }
+
+function sortOnTags(t, opts, sort) {
+    // Trello will call this if the user clicks on this sort
+    // opts.cards contains all card objects in the list
+    let sortedCards = opts.cards.sort(
+        function (lhs_card, rhs_card) {
+            let lhs = window.articleController.getByCard(lhs_card);
+            let rhs = window.articleController.getByCard(rhs_card);
+            let lhsp = map(lhs.tags);
+            let rhsp = map(rhs.tags);
+            if (lhsp > rhsp) {
+                return sort === "asc" ? 1 : -1;
+            } else if (rhsp > lhsp) {
+                return sort === "asc" ? -1 : 1;
+            }
+            return 0;
+        });
+
+    return {
+        sortedIds: sortedCards.map(function (c) {
+            return c.id;
+        })
+    };
+}
+
+function map(tag) {
+    if (!tag) {
+        return -1;
+    }
+    switch (tag) {
+        case "monday":
+            return 0;
+        case "tuesday":
+            return 1;
+        case "wednesday":
+            return 2;
+        case "thursday":
+            return 3;
+        case "friday":
+            return 4;
+        case "saturday":
+            return 5;
+        case "sunday":
+            return 6;
+        default:
+            return 7;
+    }
+}
+
+//
+// function GET(path) {
+//     return new Promise(function (resolve, reject) {
+//         let xhr = new XMLHttpRequest;
+//         xhr.addEventListener("error", reject);
+//         xhr.onload = function () {
+//             if (this.status >= 200 && this.status < 300) {
+//                 resolve(xhr.response);
+//             } else {
+//                 reject({
+//                     status: this.status,
+//                     statusText: xhr.statusText
+//                 });
+//             }
+//         };
+//         const key = "86a73cafa11d3834d4768a20a96b6786";
+//         const token = "5f7ab7be941155ed024f3d024a5043d198c23764c9ee5988543d4679dc411563"
+//         xhr.open("GET", "https://api.trello.com/1" + path + "?key=" + key + "&token=" + token);
+//         xhr.send(null);
+//     });
+// }

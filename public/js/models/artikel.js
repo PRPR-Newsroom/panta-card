@@ -18,7 +18,9 @@ class Artikel {
                 JsonSerialization.getProperty(json, 'region'),
                 JsonSerialization.getProperty(json, 'season'),
                 JsonSerialization.getProperty(json, 'author'),
-                JsonSerialization.getProperty(json, 'text')
+                JsonSerialization.getProperty(json, 'text'),
+                JsonSerialization.getProperty(json, 'location'),
+                JsonSerialization.getProperty(json, 'form')
             );
             // involved constains the whole panta.Beteiligt datastore
             artikel.involved = JsonSerialization.getProperty(json, 'involved');
@@ -42,8 +44,10 @@ class Artikel {
      * @param season Beispiele für Dropdown-Felder, nach Projekt anpassbar
      * @param author Name des Authors
      * @param text Ein Textfeld für eine kurze Inhaltsangabe
+     * @param form
+     * @param location
      */
-    constructor(id, topic, pagina, from, layout, total, tags, visual, region, season, author, text) {
+    constructor(id, topic, pagina, from, layout, total, tags, visual, region, season, author, text, form, location) {
         this._id = id || uuid();
         this._topic = topic;
         this._pagina = pagina;
@@ -51,9 +55,11 @@ class Artikel {
         this._layout = layout;
         this._total = total;
         this._tags = tags;
+        this._form = form;
         this._visual = visual;
         this._region = region;
         this._season = season;
+        this._location = location;
         this._author = author;
         this._text = text;
         this._involved = {};
@@ -75,6 +81,17 @@ class Artikel {
 
     putInvolved(name, involved) {
         this._involved[name] = involved;
+    }
+
+    hasInvolved() {
+        let that = this;
+        let count = 0;
+        Object.keys(this._involved).forEach(function(key) {
+            if (!that.getInvolvedFor(key).isEmpty()) {
+                count++;
+            }
+        });
+        return count;
     }
 
     get id() {
@@ -119,6 +136,14 @@ class Artikel {
         this._from = value;
     }
 
+    get location() {
+        return this._location;
+    }
+
+    set location(value) {
+        this._location = value;
+    }
+
     get topic() {
         return this._topic;
     }
@@ -157,6 +182,14 @@ class Artikel {
 
     set tags(value) {
         this._tags = value;
+    }
+
+    get form() {
+        return this._form;
+    }
+
+    set form(value) {
+        this._form = value;
     }
 
     get visual() {

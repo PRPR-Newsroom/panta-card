@@ -33,18 +33,29 @@ class ArtikelController {
          * @private
          */
         this._repository = new ArtikelRepository();
+
+        this._cards = {};
     }
 
     /**
-     *
      * @param {Artikel} artikel
+     * @param {Trello.Card} card
      */
-    insert(artikel) {
+    insert(artikel, card) {
         if (artikel && this._repository.isNew(artikel)) {
             this._repository.add(artikel);
         } else if (artikel) {
             this._repository.replace(artikel);
         }
+        this._cards[card.id] = artikel;
+    }
+
+    getByCard(card) {
+        return this._cards[card.id]
+    }
+
+    list() {
+        return this._repository.all();
     }
 
     isManaged(artikel) {

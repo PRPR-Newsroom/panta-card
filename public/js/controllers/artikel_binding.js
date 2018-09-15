@@ -23,6 +23,7 @@ class ArtikelBinding {
 
     update(artikel) {
         this._total.update(artikel);
+        this._layout.update(artikel);
         return this;
     }
 
@@ -45,15 +46,19 @@ class ArtikelBinding {
             .render();
         this._pagina = new SingleLineInput(this.document, "Pagina", null, "pa.pagina", "Zahl")
             .bind(this._artikel, 'pagina')
+            .setPropertyType("number")
             .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
             .render();
         this._layout = new SingleLineInput(this.document, "Seiten Layout", null, "pa.layout", "Zahl")
+            .setPropertyType("number")
             .bind(this._artikel, 'layout')
             .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
             .render();
         this._total = new SingleLineInput(this.document, "Seiten Total", null, "pa.total", "Summe", true)
+            .setPropertyType("number")
             .bind(this._artikel, 'total')
             .render();
+        this._total.propertyType = "number";
         this._tags = new SingleSelectInput(this.document, "Online", null, "pa.tags", "Liste-Tag")
             .addOption("monday", "Mo.")
             .addOption("tuesday", "Di.")
@@ -86,7 +91,26 @@ class ArtikelBinding {
             .bind(this._artikel, 'season')
             .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
             .render();
-         new SingleLineInput(this.document, "", null, "pa.additional.1", "", true)
+        this._form = new SingleSelectInput(this.document, "Form", null, "pa.form", "x-Liste")
+            .addOption("news", "News")
+            .addOption("article", "Artikel")
+            .addOption("report", "Report")
+            .bind(this._artikel, 'form')
+            .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
+            .render();
+        this._location = new SingleSelectInput(this.document, "Ort", null, "pa.location", "x-Liste")
+            .addOption("cds", "CDS")
+            .addOption("sto", "STO")
+            .addOption("tam", "TAM")
+            .addOption("wid", "WID")
+            .addOption("buech", "Buech")
+            .addOption("rustico", "Rustico")
+            .addOption("schlatt", "Schlatt")
+            .bind(this._artikel, 'location')
+            .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
+            .render();
+
+        new SingleLineInput(this.document, "", null, "pa.additional.1", "", true)
             .render();
         new SingleLineInput(this.document, "", null, "pa.additional.2", "", true)
             .render();
