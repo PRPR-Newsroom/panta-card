@@ -92,7 +92,7 @@ class BeteiligtBinding {
     }
 
     bind() {
-        this._onsite = this._onsite !== null ? this._onsite.update(this._artikel) : (this._onsite = new PForms(this.document, 'vor Ort', this._involvements.onsite)
+        this._onsite = this._onsite !== null ? this._onsite.update(this._artikel) : (this._onsite = new PForms(this.document, 'vor.Ort', this._involvements.onsite)
             .bind(this._artikel, 'onsite')
             .render());
 
@@ -127,9 +127,9 @@ class BeteiligtBinding {
         this._switchContent(forms, templ);
 
         this.newSingleLineInput(valueHolder, ".pa.name", "name", "Name");
-        this.newMultiLineInput(valueHolder, ".pa.social", "social", "Telefon.Mail.Webseite");
-        this.newMultiLineInput(valueHolder, ".pa.address", "address", "Adresse");
-        this.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Notiz");
+        this.newMultiLineInput(valueHolder, ".pa.social", "social", "Telefon.Mail.Webseite", 2);
+        this.newMultiLineInput(valueHolder, ".pa.address", "address", "Adresse", 2);
+        this.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Notiz", 4);
         this.newSingleLineInput(valueHolder, ".pa.duedate", "duedate", "Deadline");
     }
 
@@ -141,24 +141,26 @@ class BeteiligtBinding {
         this._switchContent(forms, templ);
 
         this.newSingleLineInput(valueHolder, ".pa.name", 'name', "Name");
-        this.newMultiLineInput(valueHolder, ".pa.social", 'social', "Telefon.Mail.Webseite");
-        this.newMultiLineInput(valueHolder, ".pa.address", 'address', "Adresse");
+        this.newMultiLineInput(valueHolder, ".pa.social", 'social', "Telefon.Mail.Webseite", 2);
+        this.newMultiLineInput(valueHolder, ".pa.address", 'address', "Adresse", 2);
         this.newSingleLineInput(valueHolder, ".pa.format", 'format', 'Format');
         this.newSingleLineInput(valueHolder, ".pa.placement", "placement", "Platzierung");
-        this.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Notiz");
-        this.newSingleLineInput(valueHolder, ".pa.price", "price", "Preis CHF");
-        this.newSingleLineInput(valueHolder, ".pa.total", "total", "Total CHF", true);
+        this.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Notiz", 2);
+        this.newSingleLineInput(valueHolder, ".pa.price", "price", "Preis CHF", false, "money");
+        this.newSingleLineInput(valueHolder, ".pa.total", "total", "Total CHF", true, "money");
     }
 
-    newMultiLineInput(valueHolder, targetId = ".pa.social", property = 'social', label = "Telefon.Mail.Webseite") {
-        return new MultiLineInput(this.document, label, null, targetId, "", 2, false)
+    newMultiLineInput(valueHolder, targetId = ".pa.social", property = 'social', label = "Telefon.Mail.Webseite", rows) {
+        return new MultiLineInput(this.document, label, null, targetId, "", rows, false)
             .bind(valueHolder.data, property)
             .onChange(this._action, {'context': this._context, 'valueHolder': valueHolder, 'artikel': this._artikel})
             .render();
     }
 
-    newSingleLineInput(valueHolder, targetId = ".pa.name", property = null, label = "Name", readonly = false) {
+    newSingleLineInput(valueHolder, targetId = ".pa.name", property = null, label = "Name", readonly = false, propertyType = "text") {
         let sli = new SingleLineInput(this.document, label, null, targetId, "", readonly);
+        sli.propertyType = propertyType || "text";
+
         if (property !== null) {
             sli.bind(valueHolder.data, property);
         }
@@ -167,6 +169,12 @@ class BeteiligtBinding {
         return sli;
     }
 
+    /**
+     * Switch content by removing any previous content first, resetting UI states and then set the new tab content
+     * @param forms
+     * @param templ
+     * @private
+     */
     _switchContent(forms, templ) {
         let content = this.document.getElementById("pa.tab.content");
         content.removeChildren();

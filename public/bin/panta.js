@@ -1,6 +1,10 @@
 // Input 0
 var $jscomp = $jscomp || {};
 $jscomp.scope = {};
+$jscomp.getGlobal = function(a) {
+  return "undefined" != typeof window && window === a ? a : "undefined" != typeof global && null != global ? global : a;
+};
+$jscomp.global = $jscomp.getGlobal(this);
 $jscomp.ASSUME_ES5 = !1;
 $jscomp.ASSUME_NO_NATIVE_MAP = !1;
 $jscomp.ASSUME_NO_NATIVE_SET = !1;
@@ -45,10 +49,6 @@ $jscomp.inherits = function(a, b) {
   }
   a.superClass_ = b.prototype;
 };
-$jscomp.getGlobal = function(a) {
-  return "undefined" != typeof window && window === a ? a : "undefined" != typeof global && null != global ? global : a;
-};
-$jscomp.global = $jscomp.getGlobal(this);
 $jscomp.checkStringArgs = function(a, b, c) {
   if (null == a) {
     throw new TypeError("The 'this' value for String.prototype." + c + " must not be null or undefined");
@@ -110,6 +110,74 @@ $jscomp.polyfill("Array.prototype.find", function(a) {
     return $jscomp.findInternal(this, a, c).v;
   };
 }, "es6", "es3");
+$jscomp.SYMBOL_PREFIX = "jscomp_symbol_";
+$jscomp.initSymbol = function() {
+  $jscomp.initSymbol = function() {
+  };
+  $jscomp.global.Symbol || ($jscomp.global.Symbol = $jscomp.Symbol);
+};
+$jscomp.Symbol = function() {
+  var a = 0;
+  return function(b) {
+    return $jscomp.SYMBOL_PREFIX + (b || "") + a++;
+  };
+}();
+$jscomp.initSymbolIterator = function() {
+  $jscomp.initSymbol();
+  var a = $jscomp.global.Symbol.iterator;
+  a || (a = $jscomp.global.Symbol.iterator = $jscomp.global.Symbol("iterator"));
+  "function" != typeof Array.prototype[a] && $jscomp.defineProperty(Array.prototype, a, {configurable:!0, writable:!0, value:function() {
+    return $jscomp.arrayIterator(this);
+  }});
+  $jscomp.initSymbolIterator = function() {
+  };
+};
+$jscomp.initSymbolAsyncIterator = function() {
+  $jscomp.initSymbol();
+  var a = $jscomp.global.Symbol.asyncIterator;
+  a || (a = $jscomp.global.Symbol.asyncIterator = $jscomp.global.Symbol("asyncIterator"));
+  $jscomp.initSymbolAsyncIterator = function() {
+  };
+};
+$jscomp.arrayIterator = function(a) {
+  var b = 0;
+  return $jscomp.iteratorPrototype(function() {
+    return b < a.length ? {done:!1, value:a[b++]} : {done:!0};
+  });
+};
+$jscomp.iteratorPrototype = function(a) {
+  $jscomp.initSymbolIterator();
+  a = {next:a};
+  a[$jscomp.global.Symbol.iterator] = function() {
+    return this;
+  };
+  return a;
+};
+$jscomp.iteratorFromArray = function(a, b) {
+  $jscomp.initSymbolIterator();
+  a instanceof String && (a += "");
+  var c = 0, d = {next:function() {
+    if (c < a.length) {
+      var e = c++;
+      return {value:b(e, a[e]), done:!1};
+    }
+    d.next = function() {
+      return {done:!0, value:void 0};
+    };
+    return d.next();
+  }};
+  d[Symbol.iterator] = function() {
+    return d;
+  };
+  return d;
+};
+$jscomp.polyfill("Array.prototype.keys", function(a) {
+  return a ? a : function() {
+    return $jscomp.iteratorFromArray(this, function(a) {
+      return a;
+    });
+  };
+}, "es6", "es3");
 var PInput = function(a, b, c, d, e, f, g) {
   this._document = a;
   this._label = 0 === b.length ? "" : b;
@@ -121,16 +189,35 @@ var PInput = function(a, b, c, d, e, f, g) {
   this._readonly = g;
   this._input = this._document.createElement(this._type);
   this._property = null;
+  this._propertyType = "text";
+};
+PInput.prototype.setPropertyType = function(a) {
+  this.propertyType = a;
+  return this;
 };
 PInput.prototype.bind = function(a, b) {
   this._artikel = a;
   this._property = b;
-  this._value = a[b] || 0.0;
+  this._value = a[b];
+  this._updateProperty();
   return this;
+};
+PInput.prototype._updateProperty = function() {
+  this._input.setAttribute("data-value", this._artikel[this.getBoundProperty()]);
+  switch(this.propertyType) {
+    case "number":
+      this._input.value = parseFloat(this._artikel[this.getBoundProperty()]).toLocaleString();
+      break;
+    case "money":
+      this._input.value = parseFloat(this._artikel[this.getBoundProperty()]).toLocaleString(void 0, {minimumFractionDigits:2});
+      break;
+    default:
+      this._input.value = this._artikel[this.getBoundProperty()] || "";
+  }
 };
 PInput.prototype.update = function(a) {
   this._artikel = a;
-  this._input.value = this._artikel[this.getBoundProperty()];
+  this._updateProperty();
   return this;
 };
 PInput.prototype.render = function() {
@@ -138,25 +225,58 @@ PInput.prototype.render = function() {
   this._input.setAttribute("name", this._name);
   this._input.placeholder = this._placeholder;
   this._input.setAttribute("title", this._label);
-  this._value && (this._input.value = this._value, "textarea" === this._type && this._input.appendChild(this._document.createTextNode(this._value)));
-  "input" === this._type && this._input.setAttribute("type", "text");
+  this._value && (this._updateProperty(), "textarea" === this._type && this._input.appendChild(this._document.createTextNode(this._value)));
+  if ("input" === this._type) {
+    if (this._readonly) {
+      this._input.setAttribute("type", "text");
+    } else {
+      switch(this.propertyType) {
+        case "money":
+          this._input.setAttribute("type", "text");
+          this._input.setAttribute("min", "0.00");
+          this._input.setAttribute("max", "1000000000.00");
+          this._input.setAttribute("step", "0.01");
+          break;
+        case "number":
+          this._input.setAttribute("type", "text");
+          break;
+        default:
+          this._input.setAttribute("type", "text");
+      }
+    }
+  }
   this._readonly && this._input.setAttribute("readonly", "readonly");
-  this.doCustomization(this._input);
+  this._input.addClass(this.propertyType);
+  this.setupEvents();
+  this._input.addClass("u-border");
   var b = this._document.createElement("label");
   b.appendChild(this._document.createTextNode(this._label));
   b.setAttribute("for", this._input.getAttribute("name"));
-  a.appendChild(this._input);
+  b.addClass("prop-" + this._type);
   a.appendChild(b);
+  a.appendChild(this._input);
   0 === this._label.length ? a.setAttribute("class", "field hidden") : a.setAttribute("class", "field");
   if (this._target instanceof HTMLCollection) {
-    b = this._target;
-    for (var c = 0; c < b.length; c++) {
-      b.item(c).appendChild(a.cloneNode(!0));
+    for (var c = this._target, d = 0; d < c.length; d++) {
+      c.item(d).appendChild(a.cloneNode(!0));
     }
   } else {
     null !== this._target && this._target.appendChild(a);
   }
+  this.doCustomization(this._input, b);
   return this;
+};
+PInput.prototype.setupEvents = function() {
+  this._setClassWhenEvent(this._input, "focus", "blur", "focused");
+  this._setClassWhenEvent(this._input, "mouseenter", "mouseleave", "hovered");
+};
+PInput.prototype._setClassWhenEvent = function(a, b, c, d) {
+  a.setEventListener(b, function(a) {
+    a.currentTarget.previousElementSibling.addClass(d);
+  });
+  this._input.setEventListener(c, function(a) {
+    a.currentTarget.previousElementSibling.removeClass(d);
+  });
 };
 PInput.prototype.onChange = function(a, b) {
   var c = this;
@@ -165,7 +285,7 @@ PInput.prototype.onChange = function(a, b) {
   };
   return this;
 };
-PInput.prototype.doCustomization = function(a) {
+PInput.prototype.doCustomization = function(a, b) {
 };
 PInput.prototype.getValue = function() {
   return this._input.value;
@@ -177,14 +297,31 @@ PInput.prototype.getBinding = function() {
   return this._artikel;
 };
 PInput.prototype.setProperty = function() {
-  this._artikel[this.getBoundProperty()] = this.getValue();
+  switch(this.propertyType) {
+    case "money":
+    case "number":
+      var a = this._parseNumber(this.getValue());
+      this._artikel[this.getBoundProperty()] = a;
+      break;
+    default:
+      this._artikel[this.getBoundProperty()] = this.getValue();
+  }
 };
+PInput.prototype._parseNumber = function(a) {
+  var b = (1.23).toLocaleString().substr(1, 1);
+  return parseFloat(a.replace(new RegExp("[^\\d" + b + "]"), "").replace(b, "."));
+};
+$jscomp.global.Object.defineProperties(PInput.prototype, {propertyType:{configurable:!0, enumerable:!0, get:function() {
+  return this._propertyType;
+}, set:function(a) {
+  this._propertyType = a;
+}}});
 var MultiLineInput = function(a, b, c, d, e, f, g) {
   PInput.call(this, a, b, c, d, e, "textarea", !!g);
   this._rows = f;
 };
 $jscomp.inherits(MultiLineInput, PInput);
-MultiLineInput.prototype.doCustomization = function(a) {
+MultiLineInput.prototype.doCustomization = function(a, b) {
   a.setAttribute("rows", this._rows);
   return PInput.prototype.doCustomization.call(this, a);
 };
@@ -201,15 +338,16 @@ SingleSelectInput.prototype.addOption = function(a, b) {
   this._options.push({value:a, text:b});
   return this;
 };
-SingleSelectInput.prototype.doCustomization = function(a) {
-  var b = this;
-  this._options.forEach(function(c, d) {
-    d = document.createElement("option");
-    d.value = c.value;
-    d.text = c.text;
-    c.value === b._value && d.setAttribute("selected", "selected");
-    a.appendChild(d);
+SingleSelectInput.prototype.doCustomization = function(a, b) {
+  var c = this;
+  this._options.forEach(function(b, e) {
+    e = document.createElement("option");
+    e.value = b.value;
+    e.text = b.text;
+    b.value === c._value && e.setAttribute("selected", "selected");
+    a.appendChild(e);
   });
+  b.addClass("focused-fix");
   return PInput.prototype.doCustomization.call(this, a);
 };
 // Input 1
@@ -271,9 +409,17 @@ var ArtikelController = function(a, b) {
   this.trelloApi = b;
   this._beteiligtBinding = this._artikelBinding = this._artikel = null;
   this._repository = new ArtikelRepository;
+  this._cards = {};
 };
-ArtikelController.prototype.insert = function(a) {
+ArtikelController.prototype.insert = function(a, b) {
   a && this._repository.isNew(a) ? this._repository.add(a) : a && this._repository.replace(a);
+  this._cards[b.id] = a;
+};
+ArtikelController.prototype.getByCard = function(a) {
+  return this._cards[a.id];
+};
+ArtikelController.prototype.list = function() {
+  return this._repository.all();
 };
 ArtikelController.prototype.isManaged = function(a) {
   return null !== a.id;
@@ -335,6 +481,7 @@ var ArtikelBinding = function(a, b, c, d) {
 };
 ArtikelBinding.prototype.update = function(a) {
   this._total.update(a);
+  this._layout.update(a);
   return this;
 };
 ArtikelBinding.prototype.bind = function() {
@@ -342,13 +489,16 @@ ArtikelBinding.prototype.bind = function() {
   this._from = (new SingleLineInput(this.document, "Input von", null, "pa.input-from", "Name")).bind(this._artikel, "from").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
   this._author = (new SingleLineInput(this.document, "Textautor*in", null, "pa.author", "Name")).bind(this._artikel, "author").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
   this._text = (new MultiLineInput(this.document, "Textbox", null, "pa.text", "Lauftext", 2)).bind(this._artikel, "text").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._pagina = (new SingleLineInput(this.document, "Pagina", null, "pa.pagina", "Zahl")).bind(this._artikel, "pagina").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._layout = (new SingleLineInput(this.document, "Seiten Layout", null, "pa.layout", "Zahl")).bind(this._artikel, "layout").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._total = (new SingleLineInput(this.document, "Seiten Total", null, "pa.total", "Summe", !0)).bind(this._artikel, "total").render();
+  this._pagina = (new SingleLineInput(this.document, "Pagina", null, "pa.pagina", "Zahl")).bind(this._artikel, "pagina").setPropertyType("number").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._layout = (new SingleLineInput(this.document, "Seiten Layout", null, "pa.layout", "Zahl")).setPropertyType("number").bind(this._artikel, "layout").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._total = (new SingleLineInput(this.document, "Seiten Total", null, "pa.total", "Summe", !0)).setPropertyType("number").bind(this._artikel, "total").render();
+  this._total.propertyType = "number";
   this._tags = (new SingleSelectInput(this.document, "Online", null, "pa.tags", "Liste-Tag")).addOption("monday", "Mo.").addOption("tuesday", "Di.").addOption("wednesday", "Mi.").addOption("thursday", "Do.").addOption("friday", "Fr.").addOption("saturday", "Sa.").addOption("sunday", "So.").bind(this._artikel, "tags").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
   this._visual = (new SingleSelectInput(this.document, "Visual", null, "pa.visual", "x-Liste")).addOption("picture", "Bild").addOption("icon", "Icon").addOption("graphics", "Grafik").addOption("videos", "Video").addOption("illustrations", "Illu").bind(this._artikel, "visual").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
   this._region = (new SingleSelectInput(this.document, "Region", null, "pa.region", "x-Liste")).addOption("nord", "Nord").addOption("south", "S\u00fcd").bind(this._artikel, "region").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
   this._season = (new SingleSelectInput(this.document, "Saison", null, "pa.season", "x-Liste")).addOption("summer", "Sommer").addOption("fall", "Herbst").bind(this._artikel, "season").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._form = (new SingleSelectInput(this.document, "Form", null, "pa.form", "x-Liste")).addOption("news", "News").addOption("article", "Artikel").addOption("report", "Report").bind(this._artikel, "form").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._location = (new SingleSelectInput(this.document, "Ort", null, "pa.location", "x-Liste")).addOption("cds", "CDS").addOption("sto", "STO").addOption("tam", "TAM").addOption("wid", "WID").addOption("buech", "Buech").addOption("rustico", "Rustico").addOption("schlatt", "Schlatt").bind(this._artikel, "location").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
   (new SingleLineInput(this.document, "", null, "pa.additional.1", "", !0)).render();
   (new SingleLineInput(this.document, "", null, "pa.additional.2", "", !0)).render();
   return this;
@@ -375,7 +525,7 @@ BeteiligtBinding.prototype.update = function(a) {
   return this;
 };
 BeteiligtBinding.prototype.bind = function() {
-  this._onsite = null !== this._onsite ? this._onsite.update(this._artikel) : this._onsite = (new PForms(this.document, "vor Ort", this._involvements.onsite)).bind(this._artikel, "onsite").render();
+  this._onsite = null !== this._onsite ? this._onsite.update(this._artikel) : this._onsite = (new PForms(this.document, "vor.Ort", this._involvements.onsite)).bind(this._artikel, "onsite").render();
   this._text = null !== this._text ? this._text.update(this._artikel) : this._text = (new PForms(this.document, "Text", this._involvements.text)).bind(this._artikel, "text").render();
   this._photo = null !== this._photo ? this._photo.update(this._artikel) : this._photo = (new PForms(this.document, "Foto", this._involvements.photo)).bind(this._artikel, "photo").render();
   this._video = null !== this._video ? this._video.update(this._artikel) : this._video = (new PForms(this.document, "Video", this._involvements.video)).bind(this._artikel, "video").render();
@@ -391,9 +541,9 @@ BeteiligtBinding.prototype.onRegularLayout = function(a, b) {
   c = c.cloneNode(!0);
   this._switchContent(a, c);
   this.newSingleLineInput(b, ".pa.name", "name", "Name");
-  this.newMultiLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite");
-  this.newMultiLineInput(b, ".pa.address", "address", "Adresse");
-  this.newMultiLineInput(b, ".pa.notes", "notes", "Notiz");
+  this.newMultiLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", 2);
+  this.newMultiLineInput(b, ".pa.address", "address", "Adresse", 2);
+  this.newMultiLineInput(b, ".pa.notes", "notes", "Notiz", 4);
   this.newSingleLineInput(b, ".pa.duedate", "duedate", "Deadline");
 };
 BeteiligtBinding.prototype.onAdLayout = function(a, b) {
@@ -402,21 +552,23 @@ BeteiligtBinding.prototype.onAdLayout = function(a, b) {
   c = c.cloneNode(!0);
   this._switchContent(a, c);
   this.newSingleLineInput(b, ".pa.name", "name", "Name");
-  this.newMultiLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite");
-  this.newMultiLineInput(b, ".pa.address", "address", "Adresse");
+  this.newMultiLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", 2);
+  this.newMultiLineInput(b, ".pa.address", "address", "Adresse", 2);
   this.newSingleLineInput(b, ".pa.format", "format", "Format");
   this.newSingleLineInput(b, ".pa.placement", "placement", "Platzierung");
-  this.newMultiLineInput(b, ".pa.notes", "notes", "Notiz");
-  this.newSingleLineInput(b, ".pa.price", "price", "Preis CHF");
-  this.newSingleLineInput(b, ".pa.total", "total", "Total CHF", !0);
+  this.newMultiLineInput(b, ".pa.notes", "notes", "Notiz", 2);
+  this.newSingleLineInput(b, ".pa.price", "price", "Preis CHF", !1, "money");
+  this.newSingleLineInput(b, ".pa.total", "total", "Total CHF", !0, "money");
 };
-BeteiligtBinding.prototype.newMultiLineInput = function(a, b, c, d) {
+BeteiligtBinding.prototype.newMultiLineInput = function(a, b, c, d, e) {
   c = void 0 === c ? "social" : c;
-  return (new MultiLineInput(this.document, void 0 === d ? "Telefon.Mail.Webseite" : d, null, void 0 === b ? ".pa.social" : b, "", 2, !1)).bind(a.data, c).onChange(this._action, {context:this._context, valueHolder:a, artikel:this._artikel}).render();
+  return (new MultiLineInput(this.document, void 0 === d ? "Telefon.Mail.Webseite" : d, null, void 0 === b ? ".pa.social" : b, "", e, !1)).bind(a.data, c).onChange(this._action, {context:this._context, valueHolder:a, artikel:this._artikel}).render();
 };
-BeteiligtBinding.prototype.newSingleLineInput = function(a, b, c, d, e) {
+BeteiligtBinding.prototype.newSingleLineInput = function(a, b, c, d, e, f) {
   c = void 0 === c ? null : c;
+  f = void 0 === f ? "text" : f;
   b = new SingleLineInput(this.document, void 0 === d ? "Name" : d, null, void 0 === b ? ".pa.name" : b, "", void 0 === e ? !1 : e);
+  b.propertyType = f || "text";
   null !== c && b.bind(a.data, c);
   b.onChange(this._action, {context:this._context, valueHolder:a, artikel:this._artikel}).render();
   return b;
@@ -514,7 +666,7 @@ $jscomp.global.Object.defineProperties(AdBeteiligt.prototype, {format:{configura
   this._total = a;
 }}});
 // Input 7
-var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, n) {
+var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, n, p, q) {
   this._id = a || uuid();
   this._topic = b;
   this._pagina = c;
@@ -522,9 +674,11 @@ var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, n) {
   this._layout = e;
   this._total = f;
   this._tags = g;
+  this._form = p;
   this._visual = h;
   this._region = k;
   this._season = l;
+  this._location = q;
   this._author = m;
   this._text = n;
   this._involved = {};
@@ -541,7 +695,7 @@ Artikel.create = function(a) {
 Artikel._create = function(a) {
   if (a) {
     var b = new Artikel(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "topic"), JsonSerialization.getProperty(a, "pagina"), JsonSerialization.getProperty(a, "from"), JsonSerialization.getProperty(a, "layout"), JsonSerialization.getProperty(a, "total"), JsonSerialization.getProperty(a, "tags"), JsonSerialization.getProperty(a, "visual"), JsonSerialization.getProperty(a, "region"), JsonSerialization.getProperty(a, "season"), JsonSerialization.getProperty(a, "author"), JsonSerialization.getProperty(a, 
-    "text"));
+    "text"), JsonSerialization.getProperty(a, "location"), JsonSerialization.getProperty(a, "form"));
     b.involved = JsonSerialization.getProperty(a, "involved");
     return b;
   }
@@ -552,6 +706,13 @@ Artikel.prototype.getInvolvedFor = function(a) {
 };
 Artikel.prototype.putInvolved = function(a, b) {
   this._involved[a] = b;
+};
+Artikel.prototype.hasInvolved = function() {
+  var a = this, b = 0;
+  Object.keys(this._involved).forEach(function(c) {
+    a.getInvolvedFor(c).isEmpty() || b++;
+  });
+  return b;
 };
 $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, enumerable:!0, get:function() {
   return this._id;
@@ -582,6 +743,10 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, 
   return this._from;
 }, set:function(a) {
   this._from = a;
+}}, location:{configurable:!0, enumerable:!0, get:function() {
+  return this._location;
+}, set:function(a) {
+  this._location = a;
 }}, topic:{configurable:!0, enumerable:!0, get:function() {
   return this._topic;
 }, set:function(a) {
@@ -602,6 +767,10 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, 
   return this._tags;
 }, set:function(a) {
   this._tags = a;
+}}, form:{configurable:!0, enumerable:!0, get:function() {
+  return this._form;
+}, set:function(a) {
+  this._form = a;
 }}, visual:{configurable:!0, enumerable:!0, get:function() {
   return this._visual;
 }, set:function(a) {
@@ -640,6 +809,15 @@ HTMLElement.prototype.removeClass = function(a) {
 HTMLElement.prototype.removeChildren = function() {
   for (; this.firstChild;) {
     this.removeChild(this.firstChild);
+  }
+};
+HTMLElement.prototype.setEventListener = function(a, b) {
+  this.removeEventListener(a, b);
+  this.addEventListener(a, b);
+};
+HTMLCollection.prototype.forEach = function(a, b) {
+  for (a = 0; a < this.length; a++) {
+    b(this[a]);
   }
 };
 function uuid() {
@@ -683,43 +861,4 @@ JsonSerialization.getProperty = function(a, b) {
 JsonSerialization.prototype.getAllProperties = function(a) {
   return Object.getOwnPropertyNames(a);
 };
-// Input 11
-var btDelete = document.getElementById("bt_delete"), t = TrelloPowerUp.iframe();
-btDelete && btDelete.addEventListener("click", function(a) {
-  a.preventDefault();
-  return t.remove("card", "shared", ArtikelController.SHARED_NAME).then(function() {
-    t.closeModal();
-  });
-});
-function showTab(a) {
-  for (var b = document.getElementById("tab-content"); b.firstChild;) {
-    b.removeChild(b.firstChild);
-  }
-  var c = document.createElement("textarea");
-  c.setAttribute("name", a + "_data");
-  c.setAttribute("placeholder", "Eingabefeld f\u00fcr " + a);
-  if (panta) {
-    var d = panta.options;
-    d && d[a + "_data"] && c.appendChild(document.createTextNode(d[a + "_data"]));
-  }
-  b.appendChild(c);
-}
-var articleController = new ArtikelController(document, t);
-t.render(function() {
-  return t.get("card", "shared", ArtikelController.SHARED_NAME).then(function(a) {
-    a = Artikel.create(a);
-    articleController.render(a);
-  }).then(function() {
-    return t.cards("id");
-  }).each(function(a) {
-    return t.get(a.id, "shared", ArtikelController.SHARED_NAME).then(function(a) {
-      a = Artikel.create(a);
-      articleController.insert(a);
-    });
-  }).then(function() {
-    articleController.update();
-  }).then(function() {
-    t.sizeTo("#panta\\.artikel").done();
-  });
-});
 

@@ -8,5 +8,4 @@ java -jar /home/m3ns1/dev/google-compiler/closure-compiler-v20180805.jar \
     'public/js/components/**.js' \
     'public/js/controllers/**.js' \
     'public/js/models/**.js' \
-    'public/js/helpers/**.js' \
-    'public/js/views/**.js'
+    'public/js/helpers/**.js'

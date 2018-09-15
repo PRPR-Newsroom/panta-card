@@ -6,38 +6,52 @@
     <script src="js/models/beteiligt.js"></script>
     <link rel="stylesheet" href="https://p.trellocdn.com/power-up.min.css" />
     <link rel="stylesheet" href="css/bootstrap-grid.css" />
-    <link rel="stylesheet" href="css/panta.css" />
+    <link rel="stylesheet" href="css/panta.mobile.css" />
 </head>
 <body>
 
 <script language="JavaScript">
-    window.addEventListener("load", function () {
-        let artikel = new Artikel();
-        artikel.involved = new AdBeteiligt();
-        artikel.involved.onsite = "Belp";
-        artikel.topic = "Test";
-        let om = new JsonSerialization();
-        let serialized = om.serialize(artikel);
-        console.log("Test: " + serialized);
-        let copy = new Artikel();
-        om.deserialize(serialized, copy);
-        console.log("Copy: " + om.serialize(copy));
+    function onFocus(e) {
+        let target = e.currentTarget;
+        target.previousElementSibling.setAttribute('class', 'focused');
+        console.log("event: " + e);
+    }
 
+    window.addEventListener("load", function () {
+        // let artikel = new Artikel();
+        // artikel.involved = new AdBeteiligt();
+        // artikel.involved.onsite = "Belp";
+        // artikel.topic = "Test";
+        // let om = new JsonSerialization();
+        // let serialized = om.serialize(artikel);
+        // console.log("Test: " + serialized);
+        // let copy = new Artikel();
+        // om.deserialize(serialized, copy);
+        // console.log("Copy: " + om.serialize(copy));
+        let inputs = document.getElementsByClassName("u-border");
+
+        for (let i=0;i<inputs.length;i++) {
+            inputs[i].removeEventListener('focus', onFocus);
+            inputs[i].addEventListener('focus', onFocus);
+
+
+        }
     });
+
 </script>
 
 <form style="width: 600px">
     <div class="row">
         <div class="col-6">
-            <div class="field">
-                <textarea id="name" name="name" type="text" placeholder="Name"></textarea>
+            <div>
                 <label for="name">Your Name</label>
+                <textarea class="u-border" id="name" name="name" type="text" placeholder="Name"></textarea>
             </div>
         </div>
         <div class="col-6">
-            <div class="field">
-                <input id="eingabe" type="text" placeholder="Eingabe"/>
+            <div>
                 <label for="eingabe">Author</label>
+                <input class="u-border" id="eingabe" type="text" placeholder="Eingabe"/>
             </div>
         </div>
     </div>

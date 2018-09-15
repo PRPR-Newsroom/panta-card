@@ -15,18 +15,49 @@ class PInput {
         this._readonly = readonly;
         this._input = this._document.createElement(this._type);
         this._property = null;
+        this._propertyType = "text";
+    }
+
+    get propertyType() {
+        return this._propertyType;
+    }
+
+    set propertyType(value) {
+        this._propertyType = value;
+    }
+
+    setPropertyType(propertyType) {
+        this.propertyType = propertyType;
+        return this;
     }
 
     bind(entity, property) {
         this._artikel = entity;
         this._property = property;
-        this._value = entity[property] || 0.0;
+        this._value = entity[property];
+        this._updateProperty();
         return this;
+    }
+
+    _updateProperty() {
+        this._input.setAttribute('data-value', this._artikel[this.getBoundProperty()]);
+        switch (this.propertyType) {
+            case "number":
+                this._input.value = parseFloat(this._artikel[this.getBoundProperty()]).toLocaleString();
+                break;
+            case "money":
+                this._input.value = parseFloat(this._artikel[this.getBoundProperty()]).toLocaleString(undefined, {minimumFractionDigits: 2});
+                break;
+            case 'text':
+            default:
+                this._input.value = this._artikel[this.getBoundProperty()] || "";
+                break;
+        }
     }
 
     update(artikel) {
         this._artikel = artikel;
-        this._input.value = this._artikel[this.getBoundProperty()];
+        this._updateProperty();
         return this;
     }
 
@@ -37,25 +68,48 @@ class PInput {
         this._input.placeholder = this._placeholder;
         this._input.setAttribute("title", this._label);
         if (this._value) {
-            this._input.value = this._value;
+            this._updateProperty();
             if (this._type === 'textarea') {
                 this._input.appendChild(this._document.createTextNode(this._value));
             }
         }
         if (this._type === 'input') {
-            this._input.setAttribute("type", "text");
+            if (!this._readonly) {
+                switch (this.propertyType) {
+                    case "money":
+                        // this._input.setAttribute("type", "number");
+                        this._input.setAttribute("type", "text");
+                        this._input.setAttribute("min", "0.00");
+                        this._input.setAttribute("max", "1000000000.00");
+                        this._input.setAttribute("step", "0.01");
+                        break;
+                    case "number":
+                        // this._input.setAttribute("type", "number");
+                        this._input.setAttribute("type", "text");
+                        break;
+                    default:
+                        this._input.setAttribute("type", "text");
+                        break;
+                }
+            } else {
+                this._input.setAttribute("type", "text");
+            }
         }
         if (this._readonly) {
             this._input.setAttribute("readonly", "readonly");
         }
+        this._input.addClass(this.propertyType);
 
-        this.doCustomization(this._input);
+        this.setupEvents();
+
+        this._input.addClass("u-border");
 
         let label = this._document.createElement("label");
         label.appendChild(this._document.createTextNode(this._label));
         label.setAttribute("for", this._input.getAttribute("name"));
-        container.appendChild(this._input);
+        label.addClass("prop-" + this._type);
         container.appendChild(label);
+        container.appendChild(this._input);
 
         if (this._label.length === 0) {
             container.setAttribute("class", "field hidden");
@@ -74,8 +128,29 @@ class PInput {
         } else if (this._target !== null) {
             this._target.appendChild(container);
         }
+
+        this.doCustomization(this._input, label);
+
         return this;
     }
+
+    setupEvents() {
+        this._setClassWhenEvent(this._input, 'focus', 'blur', 'focused');
+        this._setClassWhenEvent(this._input, 'mouseenter', 'mouseleave', 'hovered');
+    }
+
+    _setClassWhenEvent(element, eventOn, eventOff, className) {
+        element.setEventListener(eventOn, function (e) {
+            let target = e.currentTarget;
+            target.previousElementSibling.addClass(className);
+        });
+        this._input.setEventListener(eventOff, function (e) {
+            let target = e.currentTarget;
+            target.previousElementSibling.removeClass(className);
+        });
+    }
+
+
 
     onChange(func, ctx) {
         let that = this;
@@ -85,7 +160,7 @@ class PInput {
         return this;
     }
 
-    doCustomization(element) {
+    doCustomization(element, label) {
 
     }
 
@@ -102,8 +177,26 @@ class PInput {
     }
 
     setProperty() {
-        this._artikel[this.getBoundProperty()] = this.getValue();
+        switch (this.propertyType) {
+            case "money":
+            case "number":
+                // either the input is formatted or just a plain number
+                let parsed = this._parseNumber(this.getValue());
+                this._artikel[this.getBoundProperty()] = parsed;
+                break;
+            default:
+                this._artikel[this.getBoundProperty()] = this.getValue();
+        }
+
     }
+
+    _parseNumber(number) {
+        let decimal = 1.23.toLocaleString();
+        let sep = decimal.substr(1,1);
+        let re = new RegExp("[^\\d" + sep + "]");
+        return parseFloat(number.replace(re, '').replace(sep, '.'));
+    }
+
 }
 
 class MultiLineInput extends PInput {
@@ -114,7 +207,7 @@ class MultiLineInput extends PInput {
     }
 
 
-    doCustomization(element) {
+    doCustomization(element, label) {
         element.setAttribute("rows", this._rows);
         return super.doCustomization(element);
     }
@@ -140,7 +233,7 @@ class SingleSelectInput extends PInput {
         return this;
     }
 
-    doCustomization(element) {
+    doCustomization(element, label) {
         let that = this;
         this._options.forEach(function(item, _) {
             let opt = document.createElement("option");
@@ -151,6 +244,7 @@ class SingleSelectInput extends PInput {
             }
             element.appendChild(opt);
         });
+        label.addClass('focused-fix');
         return super.doCustomization(element);
     }
 }

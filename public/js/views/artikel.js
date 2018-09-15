@@ -1,4 +1,23 @@
 // let btSave = document.getElementById("bt_save");
+let isMobile = navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/) !== null;
+if (!isMobile) {
+    let head  = document.getElementsByTagName('head')[0];
+    let link  = document.createElement('link');
+    link.rel  = 'stylesheet';
+    link.type = 'text/css';
+    link.href = '/css/panta.responsive.css';
+    link.media = 'all';
+    head.appendChild(link);
+} else {
+    let head  = document.getElementsByTagName('head')[0];
+    let link  = document.createElement('link');
+    link.rel  = 'stylesheet';
+    link.type = 'text/css';
+    link.href = '/css/panta.mobile.css';
+    link.media = 'all';
+    head.appendChild(link);
+}
+
 let btDelete = document.getElementById("bt_delete");
 let t = TrelloPowerUp.iframe();
 
@@ -30,13 +49,6 @@ function showTab(what) {
     content.appendChild(input);
 }
 
-// Get all of the information about the list from a public board
-// btSave.addEventListener('click', function (event) {
-//     // Stop the browser trying to submit the form itself.
-//     event.preventDefault();
-//     return t.set('card', 'shared', ArtikelController.SHARED_NAME, articleController.getArtikel());
-// });
-
 let articleController = new ArtikelController(document, t);
 t.render(function () {
     // s. http://bluebirdjs.com/docs/api-reference.html
@@ -54,13 +66,21 @@ t.render(function () {
             return t.get(card.id, 'shared', ArtikelController.SHARED_NAME)
                 .then(function(list_data) {
                     let artikel = Artikel.create(list_data);
-                    articleController.insert(artikel);
+                    articleController.insert(artikel, card);
                 });
         })
         .then(function() {
             articleController.update();
         })
-        // .then(function() {
+
+        .then(function () {
+            t.sizeTo('#panta\\.artikel').done();
+        })
+});
+
+
+/*
+// .then(function() {
         //     return t.lists('id');
         // })
         // .then(function(boards) {
@@ -122,7 +142,4 @@ t.render(function () {
         //         }
         //     }
         // })
-        .then(function () {
-            t.sizeTo('#panta\\.artikel').done();
-        })
-});
+ */
