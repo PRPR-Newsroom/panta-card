@@ -120,7 +120,7 @@ class ArtikelController {
      * @returns {number}
      */
     getTotalPrice() {
-        return this._repository.all().map(function (item, index) {
+        return Object.values(this._repository.all()).map(function (item, index) {
             return item.getInvolvedFor('ad');
         }).filter(function (item, index) {
             return item instanceof AdBeteiligt && !isNaN(parseFloat(item.price));
@@ -136,7 +136,7 @@ class ArtikelController {
      * @returns {int}
      */
     getTotalPageCount() {
-        return this._repository.all().map(function (item, index) {
+        return Object.values(this._repository.all()).map(function (item, index) {
             let number = parseInt(item.layout);
             if (isNaN(number)) {
                 return 0;

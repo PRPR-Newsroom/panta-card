@@ -173,6 +173,18 @@ $jscomp.polyfill("Array.prototype.find", function(a) {
     return $jscomp.findInternal(this, a, c).v;
   };
 }, "es6", "es3");
+$jscomp.owns = function(a, b) {
+  return Object.prototype.hasOwnProperty.call(a, b);
+};
+$jscomp.polyfill("Object.values", function(a) {
+  return a ? a : function(a) {
+    var b = [], d;
+    for (d in a) {
+      $jscomp.owns(a, d) && b.push(a[d]);
+    }
+    return b;
+  };
+}, "es8", "es3");
 var PInput = function(a, b, c, d, e, f, g) {
   this._document = a;
   this._label = 0 === b.length ? "" : b;
@@ -456,7 +468,7 @@ ArtikelController.prototype.update = function() {
   this._beteiligtBinding.update(this._artikel);
 };
 ArtikelController.prototype.getTotalPrice = function() {
-  return this._repository.all().map(function(a, b) {
+  return Object.values(this._repository.all()).map(function(a, b) {
     return a.getInvolvedFor("ad");
   }).filter(function(a, b) {
     return a instanceof AdBeteiligt && !isNaN(parseFloat(a.price));
@@ -467,7 +479,7 @@ ArtikelController.prototype.getTotalPrice = function() {
   }, 0.0);
 };
 ArtikelController.prototype.getTotalPageCount = function() {
-  return this._repository.all().map(function(a, b) {
+  return Object.values(this._repository.all()).map(function(a, b) {
     a = parseInt(a.layout);
     return isNaN(a) ? 0 : a;
   }).reduce(function(a, b) {

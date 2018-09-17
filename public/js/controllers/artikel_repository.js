@@ -12,7 +12,7 @@ class ArtikelRepository {
 
     /**
      * Get all artikels
-     * @returns {Array}
+     * @returns {{}}
      */
     all() {
         return this._repository;
