@@ -5,7 +5,7 @@ if (!isMobile) {
     let link  = document.createElement('link');
     link.rel  = 'stylesheet';
     link.type = 'text/css';
-    link.href = '/css/panta.responsive.css';
+    link.href = 'css/panta.responsive.css';
     link.media = 'all';
     head.appendChild(link);
 } else {
@@ -13,7 +13,7 @@ if (!isMobile) {
     let link  = document.createElement('link');
     link.rel  = 'stylesheet';
     link.type = 'text/css';
-    link.href = '/css/panta.mobile.css';
+    link.href = 'css/panta.mobile.css';
     link.media = 'all';
     head.appendChild(link);
 }
