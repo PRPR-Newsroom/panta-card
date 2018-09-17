@@ -56,17 +56,22 @@ class ArtikelController {
         return this._repository.get(card);
     }
 
+    /**
+     * Get the region mapping in german
+     * @param region
+     * @returns {string|*}
+     */
     getRegionMapping(region) {
-        return this._artikelBinding.getRegionMapping(region);
+        return ArtikelBinding.getRegionMapping(region);
     }
 
     /**
-     * Get the human readable name of that 'tag'
+     * Get the human readable name of that 'tag' (german)
      * @param tag
      * @returns {string|*}
      */
     getTagMapping(tag) {
-        return this._artikelBinding.getTagMapping(tag);
+        return ArtikelBinding.getTagMapping(tag);
     }
 
     /**

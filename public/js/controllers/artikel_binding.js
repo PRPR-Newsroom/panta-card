@@ -3,6 +3,49 @@
  */
 class ArtikelBinding {
 
+    /**
+     * Get the german name for that region
+     * @param region
+     * @returns {*}
+     */
+    static getRegionMapping(region) {
+        switch (region) {
+            case "nord":
+            case "north":
+                return "Nord";
+            case "south":
+                return "Süd";
+            default:
+                return region;
+        }
+    }
+
+    /**
+     * Get the german name for that 'tag' (day)
+     * @param tag
+     * @returns {*}
+     */
+    static getTagMapping(tag) {
+        switch (tag) {
+            case "monday":
+                return "Mo.";
+            case "tuesday":
+                return "Di.";
+            case "wednesday":
+                return "Mi.";
+            case "thursday":
+                return "Do.";
+            case "friday":
+                return "Fr.";
+            case "saturday":
+                return "Sa.";
+            case "sunday":
+                return "So.";
+            default:
+                return tag;
+        }
+    }
+
     constructor(document, entity, action, context) {
 
         /**
@@ -24,38 +67,7 @@ class ArtikelBinding {
         this._artikel = entity;
     }
 
-    getRegionMapping(region) {
-        switch (region) {
-            case "nord":
-            case "north":
-                return "Nord";
-            case "south":
-                return "Süd";
-            default:
-                return region;
-        }
-    }
 
-    getTagMapping(tag) {
-        switch (tag) {
-            case "monday":
-                return "Mo.";
-            case "tuesday":
-                return "Di.";
-            case "wednesday":
-                return "Mi.";
-            case "thursday":
-                return "Do.";
-            case "friday":
-                return "Fr.";
-            case "saturday":
-                return "Sa.";
-            case "sunday":
-                return "So.";
-            default:
-                return tag;
-        }
-    }
 
     /**
      * This is called when
@@ -69,6 +81,7 @@ class ArtikelBinding {
     }
 
     bind() {
+        // TODO simplify these line using a factory (like in beteiligt binding)
         this._topic = new MultiLineInput(this.document, "Thema", null, "pa.topic", "Lauftext", 2)
             .bind(this._artikel, 'topic')
             .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
@@ -104,13 +117,13 @@ class ArtikelBinding {
             .render();
         this._total.propertyType = "number";
         this._tags = new SingleSelectInput(this.document, "Online", null, "pa.tags", "Liste-Tag")
-            .addOption("monday", this.getTagMapping("monday"))
-            .addOption("tuesday", this.getTagMapping("tuesday"))
-            .addOption("wednesday", this.getTagMapping("wednesday"))
-            .addOption("thursday", this.getTagMapping("thursday"))
-            .addOption("friday", this.getTagMapping("friday"))
-            .addOption("saturday", this.getTagMapping("saturday"))
-            .addOption("sunday", this.getTagMapping("sunday"))
+            .addOption("monday", ArtikelBinding.getTagMapping("monday"))
+            .addOption("tuesday", ArtikelBinding.getTagMapping("tuesday"))
+            .addOption("wednesday", ArtikelBinding.getTagMapping("wednesday"))
+            .addOption("thursday", ArtikelBinding.getTagMapping("thursday"))
+            .addOption("friday", ArtikelBinding.getTagMapping("friday"))
+            .addOption("saturday", ArtikelBinding.getTagMapping("saturday"))
+            .addOption("sunday", ArtikelBinding.getTagMapping("sunday"))
             .setEmpty("", "…")
             .bind(this._artikel, 'tags')
             .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
@@ -126,8 +139,8 @@ class ArtikelBinding {
             .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
             .render();
         this._region = new SingleSelectInput(this.document, "Region", null, "pa.region", "x-Liste")
-            .addOption("north", this.getRegionMapping("north"))
-            .addOption("south", this.getRegionMapping("south"))
+            .addOption("north", ArtikelBinding.getRegionMapping("north"))
+            .addOption("south", ArtikelBinding.getRegionMapping("south"))
             .setEmpty("", "…")
             .bind(this._artikel, 'region')
             .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
