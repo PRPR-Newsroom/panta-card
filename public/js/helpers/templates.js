@@ -20,7 +20,7 @@ let template_regular = '<div id="template" class="row">'+
     '            </div>'+
     '        </div>'+
     '        <div class="row align-bottom">'+
-    '            <div class="col-12 less-padding">'+
+    '            <div class="col-12 less-padding-left">'+
     '                <div class="pa.duedate"></div>'+
     '            </div>'+
     '        </div>'+
@@ -30,16 +30,16 @@ let template_regular = '<div id="template" class="row">'+
 let template_ad = '<div id="template" class="row">'+
     '    <div class="col-6">'+
     '        <div class="row">'+
+    '            <div class="col-12 less-padding-right">'+
+    '                <div class="pa.notes"></div>'+
+    '            </div>'+
+    '        </div>'+
+    '        <div class="row before-last-row">'+
     '            <div class="col-6 less-padding-right">'+
     '                <div class="pa.format"></div>'+
     '            </div>'+
     '            <div class="col-6 less-padding">'+
     '                <div class="pa.placement"></div>'+
-    '            </div>'+
-    '        </div>'+
-    '        <div class="row before-last-row">'+
-    '            <div class="col-12 less-padding-right">'+
-    '                <div class="pa.notes"></div>'+
     '            </div>'+
     '        </div>'+
     '        <div class="row align-bottom">'+
@@ -65,3 +65,4 @@ let template_ad = '<div id="template" class="row">'+
     '        </div>'+
     '    </div>'+
     '</div>';
+
