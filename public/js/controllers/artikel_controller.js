@@ -56,6 +56,19 @@ class ArtikelController {
         return this._repository.get(card);
     }
 
+    getRegionMapping(region) {
+        return this._artikelBinding.getRegionMapping(region);
+    }
+
+    /**
+     * Get the human readable name of that 'tag'
+     * @param tag
+     * @returns {string|*}
+     */
+    getTagMapping(tag) {
+        return this._artikelBinding.getTagMapping(tag);
+    }
+
     /**
      * Get all artikels currently known
      * @returns {Array}

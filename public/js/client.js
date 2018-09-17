@@ -40,13 +40,13 @@ TrelloPowerUp.initialize({
                     });
                     if (artikel.region) {
                         badges.push({
-                            text: 'region: ' + artikel.region,
+                            text: 'region: ' + window.articleController.getRegionMapping(artikel.region),
                             color: 'sky'
                         });
                     }
                     if (artikel.tags) {
                         badges.push({
-                            text: 'online: ' + artikel.tags,
+                            text: 'online: ' + window.articleController.getTagMapping(artikel.tags),
                             color: 'blue'
                         });
                     }

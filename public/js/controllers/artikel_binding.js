@@ -24,6 +24,39 @@ class ArtikelBinding {
         this._artikel = entity;
     }
 
+    getRegionMapping(region) {
+        switch (region) {
+            case "nord":
+            case "north":
+                return "Nord";
+            case "south":
+                return "Süd";
+            default:
+                return region;
+        }
+    }
+
+    getTagMapping(tag) {
+        switch (tag) {
+            case "monday":
+                return "Mo.";
+            case "tuesday":
+                return "Di.";
+            case "wednesday":
+                return "Mi.";
+            case "thursday":
+                return "Do.";
+            case "friday":
+                return "Fr.";
+            case "saturday":
+                return "Sa.";
+            case "sunday":
+                return "So.";
+            default:
+                return tag;
+        }
+    }
+
     /**
      * This is called when
      * @param artikel
@@ -71,13 +104,13 @@ class ArtikelBinding {
             .render();
         this._total.propertyType = "number";
         this._tags = new SingleSelectInput(this.document, "Online", null, "pa.tags", "Liste-Tag")
-            .addOption("monday", "Mo.")
-            .addOption("tuesday", "Di.")
-            .addOption("wednesday", "Mi.")
-            .addOption("thursday", "Do.")
-            .addOption("friday", "Fr.")
-            .addOption("saturday", "Sa.")
-            .addOption("sunday", "So.")
+            .addOption("monday", this.getTagMapping("monday"))
+            .addOption("tuesday", this.getTagMapping("tuesday"))
+            .addOption("wednesday", this.getTagMapping("wednesday"))
+            .addOption("thursday", this.getTagMapping("thursday"))
+            .addOption("friday", this.getTagMapping("friday"))
+            .addOption("saturday", this.getTagMapping("saturday"))
+            .addOption("sunday", this.getTagMapping("sunday"))
             .setEmpty("", "…")
             .bind(this._artikel, 'tags')
             .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
@@ -93,8 +126,8 @@ class ArtikelBinding {
             .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
             .render();
         this._region = new SingleSelectInput(this.document, "Region", null, "pa.region", "x-Liste")
-            .addOption("nord", "Nord")
-            .addOption("south", "Süd")
+            .addOption("north", this.getRegionMapping("north"))
+            .addOption("south", this.getRegionMapping("south"))
             .setEmpty("", "…")
             .bind(this._artikel, 'region')
             .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })

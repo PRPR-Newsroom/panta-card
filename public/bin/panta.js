@@ -433,6 +433,12 @@ ArtikelController.prototype.insert = function(a, b) {
 ArtikelController.prototype.getByCard = function(a) {
   return this._repository.get(a);
 };
+ArtikelController.prototype.getRegionMapping = function(a) {
+  return this._artikelBinding.getRegionMapping(a);
+};
+ArtikelController.prototype.getTagMapping = function(a) {
+  return this._artikelBinding.getTagMapping(a);
+};
 ArtikelController.prototype.list = function() {
   return this._repository.all();
 };
@@ -500,6 +506,37 @@ var ArtikelBinding = function(a, b, c, d) {
   this._context = d;
   this._artikel = b;
 };
+ArtikelBinding.prototype.getRegionMapping = function(a) {
+  switch(a) {
+    case "nord":
+    case "north":
+      return "Nord";
+    case "south":
+      return "S\u00fcd";
+    default:
+      return a;
+  }
+};
+ArtikelBinding.prototype.getTagMapping = function(a) {
+  switch(a) {
+    case "monday":
+      return "Mo.";
+    case "tuesday":
+      return "Di.";
+    case "wednesday":
+      return "Mi.";
+    case "thursday":
+      return "Do.";
+    case "friday":
+      return "Fr.";
+    case "saturday":
+      return "Sa.";
+    case "sunday":
+      return "So.";
+    default:
+      return a;
+  }
+};
 ArtikelBinding.prototype.update = function(a) {
   this._total.update(a);
   this._layout.update(a);
@@ -514,9 +551,10 @@ ArtikelBinding.prototype.bind = function() {
   this._layout = (new SingleLineInput(this.document, "Seiten Layout", null, "pa.layout", "Zahl")).setPropertyType("number").bind(this._artikel, "layout").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
   this._total = (new SingleLineInput(this.document, "Seiten Total", null, "pa.total", "Summe", !0)).setPropertyType("number").addClass("bold").bind(this._artikel, "total").render();
   this._total.propertyType = "number";
-  this._tags = (new SingleSelectInput(this.document, "Online", null, "pa.tags", "Liste-Tag")).addOption("monday", "Mo.").addOption("tuesday", "Di.").addOption("wednesday", "Mi.").addOption("thursday", "Do.").addOption("friday", "Fr.").addOption("saturday", "Sa.").addOption("sunday", "So.").setEmpty("", "\u2026").bind(this._artikel, "tags").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._tags = (new SingleSelectInput(this.document, "Online", null, "pa.tags", "Liste-Tag")).addOption("monday", this.getTagMapping("monday")).addOption("tuesday", this.getTagMapping("tuesday")).addOption("wednesday", this.getTagMapping("wednesday")).addOption("thursday", this.getTagMapping("thursday")).addOption("friday", this.getTagMapping("friday")).addOption("saturday", this.getTagMapping("saturday")).addOption("sunday", this.getTagMapping("sunday")).setEmpty("", "\u2026").bind(this._artikel, 
+  "tags").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
   this._visual = (new SingleSelectInput(this.document, "Visual", null, "pa.visual", "x-Liste")).addOption("picture", "Bild").addOption("icon", "Icon").addOption("graphics", "Grafik").addOption("videos", "Video").addOption("illustrations", "Illu").setEmpty("", "\u2026").bind(this._artikel, "visual").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._region = (new SingleSelectInput(this.document, "Region", null, "pa.region", "x-Liste")).addOption("nord", "Nord").addOption("south", "S\u00fcd").setEmpty("", "\u2026").bind(this._artikel, "region").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._region = (new SingleSelectInput(this.document, "Region", null, "pa.region", "x-Liste")).addOption("north", this.getRegionMapping("north")).addOption("south", this.getRegionMapping("south")).setEmpty("", "\u2026").bind(this._artikel, "region").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
   this._season = (new SingleSelectInput(this.document, "Saison", null, "pa.season", "x-Liste")).addOption("summer", "Sommer").addOption("fall", "Herbst").setEmpty("", "\u2026").bind(this._artikel, "season").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
   this._form = (new SingleSelectInput(this.document, "Form", null, "pa.form", "x-Liste")).addOption("news", "News").addOption("article", "Artikel").addOption("report", "Report").setEmpty("", "\u2026").bind(this._artikel, "form").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
   this._location = (new SingleSelectInput(this.document, "Ort", null, "pa.location", "x-Liste")).addOption("cds", "CDS").addOption("sto", "STO").addOption("tam", "TAM").addOption("wid", "WID").addOption("buech", "Buech").addOption("rustico", "Rustico").addOption("schlatt", "Schlatt").setEmpty("", "\u2026").bind(this._artikel, "location").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
@@ -715,8 +753,10 @@ Artikel.create = function(a) {
 };
 Artikel._create = function(a) {
   if (a) {
-    var b = new Artikel(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "topic"), JsonSerialization.getProperty(a, "pagina"), JsonSerialization.getProperty(a, "from"), JsonSerialization.getProperty(a, "layout"), JsonSerialization.getProperty(a, "total"), JsonSerialization.getProperty(a, "tags"), JsonSerialization.getProperty(a, "visual"), JsonSerialization.getProperty(a, "region"), JsonSerialization.getProperty(a, "season"), JsonSerialization.getProperty(a, "author"), JsonSerialization.getProperty(a, 
-    "text"), JsonSerialization.getProperty(a, "location"), JsonSerialization.getProperty(a, "form"));
+    var b = JsonSerialization.getProperty(a, "region");
+    "nord" === b && (b = "north");
+    b = new Artikel(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "topic"), JsonSerialization.getProperty(a, "pagina"), JsonSerialization.getProperty(a, "from"), JsonSerialization.getProperty(a, "layout"), JsonSerialization.getProperty(a, "total"), JsonSerialization.getProperty(a, "tags"), JsonSerialization.getProperty(a, "visual"), b, JsonSerialization.getProperty(a, "season"), JsonSerialization.getProperty(a, "author"), JsonSerialization.getProperty(a, "text"), JsonSerialization.getProperty(a, 
+    "location"), JsonSerialization.getProperty(a, "form"));
     b.involved = JsonSerialization.getProperty(a, "involved");
     return b;
   }

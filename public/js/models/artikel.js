@@ -6,6 +6,10 @@ class Artikel {
 
     static _create(json) {
         if (json) {
+            let region = JsonSerialization.getProperty(json, 'region');
+            if (region === 'nord') {
+                region = 'north';
+            }
             let artikel = new Artikel(
                 JsonSerialization.getProperty(json, 'id'),
                 JsonSerialization.getProperty(json, 'topic'),
@@ -15,7 +19,7 @@ class Artikel {
                 JsonSerialization.getProperty(json, 'total'),
                 JsonSerialization.getProperty(json, 'tags'),
                 JsonSerialization.getProperty(json, 'visual'),
-                JsonSerialization.getProperty(json, 'region'),
+                region,
                 JsonSerialization.getProperty(json, 'season'),
                 JsonSerialization.getProperty(json, 'author'),
                 JsonSerialization.getProperty(json, 'text'),
