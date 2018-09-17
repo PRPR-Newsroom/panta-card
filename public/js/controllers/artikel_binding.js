@@ -1,3 +1,6 @@
+/**
+ * This artikel binding class binds an artikel with the view/layout
+ */
 class ArtikelBinding {
 
     constructor(document, entity, action, context) {
@@ -21,6 +24,11 @@ class ArtikelBinding {
         this._artikel = entity;
     }
 
+    /**
+     * This is called when
+     * @param artikel
+     * @returns {ArtikelBinding}
+     */
     update(artikel) {
         this._total.update(artikel);
         this._layout.update(artikel);
@@ -45,6 +53,8 @@ class ArtikelBinding {
             .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
             .render();
         this._pagina = new SingleLineInput(this.document, "Pagina", null, "pa.pagina", "Zahl")
+            .addClass("pagina")
+            .addClass("bold")
             .bind(this._artikel, 'pagina')
             .setPropertyType("number")
             .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
@@ -56,6 +66,7 @@ class ArtikelBinding {
             .render();
         this._total = new SingleLineInput(this.document, "Seiten Total", null, "pa.total", "Summe", true)
             .setPropertyType("number")
+            .addClass("bold")
             .bind(this._artikel, 'total')
             .render();
         this._total.propertyType = "number";
@@ -67,6 +78,7 @@ class ArtikelBinding {
             .addOption("friday", "Fr.")
             .addOption("saturday", "Sa.")
             .addOption("sunday", "So.")
+            .setEmpty("", "…")
             .bind(this._artikel, 'tags')
             .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
             .render();
@@ -76,18 +88,21 @@ class ArtikelBinding {
             .addOption("graphics", "Grafik")
             .addOption("videos", "Video")
             .addOption("illustrations", "Illu")
+            .setEmpty("", "…")
             .bind(this._artikel, 'visual')
             .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
             .render();
         this._region = new SingleSelectInput(this.document, "Region", null, "pa.region", "x-Liste")
             .addOption("nord", "Nord")
             .addOption("south", "Süd")
+            .setEmpty("", "…")
             .bind(this._artikel, 'region')
             .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
             .render();
         this._season = new SingleSelectInput(this.document, "Saison", null, "pa.season", "x-Liste")
             .addOption("summer", "Sommer")
             .addOption("fall", "Herbst")
+            .setEmpty("", "…")
             .bind(this._artikel, 'season')
             .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
             .render();
@@ -95,6 +110,7 @@ class ArtikelBinding {
             .addOption("news", "News")
             .addOption("article", "Artikel")
             .addOption("report", "Report")
+            .setEmpty("", "…")
             .bind(this._artikel, 'form')
             .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
             .render();
@@ -106,6 +122,7 @@ class ArtikelBinding {
             .addOption("buech", "Buech")
             .addOption("rustico", "Rustico")
             .addOption("schlatt", "Schlatt")
+            .setEmpty("", "…")
             .bind(this._artikel, 'location')
             .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
             .render();

@@ -1,5 +1,7 @@
 html, body {
     background-color: #EFF0F0;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 form {

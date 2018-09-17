@@ -83,7 +83,11 @@ class Artikel {
         this._involved[name] = involved;
     }
 
-    hasInvolved() {
+    /**
+     * Get the number of involvements
+     * @returns {number}
+     */
+    getInvolvedCount() {
         let that = this;
         let count = 0;
         Object.keys(this._involved).forEach(function(key) {

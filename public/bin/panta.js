@@ -90,26 +90,6 @@ $jscomp.polyfill("String.prototype.startsWith", function(a) {
     return g >= f;
   };
 }, "es6", "es3");
-$jscomp.findInternal = function(a, b, c) {
-  a instanceof String && (a = String(a));
-  for (var d = a.length, e = 0; e < d; e++) {
-    var f = a[e];
-    if (b.call(c, f, e, a)) {
-      return {i:e, v:f};
-    }
-  }
-  return {i:-1, v:void 0};
-};
-$jscomp.polyfill("Array.prototype.findIndex", function(a) {
-  return a ? a : function(a, c) {
-    return $jscomp.findInternal(this, a, c).i;
-  };
-}, "es6", "es3");
-$jscomp.polyfill("Array.prototype.find", function(a) {
-  return a ? a : function(a, c) {
-    return $jscomp.findInternal(this, a, c).v;
-  };
-}, "es6", "es3");
 $jscomp.SYMBOL_PREFIX = "jscomp_symbol_";
 $jscomp.initSymbol = function() {
   $jscomp.initSymbol = function() {
@@ -176,6 +156,21 @@ $jscomp.polyfill("Array.prototype.keys", function(a) {
     return $jscomp.iteratorFromArray(this, function(a) {
       return a;
     });
+  };
+}, "es6", "es3");
+$jscomp.findInternal = function(a, b, c) {
+  a instanceof String && (a = String(a));
+  for (var d = a.length, e = 0; e < d; e++) {
+    var f = a[e];
+    if (b.call(c, f, e, a)) {
+      return {i:e, v:f};
+    }
+  }
+  return {i:-1, v:void 0};
+};
+$jscomp.polyfill("Array.prototype.find", function(a) {
+  return a ? a : function(a, c) {
+    return $jscomp.findInternal(this, a, c).v;
   };
 }, "es6", "es3");
 var PInput = function(a, b, c, d, e, f, g) {
@@ -279,6 +274,10 @@ PInput.prototype._setClassWhenEvent = function(a, b, c, d) {
     a.currentTarget.previousElementSibling.removeClass(d);
   });
 };
+PInput.prototype.addClass = function(a) {
+  this._input.addClass(a);
+  return this;
+};
 PInput.prototype.onChange = function(a, b) {
   var c = this;
   this._input.onchange = function() {
@@ -343,8 +342,12 @@ var SingleSelectInput = function(a, b, c, d, e, f) {
   this._options = [];
 };
 $jscomp.inherits(SingleSelectInput, PInput);
+SingleSelectInput.prototype.setEmpty = function(a, b) {
+  this._options.splice(0, 0, {value:a, text:b, empty:!0});
+  return this;
+};
 SingleSelectInput.prototype.addOption = function(a, b) {
-  this._options.push({value:a, text:b});
+  this._options.push({value:a, text:b, empty:!1});
   return this;
 };
 SingleSelectInput.prototype.doCustomization = function(a, b) {
@@ -391,7 +394,7 @@ PForms.prototype.activate = function() {
 };
 // Input 2
 var ArtikelRepository = function() {
-  this._repository = [];
+  this._repository = {};
   this._contains = function(a) {
     return function(b, c) {
       return b.id === a.id;
@@ -401,16 +404,21 @@ var ArtikelRepository = function() {
 ArtikelRepository.prototype.all = function() {
   return this._repository;
 };
-ArtikelRepository.prototype.add = function(a) {
-  this._repository.push(a);
+ArtikelRepository.prototype.add = function(a, b) {
+  this._repository[b.id] = a;
   console.debug("Artikel added: " + a.id + " (size=" + this._repository.length + ")");
 };
-ArtikelRepository.prototype.replace = function(a) {
-  var b = this._repository.findIndex(this._contains(a));
-  -1 !== b ? (this._repository[b] = a, console.debug("Artikel updated: " + a.id + " (size=" + this._repository.length + ")")) : console.debug("Cannot replace artikel because it's not yet in the repo");
+ArtikelRepository.prototype.replace = function(a, b) {
+  this._repository[b.id] = a;
+};
+ArtikelRepository.prototype.get = function(a) {
+  return this._repository[a.id];
 };
 ArtikelRepository.prototype.isNew = function(a) {
-  return null == this._repository.find(this._contains(a));
+  var b = this;
+  return null === Object.keys(this._repository).find(function(c, d) {
+    return b._repository[c].id === a.id;
+  });
 };
 // Input 3
 var ArtikelController = function(a, b) {
@@ -418,14 +426,12 @@ var ArtikelController = function(a, b) {
   this.trelloApi = b;
   this._beteiligtBinding = this._artikelBinding = this._artikel = null;
   this._repository = new ArtikelRepository;
-  this._cards = {};
 };
 ArtikelController.prototype.insert = function(a, b) {
-  a && this._repository.isNew(a) ? this._repository.add(a) : a && this._repository.replace(a);
-  this._cards[b.id] = a;
+  a && this._repository.isNew(a) ? this._repository.add(a) : a && this._repository.replace(a, b);
 };
 ArtikelController.prototype.getByCard = function(a) {
-  return this._cards[a.id];
+  return this._repository.get(a);
 };
 ArtikelController.prototype.list = function() {
   return this._repository.all();
@@ -438,13 +444,13 @@ ArtikelController.prototype.manage = function(a) {
   return a;
 };
 ArtikelController.prototype.update = function() {
-  this._artikel.total = this._repository.all().map(function(a, b) {
-    a = parseInt(a.layout);
-    return isNaN(a) ? 0 : a;
-  }).reduce(function(a, b) {
-    return a + b;
-  }, 0);
-  this._artikel.getInvolvedFor("ad").total = this._repository.all().map(function(a, b) {
+  this._artikel.total = this.getTotalPageCount();
+  this._artikel.getInvolvedFor("ad").total = this.getTotalPrice();
+  this._artikelBinding.update(this._artikel);
+  this._beteiligtBinding.update(this._artikel);
+};
+ArtikelController.prototype.getTotalPrice = function() {
+  return this._repository.all().map(function(a, b) {
     return a.getInvolvedFor("ad");
   }).filter(function(a, b) {
     return a instanceof AdBeteiligt && !isNaN(parseFloat(a.price));
@@ -453,8 +459,14 @@ ArtikelController.prototype.update = function() {
   }).reduce(function(a, b) {
     return parseFloat(a) + parseFloat(b);
   }, 0.0);
-  this._artikelBinding.update(this._artikel);
-  this._beteiligtBinding.update(this._artikel);
+};
+ArtikelController.prototype.getTotalPageCount = function() {
+  return this._repository.all().map(function(a, b) {
+    a = parseInt(a.layout);
+    return isNaN(a) ? 0 : a;
+  }).reduce(function(a, b) {
+    return a + b;
+  }, 0);
 };
 ArtikelController.prototype.render = function(a) {
   this._artikel = a ? a : Artikel.create();
@@ -498,16 +510,16 @@ ArtikelBinding.prototype.bind = function() {
   this._from = (new SingleLineInput(this.document, "Input von", null, "pa.input-from", "Name")).bind(this._artikel, "from").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
   this._author = (new SingleLineInput(this.document, "Textautor*in", null, "pa.author", "Name")).bind(this._artikel, "author").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
   this._text = (new MultiLineInput(this.document, "Textbox", null, "pa.text", "Lauftext", 2)).bind(this._artikel, "text").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._pagina = (new SingleLineInput(this.document, "Pagina", null, "pa.pagina", "Zahl")).bind(this._artikel, "pagina").setPropertyType("number").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._pagina = (new SingleLineInput(this.document, "Pagina", null, "pa.pagina", "Zahl")).addClass("pagina").addClass("bold").bind(this._artikel, "pagina").setPropertyType("number").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
   this._layout = (new SingleLineInput(this.document, "Seiten Layout", null, "pa.layout", "Zahl")).setPropertyType("number").bind(this._artikel, "layout").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._total = (new SingleLineInput(this.document, "Seiten Total", null, "pa.total", "Summe", !0)).setPropertyType("number").bind(this._artikel, "total").render();
+  this._total = (new SingleLineInput(this.document, "Seiten Total", null, "pa.total", "Summe", !0)).setPropertyType("number").addClass("bold").bind(this._artikel, "total").render();
   this._total.propertyType = "number";
-  this._tags = (new SingleSelectInput(this.document, "Online", null, "pa.tags", "Liste-Tag")).addOption("monday", "Mo.").addOption("tuesday", "Di.").addOption("wednesday", "Mi.").addOption("thursday", "Do.").addOption("friday", "Fr.").addOption("saturday", "Sa.").addOption("sunday", "So.").bind(this._artikel, "tags").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._visual = (new SingleSelectInput(this.document, "Visual", null, "pa.visual", "x-Liste")).addOption("picture", "Bild").addOption("icon", "Icon").addOption("graphics", "Grafik").addOption("videos", "Video").addOption("illustrations", "Illu").bind(this._artikel, "visual").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._region = (new SingleSelectInput(this.document, "Region", null, "pa.region", "x-Liste")).addOption("nord", "Nord").addOption("south", "S\u00fcd").bind(this._artikel, "region").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._season = (new SingleSelectInput(this.document, "Saison", null, "pa.season", "x-Liste")).addOption("summer", "Sommer").addOption("fall", "Herbst").bind(this._artikel, "season").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._form = (new SingleSelectInput(this.document, "Form", null, "pa.form", "x-Liste")).addOption("news", "News").addOption("article", "Artikel").addOption("report", "Report").bind(this._artikel, "form").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._location = (new SingleSelectInput(this.document, "Ort", null, "pa.location", "x-Liste")).addOption("cds", "CDS").addOption("sto", "STO").addOption("tam", "TAM").addOption("wid", "WID").addOption("buech", "Buech").addOption("rustico", "Rustico").addOption("schlatt", "Schlatt").bind(this._artikel, "location").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._tags = (new SingleSelectInput(this.document, "Online", null, "pa.tags", "Liste-Tag")).addOption("monday", "Mo.").addOption("tuesday", "Di.").addOption("wednesday", "Mi.").addOption("thursday", "Do.").addOption("friday", "Fr.").addOption("saturday", "Sa.").addOption("sunday", "So.").setEmpty("", "\u2026").bind(this._artikel, "tags").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._visual = (new SingleSelectInput(this.document, "Visual", null, "pa.visual", "x-Liste")).addOption("picture", "Bild").addOption("icon", "Icon").addOption("graphics", "Grafik").addOption("videos", "Video").addOption("illustrations", "Illu").setEmpty("", "\u2026").bind(this._artikel, "visual").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._region = (new SingleSelectInput(this.document, "Region", null, "pa.region", "x-Liste")).addOption("nord", "Nord").addOption("south", "S\u00fcd").setEmpty("", "\u2026").bind(this._artikel, "region").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._season = (new SingleSelectInput(this.document, "Saison", null, "pa.season", "x-Liste")).addOption("summer", "Sommer").addOption("fall", "Herbst").setEmpty("", "\u2026").bind(this._artikel, "season").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._form = (new SingleSelectInput(this.document, "Form", null, "pa.form", "x-Liste")).addOption("news", "News").addOption("article", "Artikel").addOption("report", "Report").setEmpty("", "\u2026").bind(this._artikel, "form").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  this._location = (new SingleSelectInput(this.document, "Ort", null, "pa.location", "x-Liste")).addOption("cds", "CDS").addOption("sto", "STO").addOption("tam", "TAM").addOption("wid", "WID").addOption("buech", "Buech").addOption("rustico", "Rustico").addOption("schlatt", "Schlatt").setEmpty("", "\u2026").bind(this._artikel, "location").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
   (new SingleLineInput(this.document, "", null, "pa.additional.1", "", !0)).render();
   (new SingleLineInput(this.document, "", null, "pa.additional.2", "", !0)).render();
   return this;
@@ -549,34 +561,34 @@ BeteiligtBinding.prototype.onRegularLayout = function(a, b) {
   c.innerHTML = template_regular;
   c = c.cloneNode(!0);
   this._switchContent(a, c);
-  this.newSingleLineInput(b, ".pa.name", "name", "Name");
-  this.newMultiLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", 2);
-  this.newMultiLineInput(b, ".pa.address", "address", "Adresse", 2);
-  this.newMultiLineInput(b, ".pa.notes", "notes", "Notiz", 4);
-  this.newSingleLineInput(b, ".pa.duedate", "duedate", "Deadline");
+  this.newSingleLineInput(b, ".pa.name", "name", "Name", !1, "text", "eintippen\u2026");
+  this.newMultiLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", 2, "notieren\u2026");
+  this.newMultiLineInput(b, ".pa.address", "address", "Adresse", 2, "festhalten\u2026");
+  this.newMultiLineInput(b, ".pa.notes", "notes", "Notiz", 4, "formulieren\u2026");
+  this.newSingleLineInput(b, ".pa.duedate", "duedate", "Deadline", !1, "text", "bestimmen\u2026");
 };
 BeteiligtBinding.prototype.onAdLayout = function(a, b) {
   var c = this.document.createElement("div");
   c.innerHTML = template_ad;
   c = c.cloneNode(!0);
   this._switchContent(a, c);
-  this.newSingleLineInput(b, ".pa.name", "name", "Name");
-  this.newMultiLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", 2);
-  this.newMultiLineInput(b, ".pa.address", "address", "Adresse", 2);
-  this.newSingleLineInput(b, ".pa.format", "format", "Format");
-  this.newSingleLineInput(b, ".pa.placement", "placement", "Platzierung");
-  this.newMultiLineInput(b, ".pa.notes", "notes", "Notiz", 2);
-  this.newSingleLineInput(b, ".pa.price", "price", "Preis CHF", !1, "money");
-  this.newSingleLineInput(b, ".pa.total", "total", "Total CHF", !0, "money");
+  this.newSingleLineInput(b, ".pa.name", "name", "Kontak", !1, "text", "eintippen\u2026");
+  this.newMultiLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", 2, "notieren\u2026");
+  this.newMultiLineInput(b, ".pa.address", "address", "Adresse", 2, "eingeben\u2026");
+  this.newSingleLineInput(b, ".pa.format", "format", "Format", !1, "text", "festhalten\u2026");
+  this.newSingleLineInput(b, ".pa.placement", "placement", "Platzierung", !1, "text", "vormerken\u2026");
+  this.newMultiLineInput(b, ".pa.notes", "notes", "Kunde.Sujet", 2, "Name.Stichwort\u2026");
+  this.newSingleLineInput(b, ".pa.price", "price", "Preis CHF", !1, "money", "bestimmen\u2026");
+  this.newSingleLineInput(b, ".pa.total", "total", "Total CHF", !0, "money", "").addClass("bold");
 };
-BeteiligtBinding.prototype.newMultiLineInput = function(a, b, c, d, e) {
+BeteiligtBinding.prototype.newMultiLineInput = function(a, b, c, d, e, f) {
   c = void 0 === c ? "social" : c;
-  return (new MultiLineInput(this.document, void 0 === d ? "Telefon.Mail.Webseite" : d, null, void 0 === b ? ".pa.social" : b, "", e, !1)).bind(a.data, c).onChange(this._action, {context:this._context, valueHolder:a, artikel:this._artikel}).render();
+  return (new MultiLineInput(this.document, void 0 === d ? "Telefon.Mail.Webseite" : d, null, void 0 === b ? ".pa.social" : b, void 0 === f ? "" : f, e, !1)).bind(a.data, c).onChange(this._action, {context:this._context, valueHolder:a, artikel:this._artikel}).render();
 };
-BeteiligtBinding.prototype.newSingleLineInput = function(a, b, c, d, e, f) {
+BeteiligtBinding.prototype.newSingleLineInput = function(a, b, c, d, e, f, g) {
   c = void 0 === c ? null : c;
   f = void 0 === f ? "text" : f;
-  b = new SingleLineInput(this.document, void 0 === d ? "Name" : d, null, void 0 === b ? ".pa.name" : b, "", void 0 === e ? !1 : e);
+  b = new SingleLineInput(this.document, void 0 === d ? "Name" : d, null, void 0 === b ? ".pa.name" : b, void 0 === g ? "" : g, void 0 === e ? !1 : e);
   b.propertyType = f || "text";
   null !== c && b.bind(a.data, c);
   b.onChange(this._action, {context:this._context, valueHolder:a, artikel:this._artikel}).render();
@@ -716,7 +728,7 @@ Artikel.prototype.getInvolvedFor = function(a) {
 Artikel.prototype.putInvolved = function(a, b) {
   this._involved[a] = b;
 };
-Artikel.prototype.hasInvolved = function() {
+Artikel.prototype.getInvolvedCount = function() {
   var a = this, b = 0;
   Object.keys(this._involved).forEach(function(c) {
     a.getInvolvedFor(c).isEmpty() || b++;
@@ -840,7 +852,7 @@ function uuid() {
 ;
 // Input 9
 var template_regular = '<div id="template" class="row">    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-right">                <div class="pa.name"></div>            </div>            <div class="col-12 less-padding-right">                <div class="pa.social"></div>            </div>            <div class="col-12 less-padding-right">                <div class="pa.address"></div>            </div>        </div>    </div>    <div class="col-6">        <div class="row before-last-row">            <div class="col-12 less-padding-left">                <div class="pa.notes"></div>            </div>        </div>        <div class="row align-bottom">            <div class="col-12 less-padding">                <div class="pa.duedate"></div>            </div>        </div>    </div></div>', 
-template_ad = '<div id="template" class="row">        <div class="col-6">            <div class="row">                <div class="col-12 less-padding-right">                    <div class="pa.name"></div>                </div>                <div class="col-12 less-padding-right">                    <div class="pa.social"></div>                </div>                <div class="col-12 less-padding-right">                    <div class="pa.address"></div>                </div>            </div>        </div>        <div class="col-6">            <div class="row">                <div class="col-6 less-padding">                    <div class="pa.format"></div>                </div>                <div class="col-6 less-padding-left">                    <div class="pa.placement"></div>                </div>            </div>            <div class="row before-last-row">                <div class="col-12 less-padding-left">                    <div class="pa.notes"></div>                </div>            </div>            <div class="row align-bottom">                <div class="col-6 less-padding">                    <div class="pa.price"></div>                </div>                <div class="col-6 less-padding-left">                    <div class="pa.total"></div>                </div>            </div>        </div>    </div>';
+template_ad = '<div id="template" class="row">    <div class="col-6">        <div class="row">            <div class="col-6 less-padding-right">                <div class="pa.format"></div>            </div>            <div class="col-6 less-padding">                <div class="pa.placement"></div>            </div>        </div>        <div class="row before-last-row">            <div class="col-12 less-padding-right">                <div class="pa.notes"></div>            </div>        </div>        <div class="row align-bottom">            <div class="col-6 less-padding-right">                <div class="pa.price"></div>            </div>            <div class="col-6 less-padding">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-left">                <div class="pa.name"></div>            </div>            <div class="col-12 less-padding-left">                <div class="pa.social"></div>            </div>            <div class="col-12 less-padding-left">                <div class="pa.address"></div>            </div>        </div>    </div></div>';
 // Input 10
 var JsonSerialization = function() {
 };

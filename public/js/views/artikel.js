@@ -56,17 +56,15 @@ t.render(function () {
     // noinspection JSUnresolvedFunction
     return t.get('card', 'shared', ArtikelController.SHARED_NAME)
         .then(function (jsonobj) {
-            let artikel = Artikel.create(jsonobj);
-            articleController.render(artikel);
+            articleController.render(Artikel.create(jsonobj));
         })
         .then(function() {
             return t.cards('id');
         })
         .each(function(card) {
             return t.get(card.id, 'shared', ArtikelController.SHARED_NAME)
-                .then(function(list_data) {
-                    let artikel = Artikel.create(list_data);
-                    articleController.insert(artikel, card);
+                .then(function(json) {
+                    articleController.insert(Artikel.create(json), card);
                 });
         })
         .then(function() {
@@ -77,69 +75,3 @@ t.render(function () {
             t.sizeTo('#panta\\.artikel').done();
         })
 });
-
-
-/*
-// .then(function() {
-        //     return t.lists('id');
-        // })
-        // .then(function(boards) {
-        //     console.log(boards);
-        //     let Promise = window.TrelloPowerUp.Promise;
-        //
-        //     return Promise.all(boards.then(function(board) {
-        //         console.log("Board: " + board);
-        //         return board;
-        //     }));
-        // })
-        // .each(function(list) {
-        //     return t.get(list.id, 'shared', ArtikelController.SHARED_NAME);
-        // })
-        // .then(function(list_artikel) {
-        //     console.log(list_artikel);
-        //     return list_artikel;
-        // })
-        // .then(function () {
-        //     return t.card('all')
-        // })
-        // .then(function (card) {
-        //     return t.cards('customFieldItems');
-        // })
-        // .then(function (customFields) {
-        //     let Promise = window.TrelloPowerUp.Promise;
-        //     return new Promise(function (resolve, reject) {
-        //         let xhr = new XMLHttpRequest;
-        //         xhr.addEventListener("error", reject);
-        //         xhr.onload = function () {
-        //             if (this.status >= 200 && this.status < 300) {
-        //                 resolve(xhr.response);
-        //             } else {
-        //                 reject({
-        //                     status: this.status,
-        //                     statusText: xhr.statusText
-        //                 });
-        //             }
-        //         };
-        //         xhr.open("GET", "https://api.trello.com/1/cards/5b49a8c00e5a2f4f5ba0111e/customFields?key=86a73cafa11d3834d4768a20a96b6786&token=5f7ab7be941155ed024f3d024a5043d198c23764c9ee5988543d4679dc411563");
-        //         xhr.send(null);
-        //     });
-        // })
-        // .then(function (data) {
-        //     let fields = JSON.parse(data);
-        //     for (let cf in fields) {
-        //         let name = fields[cf].name;
-        //         let elname = document.getElementsByName(name);
-        //         if (elname && elname[0]) {
-        //             let selectname = document.createElement("select");
-        //             for (let opt in fields[cf].options) {
-        //                 let optname = document.createElement("option");
-        //                 optname.value = fields[cf].options[opt].value.text;
-        //                 optname.appendChild(document.createTextNode(fields[cf].options[opt].value.text));
-        //                 selectname.appendChild(optname);
-        //             }
-        //             elname[0].style.display = "none";
-        //             elname[0].parentElement.appendChild(selectname);
-        //         }
-        //     }
-        // })
- */

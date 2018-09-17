@@ -1,5 +1,7 @@
 html, body {
     background-color: #EFF0F0;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 form {
@@ -26,7 +28,7 @@ form label {
     border-right: 1px solid #cdd2d4;
     border-top: 1px solid #cdd2d4;
     border-bottom: 0;
-    color: #606565;
+    color: #B2B3B3;
     font-weight: normal;
 }
 
@@ -45,11 +47,20 @@ form .u-border, form .u-border:focus {
     box-shadow: none !important;
     resize: vertical;
     min-height: 32px;
-    margin-bottom: 0.5em;
+    margin-bottom: 5px;
 }
 
 select {
     padding: .5em;
+}
+
+.u-border.pagina {
+    font-size: 20pt;
+    padding: 0 0.5em 0 0.5em;
+}
+
+.bold {
+    font-weight: bold;
 }
 
 .number, .money {
@@ -76,7 +87,7 @@ select {
 
 .tab.selected span {
     background-color: white;
-    border-bottom: 0.2em solid #F68712;
+    border-bottom: 0.2em solid #41B23B;
 }
 
 .tab:first-child span {
