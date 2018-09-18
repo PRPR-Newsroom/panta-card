@@ -126,11 +126,11 @@ class BeteiligtBinding {
         let templ = virtual.cloneNode(true);
         this._switchContent(forms, templ);
 
-        this.newSingleLineInput(valueHolder, ".pa.name", "name", "Name");
-        this.newMultiLineInput(valueHolder, ".pa.social", "social", "Telefon.Mail.Webseite", 2);
-        this.newMultiLineInput(valueHolder, ".pa.address", "address", "Adresse", 2);
-        this.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Notiz", 4);
-        this.newSingleLineInput(valueHolder, ".pa.duedate", "duedate", "Deadline");
+        this.newSingleLineInput(valueHolder, ".pa.name", "name", "Name", false, "text", "eintippen…");
+        this.newMultiLineInput(valueHolder, ".pa.social", "social", "Telefon.Mail.Webseite", 2, "notieren…");
+        this.newMultiLineInput(valueHolder, ".pa.address", "address", "Adresse", 2, "festhalten…");
+        this.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Notiz", 4, "formulieren…");
+        this.newSingleLineInput(valueHolder, ".pa.duedate", "duedate", "Deadline", false, "text", "bestimmen…");
     }
 
     onAdLayout(forms, valueHolder) {
@@ -140,25 +140,26 @@ class BeteiligtBinding {
 
         this._switchContent(forms, templ);
 
-        this.newSingleLineInput(valueHolder, ".pa.name", 'name', "Name");
-        this.newMultiLineInput(valueHolder, ".pa.social", 'social', "Telefon.Mail.Webseite", 2);
-        this.newMultiLineInput(valueHolder, ".pa.address", 'address', "Adresse", 2);
-        this.newSingleLineInput(valueHolder, ".pa.format", 'format', 'Format');
-        this.newSingleLineInput(valueHolder, ".pa.placement", "placement", "Platzierung");
-        this.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Notiz", 2);
-        this.newSingleLineInput(valueHolder, ".pa.price", "price", "Preis CHF", false, "money");
-        this.newSingleLineInput(valueHolder, ".pa.total", "total", "Total CHF", true, "money");
+        this.newSingleLineInput(valueHolder, ".pa.name", 'name', "Kontak", false, "text", "eintippen…");
+        this.newMultiLineInput(valueHolder, ".pa.social", 'social', "Telefon.Mail.Webseite", 2, "notieren…");
+        this.newMultiLineInput(valueHolder, ".pa.address", 'address', "Adresse", 2, "eingeben…");
+        this.newSingleLineInput(valueHolder, ".pa.format", 'format', 'Format', false, "text", "festhalten…");
+        this.newSingleLineInput(valueHolder, ".pa.placement", "placement", "Platzierung", false, "text", "vormerken…");
+        this.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Kunde.Sujet", 2, "Name.Stichwort…");
+        this.newSingleLineInput(valueHolder, ".pa.price", "price", "Preis CHF", false, "money", "bestimmen…");
+        this.newSingleLineInput(valueHolder, ".pa.total", "total", "Total CHF", true, "money", "")
+            .addClass("bold");
     }
 
-    newMultiLineInput(valueHolder, targetId = ".pa.social", property = 'social', label = "Telefon.Mail.Webseite", rows) {
-        return new MultiLineInput(this.document, label, null, targetId, "", rows, false)
+    newMultiLineInput(valueHolder, targetId = ".pa.social", property = 'social', label = "Telefon.Mail.Webseite", rows, placeholder = "") {
+        return new MultiLineInput(this.document, label, null, targetId, placeholder, rows, false)
             .bind(valueHolder.data, property)
             .onChange(this._action, {'context': this._context, 'valueHolder': valueHolder, 'artikel': this._artikel})
             .render();
     }
 
-    newSingleLineInput(valueHolder, targetId = ".pa.name", property = null, label = "Name", readonly = false, propertyType = "text") {
-        let sli = new SingleLineInput(this.document, label, null, targetId, "", readonly);
+    newSingleLineInput(valueHolder, targetId = ".pa.name", property = null, label = "Name", readonly = false, propertyType = "text", placeholder = "") {
+        let sli = new SingleLineInput(this.document, label, null, targetId, placeholder, readonly);
         sli.propertyType = propertyType || "text";
 
         if (property !== null) {

@@ -1,7 +1,7 @@
 TrelloPowerUp.initialize({
     'card-buttons': function (t, options) {
         return [{
-            icon: './assets/ic_artikel.png',
+            icon: './assets/ic_pantarhei.png',
             text: 'panta.Card',
             callback: function (t) {
                 return t.popup({
@@ -27,11 +27,31 @@ TrelloPowerUp.initialize({
             .then(function (card) {
                 let badges = [];
                 let artikel = window.articleController.getByCard(card);
-                let counter = artikel.hasInvolved();
-                badges.push({
-                    text: counter,
-                    icon: './assets/ic_beteiligt.png'
-                });
+                let counter = artikel.getInvolvedCount();
+
+                if (counter > 0) {
+                    badges.push({
+                        text: "",
+                        icon: './assets/ic_artikel.png'
+                    });
+                    badges.push({
+                        text: counter,
+                        icon: './assets/ic_beteiligt.png'
+                    });
+                    if (artikel.region) {
+                        badges.push({
+                            text: 'region: ' + window.articleController.getRegionMapping(artikel.region),
+                            color: 'sky'
+                        });
+                    }
+                    if (artikel.tags) {
+                        badges.push({
+                            text: 'online: ' + window.articleController.getTagMapping(artikel.tags),
+                            color: 'blue'
+                        });
+                    }
+                }
+
                 return badges;
             })
     },
@@ -39,7 +59,7 @@ TrelloPowerUp.initialize({
         // Your Power-Up can have only one card back section and a maximum height of 500 pixels.
         return [{
             title: 'Artikel',
-            icon: './assets/ic_artikel.png',
+            icon: './assets/ic_pantarhei.png',
             content: {
                 type: 'iframe',
                 url: t.signUrl('./artikel.html', {}),
@@ -62,24 +82,14 @@ TrelloPowerUp.initialize({
             })
             .then(function (list) {
                 return [{
-                    text: "Pagina (aufsteigend)",
+                    text: "Pagina (1 -> 99)",
                     callback: function (t, opts) {
                         return sortOnPagina(t, opts, "asc");
                     }
                 }, {
-                    text: "Pagina (absteigend)",
-                    callback: function (t, opts) {
-                        return sortOnPagina(t, opts, "desc");
-                    }
-                }, {
-                    text: "Online (aufsteigend)",
+                    text: "Online (A -> Z)",
                     callback: function (t, opts) {
                         return sortOnTags(t, opts, "asc");
-                    }
-                }, {
-                    text: "Online (absteigend)",
-                    callback: function (t, opts) {
-                        return sortOnTags(t, opts, "desc");
                     }
                 }];
             });

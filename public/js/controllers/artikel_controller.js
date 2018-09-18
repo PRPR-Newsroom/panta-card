@@ -33,8 +33,6 @@ class ArtikelController {
          * @private
          */
         this._repository = new ArtikelRepository();
-
-        this._cards = {};
     }
 
     /**
@@ -45,53 +43,108 @@ class ArtikelController {
         if (artikel && this._repository.isNew(artikel)) {
             this._repository.add(artikel);
         } else if (artikel) {
-            this._repository.replace(artikel);
+            this._repository.replace(artikel, card);
         }
-        this._cards[card.id] = artikel;
     }
 
+    /**
+     * Get the artikel for the passed trello card
+     * @param card
+     * @returns {*}
+     */
     getByCard(card) {
-        return this._cards[card.id]
+        return this._repository.get(card);
     }
 
+    /**
+     * Get the region mapping in german
+     * @param region
+     * @returns {string|*}
+     */
+    getRegionMapping(region) {
+        return ArtikelBinding.getRegionMapping(region);
+    }
+
+    /**
+     * Get the human readable name of that 'tag' (german)
+     * @param tag
+     * @returns {string|*}
+     */
+    getTagMapping(tag) {
+        return ArtikelBinding.getTagMapping(tag);
+    }
+
+    /**
+     * Get all artikels currently known
+     * @returns {Array}
+     */
     list() {
         return this._repository.all();
     }
 
+    /**
+     * Check if the passed artikel is already managed or not
+     * @param artikel
+     * @returns {boolean}
+     */
     isManaged(artikel) {
         return artikel.id !== null;
     }
-    
+
+    /**
+     * Make the artikel managed by setting the ID of the artikel
+     * @param artikel
+     * @returns {Artikel}
+     */
     manage(artikel) {
         artikel.id = uuid();
         return artikel;
     }
 
+    /**
+     * Called when the artikel has changed and the controller should re-compute dynamic properties (totals)
+     */
     update() {
         // calc total
-        this._artikel.total = this._repository.all().map(function(item, index) {
+        this._artikel.total = this.getTotalPageCount();
+
+        // calc price in involved
+        this._artikel.getInvolvedFor('ad').total = this.getTotalPrice();
+
+        this._artikelBinding.update(this._artikel);
+        this._beteiligtBinding.update(this._artikel);
+    }
+
+    /**
+     * Compute the total price over all artikels in the "ad"-involved section
+     * @returns {number}
+     */
+    getTotalPrice() {
+        return Object.values(this._repository.all()).map(function (item, index) {
+            return item.getInvolvedFor('ad');
+        }).filter(function (item, index) {
+            return item instanceof AdBeteiligt && !isNaN(parseFloat(item.price));
+        }).map(function (item, index) {
+            return item.price;
+        }).reduce(function (previousValue, currentValue) {
+            return parseFloat(previousValue) + parseFloat(currentValue);
+        }, 0.0);
+    }
+
+    /**
+     * Compute the total page count over all artikels
+     * @returns {int}
+     */
+    getTotalPageCount() {
+        return Object.values(this._repository.all()).map(function (item, index) {
             let number = parseInt(item.layout);
             if (isNaN(number)) {
                 return 0;
             }
             return number;
-        }).reduce(function(previousValue, currentValue) {
+        }).reduce(function (previousValue, currentValue) {
             return previousValue + currentValue;
         }, 0);
-
-        // calc price in involved
-        this._artikel.getInvolvedFor('ad').total = this._repository.all().map(function(item, index) {
-            return item.getInvolvedFor('ad');
-        }).filter(function(item, index) {
-            return item instanceof AdBeteiligt && !isNaN(parseFloat(item.price));
-        }).map(function(item, index) {
-            return item.price;
-        }).reduce(function(previousValue, currentValue) {
-            return parseFloat(previousValue) + parseFloat(currentValue);
-        }, 0.0);
-
-        this._artikelBinding.update(this._artikel);
-        this._beteiligtBinding.update(this._artikel);
     }
 
     /**

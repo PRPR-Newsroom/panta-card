@@ -153,7 +153,10 @@ class PInput {
         });
     }
 
-
+    addClass(className) {
+        this._input.addClass(className);
+        return this;
+    }
 
     onChange(func, ctx) {
         let that = this;
@@ -241,10 +244,20 @@ class SingleSelectInput extends PInput {
         this._options = [];
     }
 
+    setEmpty(value, text) {
+        this._options.splice(0, 0, {
+            'value': value,
+            'text': text,
+            'empty': true
+        });
+        return this;
+    }
+
     addOption(value, text) {
         this._options.push({
             "value": value,
-            "text": text
+            "text": text,
+            "empty": false
         });
         return this;
     }

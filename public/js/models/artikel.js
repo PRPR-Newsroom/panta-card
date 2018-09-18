@@ -1,11 +1,26 @@
 class Artikel {
 
+    /**
+     * Create a new artikel out of this json object
+     * @param json
+     * @returns {Artikel}
+     */
     static create(json) {
         return this._create(json);
     }
 
+    /**
+     * Create a new artikel using this json object
+     * @param json
+     * @returns {Artikel}
+     * @private
+     */
     static _create(json) {
         if (json) {
+            let region = JsonSerialization.getProperty(json, 'region');
+            if (region === 'nord') {
+                region = 'north';
+            }
             let artikel = new Artikel(
                 JsonSerialization.getProperty(json, 'id'),
                 JsonSerialization.getProperty(json, 'topic'),
@@ -15,7 +30,7 @@ class Artikel {
                 JsonSerialization.getProperty(json, 'total'),
                 JsonSerialization.getProperty(json, 'tags'),
                 JsonSerialization.getProperty(json, 'visual'),
-                JsonSerialization.getProperty(json, 'region'),
+                region,
                 JsonSerialization.getProperty(json, 'season'),
                 JsonSerialization.getProperty(json, 'author'),
                 JsonSerialization.getProperty(json, 'text'),
@@ -72,6 +87,7 @@ class Artikel {
     }
 
     /**
+     * Get the associated involved container
      * @param name
      * @returns {CommonBeteiligt}
      */
@@ -79,11 +95,20 @@ class Artikel {
         return this._involved[name];
     }
 
+    /**
+     * Put a new involved container onto the model and associate it with the given name
+     * @param name
+     * @param involved
+     */
     putInvolved(name, involved) {
         this._involved[name] = involved;
     }
 
-    hasInvolved() {
+    /**
+     * Get the number of involvements
+     * @returns {number}
+     */
+    getInvolvedCount() {
         let that = this;
         let count = 0;
         Object.keys(this._involved).forEach(function(key) {
@@ -93,6 +118,8 @@ class Artikel {
         });
         return count;
     }
+
+    // GETTER & SETTER
 
     get id() {
         return this._id;
