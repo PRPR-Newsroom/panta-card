@@ -622,7 +622,7 @@ BeteiligtBinding.prototype.onAdLayout = function(a, b) {
   c.innerHTML = template_ad;
   c = c.cloneNode(!0);
   this._switchContent(a, c);
-  this.newSingleLineInput(b, ".pa.name", "name", "Kontak", !1, "text", "eintippen\u2026");
+  this.newSingleLineInput(b, ".pa.name", "name", "Kontakt", !1, "text", "eintippen\u2026");
   this.newMultiLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", 2, "notieren\u2026");
   this.newMultiLineInput(b, ".pa.address", "address", "Adresse", 2, "eingeben\u2026");
   this.newSingleLineInput(b, ".pa.format", "format", "Format", !1, "text", "festhalten\u2026");
