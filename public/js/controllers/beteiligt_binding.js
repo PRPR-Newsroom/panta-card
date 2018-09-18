@@ -140,7 +140,7 @@ class BeteiligtBinding {
 
         this._switchContent(forms, templ);
 
-        this.newSingleLineInput(valueHolder, ".pa.name", 'name', "Kontak", false, "text", "eintippen…");
+        this.newSingleLineInput(valueHolder, ".pa.name", 'name', "Kontakt", false, "text", "eintippen…");
         this.newMultiLineInput(valueHolder, ".pa.social", 'social', "Telefon.Mail.Webseite", 2, "notieren…");
         this.newMultiLineInput(valueHolder, ".pa.address", 'address', "Adresse", 2, "eingeben…");
         this.newSingleLineInput(valueHolder, ".pa.format", 'format', 'Format', false, "text", "festhalten…");
