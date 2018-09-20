@@ -555,21 +555,23 @@ ArtikelBinding.prototype.update = function(a) {
   return this;
 };
 ArtikelBinding.prototype.bind = function() {
-  this._topic = (new MultiLineInput(this.document, "Thema", null, "pa.topic", "Lauftext", 2)).bind(this._artikel, "topic").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._from = (new SingleLineInput(this.document, "Input von", null, "pa.input-from", "Name")).bind(this._artikel, "from").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._author = (new SingleLineInput(this.document, "Textautor*in", null, "pa.author", "Name")).bind(this._artikel, "author").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._text = (new MultiLineInput(this.document, "Textbox", null, "pa.text", "Lauftext", 2)).bind(this._artikel, "text").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._pagina = (new SingleLineInput(this.document, "Pagina", null, "pa.pagina", "Zahl")).addClass("pagina").addClass("bold").bind(this._artikel, "pagina").setPropertyType("number").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._layout = (new SingleLineInput(this.document, "Seiten Layout", null, "pa.layout", "Zahl")).setPropertyType("number").bind(this._artikel, "layout").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._total = (new SingleLineInput(this.document, "Seiten Total", null, "pa.total", "Summe", !0)).setPropertyType("number").addClass("bold").bind(this._artikel, "total").render();
-  this._total.propertyType = "number";
-  this._tags = (new SingleSelectInput(this.document, "Online", null, "pa.tags", "Liste-Tag")).addOption("monday", ArtikelBinding.getTagMapping("monday")).addOption("tuesday", ArtikelBinding.getTagMapping("tuesday")).addOption("wednesday", ArtikelBinding.getTagMapping("wednesday")).addOption("thursday", ArtikelBinding.getTagMapping("thursday")).addOption("friday", ArtikelBinding.getTagMapping("friday")).addOption("saturday", ArtikelBinding.getTagMapping("saturday")).addOption("sunday", ArtikelBinding.getTagMapping("sunday")).setEmpty("", 
-  "\u2026").bind(this._artikel, "tags").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._visual = (new SingleSelectInput(this.document, "Visual", null, "pa.visual", "x-Liste")).addOption("picture", "Bild").addOption("icon", "Icon").addOption("graphics", "Grafik").addOption("videos", "Video").addOption("illustrations", "Illu").setEmpty("", "\u2026").bind(this._artikel, "visual").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._region = (new SingleSelectInput(this.document, "Region", null, "pa.region", "x-Liste")).addOption("north", ArtikelBinding.getRegionMapping("north")).addOption("south", ArtikelBinding.getRegionMapping("south")).setEmpty("", "\u2026").bind(this._artikel, "region").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._season = (new SingleSelectInput(this.document, "Saison", null, "pa.season", "x-Liste")).addOption("summer", "Sommer").addOption("fall", "Herbst").setEmpty("", "\u2026").bind(this._artikel, "season").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._form = (new SingleSelectInput(this.document, "Form", null, "pa.form", "x-Liste")).addOption("news", "News").addOption("article", "Artikel").addOption("report", "Report").setEmpty("", "\u2026").bind(this._artikel, "form").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
-  this._location = (new SingleSelectInput(this.document, "Ort", null, "pa.location", "x-Liste")).addOption("cds", "CDS").addOption("sto", "STO").addOption("tam", "TAM").addOption("wid", "WID").addOption("buech", "Buech").addOption("rustico", "Rustico").addOption("schlatt", "Schlatt").setEmpty("", "\u2026").bind(this._artikel, "location").onChange(this._action, {context:this._context, artikel:this._artikel}).render();
+  function a(a, b) {
+    return {value:a, text:b};
+  }
+  var b = {context:this._context, artikel:this._artikel}, c = {data:this._artikel};
+  this._topic = this.document.newMultiLineInput(c, "pa.topic", "topic", "Thema", b, this._action, 2, "Lauftext");
+  this._from = this.document.newSingleLineInput(c, "pa.input-from", "from", "Input von", b, this._action, "Name");
+  this._author = this.document.newSingleLineInput(c, "pa.author", "author", "Textautor*in", b, this._action, "Name");
+  this._text = this.document.newMultiLineInput(c, "pa.text", "text", "Textbox", b, this._action, 2, "Lauftext");
+  this._pagina = this.document.newSingleLineInput(c, "pa.pagina", "pagina", "Pagina", b, this._action, "Zahl", "number", !1).addClass("pagina").addClass("bold");
+  this._layout = this.document.newSingleLineInput(c, "pa.layout", "layout", "Seiten Layout", b, this._action, "Zahl", "number", !1);
+  this._total = this.document.newSingleLineInput(c, "pa.total", "total", "Seiten Total", b, this._action, "Summe", "number", !0).addClass("bold");
+  this._tags = this.document.newSingleSelect(c, "pa.tags", "tags", "Online", b, this._action, "Liste-Tag", a("", "\u2026"), [a("monday", ArtikelBinding.getTagMapping("monday")), a("tuesday", ArtikelBinding.getTagMapping("tuesday")), a("wednesday", ArtikelBinding.getTagMapping("wednesday")), a("thursday", ArtikelBinding.getTagMapping("thursday")), a("friday", ArtikelBinding.getTagMapping("friday")), a("saturday", ArtikelBinding.getTagMapping("saturday")), a("sunday", ArtikelBinding.getTagMapping("sunday"))]);
+  this._visual = this.document.newSingleSelect(c, "pa.visual", "visual", "Visual", b, this._action, "x-Liste", a("", "\u2026"), [a("picture", "Bild"), a("icon", "Icon"), a("graphics", "Grafik"), a("videos", "Video"), a("illustrations", "Illu")]);
+  this._region = this.document.newSingleSelect(c, "pa.region", "region", "Region", b, this._action, "x-Liste", a("", "\u2026"), [a("north", ArtikelBinding.getRegionMapping("north")), a("south", ArtikelBinding.getRegionMapping("south"))]);
+  this._season = this.document.newSingleSelect(c, "pa.season", "season", "Saison", b, this._action, "x-Liste", a("", "\u2026"), [a("summer", "Sommer"), a("fall", "Herbst")]);
+  this._form = this.document.newSingleSelect(c, "pa.form", "form", "Form", b, this._action, "x-Liste", a("", "\u2026"), [a("news", "News"), a("article", "Artikel"), a("report", "Report")]);
+  this._location = this.document.newSingleSelect(c, "pa.location", "location", "Ort", b, this._action, "x-Liste", a("", "\u2026"), [a("cds", "CDS"), a("sto", "STO"), a("tam", "TAM"), a("wid", "WID"), a("buech", "Buech"), a("rustico", "Rustico"), a("schlatt", "Schlatt")]);
   (new SingleLineInput(this.document, "", null, "pa.additional.1", "", !0)).render();
   (new SingleLineInput(this.document, "", null, "pa.additional.2", "", !0)).render();
   return this;
@@ -611,38 +613,27 @@ BeteiligtBinding.prototype.onRegularLayout = function(a, b) {
   c.innerHTML = template_regular;
   c = c.cloneNode(!0);
   this._switchContent(a, c);
-  this.newSingleLineInput(b, ".pa.name", "name", "Name", !1, "text", "eintippen\u2026");
-  this.newMultiLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", 2, "notieren\u2026");
-  this.newMultiLineInput(b, ".pa.address", "address", "Adresse", 2, "festhalten\u2026");
-  this.newMultiLineInput(b, ".pa.notes", "notes", "Notiz", 4, "formulieren\u2026");
-  this.newSingleLineInput(b, ".pa.duedate", "duedate", "Deadline", !1, "text", "bestimmen\u2026");
+  a = {context:this._context, valueHolder:b, artikel:this._artikel};
+  this.document.newSingleLineInput(b, ".pa.name", "name", "Name", a, this._action, "eintippen\u2026", "text", !1);
+  this.document.newMultiLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", a, this._action, 2, "notieren\u2026");
+  this.document.newMultiLineInput(b, ".pa.address", "address", "Adresse", a, this._action, 2, "festhalten\u2026");
+  this.document.newMultiLineInput(b, ".pa.notes", "notes", "Notiz", a, this._action, 4, "formulieren\u2026");
+  this.document.newSingleLineInput(b, ".pa.duedate", "duedate", "Deadline", a, this._action, "bestimmen\u2026", "text", !1);
 };
 BeteiligtBinding.prototype.onAdLayout = function(a, b) {
   var c = this.document.createElement("div");
   c.innerHTML = template_ad;
   c = c.cloneNode(!0);
   this._switchContent(a, c);
-  this.newSingleLineInput(b, ".pa.name", "name", "Kontakt", !1, "text", "eintippen\u2026");
-  this.newMultiLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", 2, "notieren\u2026");
-  this.newMultiLineInput(b, ".pa.address", "address", "Adresse", 2, "eingeben\u2026");
-  this.newSingleLineInput(b, ".pa.format", "format", "Format", !1, "text", "festhalten\u2026");
-  this.newSingleLineInput(b, ".pa.placement", "placement", "Platzierung", !1, "text", "vormerken\u2026");
-  this.newMultiLineInput(b, ".pa.notes", "notes", "Kunde.Sujet", 2, "Name.Stichwort\u2026");
-  this.newSingleLineInput(b, ".pa.price", "price", "Preis CHF", !1, "money", "bestimmen\u2026");
-  this.newSingleLineInput(b, ".pa.total", "total", "Total CHF", !0, "money", "").addClass("bold");
-};
-BeteiligtBinding.prototype.newMultiLineInput = function(a, b, c, d, e, f) {
-  c = void 0 === c ? "social" : c;
-  return (new MultiLineInput(this.document, void 0 === d ? "Telefon.Mail.Webseite" : d, null, void 0 === b ? ".pa.social" : b, void 0 === f ? "" : f, e, !1)).bind(a.data, c).onChange(this._action, {context:this._context, valueHolder:a, artikel:this._artikel}).render();
-};
-BeteiligtBinding.prototype.newSingleLineInput = function(a, b, c, d, e, f, g) {
-  c = void 0 === c ? null : c;
-  f = void 0 === f ? "text" : f;
-  b = new SingleLineInput(this.document, void 0 === d ? "Name" : d, null, void 0 === b ? ".pa.name" : b, void 0 === g ? "" : g, void 0 === e ? !1 : e);
-  b.propertyType = f || "text";
-  null !== c && b.bind(a.data, c);
-  b.onChange(this._action, {context:this._context, valueHolder:a, artikel:this._artikel}).render();
-  return b;
+  a = {context:this._context, valueHolder:b, artikel:this._artikel};
+  this.document.newSingleLineInput(b, ".pa.name", "name", "Kontakt", a, this._action, "eintippen\u2026", "text", !1);
+  this.document.newMultiLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", a, this._action, 2, "notieren\u2026");
+  this.document.newMultiLineInput(b, ".pa.address", "address", "Adresse", a, this._action, 2, "eingeben\u2026");
+  this.document.newSingleLineInput(b, ".pa.format", "format", "Format", a, this._action, "festhalten\u2026", "text", !1);
+  this.document.newSingleLineInput(b, ".pa.placement", "placement", "Platzierung", a, this._action, "vormerken\u2026", "text", !1);
+  this.document.newMultiLineInput(b, ".pa.notes", "notes", "Kunde.Sujet", a, this._action, 2, "Name.Stichwort\u2026");
+  this.document.newSingleLineInput(b, ".pa.price", "price", "Preis CHF", a, this._action, "bestimmen\u2026", "money", !1);
+  this.document.newSingleLineInput(b, ".pa.total", "total", "Total CHF", a, this._action, "", "money", !0).addClass("bold");
 };
 BeteiligtBinding.prototype._switchContent = function(a, b) {
   var c = this.document.getElementById("pa.tab.content");
@@ -901,7 +892,25 @@ function uuid() {
     return ("x" === b ? c : c & 3 | 8).toString(16);
   });
 }
-;
+HTMLDocument.prototype.newMultiLineInput = function(a, b, c, d, e, f, g, h) {
+  return (new MultiLineInput(this, d, null, b, void 0 === h ? "" : h, void 0 === g ? 2 : g, !1)).bind(a.data, c).onChange(f, e).render();
+};
+HTMLDocument.prototype.newSingleLineInput = function(a, b, c, d, e, f, g, h, k) {
+  h = void 0 === h ? "text" : h;
+  b = new SingleLineInput(this, d, null, b, void 0 === g ? "" : g, void 0 === k ? !1 : k);
+  b.propertyType = h || "text";
+  null !== c && b.bind(a.data, c);
+  b.onChange(f, e).render();
+  return b;
+};
+HTMLDocument.prototype.newSingleSelect = function(a, b, c, d, e, f, g, h, k) {
+  var l = (new SingleSelectInput(this, d, null, b, void 0 === g ? "" : g)).bind(a.data, c).onChange(f, e);
+  k.forEach(function(a, b) {
+    l.addOption(a.value, a.text);
+  });
+  l.setEmpty(h.value, h.text);
+  return l.render();
+};
 // Input 9
 var template_regular = '<div id="template" class="row">    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-right">                <div class="pa.name"></div>            </div>            <div class="col-12 less-padding-right">                <div class="pa.social"></div>            </div>            <div class="col-12 less-padding-right">                <div class="pa.address"></div>            </div>        </div>    </div>    <div class="col-6">        <div class="row before-last-row">            <div class="col-12 less-padding-left">                <div class="pa.notes"></div>            </div>        </div>        <div class="row align-bottom">            <div class="col-12 less-padding-left">                <div class="pa.duedate"></div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-right">                <div class="pa.notes"></div>            </div>        </div>        <div class="row before-last-row">            <div class="col-6 less-padding-right">                <div class="pa.format"></div>            </div>            <div class="col-6 less-padding">                <div class="pa.placement"></div>            </div>        </div>        <div class="row align-bottom">            <div class="col-6 less-padding-right">                <div class="pa.price"></div>            </div>            <div class="col-6 less-padding">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-left">                <div class="pa.name"></div>            </div>            <div class="col-12 less-padding-left">                <div class="pa.social"></div>            </div>            <div class="col-12 less-padding-left">                <div class="pa.address"></div>            </div>        </div>    </div></div>';

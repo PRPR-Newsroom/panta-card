@@ -57,7 +57,7 @@ class ArtikelBinding {
          * @type {function(source, ctx)}
          */
         this._action = action;
-        
+
         this._context = context;
 
         /**
@@ -66,7 +66,6 @@ class ArtikelBinding {
          */
         this._artikel = entity;
     }
-
 
 
     /**
@@ -81,97 +80,67 @@ class ArtikelBinding {
     }
 
     bind() {
-        // TODO simplify these line using a factory (like in beteiligt binding)
-        this._topic = new MultiLineInput(this.document, "Thema", null, "pa.topic", "Lauftext", 2)
-            .bind(this._artikel, 'topic')
-            .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
-            .render();
-        this._from = new SingleLineInput(this.document, "Input von", null, "pa.input-from", "Name")
-            .bind(this._artikel, 'from')
-            .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
-            .render();
-        this._author = new SingleLineInput(this.document, "Textautor*in", null, "pa.author", "Name")
-            .bind(this._artikel, 'author')
-            .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
-            .render();
-        this._text = new MultiLineInput(this.document, "Textbox", null, "pa.text", "Lauftext", 2)
-            .bind(this._artikel, 'text')
-            .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
-            .render();
-        this._pagina = new SingleLineInput(this.document, "Pagina", null, "pa.pagina", "Zahl")
-            .addClass("pagina")
-            .addClass("bold")
-            .bind(this._artikel, 'pagina')
-            .setPropertyType("number")
-            .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
-            .render();
-        this._layout = new SingleLineInput(this.document, "Seiten Layout", null, "pa.layout", "Zahl")
-            .setPropertyType("number")
-            .bind(this._artikel, 'layout')
-            .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
-            .render();
-        this._total = new SingleLineInput(this.document, "Seiten Total", null, "pa.total", "Summe", true)
-            .setPropertyType("number")
-            .addClass("bold")
-            .bind(this._artikel, 'total')
-            .render();
-        this._total.propertyType = "number";
-        this._tags = new SingleSelectInput(this.document, "Online", null, "pa.tags", "Liste-Tag")
-            .addOption("monday", ArtikelBinding.getTagMapping("monday"))
-            .addOption("tuesday", ArtikelBinding.getTagMapping("tuesday"))
-            .addOption("wednesday", ArtikelBinding.getTagMapping("wednesday"))
-            .addOption("thursday", ArtikelBinding.getTagMapping("thursday"))
-            .addOption("friday", ArtikelBinding.getTagMapping("friday"))
-            .addOption("saturday", ArtikelBinding.getTagMapping("saturday"))
-            .addOption("sunday", ArtikelBinding.getTagMapping("sunday"))
-            .setEmpty("", "…")
-            .bind(this._artikel, 'tags')
-            .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
-            .render();
-        this._visual = new SingleSelectInput(this.document, "Visual", null, "pa.visual", "x-Liste")
-            .addOption("picture", "Bild")
-            .addOption("icon", "Icon")
-            .addOption("graphics", "Grafik")
-            .addOption("videos", "Video")
-            .addOption("illustrations", "Illu")
-            .setEmpty("", "…")
-            .bind(this._artikel, 'visual')
-            .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
-            .render();
-        this._region = new SingleSelectInput(this.document, "Region", null, "pa.region", "x-Liste")
-            .addOption("north", ArtikelBinding.getRegionMapping("north"))
-            .addOption("south", ArtikelBinding.getRegionMapping("south"))
-            .setEmpty("", "…")
-            .bind(this._artikel, 'region')
-            .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
-            .render();
-        this._season = new SingleSelectInput(this.document, "Saison", null, "pa.season", "x-Liste")
-            .addOption("summer", "Sommer")
-            .addOption("fall", "Herbst")
-            .setEmpty("", "…")
-            .bind(this._artikel, 'season')
-            .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
-            .render();
-        this._form = new SingleSelectInput(this.document, "Form", null, "pa.form", "x-Liste")
-            .addOption("news", "News")
-            .addOption("article", "Artikel")
-            .addOption("report", "Report")
-            .setEmpty("", "…")
-            .bind(this._artikel, 'form')
-            .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
-            .render();
-        this._location = new SingleSelectInput(this.document, "Ort", null, "pa.location", "x-Liste")
-            .addOption("cds", "CDS")
-            .addOption("sto", "STO")
-            .addOption("tam", "TAM")
-            .addOption("wid", "WID")
-            .addOption("buech", "Buech")
-            .addOption("rustico", "Rustico")
-            .addOption("schlatt", "Schlatt")
-            .setEmpty("", "…")
-            .bind(this._artikel, 'location')
-            .onChange(this._action, { 'context': this._context, 'artikel': this._artikel })
-            .render();
+        function newOption(value, text) {
+            return {
+                'value': value,
+                'text': text
+            };
+        }
+
+        let params = {'context': this._context, 'artikel': this._artikel};
+        let valueHolder = {'data': this._artikel};
+        this._topic = this.document.newMultiLineInput(valueHolder, "pa.topic", 'topic', 'Thema', params, this._action, 2, "Lauftext");
+        this._from = this.document.newSingleLineInput(valueHolder, 'pa.input-from', 'from', 'Input von', params, this._action, "Name");
+        this._author = this.document.newSingleLineInput(valueHolder, 'pa.author', 'author', 'Textautor*in', params, this._action, 'Name');
+        this._text = this.document.newMultiLineInput(valueHolder, 'pa.text', 'text', 'Textbox', params, this._action, 2, 'Lauftext');
+        this._pagina = this.document.newSingleLineInput(valueHolder, 'pa.pagina', 'pagina', 'Pagina', params, this._action, 'Zahl', 'number', false)
+            .addClass('pagina')
+            .addClass('bold');
+        this._layout = this.document.newSingleLineInput(valueHolder, 'pa.layout', 'layout', 'Seiten Layout', params, this._action, 'Zahl', 'number', false);
+        this._total = this.document.newSingleLineInput(valueHolder, 'pa.total', 'total', 'Seiten Total', params, this._action, 'Summe', 'number', true)
+            .addClass('bold');
+
+        this._tags = this.document.newSingleSelect(valueHolder, 'pa.tags', 'tags', 'Online', params, this._action, 'Liste-Tag', newOption('', '…'), [
+            newOption("monday", ArtikelBinding.getTagMapping("monday")),
+            newOption("tuesday", ArtikelBinding.getTagMapping("tuesday")),
+            newOption("wednesday", ArtikelBinding.getTagMapping("wednesday")),
+            newOption("thursday", ArtikelBinding.getTagMapping("thursday")),
+            newOption("friday", ArtikelBinding.getTagMapping("friday")),
+            newOption("saturday", ArtikelBinding.getTagMapping("saturday")),
+            newOption("sunday", ArtikelBinding.getTagMapping("sunday")),
+        ]);
+
+        this._visual = this.document.newSingleSelect(valueHolder, 'pa.visual', 'visual', 'Visual', params, this._action, 'x-Liste', newOption('', '…'), [
+            newOption("picture", "Bild"),
+            newOption("icon", "Icon"),
+            newOption("graphics", "Grafik"),
+            newOption("videos", "Video"),
+            newOption("illustrations", "Illu"),
+        ]);
+
+        this._region = this.document.newSingleSelect(valueHolder, 'pa.region', 'region', 'Region', params, this._action, 'x-Liste', newOption('', '…'), [
+            newOption("north", ArtikelBinding.getRegionMapping("north")),
+            newOption("south", ArtikelBinding.getRegionMapping("south")),
+        ]);
+        this._season = this.document.newSingleSelect(valueHolder, 'pa.season', 'season', 'Saison', params, this._action, 'x-Liste', newOption('', '…'), [
+            newOption("summer", "Sommer"),
+            newOption("fall", "Herbst"),
+        ]);
+
+        this._form = this.document.newSingleSelect(valueHolder, 'pa.form', 'form', 'Form', params, this._action, 'x-Liste', newOption('', '…'), [
+            newOption("news", "News"),
+            newOption("article", "Artikel"),
+            newOption("report", "Report"),
+        ]);
+        this._location = this.document.newSingleSelect(valueHolder, 'pa.location', 'location', 'Ort', params, this._action, 'x-Liste', newOption('', '…'), [
+            newOption("cds", "CDS"),
+            newOption("sto", "STO"),
+            newOption("tam", "TAM"),
+            newOption("wid", "WID"),
+            newOption("buech", "Buech"),
+            newOption("rustico", "Rustico"),
+            newOption("schlatt", "Schlatt"),
+        ]);
 
         new SingleLineInput(this.document, "", null, "pa.additional.1", "", true)
             .render();
