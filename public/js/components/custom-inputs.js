@@ -70,6 +70,7 @@ class PInput {
         this._input.setAttribute("name", this._name);
         this._input.placeholder = this._placeholder;
         this._input.setAttribute("title", this._label);
+        this._input.setAttribute("autocomplete", "new-password");
         if (this._value) {
             this._updateProperty();
             if (this._type === 'textarea') {

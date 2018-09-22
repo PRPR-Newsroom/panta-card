@@ -76,22 +76,6 @@ HTMLDocument.prototype.newSingleSelect = function(valueHolder, targetId, propert
     return ssi.render();
 };
 
-//
-// function newMultiLineInput(valueHolder, targetId = ".pa.social", property = 'social', label = "Telefon.Mail.Webseite", rows, placeholder = "") {
-//     return new MultiLineInput(this.document, label, null, targetId, placeholder, rows, false)
-//         .bind(valueHolder.data, property)
-//         .onChange(this._action, {'context': this._context, 'valueHolder': valueHolder, 'artikel': this._artikel})
-//         .render();
-// }
-//
-// function newSingleLineInput(valueHolder, targetId = ".pa.name", property = null, label = "Name", readonly = false, propertyType = "text", placeholder = "", document) {
-//     let sli = new SingleLineInput(document, label, null, targetId, placeholder, readonly);
-//     sli.propertyType = propertyType || "text";
-//
-//     if (property !== null) {
-//         sli.bind(valueHolder.data, property);
-//     }
-//     sli.onChange(this._action, {'context': this._context, 'valueHolder': valueHolder, 'artikel': this._artikel})
-//         .render();
-//     return sli;
-// }
+function isBlank(totest) {
+    return (!totest || 0 === (totest + "").trim().length);
+}

@@ -130,7 +130,8 @@ class BeteiligtBinding {
         this.document.newSingleLineInput(valueHolder, ".pa.name", "name", "Name", params, this._action, "eintippen…", "text", false);
         this.document.newMultiLineInput(valueHolder, ".pa.social", "social", "Telefon.Mail.Webseite", params, this._action, 2, "notieren…");
         this.document.newMultiLineInput(valueHolder, ".pa.address", "address", "Adresse", params, this._action, 2, "festhalten…");
-        this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Notiz", params, this._action, 4, "formulieren…");
+        this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Notiz", params, this._action, 6, "formulieren…")
+            .addClass("padding-fix");
         this.document.newSingleLineInput(valueHolder, ".pa.duedate", "duedate", "Deadline", params, this._action, "bestimmen…", "text", false);
     }
 

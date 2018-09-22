@@ -233,6 +233,7 @@ PInput.prototype.render = function() {
   this._input.setAttribute("name", this._name);
   this._input.placeholder = this._placeholder;
   this._input.setAttribute("title", this._label);
+  this._input.setAttribute("autocomplete", "new-password");
   this._value && (this._updateProperty(), "textarea" === this._type && this._input.appendChild(this._document.createTextNode(this._value)));
   if ("input" === this._type) {
     if (this._readonly) {
@@ -445,6 +446,9 @@ ArtikelController.prototype.insert = function(a, b) {
 ArtikelController.prototype.getByCard = function(a) {
   return this._repository.get(a);
 };
+ArtikelController.prototype.hasArtikelContent = function(a) {
+  return !a.isEmpty();
+};
 ArtikelController.prototype.getRegionMapping = function(a) {
   return ArtikelBinding.getRegionMapping(a);
 };
@@ -617,7 +621,7 @@ BeteiligtBinding.prototype.onRegularLayout = function(a, b) {
   this.document.newSingleLineInput(b, ".pa.name", "name", "Name", a, this._action, "eintippen\u2026", "text", !1);
   this.document.newMultiLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", a, this._action, 2, "notieren\u2026");
   this.document.newMultiLineInput(b, ".pa.address", "address", "Adresse", a, this._action, 2, "festhalten\u2026");
-  this.document.newMultiLineInput(b, ".pa.notes", "notes", "Notiz", a, this._action, 4, "formulieren\u2026");
+  this.document.newMultiLineInput(b, ".pa.notes", "notes", "Notiz", a, this._action, 6, "formulieren\u2026").addClass("padding-fix");
   this.document.newSingleLineInput(b, ".pa.duedate", "duedate", "Deadline", a, this._action, "bestimmen\u2026", "text", !1);
 };
 BeteiligtBinding.prototype.onAdLayout = function(a, b) {
@@ -655,7 +659,7 @@ var CommonBeteiligt = function(a, b, c, d) {
   this._notes = d;
 };
 CommonBeteiligt.prototype.isEmpty = function() {
-  return !this.name && !this.social && !this.address && !this.notes;
+  return isBlank(this.name) && isBlank(this.social) && isBlank(this.address) && isBlank(this.notes);
 };
 $jscomp.global.Object.defineProperties(CommonBeteiligt.prototype, {name:{configurable:!0, enumerable:!0, get:function() {
   return this._name;
@@ -764,6 +768,9 @@ Artikel._create = function(a) {
     return b;
   }
   return new Artikel;
+};
+Artikel.prototype.isEmpty = function() {
+  return isBlank(this.pagina) && isBlank(this.from) && isBlank(this.layout) && isBlank(this.tags) && isBlank(this.visual) && isBlank(this.region) && isBlank(this.season) && isBlank(this.location) && isBlank(this.author) && isBlank(this.text);
 };
 Artikel.prototype.getInvolvedFor = function(a) {
   return this._involved[a];
@@ -911,6 +918,10 @@ HTMLDocument.prototype.newSingleSelect = function(a, b, c, d, e, f, g, h, k) {
   l.setEmpty(h.value, h.text);
   return l.render();
 };
+function isBlank(a) {
+  return !a || 0 === (a + "").trim().length;
+}
+;
 // Input 9
 var template_regular = '<div id="template" class="row">    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-right">                <div class="pa.name"></div>            </div>            <div class="col-12 less-padding-right">                <div class="pa.social"></div>            </div>            <div class="col-12 less-padding-right">                <div class="pa.address"></div>            </div>        </div>    </div>    <div class="col-6">        <div class="row before-last-row">            <div class="col-12 less-padding-left">                <div class="pa.notes"></div>            </div>        </div>        <div class="row align-bottom">            <div class="col-12 less-padding-left">                <div class="pa.duedate"></div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-right">                <div class="pa.notes"></div>            </div>        </div>        <div class="row before-last-row">            <div class="col-6 less-padding-right">                <div class="pa.format"></div>            </div>            <div class="col-6 less-padding">                <div class="pa.placement"></div>            </div>        </div>        <div class="row align-bottom">            <div class="col-6 less-padding-right">                <div class="pa.price"></div>            </div>            <div class="col-6 less-padding">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-left">                <div class="pa.name"></div>            </div>            <div class="col-12 less-padding-left">                <div class="pa.social"></div>            </div>            <div class="col-12 less-padding-left">                <div class="pa.address"></div>            </div>        </div>    </div></div>';

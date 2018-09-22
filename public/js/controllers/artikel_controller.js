@@ -57,6 +57,14 @@ class ArtikelController {
     }
 
     /**
+     *
+     * @param {Artikel} artikel
+     */
+    hasArtikelContent(artikel) {
+        return !artikel.isEmpty()
+    }
+
+    /**
      * Get the region mapping in german
      * @param region
      * @returns {string|*}

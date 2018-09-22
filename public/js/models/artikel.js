@@ -86,6 +86,10 @@ class Artikel {
         this.putInvolved('ad', new AdBeteiligt());
     }
 
+    isEmpty() {
+        return isBlank(this.pagina) && isBlank(this.from) && isBlank(this.layout) && isBlank(this.tags) && isBlank(this.visual)
+            && isBlank(this.region) && isBlank(this.season) && isBlank(this.location) && isBlank(this.author) && isBlank(this.text);
+    }
     /**
      * Get the associated involved container
      * @param name

@@ -29,15 +29,12 @@ TrelloPowerUp.initialize({
                 let artikel = window.articleController.getByCard(card);
                 let counter = artikel.getInvolvedCount();
 
-                if (counter > 0) {
+                if (window.articleController.hasArtikelContent(artikel)) {
                     badges.push({
                         text: "",
                         icon: './assets/ic_artikel.png'
                     });
-                    badges.push({
-                        text: counter,
-                        icon: './assets/ic_beteiligt.png'
-                    });
+
                     if (artikel.region) {
                         badges.push({
                             text: 'region: ' + window.articleController.getRegionMapping(artikel.region),
@@ -50,6 +47,13 @@ TrelloPowerUp.initialize({
                             color: 'blue'
                         });
                     }
+                }
+
+                if (counter > 0) {
+                    badges.push({
+                        text: counter,
+                        icon: './assets/ic_beteiligt.png'
+                    });
                 }
 
                 return badges;
@@ -167,25 +171,3 @@ function map(tag) {
             return 7;
     }
 }
-
-//
-// function GET(path) {
-//     return new Promise(function (resolve, reject) {
-//         let xhr = new XMLHttpRequest;
-//         xhr.addEventListener("error", reject);
-//         xhr.onload = function () {
-//             if (this.status >= 200 && this.status < 300) {
-//                 resolve(xhr.response);
-//             } else {
-//                 reject({
-//                     status: this.status,
-//                     statusText: xhr.statusText
-//                 });
-//             }
-//         };
-//         const key = "86a73cafa11d3834d4768a20a96b6786";
-//         const token = "5f7ab7be941155ed024f3d024a5043d198c23764c9ee5988543d4679dc411563"
-//         xhr.open("GET", "https://api.trello.com/1" + path + "?key=" + key + "&token=" + token);
-//         xhr.send(null);
-//     });
-// }
