@@ -1,8 +1,17 @@
+html, body {
+    overflow-y: visible;
+}
+
 form label.hovered:not(.prop-select) {
     border-color: #b6bbbf;
 }
 form label.focused:not(.prop-select) {
     border-color: #a5acb0;
+}
+
+form label {
+    color: #606565;
+    font-weight: normal;
 }
 
 form label:not(.prop-select) {
@@ -14,8 +23,6 @@ form label:not(.prop-select) {
     border-right: 1px solid #798d99;
     border-top: 1px solid #798d99;
     border-bottom: 0;
-    color: #606565;
-    font-weight: normal;
 }
 
 form .u-border:not(select), form .u-border:focus:not(select) {
@@ -33,5 +40,9 @@ form .u-border:not(select), form .u-border:focus:not(select) {
     box-shadow: none !important;
     resize: vertical;
     min-height: 32px;
-    margin-bottom: 0.5em;
+    margin-bottom: 7px;
+}
+
+form input {
+    height: 44px;
 }

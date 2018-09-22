@@ -40,7 +40,7 @@ class CommonBeteiligt {
     }
 
     isEmpty() {
-        return !this.name && !this.social && !this.address && !this.notes;
+        return isBlank(this.name) && isBlank(this.social) && isBlank(this.address) && isBlank(this.notes);
     }
 }
 

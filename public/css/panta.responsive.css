@@ -1,3 +1,7 @@
+html, body {
+    overflow-y: auto;
+}
+
 form label.focused-fix {
     border-color: #a5acb0;
 }
@@ -41,4 +45,16 @@ form .u-border, form .u-border:focus {
 
 select {
     padding: .5em;
+}
+
+.padding-fix {
+    padding-bottom: 8px;
+}
+
+.field {
+    min-height: 56px;
+}
+
+.field * {
+    line-height: 1.1;
 }
