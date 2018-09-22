@@ -214,18 +214,21 @@ PInput.prototype._updateProperty = function() {
   a || (this._input.value = null);
   switch(this.propertyType) {
     case "number":
-      this._input.value = this._formatNumber(a);
+      this._updateValue(this._formatNumber(a));
       break;
     case "money":
-      this._input.value = this._formatNumber(a, {minimumFractionDigits:2});
+      this._updateValue(this._formatNumber(a, {minimumFractionDigits:2}));
       break;
     default:
-      this._input.value = a || "";
+      this._updateValue(a || "");
   }
+};
+PInput.prototype._updateValue = function(a) {
+  this._input.value !== a && (this._input.value = a);
 };
 PInput.prototype.update = function(a) {
   this._artikel = a;
-  this._updateProperty();
+  "select" !== this._type && this._updateProperty();
   return this;
 };
 PInput.prototype.render = function() {
@@ -554,8 +557,19 @@ ArtikelBinding.getTagMapping = function(a) {
   }
 };
 ArtikelBinding.prototype.update = function(a) {
-  this._total.update(a);
+  this._topic.update(a);
+  this._from.update(a);
+  this._author.update(a);
+  this._text.update(a);
+  this._pagina.update(a);
   this._layout.update(a);
+  this._total.update(a);
+  this._tags.update(a);
+  this._visual.update(a);
+  this._region.update(a);
+  this._season.update(a);
+  this._form.update(a);
+  this._location.update(a);
   return this;
 };
 ArtikelBinding.prototype.bind = function() {
