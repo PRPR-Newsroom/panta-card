@@ -46,21 +46,34 @@ class PInput {
         }
         switch (this.propertyType) {
             case "number":
-                this._input.value = this._formatNumber(propertyValue);
+                this._updateValue(this._formatNumber(propertyValue));
                 break;
             case "money":
-                this._input.value = this._formatNumber(propertyValue, {minimumFractionDigits: 2});
+                this._updateValue(this._formatNumber(propertyValue, {minimumFractionDigits: 2}));
                 break;
             case 'text':
             default:
-                this._input.value = propertyValue || "";
+                this._updateValue(propertyValue || "");
                 break;
         }
     }
 
+    _updateValue(newValue) {
+        if (this._input.value !== newValue) {
+            this._input.value = newValue;
+        }
+    }
+
+    /**
+     * Set the given entity and update the underlying HTML element with the new property value
+     * @param artikel
+     * @returns {PInput}
+     */
     update(artikel) {
         this._artikel = artikel;
-        this._updateProperty();
+        if (this._type !== 'select') {
+            this._updateProperty();
+        }
         return this;
     }
 
@@ -274,6 +287,7 @@ class SingleSelectInput extends PInput {
             }
             element.appendChild(opt);
         });
+
         label.addClass('focused-fix');
         return super.doCustomization(element);
     }

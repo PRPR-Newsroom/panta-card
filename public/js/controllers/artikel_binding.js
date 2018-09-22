@@ -74,8 +74,19 @@ class ArtikelBinding {
      * @returns {ArtikelBinding}
      */
     update(artikel) {
-        this._total.update(artikel);
+        this._topic.update(artikel);
+        this._from.update(artikel);
+        this._author.update(artikel);
+        this._text.update(artikel);
+        this._pagina.update(artikel);
         this._layout.update(artikel);
+        this._total.update(artikel);
+        this._tags.update(artikel);
+        this._visual.update(artikel);
+        this._region.update(artikel);
+        this._season.update(artikel);
+        this._form.update(artikel);
+        this._location.update(artikel);
         return this;
     }
 
