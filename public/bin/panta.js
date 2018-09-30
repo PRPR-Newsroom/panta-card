@@ -224,7 +224,7 @@ PInput.prototype._updateProperty = function() {
   }
 };
 PInput.prototype._updateValue = function(a) {
-  this._input.value !== a && (this._input.value = a);
+  null !== this._input && this._input.value !== a && (console.log("Setting value " + a + " (" + this._input.value + ")"), this._input.value = a);
 };
 PInput.prototype.update = function(a) {
   this._artikel = a;
@@ -237,7 +237,24 @@ PInput.prototype.render = function() {
   this._input.placeholder = this._placeholder;
   this._input.setAttribute("title", this._label);
   this._input.setAttribute("autocomplete", "new-password");
-  this._value && (this._updateProperty(), "textarea" === this._type && this._input.appendChild(this._document.createTextNode(this._value)));
+  this._value && this._updateProperty();
+  this._renderType();
+  this._readonly && this._input.setAttribute("readonly", "readonly");
+  this._input.addClass(this.propertyType);
+  this._input.addClass("u-border");
+  this.setupEvents();
+  var b = this._document.createElement("label");
+  b.appendChild(this._document.createTextNode(this._label));
+  b.setAttribute("for", this._input.getAttribute("name"));
+  b.addClass("prop-" + this._type);
+  0 === this._label.length ? a.setAttribute("class", "field hidden") : a.setAttribute("class", "field");
+  a.appendChild(b);
+  a.appendChild(this._input);
+  this._target && this._target.appendChild(a);
+  this.doCustomization(this._input, b);
+  return this;
+};
+PInput.prototype._renderType = function() {
   if ("input" === this._type) {
     if (this._readonly) {
       this._input.setAttribute("type", "text");
@@ -257,26 +274,6 @@ PInput.prototype.render = function() {
       }
     }
   }
-  this._readonly && this._input.setAttribute("readonly", "readonly");
-  this._input.addClass(this.propertyType);
-  this.setupEvents();
-  this._input.addClass("u-border");
-  var b = this._document.createElement("label");
-  b.appendChild(this._document.createTextNode(this._label));
-  b.setAttribute("for", this._input.getAttribute("name"));
-  b.addClass("prop-" + this._type);
-  a.appendChild(b);
-  a.appendChild(this._input);
-  0 === this._label.length ? a.setAttribute("class", "field hidden") : a.setAttribute("class", "field");
-  if (this._target instanceof HTMLCollection) {
-    for (var c = this._target, d = 0; d < c.length; d++) {
-      c.item(d).appendChild(a.cloneNode(!0));
-    }
-  } else {
-    null !== this._target && this._target.appendChild(a);
-  }
-  this.doCustomization(this._input, b);
-  return this;
 };
 PInput.prototype.setupEvents = function() {
   this._setClassWhenEvent(this._input, "focus", "blur", "focused");
@@ -324,8 +321,13 @@ PInput.prototype.setProperty = function() {
   }
 };
 PInput.prototype._formatNumber = function(a, b) {
-  a = parseFloat(a);
-  return isNaN(a) ? null : a.toLocaleString(void 0, b);
+  var c = parseFloat(a);
+  if (isNaN(c)) {
+    return "";
+  }
+  b = c.toLocaleString(void 0, b);
+  console.log("Formatting: " + a + " => " + b);
+  return b;
 };
 PInput.prototype._parseNumber = function(a) {
   if (!a) {
@@ -350,9 +352,14 @@ MultiLineInput.prototype.doCustomization = function(a, b) {
   return PInput.prototype.doCustomization.call(this, a);
 };
 var SingleLineInput = function(a, b, c, d, e, f) {
-  PInput.call(this, a, b, c, d, e, "input", !!f);
+  PInput.call(this, a, b, c, d, e, "textarea", !!f);
 };
 $jscomp.inherits(SingleLineInput, PInput);
+SingleLineInput.prototype.doCustomization = function(a, b) {
+  a.setAttribute("rows", 1);
+  a.addClass("no-resize");
+  return PInput.prototype.doCustomization.call(this, a, b);
+};
 var SingleSelectInput = function(a, b, c, d, e, f) {
   PInput.call(this, a, b, c, d, e, "select", !!f);
   this._options = [];
@@ -490,7 +497,7 @@ ArtikelController.prototype.getTotalPageCount = function() {
     a = parseInt(a.layout);
     return isNaN(a) ? 0 : a;
   }).reduce(function(a, b) {
-    return a + b;
+    return parseInt(a) + parseInt(b);
   }, 0);
 };
 ArtikelController.prototype.render = function(a) {
@@ -510,7 +517,6 @@ ArtikelController.prototype.onDataInvolvedChanged = function(a, b) {
 ArtikelController.prototype.onArtikelChanged = function(a, b) {
   a.setProperty();
   b.context._persistArtikel(b.context.trelloApi, a.getBinding());
-  console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue());
 };
 ArtikelController.prototype._persistArtikel = function(a, b) {
   a.set("card", "shared", ArtikelController.SHARED_NAME, b);
@@ -590,8 +596,6 @@ ArtikelBinding.prototype.bind = function() {
   this._season = this.document.newSingleSelect(c, "pa.season", "season", "Saison", b, this._action, "x-Liste", a("", "\u2026"), [a("summer", "Sommer"), a("fall", "Herbst")]);
   this._form = this.document.newSingleSelect(c, "pa.form", "form", "Form", b, this._action, "x-Liste", a("", "\u2026"), [a("news", "News"), a("article", "Artikel"), a("report", "Report")]);
   this._location = this.document.newSingleSelect(c, "pa.location", "location", "Ort", b, this._action, "x-Liste", a("", "\u2026"), [a("cds", "CDS"), a("sto", "STO"), a("tam", "TAM"), a("wid", "WID"), a("buech", "Buech"), a("rustico", "Rustico"), a("schlatt", "Schlatt")]);
-  (new SingleLineInput(this.document, "", null, "pa.additional.1", "", !0)).render();
-  (new SingleLineInput(this.document, "", null, "pa.additional.2", "", !0)).render();
   return this;
 };
 // Input 5
@@ -633,7 +637,7 @@ BeteiligtBinding.prototype.onRegularLayout = function(a, b) {
   this._switchContent(a, c);
   a = {context:this._context, valueHolder:b, artikel:this._artikel};
   this.document.newSingleLineInput(b, ".pa.name", "name", "Name", a, this._action, "eintippen\u2026", "text", !1);
-  this.document.newMultiLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", a, this._action, 2, "notieren\u2026");
+  this.document.newSingleLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", a, this._action, 2, "notieren\u2026");
   this.document.newMultiLineInput(b, ".pa.address", "address", "Adresse", a, this._action, 2, "festhalten\u2026");
   this.document.newMultiLineInput(b, ".pa.notes", "notes", "Notiz", a, this._action, 6, "formulieren\u2026").addClass("padding-fix");
   this.document.newSingleLineInput(b, ".pa.duedate", "duedate", "Deadline", a, this._action, "bestimmen\u2026", "text", !1);
@@ -645,7 +649,7 @@ BeteiligtBinding.prototype.onAdLayout = function(a, b) {
   this._switchContent(a, c);
   a = {context:this._context, valueHolder:b, artikel:this._artikel};
   this.document.newSingleLineInput(b, ".pa.name", "name", "Kontakt", a, this._action, "eintippen\u2026", "text", !1);
-  this.document.newMultiLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", a, this._action, 2, "notieren\u2026");
+  this.document.newSingleLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", a, this._action, "notieren\u2026");
   this.document.newMultiLineInput(b, ".pa.address", "address", "Adresse", a, this._action, 2, "eingeben\u2026");
   this.document.newSingleLineInput(b, ".pa.format", "format", "Format", a, this._action, "festhalten\u2026", "text", !1);
   this.document.newSingleLineInput(b, ".pa.placement", "placement", "Platzierung", a, this._action, "vormerken\u2026", "text", !1);

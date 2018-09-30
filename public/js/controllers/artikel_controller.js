@@ -1,5 +1,15 @@
+/**
+ * Controller of artikels that let you manage multiple artikels
+ *
+ * TODO: the controller should maybe also be able to query all artikels. currently this is done in the client.js and then the artikels are only inserted here
+ */
 class ArtikelController {
 
+    /**
+     * The name that is used to store the artikels in trello
+     * @returns {string}
+     * @constructor
+     */
     static get SHARED_NAME() {
         return "panta.Artikel";
     }
@@ -36,6 +46,7 @@ class ArtikelController {
     }
 
     /**
+     * Insert the passed artikel into the repository and associates it with the given card
      * @param {Artikel} artikel
      * @param {Trello.Card} card
      */
@@ -57,6 +68,7 @@ class ArtikelController {
     }
 
     /**
+     * Check if the artikel is empty or not. It will return true if the artikel (without the involvement part) has some content otherwise false
      *
      * @param {Artikel} artikel
      */
@@ -151,11 +163,12 @@ class ArtikelController {
             }
             return number;
         }).reduce(function (previousValue, currentValue) {
-            return previousValue + currentValue;
+            return parseInt(previousValue) + parseInt(currentValue);
         }, 0);
     }
 
     /**
+     * Render the passed artikel onto the document
      * @param (Artikel) artikel
      */
     render(artikel) {
@@ -184,14 +197,15 @@ class ArtikelController {
     }
 
     /**
-     * Called when the panta.Artikel part has changed
-     * @param source the source input element
+     * Called when the panta.Artikel part has changed. This will persist the artikel and set inform the source element to apply the change definitively so after this the
+     * PInput's value is set and cannot be rolled back. This would also be a good place to make some input validation
+     *
+     * @param source the source input element (s. PInputs)
      * @param ctx dictionary object with 'context' and 'artikel'
      */
     onArtikelChanged(source, ctx) {
         source.setProperty();
         ctx['context']._persistArtikel(ctx['context'].trelloApi, source.getBinding());
-        console.log("Stored: " + source.getBoundProperty() + " = " + source.getValue());
     }
 
     /**

@@ -1,0 +1,13 @@
+@supports (-moz-appearance:meterbar) {
+    form textarea.u-border:not(.padding-fix) {
+        /* should only be set for FF */
+
+    }
+    form textarea.u-border.padding-fix {
+        height: 100px;
+        margin-bottom: 1px;
+    }
+    .before-last-row {
+        /*margin-bottom: 58px;*/
+    }
+}
