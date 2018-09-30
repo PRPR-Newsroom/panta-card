@@ -14,11 +14,15 @@ form label {
     font-weight: normal;
 }
 
+form .u-border:not(.padding-fix):not(select) {
+    height: 40px;
+}
+
 form label:not(.prop-select) {
     border-radius: 3px 3px 0 0;
     background: rgba(0,0,0,.03);
     margin-bottom: 0;
-    padding: 0 0 0 0.5em;
+    padding: 0 0 0 0.4em;
     border-left: 1px solid #798d99;
     border-right: 1px solid #798d99;
     border-top: 1px solid #798d99;
@@ -38,11 +42,10 @@ form .u-border:not(select), form .u-border:focus:not(select) {
     -webkit-box-shadow: none;
     -moz-box-shadow: none;
     box-shadow: none !important;
-    resize: vertical;
-    min-height: 32px;
+    min-height: 36px;
     margin-bottom: 7px;
 }
 
 form input {
-    height: 44px;
+    height: 48px;
 }

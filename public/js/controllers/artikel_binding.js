@@ -58,6 +58,9 @@ class ArtikelBinding {
          */
         this._action = action;
 
+        /**
+         * @type {ArtikelController}
+         */
         this._context = context;
 
         /**
@@ -69,7 +72,7 @@ class ArtikelBinding {
 
 
     /**
-     * This is called when
+     * This is called when a property has changed and thus the form needs an update. All fields of the panta.Artikel are updated
      * @param artikel
      * @returns {ArtikelBinding}
      */
@@ -90,7 +93,17 @@ class ArtikelBinding {
         return this;
     }
 
+    /**
+     * Do the binding resp. render the panta.Artikel
+     * @returns {ArtikelBinding}
+     */
     bind() {
+        /**
+         * A helper function to create new options
+         * @param value
+         * @param text
+         * @returns {{value: *, text: *}}
+         */
         function newOption(value, text) {
             return {
                 'value': value,
@@ -153,10 +166,6 @@ class ArtikelBinding {
             newOption("schlatt", "Schlatt"),
         ]);
 
-        new SingleLineInput(this.document, "", null, "pa.additional.1", "", true)
-            .render();
-        new SingleLineInput(this.document, "", null, "pa.additional.2", "", true)
-            .render();
         return this;
     }
 

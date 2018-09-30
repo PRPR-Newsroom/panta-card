@@ -15,9 +15,19 @@ form label {
     text-overflow: ellipsis;
 }
 
+textarea {
+    resize: vertical;
+}
+
+form .u-border.no-resize {
+    resize: none;
+    overflow-x: hidden;
+    overflow-wrap: normal;
+}
+
 .u-border.pagina {
     font-size: 16pt;
-    padding: 0 0.5em 0 0.5em;
+    padding: 0 0.3em 0 0.3em;
 }
 
 .bold {
@@ -102,8 +112,11 @@ form label {
     opacity: 0.5;
 }
 
-
 @media (max-width: 500px) {
+
+    .navigation-bar .tab:nth-child(4) {
+        padding-left: 0;
+    }
 
     .before-last-row-xs {
         margin-bottom: 120px;
