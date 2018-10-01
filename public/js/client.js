@@ -91,7 +91,7 @@ TrelloPowerUp.initialize({
                         return sortOnPagina(t, opts, "asc");
                     }
                 }, {
-                    text: "Online (A -> Z)",
+                    text: "Online (Mo. -> So.)",
                     callback: function (t, opts) {
                         return sortOnTags(t, opts, "asc");
                     }
