@@ -449,6 +449,13 @@ var ArtikelController = function(a, b) {
   this.trelloApi = b;
   this._beteiligtBinding = this._artikelBinding = this._artikel = null;
   this._repository = new ArtikelRepository;
+  this.setVersionInfo();
+};
+ArtikelController.prototype.setVersionInfo = function() {
+  trelloApi.set("card", "shared", ArtikelController.SHARED_META, this.getVersionInfo());
+};
+ArtikelController.prototype.getVersionInfo = function() {
+  return {version:ArtikelController.VERSION};
 };
 ArtikelController.prototype.insert = function(a, b) {
   a && this._repository.isNew(a) ? this._repository.add(a) : a && this._repository.replace(a, b);
@@ -521,8 +528,12 @@ ArtikelController.prototype.onArtikelChanged = function(a, b) {
 ArtikelController.prototype._persistArtikel = function(a, b) {
   a.set("card", "shared", ArtikelController.SHARED_NAME, b);
 };
-$jscomp.global.Object.defineProperties(ArtikelController, {SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
+$jscomp.global.Object.defineProperties(ArtikelController, {VERSION:{configurable:!0, enumerable:!0, get:function() {
+  return 1;
+}}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Artikel";
+}}, SHARED_META:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.Meta";
 }}});
 // Input 4
 var ArtikelBinding = function(a, b, c, d) {
@@ -675,6 +686,7 @@ var CommonBeteiligt = function(a, b, c, d) {
   this._social = b;
   this._address = c;
   this._notes = d;
+  this._version = CommonBeteiligt.VERSION;
 };
 CommonBeteiligt.prototype.isEmpty = function() {
   return isBlank(this.name) && isBlank(this.social) && isBlank(this.address) && isBlank(this.notes);
@@ -695,6 +707,13 @@ $jscomp.global.Object.defineProperties(CommonBeteiligt.prototype, {name:{configu
   return this._notes;
 }, set:function(a) {
   this._notes = a;
+}}, version:{configurable:!0, enumerable:!0, get:function() {
+  return this._version;
+}, set:function(a) {
+  this._version = a;
+}}});
+$jscomp.global.Object.defineProperties(CommonBeteiligt, {VERSION:{configurable:!0, enumerable:!0, get:function() {
+  return 1;
 }}});
 var OtherBeteiligt = function(a, b, c, d, e) {
   CommonBeteiligt.call(this, a, b, c, d);
@@ -766,6 +785,7 @@ var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, n, p, q) {
   this._author = m;
   this._text = n;
   this._involved = {};
+  this._version = Artikel.VERSION;
   this.putInvolved("onsite", new OtherBeteiligt);
   this.putInvolved("text", new OtherBeteiligt);
   this.putInvolved("photo", new OtherBeteiligt);
@@ -783,6 +803,7 @@ Artikel._create = function(a) {
     b = new Artikel(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "topic"), JsonSerialization.getProperty(a, "pagina"), JsonSerialization.getProperty(a, "from"), JsonSerialization.getProperty(a, "layout"), JsonSerialization.getProperty(a, "total"), JsonSerialization.getProperty(a, "tags"), JsonSerialization.getProperty(a, "visual"), b, JsonSerialization.getProperty(a, "season"), JsonSerialization.getProperty(a, "author"), JsonSerialization.getProperty(a, "text"), JsonSerialization.getProperty(a, 
     "location"), JsonSerialization.getProperty(a, "form"));
     b.involved = JsonSerialization.getProperty(a, "involved");
+    b.version = JsonSerialization.getProperty(a, "version");
     return b;
   }
   return new Artikel;
@@ -880,6 +901,13 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, 
   return this._text;
 }, set:function(a) {
   this._text = a;
+}}, version:{configurable:!0, enumerable:!0, get:function() {
+  return this._version;
+}, set:function(a) {
+  this._version = a;
+}}});
+$jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enumerable:!0, get:function() {
+  return 1;
 }}});
 // Input 8
 HTMLElement.prototype.addClass = function(a) {

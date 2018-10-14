@@ -1,5 +1,9 @@
 class Artikel {
 
+    static get VERSION() {
+        return 1;
+    }
+
     /**
      * Create a new artikel out of this json object
      * @param json
@@ -39,6 +43,9 @@ class Artikel {
             );
             // involved constains the whole panta.Beteiligt datastore
             artikel.involved = JsonSerialization.getProperty(json, 'involved');
+
+            // set the version
+            artikel.version = JsonSerialization.getProperty(json, 'version');
             return artikel;
         } else {
             return new Artikel();
@@ -78,6 +85,7 @@ class Artikel {
         this._author = author;
         this._text = text;
         this._involved = {};
+        this._version = Artikel.VERSION;
         this.putInvolved('onsite', new OtherBeteiligt());
         this.putInvolved('text', new OtherBeteiligt());
         this.putInvolved('photo', new OtherBeteiligt());
@@ -261,6 +269,14 @@ class Artikel {
 
     set text(value) {
         this._text = value;
+    }
+
+    get version() {
+        return this._version;
+    }
+
+    set version(value) {
+        this._version = value;
     }
 
 }

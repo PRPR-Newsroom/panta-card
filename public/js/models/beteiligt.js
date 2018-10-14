@@ -1,10 +1,15 @@
 class CommonBeteiligt {
 
+    static get VERSION() {
+        return 1;
+    }
+
     constructor(name, social, address, notes) {
         this._name = name;
         this._social = social;
         this._address = address;
         this._notes = notes;
+        this._version = CommonBeteiligt.VERSION;
     }
 
     get name() {
@@ -41,6 +46,14 @@ class CommonBeteiligt {
 
     isEmpty() {
         return isBlank(this.name) && isBlank(this.social) && isBlank(this.address) && isBlank(this.notes);
+    }
+
+    get version() {
+        return this._version;
+    }
+
+    set version(value) {
+        this._version = value;
     }
 }
 
