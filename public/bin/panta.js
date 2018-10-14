@@ -452,7 +452,7 @@ var ArtikelController = function(a, b) {
   this.setVersionInfo();
 };
 ArtikelController.prototype.setVersionInfo = function() {
-  trelloApi.set("card", "shared", ArtikelController.SHARED_META, this.getVersionInfo());
+  this.trelloApi.set("card", "shared", ArtikelController.SHARED_META, this.getVersionInfo());
 };
 ArtikelController.prototype.getVersionInfo = function() {
   return {version:ArtikelController.VERSION};

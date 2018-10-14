@@ -66,7 +66,7 @@ class ArtikelController {
      * Set the version info on trello
      */
     setVersionInfo() {
-        trelloApi.set('card', 'shared', ArtikelController.SHARED_META, this.getVersionInfo());
+        this.trelloApi.set('card', 'shared', ArtikelController.SHARED_META, this.getVersionInfo());
     }
 
     /**
