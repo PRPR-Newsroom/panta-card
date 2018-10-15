@@ -1,47 +1,70 @@
-# Glitch Hosted Sample Trello Power-Up 🚀
+# Panta.Card Power-Up
 
-Hey there 👋
+Diese Panta.Card Power-Up umfasst beide Module:
 
-This is a full featured sample Trello Power-Up. What does that mean for you? We hope it's a great starting point for you to remix, and make your own great Power-Up that makes Trello work even better for you. 
+* Panta.Artikel
+* Panta.Beteiligt
 
-Once you remix this, you'll want to take a look at what the new name is. Click the `Show Live` button up in the top bar and grab that url and then head here:
+Zukünftig wird es noch ein weiteres Modul geben "M-PR-Plan".
 
-👉  [https://trello.com/power-ups/admin](https://trello.com/power-ups/admin)
+Da nicht jede Agentur/Projekt die gleichen Module braucht, wird es mehrere Power-Up
+Projekte geben, die dann die entsprechenden Module konfiguriert haben, d.h. bspw. ein
+Power-Up mit nur dem Modul "Panta.Artikel" oder ein Power-Up mit den Modulen
+"Panta.M-PR-Plan" und "Panta.Beteiligt". Zusätzlich werden wahrscheinlich noch weitere
+Module dazukommen, wenn es weitere Projekte/Kunden gibt.
 
-Select the Trello team you want to add the Power-Up to. Note: You need to be an admin of the Trello team to add custom Power-Ups to it.
+## Source-Code
 
-Now click the `Create new Power-Up` button. If this is your first time creating a Power-Up, you'll need to agree to a "Joint Developer Agreement" first. After you have done that, you just need to give your cool new Power-Up a name, and paste the url link into the field titled `Iframe connector URL` (the one you copied earlier).
+Auf GitHub wird der Source-Code des Power-Ups versioniert.
 
-This example Power-Up makes use of the following capabilities:
-* authorization-status
-* attachment-sections
-* attachment-thumbnail
-* board-buttons
-* callback
-* card-badges
-* card-buttons
-* card-detail-badges
-* card-from-url
-* format-url
-* show-authorization
-* show-setting
+### Sub-Modules
 
-So make sure to turn them all on when filling out the form. You'll also need a URL for an icon. You can use the sample one we have here: [https://cdn.glitch.com/2442c68d-7b6d-4b69-9d13-feab530aa88e%2Fglitch-icon.svg?1489773457908](https://cdn.glitch.com/2442c68d-7b6d-4b69-9d13-feab530aa88e%2Fglitch-icon.svg?1489773457908).
+Für diese Modul-Zusammenstellung kann evtl. die Git "Sub-Module" Funktionalität
+verwendet werden. Damit lassen sich Basis-Module in mehrere Projekten (hier Power-Ups)
+einbinden, wodurch Änderungen nur an einer Stelle gemacht werden können und alle
+Projekte, die das Modul einbinden, profitieren von diesen Änderungen.
 
-Click `Save` and it's time to celebrate. 🎉 🎊
+## CodeSandbox
 
-Now when you look at the Power-Ups for any board in that team, your awesome new Power-Up will be available. You can continue to make changes to the Glitch project and you'll see that reflected in Trello (you may just need to refresh).
+Da GitHub seinen Dienst ([RawGit](https://rawgit.com/)) seit kurzen eingestellt hat, wird
+CodeSandbox für das Bereitstellen des Power-Ups verwendet.
 
----
+Um das Projekt in CodeSandbox zu importieren, einfach den GitHub Repository Link auf der
+Webseite https://codesandbox.io/s/github eingeben.
 
-Want more information about Power-Ups? 🤔
+![CodeSandbox - Import](docs/codesandbox-import.png)
 
-👉  [https://developers.trello.com/power-ups/intro](https://developers.trello.com/power-ups/intro)
+Den Link "Converted Sandbox URL" wird für die Installation des Trello Power-Ups
+verwendet.
 
-We even have office hours you can sign up for if you want to talk to a real live person about your Power-Up. Just grab a slot that works for you on this [calendar](https://calendar.google.com/calendar/selfsched?sstoken=UU5DczNLUkNIbk5ifGRlZmF1bHR8YzJmZWM4YWM0NTgxMTE1NmRmMzgxNzMwODRjYzEwZGU). (Remember to add a bit about what you'd like help with when signing up for a slot).
+## Installation
 
----
+Das Power-Up wird auf [Power-Up Admin Seite](https://trello.com/power-ups/admin) konfiguriert.
 
-Looking for a more _realistic_ example Power-Up? You may find the Trello Card Snooze Power-Up useful. 😴
+![Trello Power-Up Formular](docs/trello_create.png)
 
-👉  [Trello Card Snooze Glitch Project](https://glitch.com/edit/#!/trellocardsnooze)
+### Konfiguration
+
+Die Konfiguration für das Power-Up "Panta.Card" für das Team "PRPR.9.labor"
+
+![Panta.Card](docs/panta_card-konfiguration.png)
+
+![Panta.Card Optional](docs/panta_card-optional.png)
+
+## Weitere Teams
+
+Um das Panta.Card Power-Up für andere Teams zu installieren, einfach auf die
+[Power-Up Admin Seite](https://trello.com/power-ups/admin) navigieren und dort
+das Team auswählen. Danach ein neues Power-Up erstellen und das Power-Up wie
+oben aufgezeigt konfigurieren.
+
+## Power-Up einschalten
+
+Sobald das Power-Up für ein Team konfiguriert ist, kann es in den Board aktiviert
+werden.
+
+![Trello Power-Up](docs/trello-powerup.png)
+
+Nachdem das Power-Up aktiviert wurde, erscheint es in den Trello Cards
+
+![Trello Panta.Card](docs/trello_panta-card.png)
