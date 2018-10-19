@@ -809,7 +809,7 @@ Artikel._create = function(a) {
   return new Artikel;
 };
 Artikel.prototype.isEmpty = function() {
-  return isBlank(this.pagina) && isBlank(this.from) && isBlank(this.layout) && isBlank(this.tags) && isBlank(this.visual) && isBlank(this.region) && isBlank(this.season) && isBlank(this.location) && isBlank(this.author) && isBlank(this.text);
+  return isBlank(this.topic) && isBlank(this.pagina) && isBlank(this.from) && isBlank(this.layout) && isBlank(this.tags) && isBlank(this.visual) && isBlank(this.region) && isBlank(this.season) && isBlank(this.location) && isBlank(this.author) && isBlank(this.text);
 };
 Artikel.prototype.getInvolvedFor = function(a) {
   return this._involved[a];
