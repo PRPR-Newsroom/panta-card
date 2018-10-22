@@ -1,3 +1,6 @@
+/**
+ * The article class that is the main entity. This entity has simple properties but also references the involvements part
+ */
 class Artikel {
 
     static get VERSION() {
@@ -94,6 +97,10 @@ class Artikel {
         this.putInvolved('ad', new AdBeteiligt());
     }
 
+    /**
+     * Check if this is "empty" or not. The article is considered empty if no simple property (without involvements) is set
+     * @returns {*}
+     */
     isEmpty() {
         return isBlank(this.topic) && isBlank(this.pagina) && isBlank(this.from) && isBlank(this.layout) && isBlank(this.tags) && isBlank(this.visual)
             && isBlank(this.region) && isBlank(this.season) && isBlank(this.location) && isBlank(this.author) && isBlank(this.text);

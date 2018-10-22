@@ -321,13 +321,8 @@ PInput.prototype.setProperty = function() {
   }
 };
 PInput.prototype._formatNumber = function(a, b) {
-  var c = parseFloat(a);
-  if (isNaN(c)) {
-    return "";
-  }
-  b = c.toLocaleString(void 0, b);
-  console.log("Formatting: " + a + " => " + b);
-  return b;
+  a = parseFloat(a);
+  return isNaN(a) ? "" : a.toLocaleString(void 0, b);
 };
 PInput.prototype._parseNumber = function(a) {
   if (!a) {

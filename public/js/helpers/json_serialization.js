@@ -1,3 +1,6 @@
+/**
+ * Serializes/Deserializes the entities using a JSON representation
+ */
 class JsonSerialization {
 
     serialize(obj) {
