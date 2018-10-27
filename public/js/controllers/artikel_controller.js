@@ -1,7 +1,6 @@
 /**
  * Controller of artikels that let you manage multiple artikels
  *
- * TODO: the controller should maybe also be able to query all artikels. currently this is done in the client.js and then the artikels are only inserted here
  */
 class ArtikelController {
 
