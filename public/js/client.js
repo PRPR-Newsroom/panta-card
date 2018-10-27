@@ -73,30 +73,52 @@ TrelloPowerUp.initialize({
     },
     'list-sorters': function (t) {
         window.articleController = new ArtikelController(document, t);
-        return t.cards('id')
-            .each(function (card) {
-                return t.get(card.id, 'shared', ArtikelController.SHARED_NAME)
-                    .then(function (list_data) {
-                        return Artikel.create(list_data);
-                    })
-                    .then(function (artikel) {
-                        window.articleController.insert(artikel, card);
-                        return window.articleController;
-                    });
+        return t.list('id', 'name')
+            // .each(function (card) {
+            //     return t.get(card.id, 'shared', ArtikelController.SHARED_NAME)
+            //         .then(function (list_data) {
+            //             return Artikel.create(list_data);
+            //         })
+            //         .then(function (artikel) {
+            //             window.articleController.insert(artikel, card);
+            //             return window.articleController;
+            //         });
+            // })
+            // .then(function (list) {
+            //     return [{
+            //         text: "Pagina (1 -> 99)",
+            //         callback: function (t, opts) {
+            //             return sortOnPagina(t, opts, "asc");
+            //         }
+            //     }, {
+            //         text: "Online (Mo. -> So.)",
+            //         callback: function (t, opts) {
+            //             return sortOnTags(t, opts, "asc");
+            //         }
+            //     }];
+            // })
+            .then(function(list) {
+                    return [{
+                        text: "Pagina (1 -> 99)",
+                        callback: function (t, opts) {
+                            let artikel = Artikel.create(list);
+                            for (let card in opts.cards) {
+                                window.articleController.insert(artikel, card);
+                            }
+                            return sortOnPagina(t, opts, "asc");
+                        }
+                    }, {
+                        text: "Online (Mo. -> So.)",
+                        callback: function (t, opts) {
+                            let artikel = Artikel.create(list);
+                            for (let card in opts.cards) {
+                                window.articleController.insert(artikel, card);
+                            }
+                            return sortOnTags(t, opts, "asc");
+                        }
+                    }];
             })
-            .then(function (list) {
-                return [{
-                    text: "Pagina (1 -> 99)",
-                    callback: function (t, opts) {
-                        return sortOnPagina(t, opts, "asc");
-                    }
-                }, {
-                    text: "Online (Mo. -> So.)",
-                    callback: function (t, opts) {
-                        return sortOnTags(t, opts, "asc");
-                    }
-                }];
-            });
+            ;
     }
 });
 
