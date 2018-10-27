@@ -72,63 +72,53 @@ TrelloPowerUp.initialize({
         }]
     },
     'list-sorters': function (t) {
-        window.articleController = new ArtikelController(document, t);
         return t.list('id', 'name')
-            // .each(function (card) {
-            //     return t.get(card.id, 'shared', ArtikelController.SHARED_NAME)
-            //         .then(function (list_data) {
-            //             return Artikel.create(list_data);
-            //         })
-            //         .then(function (artikel) {
-            //             window.articleController.insert(artikel, card);
-            //             return window.articleController;
-            //         });
-            // })
-            // .then(function (list) {
-            //     return [{
-            //         text: "Pagina (1 -> 99)",
-            //         callback: function (t, opts) {
-            //             return sortOnPagina(t, opts, "asc");
-            //         }
-            //     }, {
-            //         text: "Online (Mo. -> So.)",
-            //         callback: function (t, opts) {
-            //             return sortOnTags(t, opts, "asc");
-            //         }
-            //     }];
-            // })
             .then(function(list) {
                     return [{
                         text: "Pagina (1 -> 99)",
                         callback: function (t, opts) {
-                            let artikel = Artikel.create(list);
-                            for (let card in opts.cards) {
-                                window.articleController.insert(artikel, card);
-                            }
-                            return sortOnPagina(t, opts, "asc");
+                            return sortOnPagina(getArticleControllerWith(list, opts), t, opts, "asc");
                         }
                     }, {
                         text: "Online (Mo. -> So.)",
                         callback: function (t, opts) {
-                            let artikel = Artikel.create(list);
-                            for (let card in opts.cards) {
-                                window.articleController.insert(artikel, card);
-                            }
-                            return sortOnTags(t, opts, "asc");
+                            return sortOnTags(getArticleControllerWith(list, opts), t, opts, "asc");
                         }
                     }];
-            })
-            ;
+            });
     }
 });
 
-function sortOnPagina(t, opts, sort) {
-    // Trello will call this if the user clicks on this sort
-    // opts.cards contains all card objects in the list
+/**
+ * Get an articleController for this list and options
+ * @param list the trello list
+ * @param opts the trello callback options that contain the cards within this list
+ * @returns {ArtikelController}
+ */
+function getArticleControllerWith(list, opts) {
+    if (window.articleController === null) {
+        window.articleController = new ArtikelController(document, t);
+    }
+    let artikel = Artikel.create(list);
+    for (let card in opts.cards) {
+        window.articleController.insert(artikel, card);
+    }
+    return window.articleController;
+}
+
+/**
+ * Get the sorted cards using the article's pagina property
+ * @param articleController
+ * @param t the trello api
+ * @param opts the options that contain the cards to be sorted
+ * @param sort sort strategy: asc or desc
+ * @returns {{sortedIds: *|{}|Uint8Array|any[]|Int32Array|Uint16Array}}
+ */
+function sortOnPagina(articleController, t, opts, sort) {
     let sortedCards = opts.cards.sort(
         function (lhs_card, rhs_card) {
-            let lhs = window.articleController.getByCard(lhs_card);
-            let rhs = window.articleController.getByCard(rhs_card);
+            let lhs = articleController.getByCard(lhs_card);
+            let rhs = articleController.getByCard(rhs_card);
             let lhsp = parseInt(lhs.pagina || "0");
             let rhsp = parseInt(rhs.pagina || "0");
             if (lhsp > rhsp) {
@@ -146,13 +136,21 @@ function sortOnPagina(t, opts, sort) {
     };
 }
 
-function sortOnTags(t, opts, sort) {
+/**
+ * Get the sorted cards using the article's tags (Tage) property
+ * @param articleController
+ * @param t the trello api
+ * @param opts the options that contain the cards to be sorted
+ * @param sort sort strategy: asc or desc
+ * @returns {{sortedIds: *|{}|Uint8Array|any[]|Int32Array|Uint16Array}}
+ */
+function sortOnTags(articleController, t, opts, sort) {
     // Trello will call this if the user clicks on this sort
     // opts.cards contains all card objects in the list
     let sortedCards = opts.cards.sort(
         function (lhs_card, rhs_card) {
-            let lhs = window.articleController.getByCard(lhs_card);
-            let rhs = window.articleController.getByCard(rhs_card);
+            let lhs = articleController.getByCard(lhs_card);
+            let rhs = articleController.getByCard(rhs_card);
             let lhsp = map(lhs.tags);
             let rhsp = map(rhs.tags);
             if (lhsp > rhsp) {
@@ -170,6 +168,11 @@ function sortOnTags(t, opts, sort) {
     };
 }
 
+/**
+ * Map the parameter tag to a numeric value that can be sorted. Monday starts at zero and ends on sunday with six
+ * @param tag
+ * @returns {number}
+ */
 function map(tag) {
     if (!tag) {
         return -1;
