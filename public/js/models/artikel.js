@@ -1,4 +1,11 @@
+/**
+ * The article class that is the main entity. This entity has simple properties but also references the involvements part
+ */
 class Artikel {
+
+    static get VERSION() {
+        return 1;
+    }
 
     /**
      * Create a new artikel out of this json object
@@ -39,6 +46,9 @@ class Artikel {
             );
             // involved constains the whole panta.Beteiligt datastore
             artikel.involved = JsonSerialization.getProperty(json, 'involved');
+
+            // set the version
+            artikel.version = JsonSerialization.getProperty(json, 'version');
             return artikel;
         } else {
             return new Artikel();
@@ -78,6 +88,7 @@ class Artikel {
         this._author = author;
         this._text = text;
         this._involved = {};
+        this._version = Artikel.VERSION;
         this.putInvolved('onsite', new OtherBeteiligt());
         this.putInvolved('text', new OtherBeteiligt());
         this.putInvolved('photo', new OtherBeteiligt());
@@ -86,8 +97,12 @@ class Artikel {
         this.putInvolved('ad', new AdBeteiligt());
     }
 
+    /**
+     * Check if this is "empty" or not. The article is considered empty if no simple property (without involvements) is set
+     * @returns {*}
+     */
     isEmpty() {
-        return isBlank(this.pagina) && isBlank(this.from) && isBlank(this.layout) && isBlank(this.tags) && isBlank(this.visual)
+        return isBlank(this.topic) && isBlank(this.pagina) && isBlank(this.from) && isBlank(this.layout) && isBlank(this.tags) && isBlank(this.visual)
             && isBlank(this.region) && isBlank(this.season) && isBlank(this.location) && isBlank(this.author) && isBlank(this.text);
     }
     /**
@@ -261,6 +276,14 @@ class Artikel {
 
     set text(value) {
         this._text = value;
+    }
+
+    get version() {
+        return this._version;
+    }
+
+    set version(value) {
+        this._version = value;
     }
 
 }

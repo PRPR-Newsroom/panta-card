@@ -185,11 +185,23 @@ class PInput {
         }
     }
 
+    /**
+     * This will set the CSS class "focused" when focusing resp. loosing focus and another CSS class "hovered"
+     * when the user hovers the element resp. remove it when the mouse leaves the element
+     */
     setupEvents() {
         this._setClassWhenEvent(this._input, 'focus', 'blur', 'focused');
         this._setClassWhenEvent(this._input, 'mouseenter', 'mouseleave', 'hovered');
     }
 
+    /**
+     * Add/remove the className when the event eventOn/eventOff occurs
+     * @param element
+     * @param eventOn
+     * @param eventOff
+     * @param className
+     * @private
+     */
     _setClassWhenEvent(element, eventOn, eventOff, className) {
         element.setEventListener(eventOn, function (e) {
             let target = e.currentTarget;
@@ -201,11 +213,23 @@ class PInput {
         });
     }
 
+    /**
+     * Add the CSS class to the element
+     * @param className
+     * @returns {PInput}
+     */
     addClass(className) {
         this._input.addClass(className);
         return this;
     }
 
+    /**
+     * Change handler that invokes the given function when the event 'change' on the element is triggered. The function
+     * should accept the current instance and the context argument as its parameter
+     * @param func the callback function
+     * @param ctx a context object
+     * @returns {PInput}
+     */
     onChange(func, ctx) {
         let that = this;
         this._input.onchange = function() {
@@ -214,22 +238,44 @@ class PInput {
         return this;
     }
 
+    /**
+     * You can override this function to do custom initialization stuff
+     * @param element
+     * @param label
+     */
     doCustomization(element, label) {
 
     }
 
+    /**
+     * Get the current value of that element
+     *
+     * @returns {string | number}
+     */
     getValue() {
         return this._input.value;
     }
 
+    /**
+     * Get the bound property
+     * @returns {null|*}
+     */
     getBoundProperty() {
         return this._property;
     }
 
+    /**
+     * Get the bound entity
+     *
+     * @returns {*}
+     */
     getBinding() {
         return this._artikel;
     }
 
+    /**
+     * Apply the value on the bound entity to the bound property. After this call the "old" value is lost
+     */
     setProperty() {
         switch (this.propertyType) {
             case "money":
@@ -244,17 +290,31 @@ class PInput {
 
     }
 
+    /**
+     * Format the number using the user's locale. If it's not a number it will return an empty string (null is not working
+     * in all browsers, eg. IE/Edge)
+     *
+     * @param number
+     * @param options
+     * @returns {string}
+     * @private
+     */
     _formatNumber(number, options) {
         let parsed = parseFloat(number);
         if (!isNaN(parsed)) {
             let formatted = parsed.toLocaleString(undefined, options);
-            console.log("Formatting: " + number + " => " + formatted);
             return formatted;
         } else {
             return "";
         }
     }
 
+    /**
+     * Parse the literal number to its value if possible otherwise <code>null</code> is returned
+     * @param number
+     * @returns {*}
+     * @private
+     */
     _parseNumber(number) {
         if (!number) {
             return null;
@@ -268,6 +328,9 @@ class PInput {
 
 }
 
+/**
+ * This is a multi-line input element
+ */
 class MultiLineInput extends PInput {
 
     constructor(document, label, value, targetId, placeholder, rows, readonly) {
@@ -275,18 +338,34 @@ class MultiLineInput extends PInput {
         this._rows = rows;
     }
 
-
+    /**
+     * Set the rows property of that input element (textarea)
+     * @param element
+     * @param label
+     * @returns {*}
+     */
     doCustomization(element, label) {
         element.setAttribute("rows", this._rows);
         return super.doCustomization(element);
     }
 }
 
+/**
+ * A single-line input element. This uses a textarea input element because when using an HTML input element the rendered
+ * output is different than the MultiLineInput (height) and thus does not look nicely.
+ */
 class SingleLineInput extends PInput {
     constructor(document, label, value, targetId, placeholder, readonly) {
         super(document, label, value, targetId, placeholder, "textarea", !!readonly);
     }
 
+    /**
+     * Set the no-resize class and the rows property to 1
+     *
+     * @param element
+     * @param label
+     * @returns {*}
+     */
     doCustomization(element, label) {
         element.setAttribute("rows", 1);
         element.addClass('no-resize');
@@ -294,12 +373,21 @@ class SingleLineInput extends PInput {
     }
 }
 
+/**
+ * A single select element resp. a drop-down list
+ */
 class SingleSelectInput extends PInput {
     constructor(document, label, value, targetId, placeholder, readonly) {
         super(document, label, value, targetId, placeholder, "select", !!readonly);
         this._options = [];
     }
 
+    /**
+     * Set the empty option
+     * @param value
+     * @param text
+     * @returns {SingleSelectInput}
+     */
     setEmpty(value, text) {
         this._options.splice(0, 0, {
             'value': value,
@@ -309,6 +397,12 @@ class SingleSelectInput extends PInput {
         return this;
     }
 
+    /**
+     * Add another option
+     * @param value
+     * @param text
+     * @returns {SingleSelectInput}
+     */
     addOption(value, text) {
         this._options.push({
             "value": value,
@@ -318,6 +412,12 @@ class SingleSelectInput extends PInput {
         return this;
     }
 
+    /**
+     * Creates the HTML list/drop-down and also selects the option that matches the currently set value
+     * @param element
+     * @param label
+     * @returns {*}
+     */
     doCustomization(element, label) {
         let that = this;
         this._options.forEach(function(item, _) {

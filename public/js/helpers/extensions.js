@@ -1,3 +1,7 @@
+/*
+Some helper functions that make life easier ;-)
+ */
+
 HTMLElement.prototype.addClass = function (name) {
     let names = this.className.split(" ");
     if (names.indexOf(name) === -1) {

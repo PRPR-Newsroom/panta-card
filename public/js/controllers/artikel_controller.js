@@ -1,17 +1,31 @@
 /**
  * Controller of artikels that let you manage multiple artikels
  *
- * TODO: the controller should maybe also be able to query all artikels. currently this is done in the client.js and then the artikels are only inserted here
  */
 class ArtikelController {
 
     /**
+     * The app version
+     * @returns {number}
+     */
+    static get VERSION() {
+        return 1;
+    }
+
+    /**
      * The name that is used to store the artikels in trello
      * @returns {string}
-     * @constructor
      */
     static get SHARED_NAME() {
         return "panta.Artikel";
+    }
+
+    /**
+     * The name that is used to store the meta info on trello
+     * @returns {string}
+     */
+    static get SHARED_META() {
+        return "panta.Meta";
     }
 
     constructor(document, trelloApi) {
@@ -43,6 +57,26 @@ class ArtikelController {
          * @private
          */
         this._repository = new ArtikelRepository();
+
+        this.setVersionInfo();
+    }
+
+    /**
+     * Set the version info on trello
+     */
+    setVersionInfo() {
+        this.trelloApi.set('card', 'shared', ArtikelController.SHARED_META, this.getVersionInfo());
+    }
+
+    /**
+     * Get the version info object
+     *
+     * @returns {{version: number}}
+     */
+    getVersionInfo() {
+        return {
+            'version': ArtikelController.VERSION
+        }
     }
 
     /**
