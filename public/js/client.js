@@ -119,8 +119,8 @@ function sortOnPagina(articleController, t, opts, sort) {
         function (lhs_card, rhs_card) {
             let lhs = articleController.getByCard(lhs_card);
             let rhs = articleController.getByCard(rhs_card);
-            let lhsp = lhs !== null ? parseInt(lhs.pagina || "0") : 1;
-            let rhsp = rhs !== null ? parseInt(rhs.pagina || "0") : 1;
+            let lhsp = lhs ? parseInt(lhs.pagina || "1") : 1;
+            let rhsp = rhs ? parseInt(rhs.pagina || "1") : 1;
             if (lhsp > rhsp) {
                 return sort === "asc" ? 1 : -1;
             } else if (rhsp > lhsp) {
@@ -151,8 +151,8 @@ function sortOnTags(articleController, t, opts, sort) {
         function (lhs_card, rhs_card) {
             let lhs = articleController.getByCard(lhs_card);
             let rhs = articleController.getByCard(rhs_card);
-            let lhsp = lhs !== null && lhs.tags !== null ? map(lhs.tags) : 1;
-            let rhsp = rhs !== null && rhs.tags !== null ? map(rhs.tags) : 1;
+            let lhsp = lhs && lhs.tags ? map(lhs.tags) : 1;
+            let rhsp = rhs && rhs.tags ? map(rhs.tags) : 1;
             if (lhsp > rhsp) {
                 return sort === "asc" ? 1 : -1;
             } else if (rhsp > lhsp) {
