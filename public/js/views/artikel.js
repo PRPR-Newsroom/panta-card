@@ -59,7 +59,10 @@ t.render(function () {
             articleController.render(Artikel.create(jsonobj));
         })
         .then(function() {
-            return t.cards('id');
+            return t.cards('id', 'closed');
+        })
+        .filter(function(card) {
+            return !card.closed;
         })
         .each(function(card) {
             return t.get(card.id, 'shared', ArtikelController.SHARED_NAME)

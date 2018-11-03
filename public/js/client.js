@@ -12,7 +12,9 @@ TrelloPowerUp.initialize({
         }];
     },
     'card-badges': function (t, options) {
-        window.articleController = new ArtikelController(document, t);
+        if (!window.articleController) {
+            window.articleController = new ArtikelController(document, t);
+        }
         return t.card('id')
             .then(function (card) {
                 return t.get(card.id, 'shared', ArtikelController.SHARED_NAME)
@@ -77,12 +79,12 @@ TrelloPowerUp.initialize({
                     return [{
                         text: "Pagina (1 -> 99)",
                         callback: function (t, opts) {
-                            return sortOnPagina(getArticleControllerWith(list, opts), t, opts, "asc");
+                            return sortOnPagina(getArticleControllerWith(t, list, opts), t, opts, "asc");
                         }
                     }, {
                         text: "Online (Mo. -> So.)",
                         callback: function (t, opts) {
-                            return sortOnTags(getArticleControllerWith(list, opts), t, opts, "asc");
+                            return sortOnTags(getArticleControllerWith(t, list, opts), t, opts, "asc");
                         }
                     }];
             });
@@ -95,13 +97,20 @@ TrelloPowerUp.initialize({
  * @param opts the trello callback options that contain the cards within this list
  * @returns {ArtikelController}
  */
-function getArticleControllerWith(list, opts) {
-    if (window.articleController === null) {
+function getArticleControllerWith(t, list, opts) {
+    if (!window.articleController) {
         window.articleController = new ArtikelController(document, t);
     }
-    let artikel = Artikel.create(list);
-    for (let card in opts.cards) {
-        window.articleController.insert(artikel, card);
+
+    for (let index in opts.cards) {
+        let card = opts.cards[index];
+        // let artikel = Promise.all([t.get(card.id, 'shared', ArtikelController.SHARED_NAME)]).then(function(jsonobj) {
+        //     return Artikel.create(jsonobj);
+        // });
+        let artikel = window.articleController.getByCard(card);
+        if (artikel && !card.closed) {
+            window.articleController.insert(artikel, card);
+        }
     }
     return window.articleController;
 }
@@ -151,8 +160,8 @@ function sortOnTags(articleController, t, opts, sort) {
         function (lhs_card, rhs_card) {
             let lhs = articleController.getByCard(lhs_card);
             let rhs = articleController.getByCard(rhs_card);
-            let lhsp = lhs && lhs.tags ? map(lhs.tags) : 1;
-            let rhsp = rhs && rhs.tags ? map(rhs.tags) : 1;
+            let lhsp = lhs && lhs.tags ? map(lhs.tags) : Number.MAX_VALUE;
+            let rhsp = rhs && rhs.tags ? map(rhs.tags) : Number.MAX_VALUE;
             if (lhsp > rhsp) {
                 return sort === "asc" ? 1 : -1;
             } else if (rhsp > lhsp) {
