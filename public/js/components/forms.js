@@ -31,6 +31,8 @@ class PForms {
         if (artikel !== null) {
             this.valueHolder.data = artikel.getInvolvedFor(this._property);
         }
+        // set the new artikel entity on this form for current reference
+        this._artikel = artikel;
 
         if (!this.valueHolder.data.isEmpty()) {
             this.valueHolder.tab.addClass("content");

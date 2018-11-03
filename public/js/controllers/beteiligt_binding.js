@@ -88,6 +88,8 @@ class BeteiligtBinding {
         this._activated.activate();
         this._activated.update(artikel);
         this._ad.update(artikel);
+        // update the entity as well otherwise on change callbacks will re-store old entity states
+        this._artikel = artikel;
         return this;
     }
 
