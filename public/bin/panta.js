@@ -403,6 +403,7 @@ PForms.prototype.render = function() {
 };
 PForms.prototype.update = function(a) {
   null !== a && (this.valueHolder.data = a.getInvolvedFor(this._property));
+  this._artikel = a;
   this.valueHolder.data.isEmpty() ? this.valueHolder.tab.removeClass("content") : this.valueHolder.tab.addClass("content");
   return this;
 };
@@ -521,7 +522,9 @@ ArtikelController.prototype.onDataInvolvedChanged = function(a, b) {
 };
 ArtikelController.prototype.onArtikelChanged = function(a, b) {
   a.setProperty();
-  b.context._persistArtikel(b.context.trelloApi, a.getBinding());
+  a = a.getBinding();
+  b.context._beteiligtBinding.update(a);
+  b.context._persistArtikel(b.context.trelloApi, a);
 };
 ArtikelController.prototype._persistArtikel = function(a, b) {
   a.set("card", "shared", ArtikelController.SHARED_NAME, b);
@@ -626,6 +629,7 @@ BeteiligtBinding.prototype.update = function(a) {
   this._activated.activate();
   this._activated.update(a);
   this._ad.update(a);
+  this._artikel = a;
   return this;
 };
 BeteiligtBinding.prototype.bind = function() {
