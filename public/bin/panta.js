@@ -519,9 +519,9 @@ ArtikelController.prototype.onDataInvolvedChanged = function(a, b) {
 };
 ArtikelController.prototype.onArtikelChanged = function(a, b) {
   a.setProperty();
-  var c = a.getBinding();
-  b.context._beteiligtBinding.update(c);
-  b.context._persistArtikel(b.context.trelloApi, a.getBinding());
+  a = a.getBinding();
+  b.context._beteiligtBinding.update(a);
+  b.context._persistArtikel(b.context.trelloApi, a);
 };
 ArtikelController.prototype._persistArtikel = function(a, b) {
   a.set("card", "shared", ArtikelController.SHARED_NAME, b);
