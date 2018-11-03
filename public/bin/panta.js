@@ -403,6 +403,7 @@ PForms.prototype.render = function() {
 };
 PForms.prototype.update = function(a) {
   null !== a && (this.valueHolder.data = a.getInvolvedFor(this._property));
+  this._artikel = a;
   this.valueHolder.data.isEmpty() ? this.valueHolder.tab.removeClass("content") : this.valueHolder.tab.addClass("content");
   return this;
 };
@@ -518,6 +519,8 @@ ArtikelController.prototype.onDataInvolvedChanged = function(a, b) {
 };
 ArtikelController.prototype.onArtikelChanged = function(a, b) {
   a.setProperty();
+  var c = a.getBinding();
+  b.context._beteiligtBinding.update(c);
   b.context._persistArtikel(b.context.trelloApi, a.getBinding());
 };
 ArtikelController.prototype._persistArtikel = function(a, b) {
@@ -623,6 +626,7 @@ BeteiligtBinding.prototype.update = function(a) {
   this._activated.activate();
   this._activated.update(a);
   this._ad.update(a);
+  this._artikel = a;
   return this;
 };
 BeteiligtBinding.prototype.bind = function() {

@@ -240,7 +240,13 @@ class ArtikelController {
      */
     onArtikelChanged(source, ctx) {
         source.setProperty();
-        ctx['context']._persistArtikel(ctx['context'].trelloApi, source.getBinding());
+        /**
+         * @type {Artikel}
+         */
+        let artikel = source.getBinding();
+        // update the beteiligtBinding with the new artikel
+        ctx['context']._beteiligtBinding.update(artikel);
+        ctx['context']._persistArtikel(ctx['context'].trelloApi, artikel);
     }
 
     /**
