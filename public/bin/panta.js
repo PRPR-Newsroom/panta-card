@@ -470,6 +470,9 @@ ArtikelController.prototype.getTagMapping = function(a) {
 ArtikelController.prototype.list = function() {
   return this._repository.all();
 };
+ArtikelController.prototype.size = function() {
+  return Object.keys(this.list()).length;
+};
 ArtikelController.prototype.isManaged = function(a) {
   return null !== a.id;
 };
