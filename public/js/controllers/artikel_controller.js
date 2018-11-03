@@ -137,6 +137,14 @@ class ArtikelController {
     }
 
     /**
+     * Get the number of articles
+     * @returns {number}
+     */
+    size() {
+        return Object.keys(this.list()).length;
+    }
+
+    /**
      * Check if the passed artikel is already managed or not
      * @param artikel
      * @returns {boolean}
