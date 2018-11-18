@@ -169,4 +169,14 @@ class ArtikelBinding {
         return this;
     }
 
+    blockUi() {
+        let overlay = this.document.createElement("div");
+        overlay.addClass("overlay");
+        let content = this.document.createElement("span");
+
+        overlay.appendChild(document.createTextNode("Plugin Daten werden aktualisiert..."));
+
+        this.document.getElementsByTagName("body").item(0).appendChild(overlay);
+    }
+
 }

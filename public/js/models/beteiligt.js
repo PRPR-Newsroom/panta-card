@@ -1,15 +1,80 @@
+class ModuleConfig {
+
+    static get VERSION() {
+        return 2;
+    }
+
+    /**
+     * @param jsonObj
+     * @returns {ModuleConfig}
+     */
+    static create(jsonObj) {
+        return new ModuleConfig(JsonSerialization.getProperty(jsonObj, 'id'),
+            {
+                'onsite': OtherBeteiligt.create(JsonSerialization.getProperty(jsonObj, 'onsite')),
+                'text': OtherBeteiligt.create(JsonSerialization.getProperty(jsonObj, 'text')),
+                'photo': OtherBeteiligt.create(JsonSerialization.getProperty(jsonObj, 'photo')),
+                'video': OtherBeteiligt.create(JsonSerialization.getProperty(jsonObj, 'video')),
+                'illu': OtherBeteiligt.create(JsonSerialization.getProperty(jsonObj, 'illu')),
+                'ad': AdBeteiligt.create(JsonSerialization.getProperty(jsonObj, 'ad'))
+            });
+    }
+
+    constructor(id, sections) {
+        this._id = id || uuid();
+        this._sections = sections;
+        this._version = CommonBeteiligt.VERSION;
+    }
+
+    get sections() {
+        return this._sections;
+    }
+
+    set sections(value) {
+        this._sections = value;
+    }
+}
+
 class CommonBeteiligt {
 
     static get VERSION() {
-        return 1;
+        return 2;
     }
 
-    constructor(name, social, address, notes) {
+    /**
+     * Create the beteiligt entity depending on its type
+     * @param jsonObj
+     * @returns {CommonBeteiligt}
+     */
+    static create(jsonObj) {
+        // detect type
+        if (jsonObj) {
+            let type = JsonSerialization.getProperty(jsonObj, "type");
+            switch (type) {
+                case "ad":
+                    return AdBeteiligt.create(jsonObj);
+                case "other":
+                default:
+                    return OtherBeteiligt.create(jsonObj);
+            }
+        } else {
+            throw new Error("Invalid jsonObj: cannot create Beteiligt Entity");
+        }
+    }
+
+    constructor(id, name, social, address, notes) {
+        this._id = id || uuid();
         this._name = name;
         this._social = social;
         this._address = address;
         this._notes = notes;
         this._version = CommonBeteiligt.VERSION;
+        this._type = null;
+        this._id = id;
+    }
+
+    get id() {
+        return this._id;
     }
 
     get name() {
@@ -44,6 +109,14 @@ class CommonBeteiligt {
         this._notes = value;
     }
 
+    get type() {
+        return this._type;
+    }
+
+    set type(value) {
+        this._type = value;
+    }
+
     isEmpty() {
         return isBlank(this.name) && isBlank(this.social) && isBlank(this.address) && isBlank(this.notes);
     }
@@ -59,13 +132,23 @@ class CommonBeteiligt {
 
 class OtherBeteiligt extends CommonBeteiligt {
 
+    /**
+     * @param jsonObj
+     * @returns {CommonBeteiligt}
+     */
     static create(jsonObj) {
         return this._create(jsonObj);
     }
 
+    /**
+     * @param jsonObj
+     * @returns {OtherBeteiligt}
+     * @private
+     */
     static _create(jsonObj) {
         if (jsonObj) {
             return new OtherBeteiligt(
+                JsonSerialization.getProperty(jsonObj, 'id'),
                 JsonSerialization.getProperty(jsonObj, 'name'),
                 JsonSerialization.getProperty(jsonObj, 'social'),
                 JsonSerialization.getProperty(jsonObj, 'address'),
@@ -77,9 +160,10 @@ class OtherBeteiligt extends CommonBeteiligt {
         }
     }
 
-    constructor(name, social, address, notes, duedate) {
-        super(name, social, address, notes);
+    constructor(id, name, social, address, notes, duedate) {
+        super(id, name, social, address, notes);
         this._duedate = duedate;
+        this.type = "other";
     }
 
     get duedate() {
@@ -97,13 +181,24 @@ class OtherBeteiligt extends CommonBeteiligt {
 
 class AdBeteiligt extends CommonBeteiligt {
 
+    /**
+     * @param jsonObj
+     * @returns {CommonBeteiligt}
+     */
     static create(jsonObj) {
         return this._create(jsonObj);
     }
 
+    /**
+     *
+     * @param jsonObj
+     * @returns {AdBeteiligt}
+     * @private
+     */
     static _create(jsonObj) {
         if (jsonObj) {
             return new AdBeteiligt(
+                JsonSerialization.getProperty(jsonObj, 'id'),
                 JsonSerialization.getProperty(jsonObj, 'name'),
                 JsonSerialization.getProperty(jsonObj, 'social'),
                 JsonSerialization.getProperty(jsonObj, 'address'),
@@ -117,12 +212,13 @@ class AdBeteiligt extends CommonBeteiligt {
         }
     }
 
-    constructor(name, social, address, notes, format, placement, price) {
-        super(name, social, address, notes);
+    constructor(id, name, social, address, notes, format, placement, price) {
+        super(id, name, social, address, notes);
         this._format = format;
         this._placement = placement;
         this._price = price;
         this._total = 0;
+        this.type = "ad";
     }
 
     get format() {

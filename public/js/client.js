@@ -12,9 +12,7 @@ TrelloPowerUp.initialize({
         }];
     },
     'card-badges': function (t, options) {
-        if (!window.articleController) {
-            window.articleController = new ArtikelController(document, t);
-        }
+        ArtikelController.prepare(t);
         return t.card('id')
             .then(function (card) {
                 return t.get(card.id, 'shared', ArtikelController.SHARED_NAME)
@@ -98,9 +96,7 @@ TrelloPowerUp.initialize({
  * @returns {ArtikelController}
  */
 function getArticleControllerWith(t, list, opts) {
-    if (!window.articleController) {
-        window.articleController = new ArtikelController(document, t);
-    }
+    ArtikelController.prepare(t);
 
     for (let index in opts.cards) {
         let card = opts.cards[index];

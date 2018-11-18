@@ -49,47 +49,9 @@ $jscomp.inherits = function(a, b) {
   }
   a.superClass_ = b.prototype;
 };
-$jscomp.checkStringArgs = function(a, b, c) {
-  if (null == a) {
-    throw new TypeError("The 'this' value for String.prototype." + c + " must not be null or undefined");
-  }
-  if (b instanceof RegExp) {
-    throw new TypeError("First argument to String.prototype." + c + " must not be a regular expression");
-  }
-  return a + "";
-};
 $jscomp.defineProperty = $jscomp.ASSUME_ES5 || "function" == typeof Object.defineProperties ? Object.defineProperty : function(a, b, c) {
   a != Array.prototype && a != Object.prototype && (a[b] = c.value);
 };
-$jscomp.polyfill = function(a, b, c, d) {
-  if (b) {
-    c = $jscomp.global;
-    a = a.split(".");
-    for (d = 0; d < a.length - 1; d++) {
-      var e = a[d];
-      e in c || (c[e] = {});
-      c = c[e];
-    }
-    a = a[a.length - 1];
-    d = c[a];
-    b = b(d);
-    b != d && null != b && $jscomp.defineProperty(c, a, {configurable:!0, writable:!0, value:b});
-  }
-};
-$jscomp.polyfill("String.prototype.startsWith", function(a) {
-  return a ? a : function(a, c) {
-    var b = $jscomp.checkStringArgs(this, a, "startsWith");
-    a += "";
-    var e = b.length, f = a.length;
-    c = Math.max(0, Math.min(c | 0, b.length));
-    for (var g = 0; g < f && c < e;) {
-      if (b[c++] != a[g++]) {
-        return !1;
-      }
-    }
-    return g >= f;
-  };
-}, "es6", "es3");
 $jscomp.SYMBOL_PREFIX = "jscomp_symbol_";
 $jscomp.initSymbol = function() {
   $jscomp.initSymbol = function() {
@@ -151,11 +113,49 @@ $jscomp.iteratorFromArray = function(a, b) {
   };
   return d;
 };
+$jscomp.polyfill = function(a, b, c, d) {
+  if (b) {
+    c = $jscomp.global;
+    a = a.split(".");
+    for (d = 0; d < a.length - 1; d++) {
+      var e = a[d];
+      e in c || (c[e] = {});
+      c = c[e];
+    }
+    a = a[a.length - 1];
+    d = c[a];
+    b = b(d);
+    b != d && null != b && $jscomp.defineProperty(c, a, {configurable:!0, writable:!0, value:b});
+  }
+};
 $jscomp.polyfill("Array.prototype.keys", function(a) {
   return a ? a : function() {
     return $jscomp.iteratorFromArray(this, function(a) {
       return a;
     });
+  };
+}, "es6", "es3");
+$jscomp.checkStringArgs = function(a, b, c) {
+  if (null == a) {
+    throw new TypeError("The 'this' value for String.prototype." + c + " must not be null or undefined");
+  }
+  if (b instanceof RegExp) {
+    throw new TypeError("First argument to String.prototype." + c + " must not be a regular expression");
+  }
+  return a + "";
+};
+$jscomp.polyfill("String.prototype.startsWith", function(a) {
+  return a ? a : function(a, c) {
+    var b = $jscomp.checkStringArgs(this, a, "startsWith");
+    a += "";
+    var e = b.length, f = a.length;
+    c = Math.max(0, Math.min(c | 0, b.length));
+    for (var g = 0; g < f && c < e;) {
+      if (b[c++] != a[g++]) {
+        return !1;
+      }
+    }
+    return g >= f;
   };
 }, "es6", "es3");
 $jscomp.findInternal = function(a, b, c) {
@@ -185,6 +185,249 @@ $jscomp.polyfill("Object.values", function(a) {
     return b;
   };
 }, "es8", "es3");
+$jscomp.makeIterator = function(a) {
+  $jscomp.initSymbolIterator();
+  var b = a[Symbol.iterator];
+  return b ? b.call(a) : $jscomp.arrayIterator(a);
+};
+$jscomp.FORCE_POLYFILL_PROMISE = !1;
+$jscomp.polyfill("Promise", function(a) {
+  function b() {
+    this.batch_ = null;
+  }
+  function c(a) {
+    return a instanceof e ? a : new e(function(b, c) {
+      b(a);
+    });
+  }
+  if (a && !$jscomp.FORCE_POLYFILL_PROMISE) {
+    return a;
+  }
+  b.prototype.asyncExecute = function(a) {
+    null == this.batch_ && (this.batch_ = [], this.asyncExecuteBatch_());
+    this.batch_.push(a);
+    return this;
+  };
+  b.prototype.asyncExecuteBatch_ = function() {
+    var a = this;
+    this.asyncExecuteFunction(function() {
+      a.executeBatch_();
+    });
+  };
+  var d = $jscomp.global.setTimeout;
+  b.prototype.asyncExecuteFunction = function(a) {
+    d(a, 0);
+  };
+  b.prototype.executeBatch_ = function() {
+    for (; this.batch_ && this.batch_.length;) {
+      var a = this.batch_;
+      this.batch_ = [];
+      for (var b = 0; b < a.length; ++b) {
+        var c = a[b];
+        a[b] = null;
+        try {
+          c();
+        } catch (l) {
+          this.asyncThrow_(l);
+        }
+      }
+    }
+    this.batch_ = null;
+  };
+  b.prototype.asyncThrow_ = function(a) {
+    this.asyncExecuteFunction(function() {
+      throw a;
+    });
+  };
+  var e = function(a) {
+    this.state_ = 0;
+    this.result_ = void 0;
+    this.onSettledCallbacks_ = [];
+    var b = this.createResolveAndReject_();
+    try {
+      a(b.resolve, b.reject);
+    } catch (k) {
+      b.reject(k);
+    }
+  };
+  e.prototype.createResolveAndReject_ = function() {
+    function a(a) {
+      return function(d) {
+        c || (c = !0, a.call(b, d));
+      };
+    }
+    var b = this, c = !1;
+    return {resolve:a(this.resolveTo_), reject:a(this.reject_)};
+  };
+  e.prototype.resolveTo_ = function(a) {
+    if (a === this) {
+      this.reject_(new TypeError("A Promise cannot resolve to itself"));
+    } else {
+      if (a instanceof e) {
+        this.settleSameAsPromise_(a);
+      } else {
+        a: {
+          switch(typeof a) {
+            case "object":
+              var b = null != a;
+              break a;
+            case "function":
+              b = !0;
+              break a;
+            default:
+              b = !1;
+          }
+        }
+        b ? this.resolveToNonPromiseObj_(a) : this.fulfill_(a);
+      }
+    }
+  };
+  e.prototype.resolveToNonPromiseObj_ = function(a) {
+    var b = void 0;
+    try {
+      b = a.then;
+    } catch (k) {
+      this.reject_(k);
+      return;
+    }
+    "function" == typeof b ? this.settleSameAsThenable_(b, a) : this.fulfill_(a);
+  };
+  e.prototype.reject_ = function(a) {
+    this.settle_(2, a);
+  };
+  e.prototype.fulfill_ = function(a) {
+    this.settle_(1, a);
+  };
+  e.prototype.settle_ = function(a, b) {
+    if (0 != this.state_) {
+      throw Error("Cannot settle(" + a + ", " + b + "): Promise already settled in state" + this.state_);
+    }
+    this.state_ = a;
+    this.result_ = b;
+    this.executeOnSettledCallbacks_();
+  };
+  e.prototype.executeOnSettledCallbacks_ = function() {
+    if (null != this.onSettledCallbacks_) {
+      for (var a = 0; a < this.onSettledCallbacks_.length; ++a) {
+        f.asyncExecute(this.onSettledCallbacks_[a]);
+      }
+      this.onSettledCallbacks_ = null;
+    }
+  };
+  var f = new b;
+  e.prototype.settleSameAsPromise_ = function(a) {
+    var b = this.createResolveAndReject_();
+    a.callWhenSettled_(b.resolve, b.reject);
+  };
+  e.prototype.settleSameAsThenable_ = function(a, b) {
+    var c = this.createResolveAndReject_();
+    try {
+      a.call(b, c.resolve, c.reject);
+    } catch (l) {
+      c.reject(l);
+    }
+  };
+  e.prototype.then = function(a, b) {
+    function c(a, b) {
+      return "function" == typeof a ? function(b) {
+        try {
+          d(a(b));
+        } catch (q) {
+          g(q);
+        }
+      } : b;
+    }
+    var d, g, f = new e(function(a, b) {
+      d = a;
+      g = b;
+    });
+    this.callWhenSettled_(c(a, d), c(b, g));
+    return f;
+  };
+  e.prototype.catch = function(a) {
+    return this.then(void 0, a);
+  };
+  e.prototype.callWhenSettled_ = function(a, b) {
+    function c() {
+      switch(d.state_) {
+        case 1:
+          a(d.result_);
+          break;
+        case 2:
+          b(d.result_);
+          break;
+        default:
+          throw Error("Unexpected state: " + d.state_);
+      }
+    }
+    var d = this;
+    null == this.onSettledCallbacks_ ? f.asyncExecute(c) : this.onSettledCallbacks_.push(c);
+  };
+  e.resolve = c;
+  e.reject = function(a) {
+    return new e(function(b, c) {
+      c(a);
+    });
+  };
+  e.race = function(a) {
+    return new e(function(b, d) {
+      for (var e = $jscomp.makeIterator(a), f = e.next(); !f.done; f = e.next()) {
+        c(f.value).callWhenSettled_(b, d);
+      }
+    });
+  };
+  e.all = function(a) {
+    var b = $jscomp.makeIterator(a), d = b.next();
+    return d.done ? c([]) : new e(function(a, e) {
+      function f(b) {
+        return function(c) {
+          g[b] = c;
+          h--;
+          0 == h && a(g);
+        };
+      }
+      var g = [], h = 0;
+      do {
+        g.push(void 0), h++, c(d.value).callWhenSettled_(f(g.length - 1), e), d = b.next();
+      } while (!d.done);
+    });
+  };
+  return e;
+}, "es6", "es3");
+$jscomp.polyfill("Object.entries", function(a) {
+  return a ? a : function(a) {
+    var b = [], d;
+    for (d in a) {
+      $jscomp.owns(a, d) && b.push([d, a[d]]);
+    }
+    return b;
+  };
+}, "es8", "es3");
+var Repository = function() {
+  this._repository = {};
+};
+Repository.prototype.all = function() {
+  return this._repository;
+};
+Repository.prototype.add = function(a, b) {
+  this._repository[b.id] = a;
+};
+Repository.prototype.replace = function(a, b) {
+  this._repository[b.id] = a;
+};
+Repository.prototype.clearAll = function() {
+  var a = this;
+  Object.keys(this._repository).forEach(function(b) {
+    delete a._repository[b];
+  });
+};
+Repository.prototype.get = function(a) {
+  return this._repository[a.id];
+};
+Repository.prototype.isNew = function(a) {
+  return !0;
+};
+// Input 1
 var PInput = function(a, b, c, d, e, f, g) {
   this._document = a;
   this._label = 0 === b.length ? "" : b;
@@ -224,7 +467,7 @@ PInput.prototype._updateProperty = function() {
   }
 };
 PInput.prototype._updateValue = function(a) {
-  null !== this._input && this._input.value !== a && (console.log("Setting value " + a + " (" + this._input.value + ")"), this._input.value = a);
+  null !== this._input && this._input.value !== a && (this._input.value = a);
 };
 PInput.prototype.update = function(a) {
   this._artikel = a;
@@ -380,20 +623,20 @@ SingleSelectInput.prototype.doCustomization = function(a, b) {
   b.addClass("focused-fix");
   return PInput.prototype.doCustomization.call(this, a);
 };
-// Input 1
-var PForms = function(a, b, c) {
+// Input 2
+var PModuleConfig = function(a, b, c) {
   this.document = a;
   this.label = b;
   this.valueHolder = c;
 };
-PForms.prototype.bind = function(a, b) {
-  this._artikel = a;
+PModuleConfig.prototype.bind = function(a, b) {
+  this._entity = a;
   this._property = b;
-  this.valueHolder.data = a.getInvolvedFor(b);
+  this.valueHolder.data = a.sections[b];
   return this;
 };
-PForms.prototype.render = function() {
-  this.update(this._artikel);
+PModuleConfig.prototype.render = function() {
+  this.update(this._entity);
   this.valueHolder.tab.innerHTML = "<span>" + this.label + "</span>";
   var a = this;
   this.valueHolder.tab.addEventListener("click", function(b) {
@@ -401,37 +644,120 @@ PForms.prototype.render = function() {
   });
   return this;
 };
-PForms.prototype.update = function(a) {
-  null !== a && (this.valueHolder.data = a.getInvolvedFor(this._property));
-  this._artikel = a;
+PModuleConfig.prototype.update = function(a) {
+  null !== a && (this.valueHolder.data = a.sections[this._property]);
+  this._entity = a;
   this.valueHolder.data.isEmpty() ? this.valueHolder.tab.removeClass("content") : this.valueHolder.tab.addClass("content");
   return this;
 };
-PForms.prototype.activate = function() {
+PModuleConfig.prototype.activate = function() {
   this.valueHolder.renderer.call(this, this.valueHolder);
   this.valueHolder.tab.addClass("selected");
 };
-// Input 2
+// Input 3
+var BeteiligtRepository = function() {
+  Repository.call(this);
+};
+$jscomp.inherits(BeteiligtRepository, Repository);
+BeteiligtRepository.prototype.isNew = function(a) {
+  var b = this;
+  return null === Object.keys(this._repository).find(function(c, d) {
+    return b._repository[c].id === a.id;
+  });
+};
+// Input 4
+var ModuleController = function(a, b) {
+  this.document = a;
+  this.trelloApi = b;
+  this._beteiligtBinding = null;
+  this._repository = new BeteiligtRepository;
+  this._entity = null;
+  this.setVersionInfo();
+};
+ModuleController.getInstance = function(a) {
+  ModuleController.prepare(a);
+  return window.moduleController;
+};
+ModuleController.prepare = function(a) {
+  window.moduleController || (window.moduleController = new ModuleController(document, a));
+};
+ModuleController.prototype.setVersionInfo = function() {
+  this.trelloApi.set("card", "shared", ModuleController.SHARED_META, this.getVersionInfo());
+};
+ModuleController.prototype.getVersionInfo = function() {
+  return {version:ModuleController.VERSION};
+};
+ModuleController.prototype.render = function(a) {
+  this._entity = a;
+  this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(a) : (new BeteiligtBinding(this.document, a, this.onDataChanged, this)).bind();
+};
+ModuleController.prototype.insert = function(a, b) {
+  a && this._repository.isNew(a) ? this._repository.add(a) : a && this._repository.replace(a, b);
+};
+ModuleController.prototype.update = function() {
+  this._entity.sections.ad.total = this.getTotalPrice();
+  this._beteiligtBinding.update(this._entity);
+};
+ModuleController.prototype.onDataChanged = function(a, b) {
+  a.setProperty();
+  b = b.context;
+  var c = a.getBinding();
+  b.persist.call(b, c);
+  console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue());
+};
+ModuleController.prototype.getTotalPrice = function() {
+  return Object.values(this._repository.all()).map(function(a, b) {
+    return a.sections.ad;
+  }).filter(function(a, b) {
+    return a instanceof AdBeteiligt && !isNaN(parseFloat(a.price));
+  }).map(function(a, b) {
+    return a.price;
+  }).reduce(function(a, b) {
+    return parseFloat(a) + parseFloat(b);
+  }, 0.0);
+};
+ModuleController.prototype.list = function() {
+  return this._repository.all();
+};
+ModuleController.prototype.size = function() {
+  return Object.keys(this.list()).length;
+};
+ModuleController.prototype.fetchAll = function(a) {
+  var b = this, c = ModuleController.getInstance(this.trelloApi);
+  return this.trelloApi.cards("id", "closed").filter(function(a) {
+    return !a.closed;
+  }).each(function(a) {
+    return b.trelloApi.get(a.id, "shared", ModuleController.SHARED_NAME).then(function(b) {
+      c.insert(ModuleConfig.create(b), a);
+    });
+  }).then(function() {
+    console.log("Fetch complete: " + c.size() + " module config(s)");
+    a.call(b);
+  });
+};
+ModuleController.prototype.persist = function(a, b) {
+  this.trelloApi.set(b || "card", "shared", ModuleController.SHARED_NAME, a);
+};
+ModuleController.prototype.clear = function() {
+  Object.keys(this._repository.all()).forEach(function(a) {
+    this.trelloApi.remove(a, "shared", ModuleController.SHARED_NAME);
+  }, this);
+  this._repository.clearAll();
+};
+$jscomp.global.Object.defineProperties(ModuleController, {VERSION:{configurable:!0, enumerable:!0, get:function() {
+  return 1;
+}}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.Beteiligt";
+}}, SHARED_META:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.Beteiligt.Meta";
+}}});
+// Input 5
 var ArtikelRepository = function() {
-  this._repository = {};
-  this._contains = function(a) {
-    return function(b, c) {
-      return b.id === a.id;
-    };
-  };
+  Repository.call(this);
 };
-ArtikelRepository.prototype.all = function() {
-  return this._repository;
-};
+$jscomp.inherits(ArtikelRepository, Repository);
 ArtikelRepository.prototype.add = function(a, b) {
-  this._repository[b.id] = a;
-  console.debug("Artikel added: " + a.id + " (size=" + this._repository.length + ")");
-};
-ArtikelRepository.prototype.replace = function(a, b) {
-  this._repository[b.id] = a;
-};
-ArtikelRepository.prototype.get = function(a) {
-  return this._repository[a.id];
+  Repository.prototype.add.call(this, a, b);
 };
 ArtikelRepository.prototype.isNew = function(a) {
   var b = this;
@@ -439,13 +765,20 @@ ArtikelRepository.prototype.isNew = function(a) {
     return b._repository[c].id === a.id;
   });
 };
-// Input 3
+// Input 6
 var ArtikelController = function(a, b) {
   this.document = a;
   this.trelloApi = b;
   this._beteiligtBinding = this._artikelBinding = this._artikel = null;
   this._repository = new ArtikelRepository;
   this.setVersionInfo();
+};
+ArtikelController.getInstance = function(a) {
+  ArtikelController.prepare(a);
+  return window.articleController;
+};
+ArtikelController.prepare = function(a) {
+  window.articleController || (window.articleController = new ArtikelController(document, a));
 };
 ArtikelController.prototype.setVersionInfo = function() {
   this.trelloApi.set("card", "shared", ArtikelController.SHARED_META, this.getVersionInfo());
@@ -454,7 +787,7 @@ ArtikelController.prototype.getVersionInfo = function() {
   return {version:ArtikelController.VERSION};
 };
 ArtikelController.prototype.insert = function(a, b) {
-  a && this._repository.isNew(a) ? this._repository.add(a) : a && this._repository.replace(a, b);
+  a && this._repository.isNew(a) ? this._repository.add(a, b) : a && this._repository.replace(a, b);
 };
 ArtikelController.prototype.getByCard = function(a) {
   return this._repository.get(a);
@@ -467,6 +800,19 @@ ArtikelController.prototype.getRegionMapping = function(a) {
 };
 ArtikelController.prototype.getTagMapping = function(a) {
   return ArtikelBinding.getTagMapping(a);
+};
+ArtikelController.prototype.fetchAll = function(a) {
+  var b = this, c = ArtikelController.getInstance(this.trelloApi);
+  return this.trelloApi.cards("id", "closed").filter(function(a) {
+    return !a.closed;
+  }).each(function(a) {
+    return b.trelloApi.get(a.id, "shared", ArtikelController.SHARED_NAME).then(function(b) {
+      c.insert(Artikel.create(b), a);
+    });
+  }).then(function() {
+    console.log("Fetch complete: " + c.size() + " article(s) to process");
+    a.call(b);
+  });
 };
 ArtikelController.prototype.list = function() {
   return this._repository.all();
@@ -483,20 +829,10 @@ ArtikelController.prototype.manage = function(a) {
 };
 ArtikelController.prototype.update = function() {
   this._artikel.total = this.getTotalPageCount();
-  this._artikel.getInvolvedFor("ad").total = this.getTotalPrice();
   this._artikelBinding.update(this._artikel);
-  this._beteiligtBinding.update(this._artikel);
 };
-ArtikelController.prototype.getTotalPrice = function() {
-  return Object.values(this._repository.all()).map(function(a, b) {
-    return a.getInvolvedFor("ad");
-  }).filter(function(a, b) {
-    return a instanceof AdBeteiligt && !isNaN(parseFloat(a.price));
-  }).map(function(a, b) {
-    return a.price;
-  }).reduce(function(a, b) {
-    return parseFloat(a) + parseFloat(b);
-  }, 0.0);
+ArtikelController.prototype.blockUi = function() {
+  this._artikelBinding.blockUi();
 };
 ArtikelController.prototype.getTotalPageCount = function() {
   return Object.values(this._repository.all()).map(function(a, b) {
@@ -509,7 +845,6 @@ ArtikelController.prototype.getTotalPageCount = function() {
 ArtikelController.prototype.render = function(a) {
   this._artikel = a ? a : Artikel.create();
   this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._artikel) : (new ArtikelBinding(this.document, this._artikel, this.onArtikelChanged, this)).bind();
-  this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(this._artikel) : (new BeteiligtBinding(this.document, this._artikel, this.onDataInvolvedChanged, this)).bind();
 };
 ArtikelController.prototype.onDataInvolvedChanged = function(a, b) {
   a.setProperty();
@@ -523,11 +858,10 @@ ArtikelController.prototype.onDataInvolvedChanged = function(a, b) {
 ArtikelController.prototype.onArtikelChanged = function(a, b) {
   a.setProperty();
   a = a.getBinding();
-  b.context._beteiligtBinding.update(a);
-  b.context._persistArtikel(b.context.trelloApi, a);
+  b.context.persist.call(b.context, a);
 };
-ArtikelController.prototype._persistArtikel = function(a, b) {
-  a.set("card", "shared", ArtikelController.SHARED_NAME, b);
+ArtikelController.prototype.persist = function(a, b) {
+  this.trelloApi.set(b || "card", "shared", ArtikelController.SHARED_NAME, a);
 };
 $jscomp.global.Object.defineProperties(ArtikelController, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
@@ -536,7 +870,7 @@ $jscomp.global.Object.defineProperties(ArtikelController, {VERSION:{configurable
 }}, SHARED_META:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Meta";
 }}});
-// Input 4
+// Input 7
 var ArtikelBinding = function(a, b, c, d) {
   this.document = a;
   this._action = c;
@@ -610,10 +944,74 @@ ArtikelBinding.prototype.bind = function() {
   this._location = this.document.newSingleSelect(c, "pa.location", "location", "Ort", b, this._action, "x-Liste", a("", "\u2026"), [a("cds", "CDS"), a("sto", "STO"), a("tam", "TAM"), a("wid", "WID"), a("buech", "Buech"), a("rustico", "Rustico"), a("schlatt", "Schlatt")]);
   return this;
 };
-// Input 5
+ArtikelBinding.prototype.blockUi = function() {
+  var a = this.document.createElement("div");
+  a.addClass("overlay");
+  this.document.createElement("span");
+  a.appendChild(document.createTextNode("Plugin Daten werden aktualisiert..."));
+  this.document.getElementsByTagName("body").item(0).appendChild(a);
+};
+// Input 8
+var PluginController = function(a) {
+  this._trelloApi = a;
+  this._upgrading = !1;
+  this._upgrades = {1:this._upgrade_1};
+};
+PluginController.prototype.init = function() {
+  var a = this;
+  a._trelloApi.get("board", "shared", PluginController.SHARED_NAME, 1).then(function(b) {
+    PluginController.VERSION > b && (a._upgrading = !0, a.update.call(a, b, PluginController.VERSION));
+  });
+};
+PluginController.prototype.update = function(a, b) {
+  this._update(a, b);
+};
+PluginController.prototype._update = function(a, b) {
+  var c = this;
+  a < b ? (console.log("Applying upgrade %d ...", a), c._upgrades[a].call(this).then(function() {
+    console.log("... upgrade %d is successfully applied", a);
+    c._trelloApi.set("board", "shared", PluginController.SHARED_NAME, a + 1);
+    c._update(a + 1, b);
+  })) : console.log("No upgrades pending");
+};
+PluginController.prototype._upgrade_1 = function() {
+  var a = this, b = ArtikelController.getInstance(this._trelloApi), c = ModuleController.getInstance(this._trelloApi);
+  return Promise.all([c.fetchAll.call(c, function() {
+    c.clear.call(c);
+  }), b.fetchAll.call(b, function() {
+    a._upgradeArticleToModuleConfig.call(a, b, c);
+  })]).then(function() {
+    return !0;
+  });
+};
+PluginController.prototype._upgradeArticleToModuleConfig = function(a, b) {
+  Object.entries(a.list()).forEach(function(c) {
+    var d = c[0];
+    c = c[1];
+    if (1 === c.version) {
+      var e = Object.entries(c.involved).reduce(function(a, b) {
+        a.sections[b[0]] = b[1];
+        return a;
+      }, ModuleConfig.create());
+      b.persist.call(b, e, d);
+      c.version = Artikel.VERSION;
+      c.clearInvolved();
+      a.persist.call(a, c, d);
+    }
+  });
+};
+$jscomp.global.Object.defineProperties(PluginController.prototype, {upgrading:{configurable:!0, enumerable:!0, get:function() {
+  return this._upgrading;
+}}});
+$jscomp.global.Object.defineProperties(PluginController, {VERSION:{configurable:!0, enumerable:!0, get:function() {
+  return 2;
+}}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.App";
+}}});
+// Input 9
 var BeteiligtBinding = function(a, b, c, d) {
   this.document = a;
-  this._artikel = b;
+  this._config = b;
   this._action = c;
   this._context = d;
   this._involvements = {onsite:this._buildValueHolder("onsite", "pa.involved.onsite", this.onRegularLayout), text:this._buildValueHolder("text", "pa.involved.text", this.onRegularLayout), photo:this._buildValueHolder("photo", "pa.involved.photo", this.onRegularLayout), video:this._buildValueHolder("video", "pa.involved.video", this.onRegularLayout), illu:this._buildValueHolder("illu", "pa.involved.illu", this.onRegularLayout), ad:this._buildValueHolder("ad", "pa.involved.ad", this.onAdLayout)};
@@ -629,16 +1027,16 @@ BeteiligtBinding.prototype.update = function(a) {
   this._activated.activate();
   this._activated.update(a);
   this._ad.update(a);
-  this._artikel = a;
+  this._config = a;
   return this;
 };
 BeteiligtBinding.prototype.bind = function() {
-  this._onsite = null !== this._onsite ? this._onsite.update(this._artikel) : this._onsite = (new PForms(this.document, "vor.Ort", this._involvements.onsite)).bind(this._artikel, "onsite").render();
-  this._text = null !== this._text ? this._text.update(this._artikel) : this._text = (new PForms(this.document, "Text", this._involvements.text)).bind(this._artikel, "text").render();
-  this._photo = null !== this._photo ? this._photo.update(this._artikel) : this._photo = (new PForms(this.document, "Foto", this._involvements.photo)).bind(this._artikel, "photo").render();
-  this._video = null !== this._video ? this._video.update(this._artikel) : this._video = (new PForms(this.document, "Video", this._involvements.video)).bind(this._artikel, "video").render();
-  this._illu = null !== this._illu ? this._illu.update(this._artikel) : this._illu = (new PForms(this.document, "Illu.Grafik", this._involvements.illu)).bind(this._artikel, "illu").render();
-  this._ad = null !== this._ad ? this._ad.update(this._artikel) : this._ad = (new PForms(this.document, "Inserat", this._involvements.ad)).bind(this._artikel, "ad").render();
+  this._onsite = null !== this._onsite ? this._onsite.update(this._config) : this._onsite = (new PModuleConfig(this.document, "vor.Ort", this._involvements.onsite)).bind(this._config, "onsite").render();
+  this._text = null !== this._text ? this._text.update(this._config) : this._text = (new PModuleConfig(this.document, "Text", this._involvements.text)).bind(this._config, "text").render();
+  this._photo = null !== this._photo ? this._photo.update(this._config) : this._photo = (new PModuleConfig(this.document, "Foto", this._involvements.photo)).bind(this._config, "photo").render();
+  this._video = null !== this._video ? this._video.update(this._config) : this._video = (new PModuleConfig(this.document, "Video", this._involvements.video)).bind(this._config, "video").render();
+  this._illu = null !== this._illu ? this._illu.update(this._config) : this._illu = (new PModuleConfig(this.document, "Illu.Grafik", this._involvements.illu)).bind(this._config, "illu").render();
+  this._ad = null !== this._ad ? this._ad.update(this._config) : this._ad = (new PModuleConfig(this.document, "Inserat", this._involvements.ad)).bind(this._config, "ad").render();
   this._activated = this._onsite;
   this._activated.activate();
   return this;
@@ -648,7 +1046,7 @@ BeteiligtBinding.prototype.onRegularLayout = function(a, b) {
   c.innerHTML = template_regular;
   c = c.cloneNode(!0);
   this._switchContent(a, c);
-  a = {context:this._context, valueHolder:b, artikel:this._artikel};
+  a = {context:this._context, valueHolder:b, config:this._config};
   this.document.newSingleLineInput(b, ".pa.name", "name", "Name", a, this._action, "eintippen\u2026", "text", !1);
   this.document.newSingleLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", a, this._action, "notieren\u2026");
   this.document.newMultiLineInput(b, ".pa.address", "address", "Adresse", a, this._action, 2, "festhalten\u2026");
@@ -660,7 +1058,7 @@ BeteiligtBinding.prototype.onAdLayout = function(a, b) {
   c.innerHTML = template_ad;
   c = c.cloneNode(!0);
   this._switchContent(a, c);
-  a = {context:this._context, valueHolder:b, artikel:this._artikel};
+  a = {context:this._context, valueHolder:b, artikel:this._config};
   this.document.newSingleLineInput(b, ".pa.name", "name", "Kontakt", a, this._action, "eintippen\u2026", "text", !1);
   this.document.newSingleLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", a, this._action, "notieren\u2026");
   this.document.newMultiLineInput(b, ".pa.address", "address", "Adresse", a, this._action, 2, "eingeben\u2026");
@@ -682,18 +1080,51 @@ BeteiligtBinding.prototype._switchContent = function(a, b) {
   c.appendChild(b);
   this._activated = a;
 };
-// Input 6
-var CommonBeteiligt = function(a, b, c, d) {
-  this._name = a;
-  this._social = b;
-  this._address = c;
-  this._notes = d;
+// Input 10
+var ModuleConfig = function(a, b) {
+  this._id = a || uuid();
+  this._sections = b;
   this._version = CommonBeteiligt.VERSION;
+};
+ModuleConfig.create = function(a) {
+  return new ModuleConfig(JsonSerialization.getProperty(a, "id"), {onsite:OtherBeteiligt.create(JsonSerialization.getProperty(a, "onsite")), text:OtherBeteiligt.create(JsonSerialization.getProperty(a, "text")), photo:OtherBeteiligt.create(JsonSerialization.getProperty(a, "photo")), video:OtherBeteiligt.create(JsonSerialization.getProperty(a, "video")), illu:OtherBeteiligt.create(JsonSerialization.getProperty(a, "illu")), ad:AdBeteiligt.create(JsonSerialization.getProperty(a, "ad"))});
+};
+$jscomp.global.Object.defineProperties(ModuleConfig.prototype, {sections:{configurable:!0, enumerable:!0, get:function() {
+  return this._sections;
+}, set:function(a) {
+  this._sections = a;
+}}});
+$jscomp.global.Object.defineProperties(ModuleConfig, {VERSION:{configurable:!0, enumerable:!0, get:function() {
+  return 2;
+}}});
+var CommonBeteiligt = function(a, b, c, d, e) {
+  this._id = a || uuid();
+  this._name = b;
+  this._social = c;
+  this._address = d;
+  this._notes = e;
+  this._version = CommonBeteiligt.VERSION;
+  this._type = null;
+  this._id = a;
+};
+CommonBeteiligt.create = function(a) {
+  if (a) {
+    switch(JsonSerialization.getProperty(a, "type")) {
+      case "ad":
+        return AdBeteiligt.create(a);
+      default:
+        return OtherBeteiligt.create(a);
+    }
+  } else {
+    throw Error("Invalid jsonObj: cannot create Beteiligt Entity");
+  }
 };
 CommonBeteiligt.prototype.isEmpty = function() {
   return isBlank(this.name) && isBlank(this.social) && isBlank(this.address) && isBlank(this.notes);
 };
-$jscomp.global.Object.defineProperties(CommonBeteiligt.prototype, {name:{configurable:!0, enumerable:!0, get:function() {
+$jscomp.global.Object.defineProperties(CommonBeteiligt.prototype, {id:{configurable:!0, enumerable:!0, get:function() {
+  return this._id;
+}}, name:{configurable:!0, enumerable:!0, get:function() {
   return this._name;
 }, set:function(a) {
   this._name = a;
@@ -709,24 +1140,29 @@ $jscomp.global.Object.defineProperties(CommonBeteiligt.prototype, {name:{configu
   return this._notes;
 }, set:function(a) {
   this._notes = a;
+}}, type:{configurable:!0, enumerable:!0, get:function() {
+  return this._type;
+}, set:function(a) {
+  this._type = a;
 }}, version:{configurable:!0, enumerable:!0, get:function() {
   return this._version;
 }, set:function(a) {
   this._version = a;
 }}});
 $jscomp.global.Object.defineProperties(CommonBeteiligt, {VERSION:{configurable:!0, enumerable:!0, get:function() {
-  return 1;
+  return 2;
 }}});
-var OtherBeteiligt = function(a, b, c, d, e) {
-  CommonBeteiligt.call(this, a, b, c, d);
-  this._duedate = e;
+var OtherBeteiligt = function(a, b, c, d, e, f) {
+  CommonBeteiligt.call(this, a, b, c, d, e);
+  this._duedate = f;
+  this.type = "other";
 };
 $jscomp.inherits(OtherBeteiligt, CommonBeteiligt);
 OtherBeteiligt.create = function(a) {
   return this._create(a);
 };
 OtherBeteiligt._create = function(a) {
-  return a ? new OtherBeteiligt(JsonSerialization.getProperty(a, "name"), JsonSerialization.getProperty(a, "social"), JsonSerialization.getProperty(a, "address"), JsonSerialization.getProperty(a, "notes"), JsonSerialization.getProperty(a, "duedate")) : new OtherBeteiligt;
+  return a ? new OtherBeteiligt(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "name"), JsonSerialization.getProperty(a, "social"), JsonSerialization.getProperty(a, "address"), JsonSerialization.getProperty(a, "notes"), JsonSerialization.getProperty(a, "duedate")) : new OtherBeteiligt;
 };
 OtherBeteiligt.prototype.isEmpty = function() {
   return CommonBeteiligt.prototype.isEmpty.call(this) && !this.duedate;
@@ -736,19 +1172,20 @@ $jscomp.global.Object.defineProperties(OtherBeteiligt.prototype, {duedate:{confi
 }, set:function(a) {
   this._duedate = a;
 }}});
-var AdBeteiligt = function(a, b, c, d, e, f, g) {
-  CommonBeteiligt.call(this, a, b, c, d);
-  this._format = e;
-  this._placement = f;
-  this._price = g;
+var AdBeteiligt = function(a, b, c, d, e, f, g, h) {
+  CommonBeteiligt.call(this, a, b, c, d, e);
+  this._format = f;
+  this._placement = g;
+  this._price = h;
   this._total = 0;
+  this.type = "ad";
 };
 $jscomp.inherits(AdBeteiligt, CommonBeteiligt);
 AdBeteiligt.create = function(a) {
   return this._create(a);
 };
 AdBeteiligt._create = function(a) {
-  return a ? new AdBeteiligt(JsonSerialization.getProperty(a, "name"), JsonSerialization.getProperty(a, "social"), JsonSerialization.getProperty(a, "address"), JsonSerialization.getProperty(a, "notes"), JsonSerialization.getProperty(a, "format"), JsonSerialization.getProperty(a, "placement"), JsonSerialization.getProperty(a, "price")) : new AdBeteiligt;
+  return a ? new AdBeteiligt(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "name"), JsonSerialization.getProperty(a, "social"), JsonSerialization.getProperty(a, "address"), JsonSerialization.getProperty(a, "notes"), JsonSerialization.getProperty(a, "format"), JsonSerialization.getProperty(a, "placement"), JsonSerialization.getProperty(a, "price")) : new AdBeteiligt;
 };
 AdBeteiligt.prototype.isEmpty = function() {
   return CommonBeteiligt.prototype.isEmpty.call(this) && !this.format && !this.placement && !this.price;
@@ -770,8 +1207,8 @@ $jscomp.global.Object.defineProperties(AdBeteiligt.prototype, {format:{configura
 }, set:function(a) {
   this._total = a;
 }}});
-// Input 7
-var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, n, p, q) {
+// Input 11
+var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, r, n, p) {
   this._id = a || uuid();
   this._topic = b;
   this._pagina = c;
@@ -779,13 +1216,13 @@ var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, n, p, q) {
   this._layout = e;
   this._total = f;
   this._tags = g;
-  this._form = p;
+  this._form = n;
   this._visual = h;
   this._region = k;
   this._season = l;
-  this._location = q;
+  this._location = p;
   this._author = m;
-  this._text = n;
+  this._text = r;
   this._involved = {};
   this._version = Artikel.VERSION;
   this.putInvolved("onsite", new OtherBeteiligt);
@@ -825,6 +1262,9 @@ Artikel.prototype.getInvolvedCount = function() {
     a.getInvolvedFor(c).isEmpty() || b++;
   });
   return b;
+};
+Artikel.prototype.clearInvolved = function() {
+  this._involved = {};
 };
 $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, enumerable:!0, get:function() {
   return this._id;
@@ -911,7 +1351,7 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, 
 $jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
 }}});
-// Input 8
+// Input 12
 HTMLElement.prototype.addClass = function(a) {
   -1 === this.className.split(" ").indexOf(a) && (this.className += " " + a, this.className = this.className.trim());
 };
@@ -970,10 +1410,10 @@ function isBlank(a) {
   return !a || 0 === (a + "").trim().length;
 }
 ;
-// Input 9
+// Input 13
 var template_regular = '<div id="template" class="row">    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-right">                <div class="pa.name"></div>            </div>            <div class="col-12 less-padding-right">                <div class="pa.social"></div>            </div>            <div class="col-12 less-padding-right">                <div class="pa.address"></div>            </div>        </div>    </div>    <div class="col-6">        <div class="row before-last-row">            <div class="col-12 less-padding-left">                <div class="pa.notes"></div>            </div>        </div>        <div class="row align-bottom">            <div class="col-12 less-padding-left">                <div class="pa.duedate"></div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-right">                <div class="pa.notes"></div>            </div>        </div>        <div class="row before-last-row">            <div class="col-6 less-padding-right">                <div class="pa.format"></div>            </div>            <div class="col-6 less-padding">                <div class="pa.placement"></div>            </div>        </div>        <div class="row align-bottom">            <div class="col-6 less-padding-right">                <div class="pa.price"></div>            </div>            <div class="col-6 less-padding">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-left">                <div class="pa.name"></div>            </div>            <div class="col-12 less-padding-left">                <div class="pa.social"></div>            </div>            <div class="col-12 less-padding-left">                <div class="pa.address"></div>            </div>        </div>    </div></div>';
-// Input 10
+// Input 14
 var JsonSerialization = function() {
 };
 JsonSerialization.prototype.serialize = function(a) {
@@ -997,7 +1437,7 @@ JsonSerialization.denomalize = function(a) {
   return "_" + a;
 };
 JsonSerialization.getProperty = function(a, b) {
-  return a[JsonSerialization.denomalize(b)];
+  return a ? a[JsonSerialization.denomalize(b)] : null;
 };
 JsonSerialization.prototype.getAllProperties = function(a) {
   return Object.getOwnPropertyNames(a);

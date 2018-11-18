@@ -1,14 +1,14 @@
 class BeteiligtBinding {
 
-    constructor(document, artikel, action, context) {
+    constructor(document, config, action, context) {
         /**
          * @type {HTMLDocument}
          */
         this.document = document;
         /**
-         * @type {Artikel}
+         * @type {ModuleConfig}
          */
-        this._artikel = artikel;
+        this._config = config;
 
         this._action = action;
 
@@ -24,43 +24,43 @@ class BeteiligtBinding {
         };
 
         /**
-         * @type {PForms}
+         * @type {PModuleConfig}
          * @private
          */
         this._onsite = null;
 
         /**
-         * @type {PForms}
+         * @type {PModuleConfig}
          * @private
          */
         this._text = null;
 
         /**
-         * @type {PForms}
+         * @type {PModuleConfig}
          * @private
          */
         this._photo = null;
 
         /**
-         * @type {PForms}
+         * @type {PModuleConfig}
          * @private
          */
         this._video = null;
 
         /**
-         * @type {PForms}
+         * @type {PModuleConfig}
          * @private
          */
         this._illu = null;
 
         /**
-         * @type {PForms}
+         * @type {PModuleConfig}
          * @private
          */
         this._ad = null;
 
         /**
-         * @type {PForms}
+         * @type {PModuleConfig}
          * @private
          */
         this._activated = null;
@@ -84,38 +84,38 @@ class BeteiligtBinding {
         };
     }
 
-    update(artikel) {
+    update(config) {
         this._activated.activate();
-        this._activated.update(artikel);
-        this._ad.update(artikel);
+        this._activated.update(config);
+        this._ad.update(config);
         // update the entity as well otherwise on change callbacks will re-store old entity states
-        this._artikel = artikel;
+        this._config = config;
         return this;
     }
 
     bind() {
-        this._onsite = this._onsite !== null ? this._onsite.update(this._artikel) : (this._onsite = new PForms(this.document, 'vor.Ort', this._involvements.onsite)
-            .bind(this._artikel, 'onsite')
+        this._onsite = this._onsite !== null ? this._onsite.update(this._config) : (this._onsite = new PModuleConfig(this.document, 'vor.Ort', this._involvements.onsite)
+            .bind(this._config, 'onsite')
             .render());
 
-        this._text = this._text !== null ? this._text.update(this._artikel) : (this._text = new PForms(this.document, 'Text', this._involvements.text)
-            .bind(this._artikel, 'text')
+        this._text = this._text !== null ? this._text.update(this._config) : (this._text = new PModuleConfig(this.document, 'Text', this._involvements.text)
+            .bind(this._config, 'text')
             .render());
 
-        this._photo = this._photo !== null ? this._photo.update(this._artikel) : (this._photo = new PForms(this.document, 'Foto', this._involvements.photo)
-            .bind(this._artikel, 'photo')
+        this._photo = this._photo !== null ? this._photo.update(this._config) : (this._photo = new PModuleConfig(this.document, 'Foto', this._involvements.photo)
+            .bind(this._config, 'photo')
             .render());
 
-        this._video = this._video !== null ? this._video.update(this._artikel) : (this._video = new PForms(this.document, 'Video', this._involvements.video)
-            .bind(this._artikel, 'video')
+        this._video = this._video !== null ? this._video.update(this._config) : (this._video = new PModuleConfig(this.document, 'Video', this._involvements.video)
+            .bind(this._config, 'video')
             .render());
 
-        this._illu = this._illu !== null ? this._illu.update(this._artikel) : (this._illu = new PForms(this.document, 'Illu.Grafik', this._involvements.illu)
-            .bind(this._artikel, 'illu')
+        this._illu = this._illu !== null ? this._illu.update(this._config) : (this._illu = new PModuleConfig(this.document, 'Illu.Grafik', this._involvements.illu)
+            .bind(this._config, 'illu')
             .render());
 
-        this._ad = this._ad !== null ? this._ad.update(this._artikel) : (this._ad = new PForms(this.document, 'Inserat', this._involvements.ad)
-            .bind(this._artikel, 'ad')
+        this._ad = this._ad !== null ? this._ad.update(this._config) : (this._ad = new PModuleConfig(this.document, 'Inserat', this._involvements.ad)
+            .bind(this._config, 'ad')
             .render());
         this._activated = this._onsite;
         this._activated.activate();
@@ -128,7 +128,7 @@ class BeteiligtBinding {
         let templ = virtual.cloneNode(true);
         this._switchContent(forms, templ);
 
-        let params = {'context': this._context, 'valueHolder': valueHolder, 'artikel': this._artikel};
+        let params = {'context': this._context, 'valueHolder': valueHolder, 'config': this._config};
         this.document.newSingleLineInput(valueHolder, ".pa.name", "name", "Name", params, this._action, "eintippen…", "text", false);
         this.document.newSingleLineInput(valueHolder, ".pa.social", "social", "Telefon.Mail.Webseite", params, this._action, "notieren…");
         this.document.newMultiLineInput(valueHolder, ".pa.address", "address", "Adresse", params, this._action, 2, "festhalten…");
@@ -144,7 +144,7 @@ class BeteiligtBinding {
 
         this._switchContent(forms, templ);
 
-        let params = {'context': this._context, 'valueHolder': valueHolder, 'artikel': this._artikel};
+        let params = {'context': this._context, 'valueHolder': valueHolder, 'artikel': this._config};
         this.document.newSingleLineInput(valueHolder, ".pa.name", 'name', "Kontakt", params, this._action, "eintippen…", "text", false);
         this.document.newSingleLineInput(valueHolder, ".pa.social", 'social', "Telefon.Mail.Webseite", params, this._action, "notieren…");
         this.document.newMultiLineInput(valueHolder, ".pa.address", 'address', "Adresse", params, this._action, 2, "eingeben…");

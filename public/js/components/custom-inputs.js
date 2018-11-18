@@ -92,7 +92,6 @@ class PInput {
      */
     _updateValue(newValue) {
         if (this._input !== null && this._input.value !== newValue) {
-            console.log("Setting value " + newValue + " (" + this._input.value + ")");
             this._input.value = newValue;
         }
     }

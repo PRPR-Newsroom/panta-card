@@ -138,6 +138,13 @@ class Artikel {
         return count;
     }
 
+    /**
+     * Clear all involved sections
+     */
+    clearInvolved() {
+        this._involved = {};
+    }
+
     // GETTER & SETTER
 
     get id() {
