@@ -144,7 +144,7 @@ class BeteiligtBinding {
 
         this._switchContent(forms, templ);
 
-        let params = {'context': this._context, 'valueHolder': valueHolder, 'artikel': this._config};
+        let params = {'context': this._context, 'valueHolder': valueHolder, 'config': this._config};
         this.document.newSingleLineInput(valueHolder, ".pa.name", 'name', "Kontakt", params, this._action, "eintippen…", "text", false);
         this.document.newSingleLineInput(valueHolder, ".pa.social", 'social', "Telefon.Mail.Webseite", params, this._action, "notieren…");
         this.document.newMultiLineInput(valueHolder, ".pa.address", 'address', "Adresse", params, this._action, 2, "eingeben…");

@@ -54,7 +54,7 @@ class PInput {
      * @returns {PInput} itself (for fluent-programming)
      */
     bind(entity, property) {
-        this._artikel = entity;
+        this._entity = entity;
         this._property = property;
         this._value = entity[property];
         this._updateProperty();
@@ -67,7 +67,7 @@ class PInput {
      */
     _updateProperty() {
         // this should maybe use this._value instead of accessing the property directly. otherwise the _value property does not make much sense anymore
-        let propertyValue = this._artikel[this.getBoundProperty()];
+        let propertyValue = this._entity[this.getBoundProperty()];
         if (!propertyValue) {
             this._input.value = null;
         }
@@ -102,7 +102,7 @@ class PInput {
      * @returns {PInput}
      */
     update(artikel) {
-        this._artikel = artikel;
+        this._entity = artikel;
         if (this._type !== 'select') {
             this._updateProperty();
         }
@@ -269,7 +269,7 @@ class PInput {
      * @returns {*}
      */
     getBinding() {
-        return this._artikel;
+        return this._entity;
     }
 
     /**
@@ -281,10 +281,10 @@ class PInput {
             case "number":
                 // either the input is formatted or just a plain number
                 let parsed = this._parseNumber(this.getValue());
-                this._artikel[this.getBoundProperty()] = parsed;
+                this._entity[this.getBoundProperty()] = parsed;
                 break;
             default:
-                this._artikel[this.getBoundProperty()] = this.getValue();
+                this._entity[this.getBoundProperty()] = this.getValue();
         }
 
     }

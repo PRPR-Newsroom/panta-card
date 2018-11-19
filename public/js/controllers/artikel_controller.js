@@ -59,7 +59,7 @@ class ArtikelController {
          * @type {Artikel}
          * @private
          */
-        this._artikel = null;
+        this._entity = null;
 
         /**
          * @type {ArtikelBinding}
@@ -211,8 +211,8 @@ class ArtikelController {
      */
     update() {
         // calc total
-        this._artikel.total = this.getTotalPageCount();
-        this._artikelBinding.update(this._artikel);
+        this._entity.total = this.getTotalPageCount();
+        this._artikelBinding.update(this._entity);
     }
 
     /**
@@ -243,27 +243,8 @@ class ArtikelController {
      * @param (Artikel) artikel
      */
     render(artikel) {
-        this._artikel = artikel ? artikel : Artikel.create();
-        this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._artikel) : new ArtikelBinding(this.document, this._artikel, this.onArtikelChanged, this).bind();
-    }
-
-    /**
-     * Called when the data in panta.Beteiligt has changed
-     * @param source the source input element
-     * @param args a dictionary object with 'context', 'valueHolder' and 'artikel'
-     */
-    onDataInvolvedChanged(source, args) {
-        source.setProperty();
-
-        let ctx = args['context'];
-        let valueHolder = args['valueHolder'];
-        let artikel = args['artikel'];
-        let involved = source.getBinding();
-
-        // update the involved part of the artikel
-        artikel.putInvolved(valueHolder['involved-in'], involved);
-        ctx._persistArtikel(ctx.trelloApi, artikel);
-        console.log("Stored: " + source.getBoundProperty() + " = " + source.getValue());
+        this._entity = artikel ? artikel : Artikel.create();
+        this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._entity) : new ArtikelBinding(this.document, this._entity, this.onDataChanged, this).bind();
     }
 
     /**
@@ -273,15 +254,9 @@ class ArtikelController {
      * @param source the source input element (s. PInputs)
      * @param ctx dictionary object with 'context' and 'artikel'
      */
-    onArtikelChanged(source, ctx) {
+    onDataChanged(source, ctx) {
         source.setProperty();
-        /**
-         * @type {Artikel}
-         */
-        let artikel = source.getBinding();
-        // update the beteiligtBinding with the new artikel
-        // ctx['context']._beteiligtBinding.update(artikel);
-        ctx['context'].persist.call(ctx['context'], artikel);
+        ctx['context'].persist.call(ctx['context'], source.getBinding());
     }
 
     /**

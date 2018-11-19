@@ -9,14 +9,15 @@ class ModuleConfig {
      * @returns {ModuleConfig}
      */
     static create(jsonObj) {
+        let sections = JsonSerialization.getProperty(jsonObj, 'sections') || {};
         return new ModuleConfig(JsonSerialization.getProperty(jsonObj, 'id'),
             {
-                'onsite': OtherBeteiligt.create(JsonSerialization.getProperty(jsonObj, 'onsite')),
-                'text': OtherBeteiligt.create(JsonSerialization.getProperty(jsonObj, 'text')),
-                'photo': OtherBeteiligt.create(JsonSerialization.getProperty(jsonObj, 'photo')),
-                'video': OtherBeteiligt.create(JsonSerialization.getProperty(jsonObj, 'video')),
-                'illu': OtherBeteiligt.create(JsonSerialization.getProperty(jsonObj, 'illu')),
-                'ad': AdBeteiligt.create(JsonSerialization.getProperty(jsonObj, 'ad'))
+                'onsite': OtherBeteiligt.create(sections.onsite),
+                'text': OtherBeteiligt.create(sections.text),
+                'photo': OtherBeteiligt.create(sections.photo),
+                'video': OtherBeteiligt.create(sections.video),
+                'illu': OtherBeteiligt.create(sections.illu),
+                'ad': AdBeteiligt.create(sections.ad)
             });
     }
 
@@ -24,6 +25,10 @@ class ModuleConfig {
         this._id = id || uuid();
         this._sections = sections;
         this._version = CommonBeteiligt.VERSION;
+    }
+
+    setSection(name, section) {
+        this._sections[name] = section;
     }
 
     get sections() {

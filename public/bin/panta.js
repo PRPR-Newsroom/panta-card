@@ -446,14 +446,14 @@ PInput.prototype.setPropertyType = function(a) {
   return this;
 };
 PInput.prototype.bind = function(a, b) {
-  this._artikel = a;
+  this._entity = a;
   this._property = b;
   this._value = a[b];
   this._updateProperty();
   return this;
 };
 PInput.prototype._updateProperty = function() {
-  var a = this._artikel[this.getBoundProperty()];
+  var a = this._entity[this.getBoundProperty()];
   a || (this._input.value = null);
   switch(this.propertyType) {
     case "number":
@@ -470,7 +470,7 @@ PInput.prototype._updateValue = function(a) {
   null !== this._input && this._input.value !== a && (this._input.value = a);
 };
 PInput.prototype.update = function(a) {
-  this._artikel = a;
+  this._entity = a;
   "select" !== this._type && this._updateProperty();
   return this;
 };
@@ -550,17 +550,17 @@ PInput.prototype.getBoundProperty = function() {
   return this._property;
 };
 PInput.prototype.getBinding = function() {
-  return this._artikel;
+  return this._entity;
 };
 PInput.prototype.setProperty = function() {
   switch(this.propertyType) {
     case "money":
     case "number":
       var a = this._parseNumber(this.getValue());
-      this._artikel[this.getBoundProperty()] = a;
+      this._entity[this.getBoundProperty()] = a;
       break;
     default:
-      this._artikel[this.getBoundProperty()] = this.getValue();
+      this._entity[this.getBoundProperty()] = this.getValue();
   }
 };
 PInput.prototype._formatNumber = function(a, b) {
@@ -700,9 +700,9 @@ ModuleController.prototype.update = function() {
 };
 ModuleController.prototype.onDataChanged = function(a, b) {
   a.setProperty();
-  b = b.context;
-  var c = a.getBinding();
-  b.persist.call(b, c);
+  var c = b.context;
+  b.config.setSection(b.valueHolder["involved-in"], a.getBinding());
+  c.persist.call(c, b.config);
   console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue());
 };
 ModuleController.prototype.getTotalPrice = function() {
@@ -769,7 +769,7 @@ ArtikelRepository.prototype.isNew = function(a) {
 var ArtikelController = function(a, b) {
   this.document = a;
   this.trelloApi = b;
-  this._beteiligtBinding = this._artikelBinding = this._artikel = null;
+  this._beteiligtBinding = this._artikelBinding = this._entity = null;
   this._repository = new ArtikelRepository;
   this.setVersionInfo();
 };
@@ -828,8 +828,8 @@ ArtikelController.prototype.manage = function(a) {
   return a;
 };
 ArtikelController.prototype.update = function() {
-  this._artikel.total = this.getTotalPageCount();
-  this._artikelBinding.update(this._artikel);
+  this._entity.total = this.getTotalPageCount();
+  this._artikelBinding.update(this._entity);
 };
 ArtikelController.prototype.blockUi = function() {
   this._artikelBinding.blockUi();
@@ -843,22 +843,12 @@ ArtikelController.prototype.getTotalPageCount = function() {
   }, 0);
 };
 ArtikelController.prototype.render = function(a) {
-  this._artikel = a ? a : Artikel.create();
-  this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._artikel) : (new ArtikelBinding(this.document, this._artikel, this.onArtikelChanged, this)).bind();
+  this._entity = a ? a : Artikel.create();
+  this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._entity) : (new ArtikelBinding(this.document, this._entity, this.onDataChanged, this)).bind();
 };
-ArtikelController.prototype.onDataInvolvedChanged = function(a, b) {
+ArtikelController.prototype.onDataChanged = function(a, b) {
   a.setProperty();
-  var c = b.context, d = b.valueHolder;
-  b = b.artikel;
-  var e = a.getBinding();
-  b.putInvolved(d["involved-in"], e);
-  c._persistArtikel(c.trelloApi, b);
-  console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue());
-};
-ArtikelController.prototype.onArtikelChanged = function(a, b) {
-  a.setProperty();
-  a = a.getBinding();
-  b.context.persist.call(b.context, a);
+  b.context.persist.call(b.context, a.getBinding());
 };
 ArtikelController.prototype.persist = function(a, b) {
   this.trelloApi.set(b || "card", "shared", ArtikelController.SHARED_NAME, a);
@@ -875,7 +865,7 @@ var ArtikelBinding = function(a, b, c, d) {
   this.document = a;
   this._action = c;
   this._context = d;
-  this._artikel = b;
+  this._entity = b;
 };
 ArtikelBinding.getRegionMapping = function(a) {
   switch(a) {
@@ -928,7 +918,7 @@ ArtikelBinding.prototype.bind = function() {
   function a(a, b) {
     return {value:a, text:b};
   }
-  var b = {context:this._context, artikel:this._artikel}, c = {data:this._artikel};
+  var b = {context:this._context, artikel:this._entity}, c = {data:this._entity};
   this._topic = this.document.newMultiLineInput(c, "pa.topic", "topic", "Thema", b, this._action, 2, "Lauftext");
   this._from = this.document.newSingleLineInput(c, "pa.input-from", "from", "Input von", b, this._action, "Name");
   this._author = this.document.newSingleLineInput(c, "pa.author", "author", "Textautor*in", b, this._action, "Name");
@@ -1058,7 +1048,7 @@ BeteiligtBinding.prototype.onAdLayout = function(a, b) {
   c.innerHTML = template_ad;
   c = c.cloneNode(!0);
   this._switchContent(a, c);
-  a = {context:this._context, valueHolder:b, artikel:this._config};
+  a = {context:this._context, valueHolder:b, config:this._config};
   this.document.newSingleLineInput(b, ".pa.name", "name", "Kontakt", a, this._action, "eintippen\u2026", "text", !1);
   this.document.newSingleLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", a, this._action, "notieren\u2026");
   this.document.newMultiLineInput(b, ".pa.address", "address", "Adresse", a, this._action, 2, "eingeben\u2026");
@@ -1087,7 +1077,11 @@ var ModuleConfig = function(a, b) {
   this._version = CommonBeteiligt.VERSION;
 };
 ModuleConfig.create = function(a) {
-  return new ModuleConfig(JsonSerialization.getProperty(a, "id"), {onsite:OtherBeteiligt.create(JsonSerialization.getProperty(a, "onsite")), text:OtherBeteiligt.create(JsonSerialization.getProperty(a, "text")), photo:OtherBeteiligt.create(JsonSerialization.getProperty(a, "photo")), video:OtherBeteiligt.create(JsonSerialization.getProperty(a, "video")), illu:OtherBeteiligt.create(JsonSerialization.getProperty(a, "illu")), ad:AdBeteiligt.create(JsonSerialization.getProperty(a, "ad"))});
+  var b = JsonSerialization.getProperty(a, "sections") || {};
+  return new ModuleConfig(JsonSerialization.getProperty(a, "id"), {onsite:OtherBeteiligt.create(b.onsite), text:OtherBeteiligt.create(b.text), photo:OtherBeteiligt.create(b.photo), video:OtherBeteiligt.create(b.video), illu:OtherBeteiligt.create(b.illu), ad:AdBeteiligt.create(b.ad)});
+};
+ModuleConfig.prototype.setSection = function(a, b) {
+  this._sections[a] = b;
 };
 $jscomp.global.Object.defineProperties(ModuleConfig.prototype, {sections:{configurable:!0, enumerable:!0, get:function() {
   return this._sections;
@@ -1240,7 +1234,7 @@ Artikel._create = function(a) {
     var b = JsonSerialization.getProperty(a, "region");
     "nord" === b && (b = "north");
     b = new Artikel(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "topic"), JsonSerialization.getProperty(a, "pagina"), JsonSerialization.getProperty(a, "from"), JsonSerialization.getProperty(a, "layout"), JsonSerialization.getProperty(a, "total"), JsonSerialization.getProperty(a, "tags"), JsonSerialization.getProperty(a, "visual"), b, JsonSerialization.getProperty(a, "season"), JsonSerialization.getProperty(a, "author"), JsonSerialization.getProperty(a, "text"), JsonSerialization.getProperty(a, 
-    "location"), JsonSerialization.getProperty(a, "form"));
+    "form"), JsonSerialization.getProperty(a, "location"));
     b.involved = JsonSerialization.getProperty(a, "involved");
     b.version = JsonSerialization.getProperty(a, "version");
     return b;

@@ -122,16 +122,19 @@ class ModuleController {
     /**
      * Called when the data in this module has changed
      * @param source the source input element
-     * @param args a dictionary object with 'context'
+     * @param args a dictionary object with 'context', 'valueHolder' and the entity 'config'
      */
     onDataChanged(source, args) {
         source.setProperty();
-
         let ctx = args['context'];
-        let entity = source.getBinding();
-
+        /**
+         * @var ModuleConfig
+         */
+        let config = args['config'];
+        // update the config entity with this section
+        config.setSection(args['valueHolder']['involved-in'], source.getBinding());
         // update the involved part of the entity
-        ctx.persist.call(ctx, entity);
+        ctx.persist.call(ctx, args['config']);
         console.log("Stored: " + source.getBoundProperty() + " = " + source.getValue());
     }
 

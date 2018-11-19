@@ -25,7 +25,6 @@ t.render(function () {
         .then(function() {
             moduleController.update();
         })
-
         .then(function () {
             t.sizeTo('#panta\\.module').done();
         })
