@@ -69,6 +69,20 @@ HTMLDocument.prototype.newSingleLineInput = function (valueHolder, targetId, pro
     return sli;
 };
 
+/**
+ * Create a single select element and bind the valueHolder with the target id for the given
+ * property. The label describes that select element
+ * @param valueHolder
+ * @param targetId
+ * @param property
+ * @param label
+ * @param actionParameters passed to the actionCallback when the value changes
+ * @param actionCallback the callback function that is called when a change is detected
+ * @param placeholder
+ * @param empty an object with 'value' and 'text' that is used when the user did not select anything
+ * @param options an array of {value/text} options
+ * @returns {SingleSelectInput}
+ */
 HTMLDocument.prototype.newSingleSelect = function(valueHolder, targetId, property, label, actionParameters, actionCallback, placeholder = "", empty, options) {
     let ssi = new SingleSelectInput(this, label, null, targetId, placeholder)
         .bind(valueHolder.data, property)

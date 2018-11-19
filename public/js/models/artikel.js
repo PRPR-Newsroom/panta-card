@@ -41,8 +41,8 @@ class Artikel {
                 JsonSerialization.getProperty(json, 'season'),
                 JsonSerialization.getProperty(json, 'author'),
                 JsonSerialization.getProperty(json, 'text'),
-                JsonSerialization.getProperty(json, 'location'),
-                JsonSerialization.getProperty(json, 'form')
+                JsonSerialization.getProperty(json, 'form'),
+                JsonSerialization.getProperty(json, 'location')
             );
             // involved constains the whole panta.Beteiligt datastore
             artikel.involved = JsonSerialization.getProperty(json, 'involved');
@@ -136,6 +136,13 @@ class Artikel {
             }
         });
         return count;
+    }
+
+    /**
+     * Clear all involved sections
+     */
+    clearInvolved() {
+        this._involved = {};
     }
 
     // GETTER & SETTER

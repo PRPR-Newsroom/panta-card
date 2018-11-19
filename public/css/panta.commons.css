@@ -3,7 +3,6 @@ html, body {
     overflow-x: hidden;
 }
 
-
 form {
     padding-top: 5px;
 }
@@ -98,6 +97,20 @@ form .u-border.no-resize {
 
 .hidden {
     display: none;
+}
+
+.overlay {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #D3D3D3a0;
+    text-align: center;
+    padding-top: 50px;
+    font-size: 24pt;
+    font-weight: bold;
+    line-height: normal;
 }
 
 ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */

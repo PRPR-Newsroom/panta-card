@@ -28,6 +28,27 @@ class ArtikelController {
         return "panta.Meta";
     }
 
+    /**
+     * Get the singleton controller
+     *
+     * @param trelloApi the Trello API
+     * @returns {ArtikelController}
+     */
+    static getInstance(trelloApi) {
+        ArtikelController.prepare(trelloApi);
+        return window.articleController;
+    }
+
+    /**
+     * Create a new instance if there's no controller registered
+     * @param trelloApi
+     */
+    static prepare(trelloApi) {
+        if (!window.articleController) {
+            window.articleController = new ArtikelController(document, trelloApi);
+        }
+    }
+
     constructor(document, trelloApi) {
         /**
          * @type {HTMLDocument}
@@ -38,7 +59,7 @@ class ArtikelController {
          * @type {Artikel}
          * @private
          */
-        this._artikel = null;
+        this._entity = null;
 
         /**
          * @type {ArtikelBinding}
@@ -86,7 +107,7 @@ class ArtikelController {
      */
     insert(artikel, card) {
         if (artikel && this._repository.isNew(artikel)) {
-            this._repository.add(artikel);
+            this._repository.add(artikel, card);
         } else if (artikel) {
             this._repository.replace(artikel, card);
         }
@@ -129,6 +150,28 @@ class ArtikelController {
     }
 
     /**
+     * Fetch all articles from Trello
+     */
+    fetchAll(onComplete) {
+        let that = this;
+        let ac = ArtikelController.getInstance(this.trelloApi);
+        return this.trelloApi.cards('id', 'closed')
+            .filter(function (card) {
+                return !card.closed;
+            })
+            .each(function (card) {
+                return that.trelloApi.get(card.id, 'shared', ArtikelController.SHARED_NAME)
+                    .then(function (json) {
+                        ac.insert(Artikel.create(json), card);
+                    });
+            })
+            .then(function () {
+                console.log("Fetch complete: " + ac.size() + " article(s) to process");
+                onComplete.call(that);
+            })
+    }
+
+    /**
      * Get all artikels currently known
      * @returns {Array}
      */
@@ -168,29 +211,15 @@ class ArtikelController {
      */
     update() {
         // calc total
-        this._artikel.total = this.getTotalPageCount();
-
-        // calc price in involved
-        this._artikel.getInvolvedFor('ad').total = this.getTotalPrice();
-
-        this._artikelBinding.update(this._artikel);
-        this._beteiligtBinding.update(this._artikel);
+        this._entity.total = this.getTotalPageCount();
+        this._artikelBinding.update(this._entity);
     }
 
     /**
-     * Compute the total price over all artikels in the "ad"-involved section
-     * @returns {number}
+     * Block the UI because there's for example an upgrade going on
      */
-    getTotalPrice() {
-        return Object.values(this._repository.all()).map(function (item, index) {
-            return item.getInvolvedFor('ad');
-        }).filter(function (item, index) {
-            return item instanceof AdBeteiligt && !isNaN(parseFloat(item.price));
-        }).map(function (item, index) {
-            return item.price;
-        }).reduce(function (previousValue, currentValue) {
-            return parseFloat(previousValue) + parseFloat(currentValue);
-        }, 0.0);
+    blockUi() {
+        this._artikelBinding.blockUi();
     }
 
     /**
@@ -214,28 +243,8 @@ class ArtikelController {
      * @param (Artikel) artikel
      */
     render(artikel) {
-        this._artikel = artikel ? artikel : Artikel.create();
-        this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._artikel) : new ArtikelBinding(this.document, this._artikel, this.onArtikelChanged, this).bind();
-        this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(this._artikel) : new BeteiligtBinding(this.document, this._artikel, this.onDataInvolvedChanged, this).bind();
-    }
-
-    /**
-     * Called when the data in panta.Beteiligt has changed
-     * @param source the source input element
-     * @param args a dictionary object with 'context', 'valueHolder' and 'artikel'
-     */
-    onDataInvolvedChanged(source, args) {
-        source.setProperty();
-
-        let ctx = args['context'];
-        let valueHolder = args['valueHolder'];
-        let artikel = args['artikel'];
-        let involved = source.getBinding();
-
-        // update the involved part of the artikel
-        artikel.putInvolved(valueHolder['involved-in'], involved);
-        ctx._persistArtikel(ctx.trelloApi, artikel);
-        console.log("Stored: " + source.getBoundProperty() + " = " + source.getValue());
+        this._entity = artikel ? artikel : Artikel.create();
+        this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._entity) : new ArtikelBinding(this.document, this._entity, this.onDataChanged, this).bind();
     }
 
     /**
@@ -245,25 +254,18 @@ class ArtikelController {
      * @param source the source input element (s. PInputs)
      * @param ctx dictionary object with 'context' and 'artikel'
      */
-    onArtikelChanged(source, ctx) {
+    onDataChanged(source, ctx) {
         source.setProperty();
-        /**
-         * @type {Artikel}
-         */
-        let artikel = source.getBinding();
-        // update the beteiligtBinding with the new artikel
-        ctx['context']._beteiligtBinding.update(artikel);
-        ctx['context']._persistArtikel(ctx['context'].trelloApi, artikel);
+        ctx['context'].persist.call(ctx['context'], source.getBinding());
     }
 
     /**
      * Persist the artikel with the trelloApi
-     * @param trelloApi the API
      * @param artikel the artikel to persist
-     * @private
+     * @param cardId optionally the card id. if no id is specified it will use the currently opened card (scoped)
      */
-    _persistArtikel(trelloApi, artikel) {
-        trelloApi.set('card', 'shared', ArtikelController.SHARED_NAME, artikel);
+    persist(artikel, cardId) {
+        this.trelloApi.set(cardId || 'card', 'shared', ArtikelController.SHARED_NAME, artikel);
     }
 
 }

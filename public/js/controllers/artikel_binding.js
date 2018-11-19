@@ -67,7 +67,7 @@ class ArtikelBinding {
          * @type {Artikel}
          * @private
          */
-        this._artikel = entity;
+        this._entity = entity;
     }
 
 
@@ -111,8 +111,8 @@ class ArtikelBinding {
             };
         }
 
-        let params = {'context': this._context, 'artikel': this._artikel};
-        let valueHolder = {'data': this._artikel};
+        let params = {'context': this._context, 'artikel': this._entity};
+        let valueHolder = {'data': this._entity};
         this._topic = this.document.newMultiLineInput(valueHolder, "pa.topic", 'topic', 'Thema', params, this._action, 2, "Lauftext");
         this._from = this.document.newSingleLineInput(valueHolder, 'pa.input-from', 'from', 'Input von', params, this._action, "Name");
         this._author = this.document.newSingleLineInput(valueHolder, 'pa.author', 'author', 'Textautor*in', params, this._action, 'Name');
@@ -146,11 +146,19 @@ class ArtikelBinding {
             newOption("north", ArtikelBinding.getRegionMapping("north")),
             newOption("south", ArtikelBinding.getRegionMapping("south")),
         ]);
+        /**
+         * @type {SingleSelectInput}
+         * @private
+         */
         this._season = this.document.newSingleSelect(valueHolder, 'pa.season', 'season', 'Saison', params, this._action, 'x-Liste', newOption('', '…'), [
             newOption("summer", "Sommer"),
             newOption("fall", "Herbst"),
         ]);
 
+        /**
+         * @type {SingleSelectInput}
+         * @private
+         */
         this._form = this.document.newSingleSelect(valueHolder, 'pa.form', 'form', 'Form', params, this._action, 'x-Liste', newOption('', '…'), [
             newOption("news", "News"),
             newOption("article", "Artikel"),
@@ -167,6 +175,16 @@ class ArtikelBinding {
         ]);
 
         return this;
+    }
+
+    blockUi() {
+        let overlay = this.document.createElement("div");
+        overlay.addClass("overlay");
+        let content = this.document.createElement("span");
+
+        overlay.appendChild(document.createTextNode("Plugin Daten werden aktualisiert..."));
+
+        this.document.getElementsByTagName("body").item(0).appendChild(overlay);
     }
 
 }

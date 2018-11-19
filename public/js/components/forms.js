@@ -1,5 +1,5 @@
 
-class PForms {
+class PModuleConfig {
 
     constructor(document, label, valueHolder) {
         this.document = document;
@@ -10,15 +10,21 @@ class PForms {
         this.valueHolder = valueHolder;
     }
 
+    /**
+     *
+     * @param {ModuleConfig} entity
+     * @param property
+     * @returns {PModuleConfig}
+     */
     bind(entity, property) {
-        this._artikel = entity;
+        this._entity = entity;
         this._property = property;
-        this.valueHolder.data = entity.getInvolvedFor(property);
+        this.valueHolder.data = entity.sections[property];
         return this;
     }
 
     render() {
-        this.update(this._artikel);
+        this.update(this._entity);
         this.valueHolder.tab.innerHTML = "<span>" + this.label + "</span>";
         let that = this;
         this.valueHolder.tab.addEventListener('click', function(e) {
@@ -27,12 +33,16 @@ class PForms {
         return this;
     }
 
-    update(artikel) {
-        if (artikel !== null) {
-            this.valueHolder.data = artikel.getInvolvedFor(this._property);
+    /**
+     * @param {ModuleConfig} entity
+     * @returns {PModuleConfig}
+     */
+    update(entity) {
+        if (entity !== null) {
+            this.valueHolder.data = entity.sections[this._property];
         }
         // set the new artikel entity on this form for current reference
-        this._artikel = artikel;
+        this._entity = entity;
 
         if (!this.valueHolder.data.isEmpty()) {
             this.valueHolder.tab.addClass("content");
