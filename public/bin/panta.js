@@ -962,10 +962,8 @@ var PluginController = function(a) {
 };
 PluginController.prototype.init = function() {
   var a = this;
-  a._trelloApi.set("board", "shared", PluginController.SHARED_NAME, 1).then(function() {
-    a._trelloApi.get("board", "shared", PluginController.SHARED_NAME, 1).then(function(b) {
-      PluginController.VERSION > b && (a._upgrading = !0, a.update.call(a, b, PluginController.VERSION));
-    });
+  a._trelloApi.get("board", "shared", PluginController.SHARED_NAME, 1).then(function(b) {
+    PluginController.VERSION > b && (a._upgrading = !0, a.update.call(a, b, PluginController.VERSION));
   });
 };
 PluginController.prototype.update = function(a, b) {
