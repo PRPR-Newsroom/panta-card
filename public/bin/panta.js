@@ -1349,7 +1349,7 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, 
   this._version = a;
 }}});
 $jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enumerable:!0, get:function() {
-  return 1;
+  return 2;
 }}});
 // Input 12
 HTMLElement.prototype.addClass = function(a) {

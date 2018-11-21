@@ -4,7 +4,7 @@
 class Artikel {
 
     static get VERSION() {
-        return 1;
+        return 2;
     }
 
     /**
