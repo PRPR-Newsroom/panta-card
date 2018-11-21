@@ -31,6 +31,17 @@ class PluginController {
      */
     init() {
         let that = this;
+        // because for switching between version 1 and 2 this helps to downgrade
+        // that._trelloApi.set('board', 'shared', PluginController.SHARED_NAME, 1)
+        //     .then(function() {
+        //         that._trelloApi.get('board', 'shared', PluginController.SHARED_NAME, 1)
+        //             .then(function (data) {
+        //                 if (PluginController.VERSION > data) {
+        //                     that._upgrading = true;
+        //                     that.update.call(that, data, PluginController.VERSION);
+        //                 }
+        //             });
+        //     })
         that._trelloApi.get('board', 'shared', PluginController.SHARED_NAME, 1)
             .then(function (data) {
                 if (PluginController.VERSION > data) {
@@ -38,6 +49,7 @@ class PluginController {
                     that.update.call(that, data, PluginController.VERSION);
                 }
             });
+
     }
 
     /**
