@@ -82,14 +82,10 @@ class PluginController {
         let that = this;
         let ac = ArtikelController.getInstance(this._trelloApi);
         let mc = ModuleController.getInstance(this._trelloApi);
-        // clear all module configs first
-        let result = Promise.all([mc.fetchAll.call(mc, function () {
-            mc.clear.call(mc);
-        }), ac.fetchAll.call(ac, function () {
-            that._upgradeAllArticleToModuleConfig.call(that, ac, mc);
-        })]);
 
-        return result.then(function () {
+        return ac.fetchAll.call(ac).then(function () {
+            that._upgradeAllArticleToModuleConfig.call(that, ac, mc)
+        }).then(function () {
             return true;
         });
     }

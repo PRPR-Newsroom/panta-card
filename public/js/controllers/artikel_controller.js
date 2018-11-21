@@ -167,7 +167,7 @@ class ArtikelController {
             })
             .then(function () {
                 console.log("Fetch complete: " + ac.size() + " article(s) to process");
-                onComplete.call(that);
+                // onComplete.call(that);
             })
     }
 

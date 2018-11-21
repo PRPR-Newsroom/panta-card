@@ -185,6 +185,15 @@ $jscomp.polyfill("Object.values", function(a) {
     return b;
   };
 }, "es8", "es3");
+$jscomp.polyfill("Object.entries", function(a) {
+  return a ? a : function(a) {
+    var b = [], d;
+    for (d in a) {
+      $jscomp.owns(a, d) && b.push([d, a[d]]);
+    }
+    return b;
+  };
+}, "es8", "es3");
 $jscomp.makeIterator = function(a) {
   $jscomp.initSymbolIterator();
   var b = a[Symbol.iterator];
@@ -394,15 +403,6 @@ $jscomp.polyfill("Promise", function(a) {
   };
   return e;
 }, "es6", "es3");
-$jscomp.polyfill("Object.entries", function(a) {
-  return a ? a : function(a) {
-    var b = [], d;
-    for (d in a) {
-      $jscomp.owns(a, d) && b.push([d, a[d]]);
-    }
-    return b;
-  };
-}, "es8", "es3");
 var Repository = function() {
   this._repository = {};
 };
@@ -811,7 +811,6 @@ ArtikelController.prototype.fetchAll = function(a) {
     });
   }).then(function() {
     console.log("Fetch complete: " + c.size() + " article(s) to process");
-    a.call(b);
   });
 };
 ArtikelController.prototype.list = function() {
@@ -968,11 +967,9 @@ PluginController.prototype._update = function(a, b) {
 };
 PluginController.prototype._upgrade_1 = function() {
   var a = this, b = ArtikelController.getInstance(this._trelloApi), c = ModuleController.getInstance(this._trelloApi);
-  return Promise.all([c.fetchAll.call(c, function() {
-    c.clear.call(c);
-  }), b.fetchAll.call(b, function() {
+  return b.fetchAll.call(b).then(function() {
     a._upgradeAllArticleToModuleConfig.call(a, b, c);
-  })]).then(function() {
+  }).then(function() {
     return !0;
   });
 };
