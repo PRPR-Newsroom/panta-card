@@ -736,7 +736,7 @@ ModuleController.prototype.fetchAll = function(a) {
   });
 };
 ModuleController.prototype.persist = function(a, b) {
-  this.trelloApi.set(b || "card", "shared", ModuleController.SHARED_NAME, a);
+  return this.trelloApi.set(b || "card", "shared", ModuleController.SHARED_NAME, a);
 };
 ModuleController.prototype.clear = function() {
   Object.keys(this._repository.all()).forEach(function(a) {
@@ -851,7 +851,7 @@ ArtikelController.prototype.onDataChanged = function(a, b) {
   b.context.persist.call(b.context, a.getBinding());
 };
 ArtikelController.prototype.persist = function(a, b) {
-  this.trelloApi.set(b || "card", "shared", ArtikelController.SHARED_NAME, a);
+  return this.trelloApi.set(b || "card", "shared", ArtikelController.SHARED_NAME, a);
 };
 $jscomp.global.Object.defineProperties(ArtikelController, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
@@ -971,26 +971,30 @@ PluginController.prototype._upgrade_1 = function() {
   return Promise.all([c.fetchAll.call(c, function() {
     c.clear.call(c);
   }), b.fetchAll.call(b, function() {
-    a._upgradeArticleToModuleConfig.call(a, b, c);
+    a._upgradeAllArticleToModuleConfig.call(a, b, c);
   })]).then(function() {
     return !0;
   });
 };
-PluginController.prototype._upgradeArticleToModuleConfig = function(a, b) {
-  Object.entries(a.list()).forEach(function(c) {
-    var d = c[0];
-    c = c[1];
-    if (1 === c.version) {
-      var e = Object.entries(c.involved).reduce(function(a, b) {
-        a.sections[b[0]] = b[1];
-        return a;
-      }, ModuleConfig.create());
-      b.persist.call(b, e, d);
-      c.version = Artikel.VERSION;
-      c.clearInvolved();
-      a.persist.call(a, c, d);
-    }
-  });
+PluginController.prototype._upgradeAllArticleToModuleConfig = function(a, b) {
+  this._upgradeArticleToModuleConfig.call(this, a, b, Object.entries(a.list()), 0);
+};
+PluginController.prototype._upgradeArticleToModuleConfig = function(a, b, c, d) {
+  if (d < c.length) {
+    var e = this, f = c[d], g = f[0], h = f[1];
+    1 === h.version ? (f = Object.entries(h.involved).reduce(function(a, b) {
+      a.sections[b[0]] = b[1];
+      return a;
+    }, ModuleConfig.create()), Promise.all([b.persist.call(b, f, g).then(function() {
+      h.version = Artikel.VERSION;
+      h.clearInvolved();
+      return a.persist.call(a, h, g);
+    })]).then(function() {
+      e._upgradeArticleToModuleConfig.call(e, a, b, c, d + 1, g);
+    })) : (console.log("Skipping article because its at version %d", h.version), this._upgradeArticleToModuleConfig.call(this, a, b, c, d + 1, g));
+  } else {
+    console.log("All articles updated");
+  }
 };
 $jscomp.global.Object.defineProperties(PluginController.prototype, {upgrading:{configurable:!0, enumerable:!0, get:function() {
   return this._upgrading;

@@ -31,14 +31,14 @@ class PluginController {
      */
     init() {
         let that = this;
-        that._trelloApi.set('board', 'shared', PluginController.SHARED_NAME, 1).then(function() {
+        that._trelloApi.set('board', 'shared', PluginController.SHARED_NAME, 1).then(function () {
             that._trelloApi.get('board', 'shared', PluginController.SHARED_NAME, 1)
                 .then(function (data) {
                     if (PluginController.VERSION > data) {
                         that._upgrading = true;
                         that.update.call(that, data, PluginController.VERSION);
                     }
-                }); 
+                });
         });
     }
 
@@ -66,7 +66,7 @@ class PluginController {
             console.log("Applying upgrade %d ...", oldVersion);
             that._upgrades[oldVersion].call(this).then(function () {
                 console.log("... upgrade %d is successfully applied", oldVersion);
-                that._trelloApi.set('board', 'shared', PluginController.SHARED_NAME, oldVersion+1);
+                that._trelloApi.set('board', 'shared', PluginController.SHARED_NAME, oldVersion + 1);
                 that._update(oldVersion + 1, targetVersion);
             });
         } else {
@@ -86,7 +86,7 @@ class PluginController {
         let result = Promise.all([mc.fetchAll.call(mc, function () {
             mc.clear.call(mc);
         }), ac.fetchAll.call(ac, function () {
-            that._upgradeArticleToModuleConfig.call(that, ac, mc);
+            that._upgradeAllArticleToModuleConfig.call(that, ac, mc);
         })]);
 
         return result.then(function () {
@@ -100,12 +100,23 @@ class PluginController {
      * @param {ModuleController} mc the moduleconfig controller
      * @private
      */
-    _upgradeArticleToModuleConfig(ac, mc) {
-        Object.entries(ac.list()).forEach(function (entry) {
+    _upgradeAllArticleToModuleConfig(ac, mc) {
+        this._upgradeArticleToModuleConfig.call(this, ac, mc, Object.entries(ac.list()), 0);
+    }
+
+    /**
+     *
+     * @param {ArtikelController} ac
+     * @param {ModuleController} mc
+     * @param {Array} articles
+     * @param {Number} index
+     * @private
+     */
+    _upgradeArticleToModuleConfig(ac, mc, articles, index) {
+        if (index < articles.length) {
+            let that = this;
+            let entry = articles[index];
             let cardId = entry[0];
-            /**
-             * @type {Artikel}
-             */
             let article = entry[1];
             if (article.version === 1) {
                 // only update if the article is still on version 1 because articles with newer versions are already using module configs
@@ -116,13 +127,25 @@ class PluginController {
                     return previous;
                 }, ModuleConfig.create());
 
-                mc.persist.call(mc, mconfig, cardId);
-                article.version = Artikel.VERSION;
-                article.clearInvolved();
-                ac.persist.call(ac, article, cardId);
+                Promise.all([
+                    mc.persist.call(mc, mconfig, cardId)
+                        .then(function () {
+                                article.version = Artikel.VERSION;
+                                article.clearInvolved();
+                                return ac.persist.call(ac, article, cardId);
+                            }
+                        )
+                ]).then(function () {
+                    that._upgradeArticleToModuleConfig.call(that, ac, mc, articles, index + 1, cardId);
+                });
+            } else {
+                console.log("Skipping article because its at version %d", article.version);
+                this._upgradeArticleToModuleConfig.call(this, ac, mc, articles, index + 1, cardId);
             }
+        } else {
+            console.log("All articles updated");
+        }
 
-        });
     }
 
     get upgrading() {

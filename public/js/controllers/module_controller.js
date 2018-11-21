@@ -200,7 +200,7 @@ class ModuleController {
      */
     persist(entity, cardId) {
         // https://trello.com/1/cards/eFYBmEia/pluginData
-        this.trelloApi.set(cardId || 'card', 'shared', ModuleController.SHARED_NAME, entity);
+        return this.trelloApi.set(cardId || 'card', 'shared', ModuleController.SHARED_NAME, entity);
     }
 
     /**

@@ -265,7 +265,7 @@ class ArtikelController {
      * @param cardId optionally the card id. if no id is specified it will use the currently opened card (scoped)
      */
     persist(artikel, cardId) {
-        this.trelloApi.set(cardId || 'card', 'shared', ArtikelController.SHARED_NAME, artikel);
+        return this.trelloApi.set(cardId || 'card', 'shared', ArtikelController.SHARED_NAME, artikel);
     }
 
 }
