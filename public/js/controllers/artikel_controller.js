@@ -222,6 +222,12 @@ class ArtikelController {
         this._artikelBinding.blockUi();
     }
 
+    canUnblock() {
+        if (!window.pluginController.upgrading) {
+            this._artikelBinding.unblock();
+        }
+    }
+
     /**
      * Compute the total page count over all artikels
      * @returns {int}

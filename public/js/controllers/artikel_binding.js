@@ -68,6 +68,8 @@ class ArtikelBinding {
          * @private
          */
         this._entity = entity;
+
+        this._autoUpdater = null;
     }
 
 
@@ -178,13 +180,28 @@ class ArtikelBinding {
     }
 
     blockUi() {
+        if (this.document.getElementsByClassName('overlay').length > 0) {
+            return;
+        }
+        let that = this;
         let overlay = this.document.createElement("div");
         overlay.addClass("overlay");
-        let content = this.document.createElement("span");
 
-        overlay.appendChild(document.createTextNode("Plugin Daten werden aktualisiert..."));
+        overlay.appendChild(this.document.createTextNode("Plugin Daten werden aktualisiert..."));
 
         this.document.getElementsByTagName("body").item(0).appendChild(overlay);
+        this._autoUpdater = this._autoUpdater || setInterval(function() {
+            that._context.canUnblock();
+        }, 500);
+    }
+
+    unblock() {
+        this.document.getElementsByClassName("overlay").forEach(null, function(item) {
+            item.parentNode.removeChild(item);
+        });
+        if (this._autoUpdater) {
+            clearInterval(this._autoUpdater);
+        }
     }
 
 }

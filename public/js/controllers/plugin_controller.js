@@ -71,6 +71,10 @@ class PluginController {
             });
         } else {
             console.log("No upgrades pending");
+            setTimeout(function() {
+                that._upgrading = false;
+            }, 2000);
+
         }
     }
 

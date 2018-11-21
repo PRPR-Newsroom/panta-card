@@ -833,6 +833,9 @@ ArtikelController.prototype.update = function() {
 ArtikelController.prototype.blockUi = function() {
   this._artikelBinding.blockUi();
 };
+ArtikelController.prototype.canUnblock = function() {
+  window.pluginController.upgrading || this._artikelBinding.unblock();
+};
 ArtikelController.prototype.getTotalPageCount = function() {
   return Object.values(this._repository.all()).map(function(a, b) {
     a = parseInt(a.layout);
@@ -865,6 +868,7 @@ var ArtikelBinding = function(a, b, c, d) {
   this._action = c;
   this._context = d;
   this._entity = b;
+  this._autoUpdater = null;
 };
 ArtikelBinding.getRegionMapping = function(a) {
   switch(a) {
@@ -934,11 +938,21 @@ ArtikelBinding.prototype.bind = function() {
   return this;
 };
 ArtikelBinding.prototype.blockUi = function() {
-  var a = this.document.createElement("div");
-  a.addClass("overlay");
-  this.document.createElement("span");
-  a.appendChild(document.createTextNode("Plugin Daten werden aktualisiert..."));
-  this.document.getElementsByTagName("body").item(0).appendChild(a);
+  if (!(0 < this.document.getElementsByClassName("overlay").length)) {
+    var a = this, b = this.document.createElement("div");
+    b.addClass("overlay");
+    b.appendChild(this.document.createTextNode("Plugin Daten werden aktualisiert..."));
+    this.document.getElementsByTagName("body").item(0).appendChild(b);
+    this._autoUpdater = this._autoUpdater || setInterval(function() {
+      a._context.canUnblock();
+    }, 500);
+  }
+};
+ArtikelBinding.prototype.unblock = function() {
+  this.document.getElementsByClassName("overlay").forEach(null, function(a) {
+    a.parentNode.removeChild(a);
+  });
+  this._autoUpdater && clearInterval(this._autoUpdater);
 };
 // Input 8
 var PluginController = function(a) {
@@ -963,7 +977,9 @@ PluginController.prototype._update = function(a, b) {
     console.log("... upgrade %d is successfully applied", a);
     c._trelloApi.set("board", "shared", PluginController.SHARED_NAME, a + 1);
     c._update(a + 1, b);
-  })) : console.log("No upgrades pending");
+  })) : (console.log("No upgrades pending"), setTimeout(function() {
+    c._upgrading = !1;
+  }, 2000));
 };
 PluginController.prototype._upgrade_1 = function() {
   var a = this, b = ArtikelController.getInstance(this._trelloApi), c = ModuleController.getInstance(this._trelloApi);
