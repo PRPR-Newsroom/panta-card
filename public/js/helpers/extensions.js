@@ -97,3 +97,16 @@ HTMLDocument.prototype.newSingleSelect = function(valueHolder, targetId, propert
 function isBlank(totest) {
     return (!totest || 0 === (totest + "").trim().length);
 }
+
+/**
+ * A helper function to create new options
+ * @param value
+ * @param text
+ * @returns {{value: *, text: *}}
+ */
+function newOption(value, text) {
+    return {
+        'value': value,
+        'text': text
+    };
+}

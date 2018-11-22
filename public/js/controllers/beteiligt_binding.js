@@ -1,5 +1,15 @@
 class BeteiligtBinding {
 
+    /**
+     * Create the BeteiligtBinding that binds to the passed root document. The config is the entity that is managed
+     * by this binding. The action is called when data has been changed in the managed entity. The context is useful in
+     * your change handler because it gets passed there too.
+     *
+     * @param document the underlying root document
+     * @param config the entity
+     * @param action the onChange handler
+     * @param context the context that is passed in your change handler
+     */
     constructor(document, config, action, context) {
         /**
          * @type {HTMLDocument}
@@ -10,8 +20,14 @@ class BeteiligtBinding {
          */
         this._config = config;
 
+        /**
+         * The action to be called when data has changed
+         */
         this._action = action;
 
+        /**
+         * The context that is passed to the data change action handler
+         */
         this._context = context;
 
         this._involvements = {
@@ -84,15 +100,30 @@ class BeteiligtBinding {
         };
     }
 
+    /**
+     * Activate the currently active section and update all other sections with the passed config because they may depend
+     * on this new config
+     * @param config
+     * @returns {BeteiligtBinding}
+     */
     update(config) {
         this._activated.activate();
-        this._activated.update(config);
-        this._ad.update(config);
+        // update all PModuleConfigs with the new config entity
+        Object.values(this).filter(function(property) {
+            return (property instanceof PModuleConfig)
+        }).forEach(function(module) {
+            module.update(config);
+        });
         // update the entity as well otherwise on change callbacks will re-store old entity states
         this._config = config;
         return this;
     }
 
+    /**
+     * Bind the entity with the PModuleConfigs and set the _onsite tab as the currently active one
+     *
+     * @returns {BeteiligtBinding}
+     */
     bind() {
         this._onsite = this._onsite !== null ? this._onsite.update(this._config) : (this._onsite = new PModuleConfig(this.document, 'vor.Ort', this._involvements.onsite)
             .bind(this._config, 'onsite')
@@ -122,6 +153,11 @@ class BeteiligtBinding {
         return this;
     }
 
+    /**
+     * Called when a regular layout is request by clicking on a section tab (s. _involvements)
+     * @param forms
+     * @param valueHolder
+     */
     onRegularLayout(forms, valueHolder) {
         let virtual = this.document.createElement('div');
         virtual.innerHTML = template_regular;
@@ -135,8 +171,18 @@ class BeteiligtBinding {
         this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Notiz", params, this._action, 6, "formulieren…")
             .addClass("padding-fix");
         this.document.newSingleLineInput(valueHolder, ".pa.duedate", "duedate", "Deadline", params, this._action, "bestimmen…", "text", false);
+
+        this.document.newSingleLineInput(valueHolder, ".pa.fee", "fee", "Honorar", params, this._action, "Betrag…", "money", false);
+        this.document.newSingleLineInput(valueHolder, ".pa.charges", "charges", "Spesen", params, this._action, "Betrag…", "money", false);
+        this.document.newSingleLineInput(valueHolder, ".pa.project", "project", "Total Projekt", params, this._action, "Betrag…", "money", true);
+        this.document.newSingleLineInput(valueHolder, ".pa.cap_on_expenses", "capOnExpenses", "Kostendach", params, this._action, "Betrag…", "money", false);
     }
 
+    /**
+     * Called when a ad layout is request by clicking on a section tab (s. _involvements). Currently this only the case for the 'Inserat' tab
+     * @param forms
+     * @param valueHolder
+     */
     onAdLayout(forms, valueHolder) {
         let virtual = this.document.createElement('div');
         virtual.innerHTML = template_ad;

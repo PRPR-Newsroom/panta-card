@@ -158,16 +158,24 @@ class OtherBeteiligt extends CommonBeteiligt {
                 JsonSerialization.getProperty(jsonObj, 'social'),
                 JsonSerialization.getProperty(jsonObj, 'address'),
                 JsonSerialization.getProperty(jsonObj, 'notes'),
-                JsonSerialization.getProperty(jsonObj, 'duedate')
+                JsonSerialization.getProperty(jsonObj, 'duedate'),
+                JsonSerialization.getProperty(jsonObj, 'fee'),
+                JsonSerialization.getProperty(jsonObj, 'charges'),
+                JsonSerialization.getProperty(jsonObj, 'project'),
+                JsonSerialization.getProperty(jsonObj, 'capOnExpenses')
             )
         } else {
             return new OtherBeteiligt();
         }
     }
 
-    constructor(id, name, social, address, notes, duedate) {
+    constructor(id, name, social, address, notes, duedate, fee, charges, project, capOnExpenses) {
         super(id, name, social, address, notes);
         this._duedate = duedate;
+        this._fee = fee;
+        this._charges = charges;
+        this._project = project;
+        this._capOnExpenses = capOnExpenses;
         this.type = "other";
     }
 
@@ -179,8 +187,40 @@ class OtherBeteiligt extends CommonBeteiligt {
         this._duedate = value;
     }
 
+    get fee() {
+        return this._fee;
+    }
+
+    set fee(value) {
+        this._fee = value;
+    }
+
+    get charges() {
+        return this._charges;
+    }
+
+    set charges(value) {
+        this._charges = value;
+    }
+
+    get project() {
+        return this._project;
+    }
+
+    set project(value) {
+        this._project = value;
+    }
+
+    get capOnExpenses() {
+        return this._capOnExpenses;
+    }
+
+    set capOnExpenses(value) {
+        this._capOnExpenses = value;
+    }
+
     isEmpty() {
-        return super.isEmpty() && !this.duedate;
+        return super.isEmpty() && !this.duedate && !this.fee && !this.charges;
     }
 }
 
