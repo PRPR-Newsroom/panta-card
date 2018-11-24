@@ -250,19 +250,49 @@ class ArtikelController {
      */
     render(artikel) {
         this._entity = artikel ? artikel : Artikel.create();
-        this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._entity) : new ArtikelBinding(this.document, this._entity, this.onDataChanged, this).bind();
+        this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._entity) : new ArtikelBinding(this.document, this._entity, this.onEvent, this).bind();
     }
 
     /**
-     * Called when the panta.Artikel part has changed. This will persist the artikel and set inform the source element to apply the change definitively so after this the
+     * Called when there's an event happening on the target input element
+     *
+     * @param {PInput} source the source input element (s. PInputs)
+     * @param ctx dictionary object with 'context', 'event' (change, focus)
+     */
+    onEvent(source, ctx) {
+        let event = ctx.hasOwnProperty('event') ? ctx['event'] : 'change';
+        switch (event) {
+            case 'focus':
+                ctx['context']._onFocus.call(ctx['context'], source, ctx);
+                break;
+            default:
+                ctx['context']._onChange.call(ctx['context'], source, ctx);
+                break;
+        }
+    }
+
+    /**
+     * Handle focus events
+     *
+     * @param {PInput} source the source input element (s. PInputs)
+     * @param ctx dictionary object with 'context', 'event' (change, focus)
+     * @private
+     */
+    _onFocus(source, ctx) {
+        // nothing to do
+    }
+
+    /**
+     * Called when the panta.Artikel part has changed. This will persist the entity and set inform the source element to apply the change definitively so after this the
      * PInput's value is set and cannot be rolled back. This would also be a good place to make some input validation
      *
-     * @param source the source input element (s. PInputs)
-     * @param ctx dictionary object with 'context' and 'artikel'
+     * @param {PInput} source the source input element (s. PInputs)
+     * @param ctx dictionary object with 'context', 'event' (change, focus)
+     * @private
      */
-    onDataChanged(source, ctx) {
+    _onChange(source, ctx) {
         source.setProperty();
-        ctx['context'].persist.call(ctx['context'], source.getBinding());
+        this.persist.call(this, source.getBinding());
     }
 
     /**

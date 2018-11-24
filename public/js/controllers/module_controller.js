@@ -94,7 +94,7 @@ class ModuleController {
      */
     render(entity) {
         this._entity = entity;
-        this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(entity) : new BeteiligtBinding(this.document, entity, this.onDataChanged, this).bind();
+        this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(entity) : new BeteiligtBinding(this.document, entity, this.onEvent, this).bind();
     }
 
     /**
@@ -120,13 +120,54 @@ class ModuleController {
     }
 
     /**
-     * Called when the data in this module has changed
+     * Called when an event on the source element happened
      * @param source the source input element
-     * @param args a dictionary object with 'context', 'valueHolder' and the entity 'config'
+     * @param args a dictionary object with 'context', 'valueHolder', the entity 'config' and the 'event'
      */
-    onDataChanged(source, args) {
+    onEvent(source, args) {
+        let event = args.hasOwnProperty('event') ? args['event'] : 'change';
+        switch (event) {
+            case 'focus':
+                args['context']._onFocus.call(args['context'], source, args);
+                break;
+            case 'blur':
+                args['context']._onLooseFocus.call(args['context']);
+                break;
+            default:
+                args['context']._onChange.call(args['context'], source, args);
+                break;
+        }
+    }
+
+    /**
+     * Handle focus events
+     *
+     * @param {PInput} source the source input element
+     * @param args a dictionary object with 'context', 'valueHolder', the entity 'config' and the 'event'
+     * @private
+     */
+    _onFocus(source, args) {
+        this._beteiligtBinding.enterEditing();
+    }
+
+    /**
+     * Handle loose focus on elements. This will call leaveEditing on the BeteiligtBinding
+     * @private
+     */
+    _onLooseFocus() {
+        this._beteiligtBinding.leaveEditing();
+    }
+
+    /**
+     * Handle change events for the source element. This will persist the entity and sync the
+     * entity references
+     *
+     * @param source the source input element
+     * @param args a dictionary object with 'context', 'valueHolder', the entity 'config' and the 'event'
+     * @private
+     */
+    _onChange(source, args) {
         source.setProperty();
-        let ctx = args['context'];
         /**
          * @var ModuleConfig
          */
@@ -134,8 +175,7 @@ class ModuleController {
         // update the config entity with this section
         config.setSection(args['valueHolder']['involved-in'], source.getBinding());
         // update the involved part of the entity
-        ctx.persist.call(ctx, args['config']);
-        console.log("Stored: " + source.getBoundProperty() + " = " + source.getValue());
+        this.persist.call(this, args['config']);
     }
 
     /**
