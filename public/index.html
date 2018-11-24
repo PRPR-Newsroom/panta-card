@@ -16,6 +16,12 @@
 
     <script src="bin/panta.js"></script>
     <script src="js/client.js"></script>
+
+    <script>
+      document.addEventListener('onload', function() {
+          console.log("Panta Power-Up: " + ClientManager.VERSION);
+      });
+    </script>
     <!--
     the trello client.js is the gateway that you can use to integrate trello into your app (webapp) and then you can
     access Trello Cards/Lists etc. via Trello.*

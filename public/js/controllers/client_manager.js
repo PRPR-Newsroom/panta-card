@@ -4,6 +4,10 @@
  */
 class ClientManager {
 
+    static VERSION() {
+        return "1.0.1";
+    }
+
     /**
      * Create the ClientManager instance bound to this windowManager
      * @param {Window} windowManager the window manager to be bound to

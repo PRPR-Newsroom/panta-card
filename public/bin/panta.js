@@ -686,6 +686,9 @@ var ClientManager = function(a, b, c) {
   this._initialized = !1;
   this._options = c || {};
 };
+ClientManager.VERSION = function() {
+  return "1.0.1";
+};
 ClientManager.getOrCreateClientManager = function(a, b, c) {
   a.hasOwnProperty("clientManager") || (a.clientManager = new ClientManager(a, b, c), a.addEventListener("beforeunload", function(a) {
     console.log("Window is unloading");
