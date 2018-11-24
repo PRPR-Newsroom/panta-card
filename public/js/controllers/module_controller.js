@@ -18,8 +18,22 @@ class ModuleController {
         return "panta.Beteiligt";
     }
 
+    /**
+     * The name of the meta info in trello
+     * @returns {string}
+     * @constructor
+     */
     static get SHARED_META() {
         return "panta.Beteiligt.Meta";
+    }
+
+    /**
+     * The name of the property bag in trello
+     * @returns {string}
+     * @constructor
+     */
+    static get PROPERTY_BAG_NAME() {
+        return "panta.Beteiligt.PropertyBag";
     }
 
     /**
@@ -42,6 +56,12 @@ class ModuleController {
         }
     }
 
+    /**
+     * The module controller for this document.
+     *
+     * @param document the document that this controller is attached to
+     * @param trelloApi the trello API to persist/read the module config entities
+     */
     constructor(document, trelloApi) {
         /**
          * @type {HTMLDocument}
@@ -67,7 +87,15 @@ class ModuleController {
          */
         this._entity = null;
 
+        /**
+         * A property bag that can be used to store just plain old values
+         * @type {{}}
+         * @private
+         */
+        this._propertyBag = {};
+
         this.setVersionInfo();
+        this.readPropertyBag();
     }
 
     /**
@@ -116,6 +144,15 @@ class ModuleController {
     update() {
         // update the total price in the "ad" section
         this._entity.sections['ad'].total = this.getTotalPrice();
+        let tpf = this.getTotalProjectFee();
+        let cod = this.getCapOnExpenses();
+        // set all dynamic properties in all OtherBeteiligt sections
+        Object.values(this._entity.sections).filter(function(section) {
+            return section instanceof OtherBeteiligt;
+        }).forEach(function(section) {
+            section.project = tpf;
+            section.capOnExpenses = cod;
+        });
         this._beteiligtBinding.update(this._entity);
     }
 
@@ -134,8 +171,16 @@ class ModuleController {
         // update the config entity with this section
         config.setSection(args['valueHolder']['involved-in'], source.getBinding());
         // update the involved part of the entity
-        ctx.persist.call(ctx, args['config']);
-        console.log("Stored: " + source.getBoundProperty() + " = " + source.getValue());
+        // todo do this differently
+        switch (source.getBoundProperty()) {
+            case "capOnExpenses":
+                ctx.setProperty('cap_on_expenses', source.getValue());
+                break;
+            default:
+                ctx.persist.call(ctx, args['config']);
+                console.log("Stored: " + source.getBoundProperty() + " = " + source.getValue());
+                break;
+        }
     }
 
     /**
@@ -143,15 +188,44 @@ class ModuleController {
      * @returns {number}
      */
     getTotalPrice() {
-        return Object.values(this._repository.all()).map(function (item, index) {
+        return Object.values(this._repository.all()).map(function (item) {
             return item.sections['ad'];
-        }).filter(function (item, index) {
+        }).filter(function (item) {
             return item instanceof AdBeteiligt && !isNaN(parseFloat(item.price));
-        }).map(function (item, index) {
+        }).map(function (item) {
             return item.price;
         }).reduce(function (previousValue, currentValue) {
             return parseFloat(previousValue) + parseFloat(currentValue);
         }, 0.0);
+    }
+
+    /**
+     * Get the total project fee over all module configs on that board
+     * @returns {number}
+     */
+    getTotalProjectFee() {
+        return Object.values(this._repository.all()).map(function (item) {
+            // we only need the sections without the keys
+            return Object.values(item.sections);
+        }).flat() // flatten the entries
+            .filter(function (item) {
+                return item instanceof OtherBeteiligt;
+            })
+            .map(function(item) {
+                return [isNaN(item.fee) ? 0 : item.fee, isNaN(item.charges) ? 0 : item.charges];
+            })
+            .flat().reduce(function (previousValue, currentValue) {
+                return parseFloat(previousValue) + parseFloat(currentValue);
+            }, 0.0);
+    }
+
+    /**
+     * Get the cap on expenses (Kostendach) which is a global property on the board
+     * @returns {*}
+     */
+    getCapOnExpenses() {
+        let coe = this.getProperty('cap_on_expenses');
+        return isNaN(coe) ? 0.0 : parseFloat(coe);
     }
 
     /**
@@ -177,16 +251,16 @@ class ModuleController {
         let that = this;
         let controller = ModuleController.getInstance(this.trelloApi);
         return this.trelloApi.cards('id', 'closed')
-            .filter(function(card) {
+            .filter(function (card) {
                 return !card.closed;
             })
-            .each(function(card) {
+            .each(function (card) {
                 return that.trelloApi.get(card.id, 'shared', ModuleController.SHARED_NAME)
-                    .then(function(json) {
+                    .then(function (json) {
                         controller.insert(ModuleConfig.create(json), card);
                     });
             })
-            .then(function() {
+            .then(function () {
                 console.log("Fetch complete: " + controller.size() + " module config(s)");
                 onComplete.call(that);
             })
@@ -204,10 +278,42 @@ class ModuleController {
     }
 
     /**
+     * Set a property in trello
+     * @param propertyName
+     * @param propertyValue
+     */
+    setProperty(propertyName, propertyValue) {
+        this._propertyBag[propertyName] = propertyValue;
+        this.trelloApi.set('board', 'shared', ModuleController.PROPERTY_BAG_NAME, this._propertyBag);
+    }
+
+    /**
+     * Get a property by its name. This is not accessing trello but uses the internal state
+     * @param propertyName the name of the property
+     * @param defaultValue if not present return this default value
+     * @returns {*}
+     */
+    getProperty(propertyName, defaultValue) {
+        return this._propertyBag[propertyName] || defaultValue;
+    }
+
+    /**
+     * Read the properties from trello and store the result internally so future calls to {@code getProperty} will return
+     * this remote property value
+     */
+    readPropertyBag() {
+        let that = this;
+        this.trelloApi.get('board', 'shared', ModuleController.PROPERTY_BAG_NAME, {})
+            .then(function(bag) {
+                that._propertyBag = bag;
+            });
+    }
+
+    /**
      * Clear all module configs from trello
      */
     clear() {
-        Object.keys(this._repository.all()).forEach(function(key) {
+        Object.keys(this._repository.all()).forEach(function (key) {
             this.trelloApi.remove(key, 'shared', ModuleController.SHARED_NAME);
         }, this);
         this._repository.clearAll();

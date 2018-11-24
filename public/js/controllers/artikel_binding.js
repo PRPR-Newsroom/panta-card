@@ -100,19 +100,6 @@ class ArtikelBinding {
      * @returns {ArtikelBinding}
      */
     bind() {
-        /**
-         * A helper function to create new options
-         * @param value
-         * @param text
-         * @returns {{value: *, text: *}}
-         */
-        function newOption(value, text) {
-            return {
-                'value': value,
-                'text': text
-            };
-        }
-
         let params = {'context': this._context, 'artikel': this._entity};
         let valueHolder = {'data': this._entity};
         this._topic = this.document.newMultiLineInput(valueHolder, "pa.topic", 'topic', 'Thema', params, this._action, 2, "Lauftext");
