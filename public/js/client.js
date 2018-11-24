@@ -1,4 +1,6 @@
+
 TrelloPowerUp.initialize({
+    // https://developers.trello.com/v1.0/reference#card-buttons
     'card-buttons': function (t, options) {
         return [{
             icon: './assets/ic_pantarhei.png',
@@ -11,8 +13,12 @@ TrelloPowerUp.initialize({
             }
         }];
     },
+    // https://developers.trello.com/v1.0/reference#card-badges
     'card-badges': function (t, options) {
-        ArtikelController.prepare(t);
+        /**
+         * @type {ClientManager}
+         */
+        let cm = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION).init();
         return t.card('id')
             .then(function (card) {
                 return t.get(card.id, 'shared', ArtikelController.SHARED_NAME)
@@ -20,45 +26,63 @@ TrelloPowerUp.initialize({
                         return Artikel.create(list_data);
                     })
                     .then(function (artikel) {
-                        window.articleController.insert(artikel, card);
+                        cm.getArticleController().insert(artikel, card);
+                        return card;
+                    });
+            })
+            .then(function(card) {
+                return t.get(card.id, 'shared', ModuleController.SHARED_NAME)
+                    .then(function (list_data) {
+                        return ModuleConfig.create(list_data);
+                    })
+                    .then(function (config) {
+                        cm.getModuleController().insert(config, card);
                         return card;
                     });
             })
             .then(function (card) {
                 let badges = [];
-                let artikel = window.articleController.getByCard(card);
-                let counter = artikel.getInvolvedCount();
 
-                if (window.articleController.hasArtikelContent(artikel)) {
-                    badges.push({
-                        text: "",
-                        icon: './assets/ic_artikel.png'
-                    });
+                if (cm.isArticleModuleEnabled()) {
+                    let artikel = cm.getArticleController().getByCard(card);
+                    if (cm.getArticleController().hasArtikelContent(artikel)) {
+                        badges.push({
+                            text: "",
+                            icon: './assets/ic_artikel.png'
+                        });
 
-                    if (artikel.region) {
-                        badges.push({
-                            text: 'region: ' + window.articleController.getRegionMapping(artikel.region),
-                            color: 'sky'
-                        });
-                    }
-                    if (artikel.tags) {
-                        badges.push({
-                            text: 'online: ' + window.articleController.getTagMapping(artikel.tags),
-                            color: 'blue'
-                        });
+                        if (artikel.region) {
+                            badges.push({
+                                text: 'region: ' + cm.getArticleController().getRegionMapping(artikel.region),
+                                color: 'sky'
+                            });
+                        }
+                        if (artikel.tags) {
+                            badges.push({
+                                text: 'online: ' + cm.getArticleController().getTagMapping(artikel.tags),
+                                color: 'blue'
+                            });
+                        }
                     }
                 }
 
-                if (counter > 0) {
-                    badges.push({
-                        text: counter,
-                        icon: './assets/ic_beteiligt.png'
-                    });
+                if (cm.isBeteiligtModuleEnabled()) {
+                    let config = cm.getModuleController().getByCard(card);
+                    if (config instanceof ModuleConfig) {
+                        let sections = config.getContentCount();
+                        if (sections > 0) {
+                            badges.push({
+                                text: sections,
+                                icon: './assets/ic_beteiligt.png'
+                            });
+                        }
+                    }
                 }
 
                 return badges;
             })
     },
+    // https://developers.trello.com/v1.0/reference#card-back-section
     'card-back-section': function (t, opts) {
         // Your Power-Up can have only one card back section and a maximum height of 500 pixels.
         return [{
@@ -71,44 +95,49 @@ TrelloPowerUp.initialize({
             }
         }]
     },
+    // https://developers.trello.com/v1.0/reference#list-sorters
     'list-sorters': function (t) {
+        let cm = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION);
+        cm.init();
         return t.list('id', 'name')
             .then(function(list) {
-                    return [{
-                        text: "Pagina (1 -> 99)",
-                        callback: function (t, opts) {
-                            return sortOnPagina(getArticleControllerWith(t, list, opts), t, opts, "asc");
-                        }
-                    }, {
-                        text: "Online (Mo. -> So.)",
-                        callback: function (t, opts) {
-                            return sortOnTags(getArticleControllerWith(t, list, opts), t, opts, "asc");
-                        }
-                    }];
+                    let sorters = [];
+                    if (cm.isArticleModuleEnabled()) {
+                        sorters.push({
+                            text: "Pagina (1 -> 99)",
+                            callback: function (t, opts) {
+                                return sortOnPagina(getArticleControllerWith(cm, list, opts), t, opts, "asc");
+                            }
+                        });
+                        sorters.push({
+                            text: "Online (Mo. -> So.)",
+                            callback: function (t, opts) {
+                                return sortOnTags(getArticleControllerWith(cm, list, opts), t, opts, "asc");
+                            }
+                        });
+                    }
+                    return sorters;
             });
     }
 });
 
 /**
  * Get an articleController for this list and options
+ * @param {ClientManager} cm the client manager
  * @param list the trello list
  * @param opts the trello callback options that contain the cards within this list
  * @returns {ArtikelController}
  */
-function getArticleControllerWith(t, list, opts) {
-    ArtikelController.prepare(t);
+function getArticleControllerWith(cm, list, opts) {
 
     for (let index in opts.cards) {
         let card = opts.cards[index];
-        // let artikel = Promise.all([t.get(card.id, 'shared', ArtikelController.SHARED_NAME)]).then(function(jsonobj) {
-        //     return Artikel.create(jsonobj);
-        // });
-        let artikel = window.articleController.getByCard(card);
+        let artikel = cm.getArticleController().getByCard(card);
         if (artikel && !card.closed) {
-            window.articleController.insert(artikel, card);
+            cm.getArticleController().insert(artikel, card);
         }
     }
-    return window.articleController;
+    return cm.getArticleController();
 }
 
 /**

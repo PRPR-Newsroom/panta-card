@@ -16,7 +16,15 @@ class PluginController {
         return "panta.App";
     }
 
-    constructor(trelloApi) {
+    static getInstance(trelloApi, windowManager) {
+        if (!windowManager.hasOwnProperty('pluginController')) {
+            windowManager.pluginController = new PluginController(trelloApi, windowManager);
+        }
+        return windowManager.pluginController;
+    }
+
+    constructor(trelloApi, windowManager) {
+        this._window = windowManager;
         this._trelloApi = trelloApi;
         this._upgrading = false;
         this._upgrades = {
@@ -94,8 +102,9 @@ class PluginController {
      */
     _upgrade_1() {
         let that = this;
-        let ac = ArtikelController.getInstance(this._trelloApi);
-        let mc = ModuleController.getInstance(this._trelloApi);
+
+        let ac = this._window.clientManager.getArticleController();
+        let mc = this._window.clientManager.getModuleController();
 
         return ac.fetchAll.call(ac).then(function () {
             that._upgradeAllArticleToModuleConfig.call(that, ac, mc)
