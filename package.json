@@ -11,6 +11,7 @@
     "compression": "^1.7.1",
     "cors": "^2.8.4",
     "express": "^4.16.2",
+    "jasmine-node": "^1.16.2",
     "node-nocache": "^1.0.4"
   },
   "engines": {
