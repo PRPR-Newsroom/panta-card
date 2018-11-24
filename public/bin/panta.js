@@ -695,7 +695,9 @@ var ModuleController = function(a, b) {
   this._beteiligtBinding = null;
   this._repository = new BeteiligtRepository;
   this._entity = null;
+  this._propertyBag = {};
   this.setVersionInfo();
+  this.readPropertyBag();
 };
 ModuleController.getInstance = function(a) {
   ModuleController.prepare(a);
@@ -719,6 +721,13 @@ ModuleController.prototype.insert = function(a, b) {
 };
 ModuleController.prototype.update = function() {
   this._entity.sections.ad.total = this.getTotalPrice();
+  var a = this.getTotalProjectFee(), b = this.getCapOnExpenses();
+  Object.values(this._entity.sections).filter(function(a) {
+    return a instanceof OtherBeteiligt;
+  }).forEach(function(c) {
+    c.project = a;
+    c.capOnExpenses = b;
+  });
   this._beteiligtBinding.update(this._entity);
 };
 ModuleController.prototype.onEvent = function(a, b) {
@@ -742,18 +751,39 @@ ModuleController.prototype._onLooseFocus = function() {
 ModuleController.prototype._onChange = function(a, b) {
   a.setProperty();
   b.config.setSection(b.valueHolder["involved-in"], a.getBinding());
-  this.persist.call(this, b.config);
+  switch(a.getBoundProperty()) {
+    case "capOnExpenses":
+      this.setProperty("cap_on_expenses", a.getValue());
+      break;
+    default:
+      this.persist.call(this, b.config), console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue());
+  }
 };
 ModuleController.prototype.getTotalPrice = function() {
-  return Object.values(this._repository.all()).map(function(a, b) {
+  return Object.values(this._repository.all()).map(function(a) {
     return a.sections.ad;
-  }).filter(function(a, b) {
+  }).filter(function(a) {
     return a instanceof AdBeteiligt && !isNaN(parseFloat(a.price));
-  }).map(function(a, b) {
+  }).map(function(a) {
     return a.price;
   }).reduce(function(a, b) {
     return parseFloat(a) + parseFloat(b);
   }, 0.0);
+};
+ModuleController.prototype.getTotalProjectFee = function() {
+  return Object.values(this._repository.all()).map(function(a) {
+    return Object.values(a.sections);
+  }).flat().filter(function(a) {
+    return a instanceof OtherBeteiligt;
+  }).map(function(a) {
+    return [isNaN(a.fee) ? 0 : a.fee, isNaN(a.charges) ? 0 : a.charges];
+  }).flat().reduce(function(a, b) {
+    return parseFloat(a) + parseFloat(b);
+  }, 0.0);
+};
+ModuleController.prototype.getCapOnExpenses = function() {
+  var a = this.getProperty("cap_on_expenses");
+  return isNaN(a) ? 0.0 : parseFloat(a);
 };
 ModuleController.prototype.list = function() {
   return this._repository.all();
@@ -777,6 +807,19 @@ ModuleController.prototype.fetchAll = function(a) {
 ModuleController.prototype.persist = function(a, b) {
   return this.trelloApi.set(b || "card", "shared", ModuleController.SHARED_NAME, a);
 };
+ModuleController.prototype.setProperty = function(a, b) {
+  this._propertyBag[a] = b;
+  this.trelloApi.set("board", "shared", ModuleController.PROPERTY_BAG_NAME, this._propertyBag);
+};
+ModuleController.prototype.getProperty = function(a, b) {
+  return this._propertyBag[a] || b;
+};
+ModuleController.prototype.readPropertyBag = function() {
+  var a = this;
+  this.trelloApi.get("board", "shared", ModuleController.PROPERTY_BAG_NAME, {}).then(function(b) {
+    a._propertyBag = b;
+  });
+};
 ModuleController.prototype.clear = function() {
   Object.keys(this._repository.all()).forEach(function(a) {
     this.trelloApi.remove(a, "shared", ModuleController.SHARED_NAME);
@@ -789,6 +832,8 @@ $jscomp.global.Object.defineProperties(ModuleController, {VERSION:{configurable:
   return "panta.Beteiligt";
 }}, SHARED_META:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Beteiligt.Meta";
+}}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.Beteiligt.PropertyBag";
 }}});
 // Input 5
 var ArtikelRepository = function() {
@@ -968,23 +1013,21 @@ ArtikelBinding.prototype.update = function(a) {
   return this;
 };
 ArtikelBinding.prototype.bind = function() {
-  function a(a, b) {
-    return {value:a, text:b};
-  }
-  var b = {context:this._context, artikel:this._entity}, c = {data:this._entity};
-  this._topic = this.document.newMultiLineInput(c, "pa.topic", "topic", "Thema", b, this._action, 2, "Lauftext");
-  this._from = this.document.newSingleLineInput(c, "pa.input-from", "from", "Input von", b, this._action, "Name");
-  this._author = this.document.newSingleLineInput(c, "pa.author", "author", "Textautor*in", b, this._action, "Name");
-  this._text = this.document.newMultiLineInput(c, "pa.text", "text", "Textbox", b, this._action, 2, "Lauftext");
-  this._pagina = this.document.newSingleLineInput(c, "pa.pagina", "pagina", "Pagina", b, this._action, "Zahl", "number", !1).addClass("pagina").addClass("bold");
-  this._layout = this.document.newSingleLineInput(c, "pa.layout", "layout", "Seiten Layout", b, this._action, "Zahl", "number", !1);
-  this._total = this.document.newSingleLineInput(c, "pa.total", "total", "Seiten Total", b, this._action, "Summe", "number", !0).addClass("bold");
-  this._tags = this.document.newSingleSelect(c, "pa.tags", "tags", "Online", b, this._action, "Liste-Tag", a("", "\u2026"), [a("monday", ArtikelBinding.getTagMapping("monday")), a("tuesday", ArtikelBinding.getTagMapping("tuesday")), a("wednesday", ArtikelBinding.getTagMapping("wednesday")), a("thursday", ArtikelBinding.getTagMapping("thursday")), a("friday", ArtikelBinding.getTagMapping("friday")), a("saturday", ArtikelBinding.getTagMapping("saturday")), a("sunday", ArtikelBinding.getTagMapping("sunday"))]);
-  this._visual = this.document.newSingleSelect(c, "pa.visual", "visual", "Visual", b, this._action, "x-Liste", a("", "\u2026"), [a("picture", "Bild"), a("icon", "Icon"), a("graphics", "Grafik"), a("videos", "Video"), a("illustrations", "Illu")]);
-  this._region = this.document.newSingleSelect(c, "pa.region", "region", "Region", b, this._action, "x-Liste", a("", "\u2026"), [a("north", ArtikelBinding.getRegionMapping("north")), a("south", ArtikelBinding.getRegionMapping("south"))]);
-  this._season = this.document.newSingleSelect(c, "pa.season", "season", "Saison", b, this._action, "x-Liste", a("", "\u2026"), [a("summer", "Sommer"), a("fall", "Herbst")]);
-  this._form = this.document.newSingleSelect(c, "pa.form", "form", "Form", b, this._action, "x-Liste", a("", "\u2026"), [a("news", "News"), a("article", "Artikel"), a("report", "Report")]);
-  this._location = this.document.newSingleSelect(c, "pa.location", "location", "Ort", b, this._action, "x-Liste", a("", "\u2026"), [a("cds", "CDS"), a("sto", "STO"), a("tam", "TAM"), a("wid", "WID"), a("buech", "Buech"), a("rustico", "Rustico"), a("schlatt", "Schlatt")]);
+  var a = {context:this._context, artikel:this._entity}, b = {data:this._entity};
+  this._topic = this.document.newMultiLineInput(b, "pa.topic", "topic", "Thema", a, this._action, 2, "Lauftext");
+  this._from = this.document.newSingleLineInput(b, "pa.input-from", "from", "Input von", a, this._action, "Name");
+  this._author = this.document.newSingleLineInput(b, "pa.author", "author", "Textautor*in", a, this._action, "Name");
+  this._text = this.document.newMultiLineInput(b, "pa.text", "text", "Textbox", a, this._action, 2, "Lauftext");
+  this._pagina = this.document.newSingleLineInput(b, "pa.pagina", "pagina", "Pagina", a, this._action, "Zahl", "number", !1).addClass("pagina").addClass("bold");
+  this._layout = this.document.newSingleLineInput(b, "pa.layout", "layout", "Seiten Layout", a, this._action, "Zahl", "number", !1);
+  this._total = this.document.newSingleLineInput(b, "pa.total", "total", "Seiten Total", a, this._action, "Summe", "number", !0).addClass("bold");
+  this._tags = this.document.newSingleSelect(b, "pa.tags", "tags", "Online", a, this._action, "Liste-Tag", newOption("", "\u2026"), [newOption("monday", ArtikelBinding.getTagMapping("monday")), newOption("tuesday", ArtikelBinding.getTagMapping("tuesday")), newOption("wednesday", ArtikelBinding.getTagMapping("wednesday")), newOption("thursday", ArtikelBinding.getTagMapping("thursday")), newOption("friday", ArtikelBinding.getTagMapping("friday")), newOption("saturday", ArtikelBinding.getTagMapping("saturday")), 
+  newOption("sunday", ArtikelBinding.getTagMapping("sunday"))]);
+  this._visual = this.document.newSingleSelect(b, "pa.visual", "visual", "Visual", a, this._action, "x-Liste", newOption("", "\u2026"), [newOption("picture", "Bild"), newOption("icon", "Icon"), newOption("graphics", "Grafik"), newOption("videos", "Video"), newOption("illustrations", "Illu")]);
+  this._region = this.document.newSingleSelect(b, "pa.region", "region", "Region", a, this._action, "x-Liste", newOption("", "\u2026"), [newOption("north", ArtikelBinding.getRegionMapping("north")), newOption("south", ArtikelBinding.getRegionMapping("south"))]);
+  this._season = this.document.newSingleSelect(b, "pa.season", "season", "Saison", a, this._action, "x-Liste", newOption("", "\u2026"), [newOption("summer", "Sommer"), newOption("fall", "Herbst")]);
+  this._form = this.document.newSingleSelect(b, "pa.form", "form", "Form", a, this._action, "x-Liste", newOption("", "\u2026"), [newOption("news", "News"), newOption("article", "Artikel"), newOption("report", "Report")]);
+  this._location = this.document.newSingleSelect(b, "pa.location", "location", "Ort", a, this._action, "x-Liste", newOption("", "\u2026"), [newOption("cds", "CDS"), newOption("sto", "STO"), newOption("tam", "TAM"), newOption("wid", "WID"), newOption("buech", "Buech"), newOption("rustico", "Rustico"), newOption("schlatt", "Schlatt")]);
   return this;
 };
 ArtikelBinding.prototype.blockUi = function() {
@@ -1082,8 +1125,11 @@ BeteiligtBinding.prototype._buildValueHolder = function(a, b, c) {
 };
 BeteiligtBinding.prototype.update = function(a) {
   this._activated.activate();
-  this._activated.update(a);
-  this._ad.update(a);
+  Object.values(this).filter(function(a) {
+    return a instanceof PModuleConfig;
+  }).forEach(function(b) {
+    b.update(a);
+  });
   this._config = a;
   return this;
 };
@@ -1109,6 +1155,10 @@ BeteiligtBinding.prototype.onRegularLayout = function(a, b) {
   this.document.newMultiLineInput(b, ".pa.address", "address", "Adresse", a, this._action, 2, "festhalten\u2026");
   this.document.newMultiLineInput(b, ".pa.notes", "notes", "Notiz", a, this._action, 6, "formulieren\u2026").addClass("padding-fix");
   this.document.newSingleLineInput(b, ".pa.duedate", "duedate", "Deadline", a, this._action, "bestimmen\u2026", "text", !1);
+  this.document.newSingleLineInput(b, ".pa.fee", "fee", "Honorar", a, this._action, "Betrag\u2026", "money", !1);
+  this.document.newSingleLineInput(b, ".pa.charges", "charges", "Spesen", a, this._action, "Betrag\u2026", "money", !1);
+  this.document.newSingleLineInput(b, ".pa.project", "project", "Total Projekt", a, this._action, "Betrag\u2026", "money", !0);
+  this.document.newSingleLineInput(b, ".pa.cap_on_expenses", "capOnExpenses", "Kostendach", a, this._action, "Betrag\u2026", "money", !1);
 };
 BeteiligtBinding.prototype.onAdLayout = function(a, b) {
   var c = this.document.createElement("div");
@@ -1219,9 +1269,13 @@ $jscomp.global.Object.defineProperties(CommonBeteiligt.prototype, {id:{configura
 $jscomp.global.Object.defineProperties(CommonBeteiligt, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 2;
 }}});
-var OtherBeteiligt = function(a, b, c, d, e, f) {
+var OtherBeteiligt = function(a, b, c, d, e, f, g, h, k, l) {
   CommonBeteiligt.call(this, a, b, c, d, e);
   this._duedate = f;
+  this._fee = g;
+  this._charges = h;
+  this._project = k;
+  this._capOnExpenses = l;
   this.type = "other";
 };
 $jscomp.inherits(OtherBeteiligt, CommonBeteiligt);
@@ -1229,15 +1283,31 @@ OtherBeteiligt.create = function(a) {
   return this._create(a);
 };
 OtherBeteiligt._create = function(a) {
-  return a ? new OtherBeteiligt(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "name"), JsonSerialization.getProperty(a, "social"), JsonSerialization.getProperty(a, "address"), JsonSerialization.getProperty(a, "notes"), JsonSerialization.getProperty(a, "duedate")) : new OtherBeteiligt;
+  return a ? new OtherBeteiligt(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "name"), JsonSerialization.getProperty(a, "social"), JsonSerialization.getProperty(a, "address"), JsonSerialization.getProperty(a, "notes"), JsonSerialization.getProperty(a, "duedate"), JsonSerialization.getProperty(a, "fee"), JsonSerialization.getProperty(a, "charges"), JsonSerialization.getProperty(a, "project"), JsonSerialization.getProperty(a, "capOnExpenses")) : new OtherBeteiligt;
 };
 OtherBeteiligt.prototype.isEmpty = function() {
-  return CommonBeteiligt.prototype.isEmpty.call(this) && !this.duedate;
+  return CommonBeteiligt.prototype.isEmpty.call(this) && !this.duedate && !this.fee && !this.charges;
 };
 $jscomp.global.Object.defineProperties(OtherBeteiligt.prototype, {duedate:{configurable:!0, enumerable:!0, get:function() {
   return this._duedate;
 }, set:function(a) {
   this._duedate = a;
+}}, fee:{configurable:!0, enumerable:!0, get:function() {
+  return this._fee;
+}, set:function(a) {
+  this._fee = a;
+}}, charges:{configurable:!0, enumerable:!0, get:function() {
+  return this._charges;
+}, set:function(a) {
+  this._charges = a;
+}}, project:{configurable:!0, enumerable:!0, get:function() {
+  return this._project;
+}, set:function(a) {
+  this._project = a;
+}}, capOnExpenses:{configurable:!0, enumerable:!0, get:function() {
+  return this._capOnExpenses;
+}, set:function(a) {
+  this._capOnExpenses = a;
 }}});
 var AdBeteiligt = function(a, b, c, d, e, f, g, h) {
   CommonBeteiligt.call(this, a, b, c, d, e);
@@ -1482,9 +1552,12 @@ HTMLDocument.prototype.newSingleSelect = function(a, b, c, d, e, f, g, h, k) {
 function isBlank(a) {
   return !a || 0 === (a + "").trim().length;
 }
+function newOption(a, b) {
+  return {value:a, text:b};
+}
 ;
 // Input 13
-var template_regular = '<div id="template" class="row">    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-right">                <div class="pa.name"></div>            </div>            <div class="col-12 less-padding-right">                <div class="pa.social"></div>            </div>            <div class="col-12 less-padding-right">                <div class="pa.address"></div>            </div>        </div>    </div>    <div class="col-6">        <div class="row before-last-row">            <div class="col-12 less-padding-left">                <div class="pa.notes"></div>            </div>        </div>        <div class="row align-bottom">            <div class="col-12 less-padding-left">                <div class="pa.duedate"></div>            </div>        </div>    </div></div>', 
+var template_regular = '<div id="template">    <div class="row">        <div class="col-6">            <div class="row">                <div class="col-12 less-padding-right">                    <div class="pa.name"></div>                </div>                <div class="col-12 less-padding-right">                    <div class="pa.social"></div>                </div>                <div class="col-12 less-padding-right">                    <div class="pa.address"></div>                </div>            </div>        </div>        <div class="col-6">            <div class="row">                <div class="col-12 less-padding-left before-last-row">                    <div class="pa.notes"></div>                </div>            </div>            <div class="row">                <div class="col-12 less-padding-left align-bottom">                    <div class="pa.duedate"></div>                </div>            </div>        </div>    </div>    <div class="row">        <div class="col-12">            <div class="row">                <div class="col-3 less-padding-right">                    <div class="pa.fee"></div>                </div>                <div class="col-3 less-padding">                    <div class="pa.charges"></div>                </div>                <div class="col-3 less-padding">                    <div class="pa.project"></div>                </div>                <div class="col-3 less-padding-left">                    <div class="pa.cap_on_expenses"></div>                </div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-right">                <div class="pa.notes"></div>            </div>        </div>        <div class="row before-last-row">            <div class="col-6 less-padding-right">                <div class="pa.format"></div>            </div>            <div class="col-6 less-padding">                <div class="pa.placement"></div>            </div>        </div>        <div class="row align-bottom">            <div class="col-6 less-padding-right">                <div class="pa.price"></div>            </div>            <div class="col-6 less-padding">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-left">                <div class="pa.name"></div>            </div>            <div class="col-12 less-padding-left">                <div class="pa.social"></div>            </div>            <div class="col-12 less-padding-left">                <div class="pa.address"></div>            </div>        </div>    </div></div>';
 // Input 14
 var JsonSerialization = function() {

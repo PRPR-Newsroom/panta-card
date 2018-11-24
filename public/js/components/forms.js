@@ -53,6 +53,9 @@ class PModuleConfig {
         return this;
     }
 
+    /**
+     * This will call the renderer on this valueHolder and mark the this tab as 'selected' (css class)
+     */
     activate() {
         this.valueHolder['renderer'].call(this, this.valueHolder);
         this.valueHolder.tab.addClass("selected");
