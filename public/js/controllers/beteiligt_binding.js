@@ -211,15 +211,29 @@ class BeteiligtBinding {
     _switchContent(forms, templ) {
         let content = this.document.getElementById("pa.tab.content");
         content.removeChildren();
-        this._onsite.valueHolder.tab.removeClass("selected");
-        this._text.valueHolder.tab.removeClass("selected");
-        this._photo.valueHolder.tab.removeClass("selected");
-        this._video.valueHolder.tab.removeClass("selected");
-        this._illu.valueHolder.tab.removeClass("selected");
-        this._ad.valueHolder.tab.removeClass("selected");
+        this._onsite.valueHolder.tab.removeClasses(["selected", 'editing']);
+        this._text.valueHolder.tab.removeClasses(["selected", 'editing']);
+        this._photo.valueHolder.tab.removeClasses(["selected", 'editing']);
+        this._video.valueHolder.tab.removeClasses(["selected", 'editing']);
+        this._illu.valueHolder.tab.removeClasses(["selected", 'editing']);
+        this._ad.valueHolder.tab.removeClasses(["selected", 'editing']);
 
         content.appendChild(templ);
         this._activated = forms;
+    }
+
+    /**
+     * Enter editing mode. This will begin the editing mode on the activated section
+     */
+    enterEditing() {
+        this._activated.beginEditing();
+    }
+
+    /**
+     * Leave editing mode. This will end the editing mode on the activated section
+     */
+    leaveEditing() {
+        this._activated.endEditing();
     }
 
 }

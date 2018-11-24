@@ -342,16 +342,16 @@ $jscomp.polyfill("Promise", function(a) {
         try {
           d(a(b));
         } catch (q) {
-          g(q);
+          f(q);
         }
       } : b;
     }
-    var d, g, f = new e(function(a, b) {
+    var d, f, g = new e(function(a, b) {
       d = a;
-      g = b;
+      f = b;
     });
-    this.callWhenSettled_(c(a, d), c(b, g));
-    return f;
+    this.callWhenSettled_(c(a, d), c(b, f));
+    return g;
   };
   e.prototype.catch = function(a) {
     return this.then(void 0, a);
@@ -537,6 +537,23 @@ PInput.prototype.addClass = function(a) {
 PInput.prototype.onChange = function(a, b) {
   var c = this;
   this._input.onchange = function() {
+    b.event = "change";
+    a(c, b);
+  };
+  return this;
+};
+PInput.prototype.onFocus = function(a, b) {
+  var c = this;
+  this._input.onfocus = function() {
+    b.event = "focus";
+    a(c, b);
+  };
+  return this;
+};
+PInput.prototype.onEnterEditing = function(a, b) {
+  var c = this;
+  this._input.onblur = function() {
+    b.event = "blur";
     a(c, b);
   };
   return this;
@@ -654,6 +671,12 @@ PModuleConfig.prototype.activate = function() {
   this.valueHolder.renderer.call(this, this.valueHolder);
   this.valueHolder.tab.addClass("selected");
 };
+PModuleConfig.prototype.beginEditing = function() {
+  this.valueHolder.tab.addClass("editing");
+};
+PModuleConfig.prototype.endEditing = function() {
+  this.valueHolder.tab.removeClass("editing");
+};
 // Input 3
 var BeteiligtRepository = function() {
   Repository.call(this);
@@ -691,7 +714,7 @@ ModuleController.prototype.getVersionInfo = function() {
 };
 ModuleController.prototype.render = function(a) {
   this._entity = a;
-  this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(a) : (new BeteiligtBinding(this.document, a, this.onDataChanged, this)).bind();
+  this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(a) : (new BeteiligtBinding(this.document, a, this.onEvent, this)).bind();
 };
 ModuleController.prototype.insert = function(a, b) {
   a && this._repository.isNew(a) ? this._repository.add(a) : a && this._repository.replace(a, b);
@@ -707,16 +730,33 @@ ModuleController.prototype.update = function() {
   });
   this._beteiligtBinding.update(this._entity);
 };
-ModuleController.prototype.onDataChanged = function(a, b) {
+ModuleController.prototype.onEvent = function(a, b) {
+  switch(b.hasOwnProperty("event") ? b.event : "change") {
+    case "focus":
+      b.context._onFocus.call(b.context, a, b);
+      break;
+    case "blur":
+      b.context._onLooseFocus.call(b.context);
+      break;
+    default:
+      b.context._onChange.call(b.context, a, b);
+  }
+};
+ModuleController.prototype._onFocus = function(a, b) {
+  this._beteiligtBinding.enterEditing();
+};
+ModuleController.prototype._onLooseFocus = function() {
+  this._beteiligtBinding.leaveEditing();
+};
+ModuleController.prototype._onChange = function(a, b) {
   a.setProperty();
-  var c = b.context;
   b.config.setSection(b.valueHolder["involved-in"], a.getBinding());
   switch(a.getBoundProperty()) {
     case "capOnExpenses":
-      c.setProperty("cap_on_expenses", a.getValue());
+      this.setProperty("cap_on_expenses", a.getValue());
       break;
     default:
-      c.persist.call(c, b.config), console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue());
+      this.persist.call(this, b.config), console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue());
   }
 };
 ModuleController.prototype.getTotalPrice = function() {
@@ -890,11 +930,22 @@ ArtikelController.prototype.getTotalPageCount = function() {
 };
 ArtikelController.prototype.render = function(a) {
   this._entity = a ? a : Artikel.create();
-  this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._entity) : (new ArtikelBinding(this.document, this._entity, this.onDataChanged, this)).bind();
+  this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._entity) : (new ArtikelBinding(this.document, this._entity, this.onEvent, this)).bind();
 };
-ArtikelController.prototype.onDataChanged = function(a, b) {
+ArtikelController.prototype.onEvent = function(a, b) {
+  switch(b.hasOwnProperty("event") ? b.event : "change") {
+    case "focus":
+      b.context._onFocus.call(b.context, a, b);
+      break;
+    default:
+      b.context._onChange.call(b.context, a, b);
+  }
+};
+ArtikelController.prototype._onFocus = function(a, b) {
+};
+ArtikelController.prototype._onChange = function(a, b) {
   a.setProperty();
-  b.context.persist.call(b.context, a.getBinding());
+  this.persist.call(this, a.getBinding());
 };
 ArtikelController.prototype.persist = function(a, b) {
   return this.trelloApi.set(b || "card", "shared", ArtikelController.SHARED_NAME, a);
@@ -991,7 +1042,7 @@ ArtikelBinding.prototype.blockUi = function() {
   }
 };
 ArtikelBinding.prototype.unblock = function() {
-  this.document.getElementsByClassName("overlay").forEach(null, function(a) {
+  this.document.getElementsByClassName("overlay").forEach(function(a) {
     a.parentNode.removeChild(a);
   });
   this._autoUpdater && clearInterval(this._autoUpdater);
@@ -1127,14 +1178,20 @@ BeteiligtBinding.prototype.onAdLayout = function(a, b) {
 BeteiligtBinding.prototype._switchContent = function(a, b) {
   var c = this.document.getElementById("pa.tab.content");
   c.removeChildren();
-  this._onsite.valueHolder.tab.removeClass("selected");
-  this._text.valueHolder.tab.removeClass("selected");
-  this._photo.valueHolder.tab.removeClass("selected");
-  this._video.valueHolder.tab.removeClass("selected");
-  this._illu.valueHolder.tab.removeClass("selected");
-  this._ad.valueHolder.tab.removeClass("selected");
+  this._onsite.valueHolder.tab.removeClasses(["selected", "editing"]);
+  this._text.valueHolder.tab.removeClasses(["selected", "editing"]);
+  this._photo.valueHolder.tab.removeClasses(["selected", "editing"]);
+  this._video.valueHolder.tab.removeClasses(["selected", "editing"]);
+  this._illu.valueHolder.tab.removeClasses(["selected", "editing"]);
+  this._ad.valueHolder.tab.removeClasses(["selected", "editing"]);
   c.appendChild(b);
   this._activated = a;
+};
+BeteiligtBinding.prototype.enterEditing = function() {
+  this._activated.beginEditing();
+};
+BeteiligtBinding.prototype.leaveEditing = function() {
+  this._activated.endEditing();
 };
 // Input 10
 var ModuleConfig = function(a, b) {
@@ -1435,6 +1492,12 @@ $jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enume
 HTMLElement.prototype.addClass = function(a) {
   -1 === this.className.split(" ").indexOf(a) && (this.className += " " + a, this.className = this.className.trim());
 };
+HTMLElement.prototype.removeClasses = function(a) {
+  var b = this;
+  a.forEach(function(a, d) {
+    b.removeClass(a);
+  });
+};
 HTMLElement.prototype.removeClass = function(a) {
   var b = this.className.split(" ");
   if (-1 !== b.indexOf(a)) {
@@ -1454,9 +1517,9 @@ HTMLElement.prototype.setEventListener = function(a, b) {
   this.removeEventListener(a, b);
   this.addEventListener(a, b);
 };
-HTMLCollection.prototype.forEach = function(a, b) {
-  for (a = 0; a < this.length; a++) {
-    b(this[a]);
+HTMLCollection.prototype.forEach = function(a) {
+  for (var b = 0; b < this.length; b++) {
+    a(this[b]);
   }
 };
 function uuid() {
@@ -1468,18 +1531,18 @@ function uuid() {
   });
 }
 HTMLDocument.prototype.newMultiLineInput = function(a, b, c, d, e, f, g, h) {
-  return (new MultiLineInput(this, d, null, b, void 0 === h ? "" : h, void 0 === g ? 2 : g, !1)).bind(a.data, c).onChange(f, e).render();
+  return (new MultiLineInput(this, d, null, b, void 0 === h ? "" : h, void 0 === g ? 2 : g, !1)).bind(a.data, c).onFocus(f, e).onEnterEditing(f, e).onChange(f, e).render();
 };
 HTMLDocument.prototype.newSingleLineInput = function(a, b, c, d, e, f, g, h, k) {
   h = void 0 === h ? "text" : h;
   b = new SingleLineInput(this, d, null, b, void 0 === g ? "" : g, void 0 === k ? !1 : k);
   b.propertyType = h || "text";
   null !== c && b.bind(a.data, c);
-  b.onChange(f, e).render();
+  b.onFocus(f, e).onEnterEditing(f, e).onChange(f, e).render();
   return b;
 };
 HTMLDocument.prototype.newSingleSelect = function(a, b, c, d, e, f, g, h, k) {
-  var l = (new SingleSelectInput(this, d, null, b, void 0 === g ? "" : g)).bind(a.data, c).onChange(f, e);
+  var l = (new SingleSelectInput(this, d, null, b, void 0 === g ? "" : g)).bind(a.data, c).onFocus(f, e).onEnterEditing(f, e).onChange(f, e);
   k.forEach(function(a, b) {
     l.addOption(a.value, a.text);
   });

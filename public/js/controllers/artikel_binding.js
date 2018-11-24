@@ -166,6 +166,9 @@ class ArtikelBinding {
         return this;
     }
 
+    /**
+     * Block the UI by adding an overlay. If there's already an overlay it will do nothing
+     */
     blockUi() {
         if (this.document.getElementsByClassName('overlay').length > 0) {
             return;
@@ -182,8 +185,11 @@ class ArtikelBinding {
         }, 500);
     }
 
+    /**
+     * Unblock the UI by remoing all overlays
+     */
     unblock() {
-        this.document.getElementsByClassName("overlay").forEach(null, function(item) {
+        this.document.getElementsByClassName("overlay").forEach(function(item) {
             item.parentNode.removeChild(item);
         });
         if (this._autoUpdater) {
