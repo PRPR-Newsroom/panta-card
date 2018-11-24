@@ -32,28 +32,24 @@ class ArtikelController {
      * Get the singleton controller
      *
      * @param trelloApi the Trello API
+     * @param windowManager
      * @returns {ArtikelController}
      */
-    static getInstance(trelloApi) {
-        ArtikelController.prepare(trelloApi);
-        return window.articleController;
-    }
-
-    /**
-     * Create a new instance if there's no controller registered
-     * @param trelloApi
-     */
-    static prepare(trelloApi) {
-        if (!window.articleController) {
-            window.articleController = new ArtikelController(document, trelloApi);
+    static getInstance(trelloApi, windowManager) {
+        if (!windowManager.hasOwnProperty('articleController')) {
+            windowManager.articleController = new ArtikelController(windowManager, trelloApi);
         }
+        return windowManager.articleController;
     }
 
-    constructor(document, trelloApi) {
+    constructor(windowManager, trelloApi) {
         /**
          * @type {HTMLDocument}
          */
-        this.document = document;
+        this.document = windowManager.document;
+
+        this._window = windowManager;
+
         this.trelloApi = trelloApi;
         /**
          * @type {Artikel}
@@ -154,7 +150,6 @@ class ArtikelController {
      */
     fetchAll(onComplete) {
         let that = this;
-        let ac = ArtikelController.getInstance(this.trelloApi);
         return this.trelloApi.cards('id', 'closed')
             .filter(function (card) {
                 return !card.closed;
@@ -162,12 +157,11 @@ class ArtikelController {
             .each(function (card) {
                 return that.trelloApi.get(card.id, 'shared', ArtikelController.SHARED_NAME)
                     .then(function (json) {
-                        ac.insert(Artikel.create(json), card);
+                        that.insert(Artikel.create(json), card);
                     });
             })
             .then(function () {
-                console.log("Fetch complete: " + ac.size() + " article(s) to process");
-                // onComplete.call(that);
+                console.log("Fetch complete: " + that.size() + " article(s) to process");
             })
     }
 
@@ -223,7 +217,7 @@ class ArtikelController {
     }
 
     canUnblock() {
-        if (!window.pluginController.upgrading) {
+        if (!this._window.clientManager.getPluginController().upgrading) {
             this._artikelBinding.unblock();
         }
     }

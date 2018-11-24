@@ -403,6 +403,8 @@ $jscomp.polyfill("Promise", function(a) {
   };
   return e;
 }, "es6", "es3");
+var PLUGIN_CONFIGURATION = {"module.artikel.enabled":!0, "module.beteiligt.enabled":!0};
+// Input 1
 var Repository = function() {
   this._repository = {};
 };
@@ -427,7 +429,7 @@ Repository.prototype.get = function(a) {
 Repository.prototype.isNew = function(a) {
   return !0;
 };
-// Input 1
+// Input 2
 var PInput = function(a, b, c, d, e, f, g) {
   this._document = a;
   this._label = 0 === b.length ? "" : b;
@@ -640,7 +642,7 @@ SingleSelectInput.prototype.doCustomization = function(a, b) {
   b.addClass("focused-fix");
   return PInput.prototype.doCustomization.call(this, a);
 };
-// Input 2
+// Input 3
 var PModuleConfig = function(a, b, c) {
   this.document = a;
   this.label = b;
@@ -677,7 +679,48 @@ PModuleConfig.prototype.beginEditing = function() {
 PModuleConfig.prototype.endEditing = function() {
   this.valueHolder.tab.removeClass("editing");
 };
-// Input 3
+// Input 4
+var ClientManager = function(a, b, c) {
+  this._window = a;
+  this._trello = b;
+  this._initialized = !1;
+  this._options = c || {};
+};
+ClientManager.getOrCreateClientManager = function(a, b, c) {
+  a.hasOwnProperty("clientManager") || (a.clientManager = new ClientManager(a, b, c), a.addEventListener("beforeunload", function(a) {
+    console.log("Window is unloading");
+    a.target.defaultView instanceof Window && a.target.defaultView.clientManager && (a.target.defaultView.clientManager.onUnload(), delete a.target.defaultView.clientManager);
+  }));
+  return a.clientManager;
+};
+ClientManager.getInstance = function(a) {
+  return a.clientManager;
+};
+ClientManager.prototype.onUnload = function() {
+  delete this._articleController;
+  delete this._moduleController;
+  delete this._pluginController;
+};
+ClientManager.prototype.init = function() {
+  this._initialized || (this._articleController = ArtikelController.getInstance(this._trello, this._window), this._moduleController = ModuleController.getInstance(this._trello, this._window), this._pluginController = PluginController.getInstance(this._trello, this._window), this._initialized = !0);
+  return this;
+};
+ClientManager.prototype.isArticleModuleEnabled = function() {
+  return this._options.hasOwnProperty("module.artikel.enabled") && !0 === this._options["module.artikel.enabled"];
+};
+ClientManager.prototype.isBeteiligtModuleEnabled = function() {
+  return this._options.hasOwnProperty("module.beteiligt.enabled") && !0 === this._options["module.beteiligt.enabled"];
+};
+ClientManager.prototype.getArticleController = function() {
+  return this._articleController;
+};
+ClientManager.prototype.getModuleController = function() {
+  return this._moduleController;
+};
+ClientManager.prototype.getPluginController = function() {
+  return this._pluginController;
+};
+// Input 5
 var BeteiligtRepository = function() {
   Repository.call(this);
 };
@@ -688,9 +731,10 @@ BeteiligtRepository.prototype.isNew = function(a) {
     return b._repository[c].id === a.id;
   });
 };
-// Input 4
+// Input 6
 var ModuleController = function(a, b) {
-  this.document = a;
+  this.document = a.document;
+  this._window = a;
   this.trelloApi = b;
   this._beteiligtBinding = null;
   this._repository = new BeteiligtRepository;
@@ -699,12 +743,9 @@ var ModuleController = function(a, b) {
   this.setVersionInfo();
   this.readPropertyBag();
 };
-ModuleController.getInstance = function(a) {
-  ModuleController.prepare(a);
-  return window.moduleController;
-};
-ModuleController.prepare = function(a) {
-  window.moduleController || (window.moduleController = new ModuleController(document, a));
+ModuleController.getInstance = function(a, b) {
+  b.hasOwnProperty("moduleController") || (b.moduleController = new ModuleController(b, a));
+  return b.moduleController;
 };
 ModuleController.prototype.setVersionInfo = function() {
   this.trelloApi.set("card", "shared", ModuleController.SHARED_META, this.getVersionInfo());
@@ -750,7 +791,7 @@ ModuleController.prototype._onLooseFocus = function() {
 };
 ModuleController.prototype._onChange = function(a, b) {
   a.setProperty();
-  b.config.setSection(b.valueHolder["involved-in"], a.getBinding());
+  b.config.sections[b.valueHolder["involved-in"]] = a.getBinding();
   switch(a.getBoundProperty()) {
     case "capOnExpenses":
       this.setProperty("cap_on_expenses", a.getValue());
@@ -785,6 +826,9 @@ ModuleController.prototype.getCapOnExpenses = function() {
   var a = this.getProperty("cap_on_expenses");
   return isNaN(a) ? 0.0 : parseFloat(a);
 };
+ModuleController.prototype.getByCard = function(a) {
+  return this._repository.get(a);
+};
 ModuleController.prototype.list = function() {
   return this._repository.all();
 };
@@ -792,15 +836,15 @@ ModuleController.prototype.size = function() {
   return Object.keys(this.list()).length;
 };
 ModuleController.prototype.fetchAll = function(a) {
-  var b = this, c = ModuleController.getInstance(this.trelloApi);
+  var b = this;
   return this.trelloApi.cards("id", "closed").filter(function(a) {
     return !a.closed;
   }).each(function(a) {
-    return b.trelloApi.get(a.id, "shared", ModuleController.SHARED_NAME).then(function(b) {
-      c.insert(ModuleConfig.create(b), a);
+    return b.trelloApi.get(a.id, "shared", ModuleController.SHARED_NAME).then(function(c) {
+      b.insert(ModuleConfig.create(c), a);
     });
   }).then(function() {
-    console.log("Fetch complete: " + c.size() + " module config(s)");
+    console.log("Fetch complete: " + b.size() + " module config(s)");
     a.call(b);
   });
 };
@@ -835,7 +879,7 @@ $jscomp.global.Object.defineProperties(ModuleController, {VERSION:{configurable:
 }}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Beteiligt.PropertyBag";
 }}});
-// Input 5
+// Input 7
 var ArtikelRepository = function() {
   Repository.call(this);
 };
@@ -849,20 +893,18 @@ ArtikelRepository.prototype.isNew = function(a) {
     return b._repository[c].id === a.id;
   });
 };
-// Input 6
+// Input 8
 var ArtikelController = function(a, b) {
-  this.document = a;
+  this.document = a.document;
+  this._window = a;
   this.trelloApi = b;
   this._beteiligtBinding = this._artikelBinding = this._entity = null;
   this._repository = new ArtikelRepository;
   this.setVersionInfo();
 };
-ArtikelController.getInstance = function(a) {
-  ArtikelController.prepare(a);
-  return window.articleController;
-};
-ArtikelController.prepare = function(a) {
-  window.articleController || (window.articleController = new ArtikelController(document, a));
+ArtikelController.getInstance = function(a, b) {
+  b.hasOwnProperty("articleController") || (b.articleController = new ArtikelController(b, a));
+  return b.articleController;
 };
 ArtikelController.prototype.setVersionInfo = function() {
   this.trelloApi.set("card", "shared", ArtikelController.SHARED_META, this.getVersionInfo());
@@ -886,15 +928,15 @@ ArtikelController.prototype.getTagMapping = function(a) {
   return ArtikelBinding.getTagMapping(a);
 };
 ArtikelController.prototype.fetchAll = function(a) {
-  var b = this, c = ArtikelController.getInstance(this.trelloApi);
+  var b = this;
   return this.trelloApi.cards("id", "closed").filter(function(a) {
     return !a.closed;
   }).each(function(a) {
-    return b.trelloApi.get(a.id, "shared", ArtikelController.SHARED_NAME).then(function(b) {
-      c.insert(Artikel.create(b), a);
+    return b.trelloApi.get(a.id, "shared", ArtikelController.SHARED_NAME).then(function(c) {
+      b.insert(Artikel.create(c), a);
     });
   }).then(function() {
-    console.log("Fetch complete: " + c.size() + " article(s) to process");
+    console.log("Fetch complete: " + b.size() + " article(s) to process");
   });
 };
 ArtikelController.prototype.list = function() {
@@ -918,7 +960,7 @@ ArtikelController.prototype.blockUi = function() {
   this._artikelBinding.blockUi();
 };
 ArtikelController.prototype.canUnblock = function() {
-  window.pluginController.upgrading || this._artikelBinding.unblock();
+  this._window.clientManager.getPluginController().upgrading || this._artikelBinding.unblock();
 };
 ArtikelController.prototype.getTotalPageCount = function() {
   return Object.values(this._repository.all()).map(function(a, b) {
@@ -957,7 +999,7 @@ $jscomp.global.Object.defineProperties(ArtikelController, {VERSION:{configurable
 }}, SHARED_META:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Meta";
 }}});
-// Input 7
+// Input 9
 var ArtikelBinding = function(a, b, c, d) {
   this.document = a;
   this._action = c;
@@ -1047,11 +1089,16 @@ ArtikelBinding.prototype.unblock = function() {
   });
   this._autoUpdater && clearInterval(this._autoUpdater);
 };
-// Input 8
-var PluginController = function(a) {
+// Input 10
+var PluginController = function(a, b) {
+  this._window = b;
   this._trelloApi = a;
   this._upgrading = !1;
   this._upgrades = {1:this._upgrade_1};
+};
+PluginController.getInstance = function(a, b) {
+  b.hasOwnProperty("pluginController") || (b.pluginController = new PluginController(a, b));
+  return b.pluginController;
 };
 PluginController.prototype.init = function() {
   var a = this;
@@ -1073,7 +1120,7 @@ PluginController.prototype._update = function(a, b) {
   }, 2000));
 };
 PluginController.prototype._upgrade_1 = function() {
-  var a = this, b = ArtikelController.getInstance(this._trelloApi), c = ModuleController.getInstance(this._trelloApi);
+  var a = this, b = this._window.clientManager.getArticleController(), c = this._window.clientManager.getModuleController();
   return b.fetchAll.call(b).then(function() {
     a._upgradeAllArticleToModuleConfig.call(a, b, c);
   }).then(function() {
@@ -1108,7 +1155,7 @@ $jscomp.global.Object.defineProperties(PluginController, {VERSION:{configurable:
 }}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.App";
 }}});
-// Input 9
+// Input 11
 var BeteiligtBinding = function(a, b, c, d) {
   this.document = a;
   this._config = b;
@@ -1193,7 +1240,7 @@ BeteiligtBinding.prototype.enterEditing = function() {
 BeteiligtBinding.prototype.leaveEditing = function() {
   this._activated.endEditing();
 };
-// Input 10
+// Input 12
 var ModuleConfig = function(a, b) {
   this._id = a || uuid();
   this._sections = b;
@@ -1203,8 +1250,10 @@ ModuleConfig.create = function(a) {
   var b = JsonSerialization.getProperty(a, "sections") || {};
   return new ModuleConfig(JsonSerialization.getProperty(a, "id"), {onsite:OtherBeteiligt.create(b.onsite), text:OtherBeteiligt.create(b.text), photo:OtherBeteiligt.create(b.photo), video:OtherBeteiligt.create(b.video), illu:OtherBeteiligt.create(b.illu), ad:AdBeteiligt.create(b.ad)});
 };
-ModuleConfig.prototype.setSection = function(a, b) {
-  this._sections[a] = b;
+ModuleConfig.prototype.getContentCount = function() {
+  return Object.values(this.sections).filter(function(a) {
+    return !a.isEmpty();
+  }).length;
 };
 $jscomp.global.Object.defineProperties(ModuleConfig.prototype, {sections:{configurable:!0, enumerable:!0, get:function() {
   return this._sections;
@@ -1344,7 +1393,7 @@ $jscomp.global.Object.defineProperties(AdBeteiligt.prototype, {format:{configura
 }, set:function(a) {
   this._total = a;
 }}});
-// Input 11
+// Input 13
 var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, r, n, p) {
   this._id = a || uuid();
   this._topic = b;
@@ -1488,7 +1537,7 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, 
 $jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 2;
 }}});
-// Input 12
+// Input 14
 HTMLElement.prototype.addClass = function(a) {
   -1 === this.className.split(" ").indexOf(a) && (this.className += " " + a, this.className = this.className.trim());
 };
@@ -1556,10 +1605,10 @@ function newOption(a, b) {
   return {value:a, text:b};
 }
 ;
-// Input 13
+// Input 15
 var template_regular = '<div id="template">    <div class="row">        <div class="col-6">            <div class="row">                <div class="col-12 less-padding-right">                    <div class="pa.name"></div>                </div>                <div class="col-12 less-padding-right">                    <div class="pa.social"></div>                </div>                <div class="col-12 less-padding-right">                    <div class="pa.address"></div>                </div>            </div>        </div>        <div class="col-6">            <div class="row">                <div class="col-12 less-padding-left before-last-row">                    <div class="pa.notes"></div>                </div>            </div>            <div class="row">                <div class="col-12 less-padding-left align-bottom">                    <div class="pa.duedate"></div>                </div>            </div>        </div>    </div>    <div class="row">        <div class="col-12">            <div class="row">                <div class="col-3 less-padding-right">                    <div class="pa.fee"></div>                </div>                <div class="col-3 less-padding">                    <div class="pa.charges"></div>                </div>                <div class="col-3 less-padding">                    <div class="pa.project"></div>                </div>                <div class="col-3 less-padding-left">                    <div class="pa.cap_on_expenses"></div>                </div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-right">                <div class="pa.notes"></div>            </div>        </div>        <div class="row before-last-row">            <div class="col-6 less-padding-right">                <div class="pa.format"></div>            </div>            <div class="col-6 less-padding">                <div class="pa.placement"></div>            </div>        </div>        <div class="row align-bottom">            <div class="col-6 less-padding-right">                <div class="pa.price"></div>            </div>            <div class="col-6 less-padding">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-left">                <div class="pa.name"></div>            </div>            <div class="col-12 less-padding-left">                <div class="pa.social"></div>            </div>            <div class="col-12 less-padding-left">                <div class="pa.address"></div>            </div>        </div>    </div></div>';
-// Input 14
+// Input 16
 var JsonSerialization = function() {
 };
 JsonSerialization.prototype.serialize = function(a) {

@@ -39,34 +39,30 @@ class ModuleController {
     /**
      * Get the singleton instance
      * @param trelloApi
+     * @param windowManager
      * @returns {ModuleController}
      */
-    static getInstance(trelloApi) {
-        ModuleController.prepare(trelloApi);
-        return window.moduleController;
-    }
-
-    /**
-     * Prepare the module controller by registering a controller in the window scope if there's none yet
-     * @param trelloApi
-     */
-    static prepare(trelloApi) {
-        if (!window.moduleController) {
-            window.moduleController = new ModuleController(document, trelloApi);
+    static getInstance(trelloApi, windowManager) {
+        if (!windowManager.hasOwnProperty('moduleController')) {
+            windowManager.moduleController = new ModuleController(windowManager, trelloApi);
         }
+        return windowManager.moduleController;
     }
 
     /**
      * The module controller for this document.
      *
-     * @param document the document that this controller is attached to
+     * @param windowManager the window manager that gives access to the underlying document
      * @param trelloApi the trello API to persist/read the module config entities
      */
-    constructor(document, trelloApi) {
+    constructor(windowManager, trelloApi) {
         /**
          * @type {HTMLDocument}
          */
-        this.document = document;
+        this.document = windowManager.document;
+
+        this._window = windowManager;
+
         this.trelloApi = trelloApi;
 
         /**
@@ -147,9 +143,9 @@ class ModuleController {
         let tpf = this.getTotalProjectFee();
         let cod = this.getCapOnExpenses();
         // set all dynamic properties in all OtherBeteiligt sections
-        Object.values(this._entity.sections).filter(function(section) {
+        Object.values(this._entity.sections).filter(function (section) {
             return section instanceof OtherBeteiligt;
-        }).forEach(function(section) {
+        }).forEach(function (section) {
             section.project = tpf;
             section.capOnExpenses = cod;
         });
@@ -210,7 +206,7 @@ class ModuleController {
          */
         let config = args['config'];
         // update the config entity with this section
-        config.setSection(args['valueHolder']['involved-in'], source.getBinding());
+        config.sections[args['valueHolder']['involved-in']] = source.getBinding();
         // update the involved part of the entity
         // todo do this differently
         switch (source.getBoundProperty()) {
@@ -252,7 +248,7 @@ class ModuleController {
             .filter(function (item) {
                 return item instanceof OtherBeteiligt;
             })
-            .map(function(item) {
+            .map(function (item) {
                 return [isNaN(item.fee) ? 0 : item.fee, isNaN(item.charges) ? 0 : item.charges];
             })
             .flat().reduce(function (previousValue, currentValue) {
@@ -267,6 +263,15 @@ class ModuleController {
     getCapOnExpenses() {
         let coe = this.getProperty('cap_on_expenses');
         return isNaN(coe) ? 0.0 : parseFloat(coe);
+    }
+
+    /**
+     * Get the configuration by its card id
+     * @param card the trello card id which is used in {@code insert}
+     * @return {{}}
+     */
+    getByCard(card) {
+        return this._repository.get(card);
     }
 
     /**
@@ -290,7 +295,6 @@ class ModuleController {
      */
     fetchAll(onComplete) {
         let that = this;
-        let controller = ModuleController.getInstance(this.trelloApi);
         return this.trelloApi.cards('id', 'closed')
             .filter(function (card) {
                 return !card.closed;
@@ -298,11 +302,11 @@ class ModuleController {
             .each(function (card) {
                 return that.trelloApi.get(card.id, 'shared', ModuleController.SHARED_NAME)
                     .then(function (json) {
-                        controller.insert(ModuleConfig.create(json), card);
+                        that.insert(ModuleConfig.create(json), card);
                     });
             })
             .then(function () {
-                console.log("Fetch complete: " + controller.size() + " module config(s)");
+                console.log("Fetch complete: " + that.size() + " module config(s)");
                 onComplete.call(that);
             })
     }
@@ -345,7 +349,7 @@ class ModuleController {
     readPropertyBag() {
         let that = this;
         this.trelloApi.get('board', 'shared', ModuleController.PROPERTY_BAG_NAME, {})
-            .then(function(bag) {
+            .then(function (bag) {
                 that._propertyBag = bag;
             });
     }

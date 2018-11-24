@@ -27,8 +27,15 @@ class ModuleConfig {
         this._version = CommonBeteiligt.VERSION;
     }
 
-    setSection(name, section) {
-        this._sections[name] = section;
+    /**
+     * Get the number of sections that have content
+     *
+     * @return {number}
+     */
+    getContentCount() {
+        return Object.values(this.sections).filter(function(section) {
+            return !section.isEmpty();
+        }).length;
     }
 
     get sections() {
