@@ -723,6 +723,9 @@ ClientManager.prototype.getModuleController = function() {
 ClientManager.prototype.getPluginController = function() {
   return this._pluginController;
 };
+ClientManager.prototype.removePluginData = function() {
+  this._pluginController.remove();
+};
 // Input 5
 var BeteiligtRepository = function() {
   Repository.call(this);
@@ -1108,6 +1111,9 @@ PluginController.prototype.init = function() {
   a._trelloApi.get("board", "shared", PluginController.SHARED_NAME, 1).then(function(b) {
     PluginController.VERSION > b && (a._upgrading = !0, a.update.call(a, b, PluginController.VERSION));
   });
+};
+PluginController.prototype.remove = function() {
+  this._trelloApi.remove("board", "shared", PluginController.SHARED_NAME);
 };
 PluginController.prototype.update = function(a, b) {
   this._update(a, b);

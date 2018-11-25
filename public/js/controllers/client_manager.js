@@ -60,8 +60,20 @@ class ClientManager {
      */
     init() {
         if (!this._initialized) {
+            /**
+             * @type {ArtikelController}
+             * @private
+             */
             this._articleController = ArtikelController.getInstance(this._trello, this._window);
+            /**
+             * @type {ModuleController}
+             * @private
+             */
             this._moduleController = ModuleController.getInstance(this._trello, this._window);
+            /**
+             * @type {PluginController}
+             * @private
+             */
             this._pluginController = PluginController.getInstance(this._trello, this._window);
             this._initialized = true;
         }
@@ -102,10 +114,13 @@ class ClientManager {
 
     /**
      * Get the plugin controller for this client
-     * @return {PluginController|*}
+     * @return {PluginController}
      */
     getPluginController() {
         return this._pluginController;
     }
 
+    removePluginData() {
+        this._pluginController.remove();
+    }
 }

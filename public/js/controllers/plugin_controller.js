@@ -61,6 +61,13 @@ class PluginController {
     }
 
     /**
+     * Remove the plugin data for this board
+     */
+    remove() {
+        this._trelloApi.remove('board', 'shared', PluginController.SHARED_NAME);
+    }
+
+    /**
      * Update routine
      * @param oldVersion the old version
      * @param newVersion the new version
