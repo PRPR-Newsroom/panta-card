@@ -316,6 +316,7 @@ class ModuleController {
      * @param trelloApi
      * @param entity
      * @param cardId optionally a card id if it should not be the current one
+     * @returns {Promise} the set promise request
      */
     persist(entity, cardId) {
         // https://trello.com/1/cards/eFYBmEia/pluginData
