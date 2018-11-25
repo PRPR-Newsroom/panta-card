@@ -64,7 +64,9 @@ class PluginController {
      * Remove the plugin data for this board
      */
     remove() {
-        this._trelloApi.remove('board', 'shared', PluginController.SHARED_NAME);
+        this._trelloApi.remove('board', 'shared', PluginController.SHARED_NAME).then(function() {
+            console.log("PluginData removed");
+        });
     }
 
     /**

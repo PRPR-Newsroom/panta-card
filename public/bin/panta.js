@@ -1113,7 +1113,9 @@ PluginController.prototype.init = function() {
   });
 };
 PluginController.prototype.remove = function() {
-  this._trelloApi.remove("board", "shared", PluginController.SHARED_NAME);
+  this._trelloApi.remove("board", "shared", PluginController.SHARED_NAME).then(function() {
+    console.log("PluginData removed");
+  });
 };
 PluginController.prototype.update = function(a, b) {
   this._update(a, b);
