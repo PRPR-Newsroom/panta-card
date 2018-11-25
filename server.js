@@ -23,8 +23,8 @@ app.use(compression());
 app.use(cors({ origin: 'https://trello.com' }));
 
 // https://github.com/mingchen/node-nocache
-app.use('/manifest.json', nocache, function (request, response) {
-  response.sendFile(__dirname + '/public/manifest.json');
+app.use('/version', nocache, function (request, response) {
+  response.sendFile(__dirname + '/VERSION');
 });
 
 // http://expressjs.com/en/starter/static-files.html
