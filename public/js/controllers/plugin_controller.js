@@ -50,14 +50,13 @@ class PluginController {
         //                 }
         //             });
         //     })
-        that._trelloApi.get('board', 'shared', PluginController.SHARED_NAME, 1)
+        this._trelloApi.get('board', 'shared', PluginController.SHARED_NAME, 1)
             .then(function (data) {
                 if (PluginController.VERSION > data) {
                     that._upgrading = true;
                     that.update.call(that, data, PluginController.VERSION);
                 }
             });
-
     }
 
     /**

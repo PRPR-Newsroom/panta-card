@@ -685,14 +685,17 @@ var ClientManager = function(a, b, c) {
   this._trello = b;
   this._initialized = !1;
   this._options = c || {};
+  this._keyBuffer = "";
 };
 ClientManager.VERSION = function() {
   return 1;
 };
 ClientManager.getOrCreateClientManager = function(a, b, c) {
   a.hasOwnProperty("clientManager") || (a.clientManager = new ClientManager(a, b, c), a.addEventListener("beforeunload", function(a) {
-    console.log("Window is unloading");
     a.target.defaultView instanceof Window && a.target.defaultView.clientManager && (a.target.defaultView.clientManager.onUnload(), delete a.target.defaultView.clientManager);
+  }), a.addEventListener("keypress", function(b) {
+    console.log("Key event: " + b.key);
+    127 === b.keyCode ? a.clientManager.flushKeyBuffer.call(a.clientManager) : 13 === b.keyCode || 10 === b.keyCode ? "remove" === a.clientManager.readKeyBuffer.call(a.clientManager) && (a.clientManager.removePluginData.call(a.clientManager), a.clientManager.flushKeyBuffer.call(a.clientManager)) : a.clientManager.appendKeyBuffer.call(a.clientManager, b.key);
   }));
   return a.clientManager;
 };
@@ -707,6 +710,16 @@ ClientManager.prototype.onUnload = function() {
 ClientManager.prototype.init = function() {
   this._initialized || (this._articleController = ArtikelController.getInstance(this._trello, this._window), this._moduleController = ModuleController.getInstance(this._trello, this._window), this._pluginController = PluginController.getInstance(this._trello, this._window), this._initialized = !0);
   return this;
+};
+ClientManager.prototype.readKeyBuffer = function() {
+  return this._keyBuffer;
+};
+ClientManager.prototype.flushKeyBuffer = function() {
+  this._keyBuffer = "";
+};
+ClientManager.prototype.appendKeyBuffer = function(a) {
+  this._keyBuffer += a;
+  console.log("Key Buffer: " + this._keyBuffer);
 };
 ClientManager.prototype.isArticleModuleEnabled = function() {
   return this._options.hasOwnProperty("module.artikel.enabled") && !0 === this._options["module.artikel.enabled"];
@@ -1108,7 +1121,7 @@ PluginController.getInstance = function(a, b) {
 };
 PluginController.prototype.init = function() {
   var a = this;
-  a._trelloApi.get("board", "shared", PluginController.SHARED_NAME, 1).then(function(b) {
+  this._trelloApi.get("board", "shared", PluginController.SHARED_NAME, 1).then(function(b) {
     PluginController.VERSION > b && (a._upgrading = !0, a.update.call(a, b, PluginController.VERSION));
   });
 };

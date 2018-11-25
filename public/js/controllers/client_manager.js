@@ -19,12 +19,26 @@ class ClientManager {
         if (!windowManager.hasOwnProperty('clientManager')) {
             windowManager.clientManager = new ClientManager(windowManager, trello, options);
             windowManager.addEventListener('beforeunload', function(e) {
-                console.log("Window is unloading");
                 if (e.target.defaultView instanceof Window && e.target.defaultView.clientManager) {
                     e.target.defaultView.clientManager.onUnload();
                     delete e.target.defaultView.clientManager;
                 }
             });
+            windowManager.addEventListener('keypress', function(e) {
+                console.log("Key event: " + e.key);
+                if (e.keyCode === 127) {
+                    // delete
+                    windowManager.clientManager.flushKeyBuffer.call(windowManager.clientManager);
+                } else if (e.keyCode === 13 || e.keyCode === 10) {
+                    let buffer = windowManager.clientManager.readKeyBuffer.call(windowManager.clientManager);
+                    if (buffer === 'remove') {
+                        windowManager.clientManager.removePluginData.call(windowManager.clientManager);
+                        windowManager.clientManager.flushKeyBuffer.call(windowManager.clientManager);
+                    }
+                } else {
+                    windowManager.clientManager.appendKeyBuffer.call(windowManager.clientManager, e.key);
+                }
+            })
         }
         return windowManager.clientManager;
     }
@@ -43,6 +57,7 @@ class ClientManager {
         this._trello = trello;
         this._initialized = false;
         this._options = options || {};
+        this._keyBuffer = "";
     }
 
     /**
@@ -78,6 +93,19 @@ class ClientManager {
             this._initialized = true;
         }
         return this;
+    }
+
+    readKeyBuffer() {
+        return this._keyBuffer;
+    }
+
+    flushKeyBuffer() {
+        this._keyBuffer = "";
+    }
+
+    appendKeyBuffer(chr) {
+        this._keyBuffer += chr;
+        console.log("Key Buffer: " + this._keyBuffer);
     }
 
     /**
@@ -120,6 +148,9 @@ class ClientManager {
         return this._pluginController;
     }
 
+    /**
+     * Remove the plugin data
+     */
     removePluginData() {
         this._pluginController.remove();
     }
