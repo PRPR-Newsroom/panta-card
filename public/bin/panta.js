@@ -737,8 +737,9 @@ ClientManager.prototype.getPluginController = function() {
   return this._pluginController;
 };
 ClientManager.prototype.removePluginData = function() {
+  var a = this;
   this._pluginController.remove().then(function() {
-    this._moduleController.removePropertyBag().then(function() {
+    a._moduleController.removePropertyBag().then(function() {
       console.log("All board data cleared");
     });
   });
