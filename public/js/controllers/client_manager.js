@@ -152,7 +152,10 @@ class ClientManager {
      * Remove all plugin data on that board
      */
     removePluginData() {
-        this._pluginController.remove();
-        this._moduleController.removePropertyBag();
+        this._pluginController.remove().then(function() {
+            this._moduleController.removePropertyBag().then(function() {
+                console.log("All board data cleared");
+            });
+        });
     }
 }

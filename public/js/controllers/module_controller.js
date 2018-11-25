@@ -356,11 +356,11 @@ class ModuleController {
 
     /**
      * Remove the property bag
+     *
+     * @returns {Promise} the promise of that delete
      */
     removePropertyBag() {
-        this.trelloApi.remove('board', 'shared', ModuleController.PROPERTY_BAG_NAME).then(function() {
-            console.log("Removed PropertyBag from board");
-        })
+        return this.trelloApi.remove('board', 'shared', ModuleController.PROPERTY_BAG_NAME)
     }
 
     /**

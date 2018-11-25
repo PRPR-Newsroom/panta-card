@@ -737,8 +737,11 @@ ClientManager.prototype.getPluginController = function() {
   return this._pluginController;
 };
 ClientManager.prototype.removePluginData = function() {
-  this._pluginController.remove();
-  this._moduleController.removePropertyBag();
+  this._pluginController.remove().then(function() {
+    this._moduleController.removePropertyBag().then(function() {
+      console.log("All board data cleared");
+    });
+  });
 };
 // Input 5
 var BeteiligtRepository = function() {
@@ -885,9 +888,7 @@ ModuleController.prototype.readPropertyBag = function() {
   });
 };
 ModuleController.prototype.removePropertyBag = function() {
-  this.trelloApi.remove("board", "shared", ModuleController.PROPERTY_BAG_NAME).then(function() {
-    console.log("Removed PropertyBag from board");
-  });
+  return this.trelloApi.remove("board", "shared", ModuleController.PROPERTY_BAG_NAME);
 };
 ModuleController.prototype.clear = function() {
   Object.keys(this._repository.all()).forEach(function(a) {
@@ -1132,9 +1133,7 @@ PluginController.prototype.init = function() {
   });
 };
 PluginController.prototype.remove = function() {
-  this._trelloApi.remove("board", "shared", PluginController.SHARED_NAME).then(function() {
-    console.log("PluginData removed");
-  });
+  return this._trelloApi.remove("board", "shared", PluginController.SHARED_NAME);
 };
 PluginController.prototype.update = function(a, b) {
   this._update(a, b);

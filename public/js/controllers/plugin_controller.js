@@ -61,11 +61,11 @@ class PluginController {
 
     /**
      * Remove the plugin data for this board
+     *
+     * @returns {Promise} the promise of that delete request
      */
     remove() {
-        this._trelloApi.remove('board', 'shared', PluginController.SHARED_NAME).then(function() {
-            console.log("PluginData removed");
-        });
+        return this._trelloApi.remove('board', 'shared', PluginController.SHARED_NAME);
     }
 
     /**
