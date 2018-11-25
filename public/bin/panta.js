@@ -687,7 +687,7 @@ var ClientManager = function(a, b, c) {
   this._options = c || {};
 };
 ClientManager.VERSION = function() {
-  return "1.0.1";
+  return 1;
 };
 ClientManager.getOrCreateClientManager = function(a, b, c) {
   a.hasOwnProperty("clientManager") || (a.clientManager = new ClientManager(a, b, c), a.addEventListener("beforeunload", function(a) {
