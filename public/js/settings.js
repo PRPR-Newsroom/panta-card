@@ -8,7 +8,7 @@ t.render(function () {
             element.innerText = "1.1.0";
         });
     });
-    document.getElementsByName("body")[0].appendChild(stag);
+    document.getElementsByTagName("body")[0].appendChild(stag);
 
     return t.sizeTo("#content").done();
 });
