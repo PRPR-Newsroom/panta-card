@@ -1143,8 +1143,9 @@ PluginController.prototype._update = function(a, b) {
   var c = this;
   a < b ? (console.log("Applying upgrade %d ...", a), c._upgrades[a].call(this).then(function() {
     console.log("... upgrade %d is successfully applied", a);
-    c._trelloApi.set("board", "shared", PluginController.SHARED_NAME, a + 1);
-    c._update(a + 1, b);
+    c._trelloApi.set("board", "shared", PluginController.SHARED_NAME, a + 1).then(function() {
+      c._update(a + 1, b);
+    });
   })) : (console.log("No upgrades pending"), setTimeout(function() {
     c._upgrading = !1;
   }, 2000));
