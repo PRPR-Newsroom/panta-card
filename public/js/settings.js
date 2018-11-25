@@ -1,7 +1,7 @@
 t.render(function () {
 
     let stag = document.createElement('script');
-    stag.setAttribute('src', '/version.js');
+    stag.setAttribute('src', '/version.jsonp');
     stag.async = true;
     stag.addEventListener('load', function (e) {
         document.getElementsByClassName("plugin-version").forEach(function (element) {
