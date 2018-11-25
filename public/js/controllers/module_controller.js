@@ -355,6 +355,15 @@ class ModuleController {
     }
 
     /**
+     * Remove the property bag
+     */
+    removePropertyBag() {
+        this.trelloApi.remove('board', 'shared', ModuleController.PROPERTY_BAG_NAME).then(function() {
+            console.log("Removed PropertyBag from board");
+        })
+    }
+
+    /**
      * Clear all module configs from trello
      */
     clear() {

@@ -738,6 +738,7 @@ ClientManager.prototype.getPluginController = function() {
 };
 ClientManager.prototype.removePluginData = function() {
   this._pluginController.remove();
+  this._moduleController.removePropertyBag();
 };
 // Input 5
 var BeteiligtRepository = function() {
@@ -881,6 +882,11 @@ ModuleController.prototype.readPropertyBag = function() {
   var a = this;
   this.trelloApi.get("board", "shared", ModuleController.PROPERTY_BAG_NAME, {}).then(function(b) {
     a._propertyBag = b;
+  });
+};
+ModuleController.prototype.removePropertyBag = function() {
+  this.trelloApi.remove("board", "shared", ModuleController.PROPERTY_BAG_NAME).then(function() {
+    console.log("Removed PropertyBag from board");
   });
 };
 ModuleController.prototype.clear = function() {
