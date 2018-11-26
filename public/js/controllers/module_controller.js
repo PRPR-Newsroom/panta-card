@@ -316,6 +316,7 @@ class ModuleController {
      * @param trelloApi
      * @param entity
      * @param cardId optionally a card id if it should not be the current one
+     * @returns {Promise} the set promise request
      */
     persist(entity, cardId) {
         // https://trello.com/1/cards/eFYBmEia/pluginData
@@ -352,6 +353,15 @@ class ModuleController {
             .then(function (bag) {
                 that._propertyBag = bag;
             });
+    }
+
+    /**
+     * Remove the property bag
+     *
+     * @returns {Promise} the promise of that delete
+     */
+    removePropertyBag() {
+        return this.trelloApi.remove('board', 'shared', ModuleController.PROPERTY_BAG_NAME)
     }
 
     /**

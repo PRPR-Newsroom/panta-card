@@ -194,215 +194,6 @@ $jscomp.polyfill("Object.entries", function(a) {
     return b;
   };
 }, "es8", "es3");
-$jscomp.makeIterator = function(a) {
-  $jscomp.initSymbolIterator();
-  var b = a[Symbol.iterator];
-  return b ? b.call(a) : $jscomp.arrayIterator(a);
-};
-$jscomp.FORCE_POLYFILL_PROMISE = !1;
-$jscomp.polyfill("Promise", function(a) {
-  function b() {
-    this.batch_ = null;
-  }
-  function c(a) {
-    return a instanceof e ? a : new e(function(b, c) {
-      b(a);
-    });
-  }
-  if (a && !$jscomp.FORCE_POLYFILL_PROMISE) {
-    return a;
-  }
-  b.prototype.asyncExecute = function(a) {
-    null == this.batch_ && (this.batch_ = [], this.asyncExecuteBatch_());
-    this.batch_.push(a);
-    return this;
-  };
-  b.prototype.asyncExecuteBatch_ = function() {
-    var a = this;
-    this.asyncExecuteFunction(function() {
-      a.executeBatch_();
-    });
-  };
-  var d = $jscomp.global.setTimeout;
-  b.prototype.asyncExecuteFunction = function(a) {
-    d(a, 0);
-  };
-  b.prototype.executeBatch_ = function() {
-    for (; this.batch_ && this.batch_.length;) {
-      var a = this.batch_;
-      this.batch_ = [];
-      for (var b = 0; b < a.length; ++b) {
-        var c = a[b];
-        a[b] = null;
-        try {
-          c();
-        } catch (l) {
-          this.asyncThrow_(l);
-        }
-      }
-    }
-    this.batch_ = null;
-  };
-  b.prototype.asyncThrow_ = function(a) {
-    this.asyncExecuteFunction(function() {
-      throw a;
-    });
-  };
-  var e = function(a) {
-    this.state_ = 0;
-    this.result_ = void 0;
-    this.onSettledCallbacks_ = [];
-    var b = this.createResolveAndReject_();
-    try {
-      a(b.resolve, b.reject);
-    } catch (k) {
-      b.reject(k);
-    }
-  };
-  e.prototype.createResolveAndReject_ = function() {
-    function a(a) {
-      return function(d) {
-        c || (c = !0, a.call(b, d));
-      };
-    }
-    var b = this, c = !1;
-    return {resolve:a(this.resolveTo_), reject:a(this.reject_)};
-  };
-  e.prototype.resolveTo_ = function(a) {
-    if (a === this) {
-      this.reject_(new TypeError("A Promise cannot resolve to itself"));
-    } else {
-      if (a instanceof e) {
-        this.settleSameAsPromise_(a);
-      } else {
-        a: {
-          switch(typeof a) {
-            case "object":
-              var b = null != a;
-              break a;
-            case "function":
-              b = !0;
-              break a;
-            default:
-              b = !1;
-          }
-        }
-        b ? this.resolveToNonPromiseObj_(a) : this.fulfill_(a);
-      }
-    }
-  };
-  e.prototype.resolveToNonPromiseObj_ = function(a) {
-    var b = void 0;
-    try {
-      b = a.then;
-    } catch (k) {
-      this.reject_(k);
-      return;
-    }
-    "function" == typeof b ? this.settleSameAsThenable_(b, a) : this.fulfill_(a);
-  };
-  e.prototype.reject_ = function(a) {
-    this.settle_(2, a);
-  };
-  e.prototype.fulfill_ = function(a) {
-    this.settle_(1, a);
-  };
-  e.prototype.settle_ = function(a, b) {
-    if (0 != this.state_) {
-      throw Error("Cannot settle(" + a + ", " + b + "): Promise already settled in state" + this.state_);
-    }
-    this.state_ = a;
-    this.result_ = b;
-    this.executeOnSettledCallbacks_();
-  };
-  e.prototype.executeOnSettledCallbacks_ = function() {
-    if (null != this.onSettledCallbacks_) {
-      for (var a = 0; a < this.onSettledCallbacks_.length; ++a) {
-        f.asyncExecute(this.onSettledCallbacks_[a]);
-      }
-      this.onSettledCallbacks_ = null;
-    }
-  };
-  var f = new b;
-  e.prototype.settleSameAsPromise_ = function(a) {
-    var b = this.createResolveAndReject_();
-    a.callWhenSettled_(b.resolve, b.reject);
-  };
-  e.prototype.settleSameAsThenable_ = function(a, b) {
-    var c = this.createResolveAndReject_();
-    try {
-      a.call(b, c.resolve, c.reject);
-    } catch (l) {
-      c.reject(l);
-    }
-  };
-  e.prototype.then = function(a, b) {
-    function c(a, b) {
-      return "function" == typeof a ? function(b) {
-        try {
-          d(a(b));
-        } catch (q) {
-          f(q);
-        }
-      } : b;
-    }
-    var d, f, g = new e(function(a, b) {
-      d = a;
-      f = b;
-    });
-    this.callWhenSettled_(c(a, d), c(b, f));
-    return g;
-  };
-  e.prototype.catch = function(a) {
-    return this.then(void 0, a);
-  };
-  e.prototype.callWhenSettled_ = function(a, b) {
-    function c() {
-      switch(d.state_) {
-        case 1:
-          a(d.result_);
-          break;
-        case 2:
-          b(d.result_);
-          break;
-        default:
-          throw Error("Unexpected state: " + d.state_);
-      }
-    }
-    var d = this;
-    null == this.onSettledCallbacks_ ? f.asyncExecute(c) : this.onSettledCallbacks_.push(c);
-  };
-  e.resolve = c;
-  e.reject = function(a) {
-    return new e(function(b, c) {
-      c(a);
-    });
-  };
-  e.race = function(a) {
-    return new e(function(b, d) {
-      for (var e = $jscomp.makeIterator(a), f = e.next(); !f.done; f = e.next()) {
-        c(f.value).callWhenSettled_(b, d);
-      }
-    });
-  };
-  e.all = function(a) {
-    var b = $jscomp.makeIterator(a), d = b.next();
-    return d.done ? c([]) : new e(function(a, e) {
-      function f(b) {
-        return function(c) {
-          g[b] = c;
-          h--;
-          0 == h && a(g);
-        };
-      }
-      var g = [], h = 0;
-      do {
-        g.push(void 0), h++, c(d.value).callWhenSettled_(f(g.length - 1), e), d = b.next();
-      } while (!d.done);
-    });
-  };
-  return e;
-}, "es6", "es3");
 var PLUGIN_CONFIGURATION = {"module.artikel.enabled":!0, "module.beteiligt.enabled":!0};
 // Input 1
 var Repository = function() {
@@ -685,11 +476,17 @@ var ClientManager = function(a, b, c) {
   this._trello = b;
   this._initialized = !1;
   this._options = c || {};
+  this._keyBuffer = "";
+};
+ClientManager.VERSION = function() {
+  return 1;
 };
 ClientManager.getOrCreateClientManager = function(a, b, c) {
   a.hasOwnProperty("clientManager") || (a.clientManager = new ClientManager(a, b, c), a.addEventListener("beforeunload", function(a) {
-    console.log("Window is unloading");
     a.target.defaultView instanceof Window && a.target.defaultView.clientManager && (a.target.defaultView.clientManager.onUnload(), delete a.target.defaultView.clientManager);
+  }), a.addEventListener("keypress", function(b) {
+    console.log("Key event: " + b.key);
+    127 === b.keyCode ? a.clientManager.flushKeyBuffer.call(a.clientManager) : 13 === b.keyCode || 10 === b.keyCode ? "remove" === a.clientManager.readKeyBuffer.call(a.clientManager) && (a.clientManager.removePluginData.call(a.clientManager), a.clientManager.flushKeyBuffer.call(a.clientManager)) : a.clientManager.appendKeyBuffer.call(a.clientManager, b.key);
   }));
   return a.clientManager;
 };
@@ -705,6 +502,16 @@ ClientManager.prototype.init = function() {
   this._initialized || (this._articleController = ArtikelController.getInstance(this._trello, this._window), this._moduleController = ModuleController.getInstance(this._trello, this._window), this._pluginController = PluginController.getInstance(this._trello, this._window), this._initialized = !0);
   return this;
 };
+ClientManager.prototype.readKeyBuffer = function() {
+  return this._keyBuffer;
+};
+ClientManager.prototype.flushKeyBuffer = function() {
+  this._keyBuffer = "";
+};
+ClientManager.prototype.appendKeyBuffer = function(a) {
+  this._keyBuffer += a;
+  console.log("Key Buffer: " + this._keyBuffer);
+};
 ClientManager.prototype.isArticleModuleEnabled = function() {
   return this._options.hasOwnProperty("module.artikel.enabled") && !0 === this._options["module.artikel.enabled"];
 };
@@ -719,6 +526,14 @@ ClientManager.prototype.getModuleController = function() {
 };
 ClientManager.prototype.getPluginController = function() {
   return this._pluginController;
+};
+ClientManager.prototype.removePluginData = function() {
+  var a = this;
+  this._pluginController.remove().then(function() {
+    a._moduleController.removePropertyBag().then(function() {
+      console.log("All board data cleared");
+    });
+  });
 };
 // Input 5
 var BeteiligtRepository = function() {
@@ -864,6 +679,9 @@ ModuleController.prototype.readPropertyBag = function() {
     a._propertyBag = b;
   });
 };
+ModuleController.prototype.removePropertyBag = function() {
+  return this.trelloApi.remove("board", "shared", ModuleController.PROPERTY_BAG_NAME);
+};
 ModuleController.prototype.clear = function() {
   Object.keys(this._repository.all()).forEach(function(a) {
     this.trelloApi.remove(a, "shared", ModuleController.SHARED_NAME);
@@ -927,16 +745,16 @@ ArtikelController.prototype.getRegionMapping = function(a) {
 ArtikelController.prototype.getTagMapping = function(a) {
   return ArtikelBinding.getTagMapping(a);
 };
-ArtikelController.prototype.fetchAll = function(a) {
-  var b = this;
+ArtikelController.prototype.fetchAll = function() {
+  var a = this;
   return this.trelloApi.cards("id", "closed").filter(function(a) {
     return !a.closed;
-  }).each(function(a) {
-    return b.trelloApi.get(a.id, "shared", ArtikelController.SHARED_NAME).then(function(c) {
-      b.insert(Artikel.create(c), a);
+  }).each(function(b) {
+    return a.trelloApi.get(b.id, "shared", ArtikelController.SHARED_NAME).then(function(c) {
+      a.insert(Artikel.create(c), b);
     });
   }).then(function() {
-    console.log("Fetch complete: " + b.size() + " article(s) to process");
+    console.log("Fetch complete: " + a.size() + " article(s) to process");
   });
 };
 ArtikelController.prototype.list = function() {
@@ -1102,9 +920,12 @@ PluginController.getInstance = function(a, b) {
 };
 PluginController.prototype.init = function() {
   var a = this;
-  a._trelloApi.get("board", "shared", PluginController.SHARED_NAME, 1).then(function(b) {
+  this._trelloApi.get("board", "shared", PluginController.SHARED_NAME, 1).then(function(b) {
     PluginController.VERSION > b && (a._upgrading = !0, a.update.call(a, b, PluginController.VERSION));
   });
+};
+PluginController.prototype.remove = function() {
+  return this._trelloApi.remove("board", "shared", PluginController.SHARED_NAME);
 };
 PluginController.prototype.update = function(a, b) {
   this._update(a, b);
@@ -1113,8 +934,9 @@ PluginController.prototype._update = function(a, b) {
   var c = this;
   a < b ? (console.log("Applying upgrade %d ...", a), c._upgrades[a].call(this).then(function() {
     console.log("... upgrade %d is successfully applied", a);
-    c._trelloApi.set("board", "shared", PluginController.SHARED_NAME, a + 1);
-    c._update(a + 1, b);
+    c._trelloApi.set("board", "shared", PluginController.SHARED_NAME, a + 1).then(function() {
+      c._update(a + 1, b);
+    });
   })) : (console.log("No upgrades pending"), setTimeout(function() {
     c._upgrading = !1;
   }, 2000));
@@ -1136,11 +958,11 @@ PluginController.prototype._upgradeArticleToModuleConfig = function(a, b, c, d) 
     1 === h.version ? (f = Object.entries(h.involved).reduce(function(a, b) {
       a.sections[b[0]] = b[1];
       return a;
-    }, ModuleConfig.create()), Promise.all([b.persist.call(b, f, g).then(function() {
+    }, ModuleConfig.create()), b.persist.call(b, f, g).then(function() {
       h.version = Artikel.VERSION;
       h.clearInvolved();
       return a.persist.call(a, h, g);
-    })]).then(function() {
+    }).then(function() {
       e._upgradeArticleToModuleConfig.call(e, a, b, c, d + 1, g);
     })) : (console.log("Skipping article because its at version %d", h.version), this._upgradeArticleToModuleConfig.call(this, a, b, c, d + 1, g));
   } else {
@@ -1394,7 +1216,7 @@ $jscomp.global.Object.defineProperties(AdBeteiligt.prototype, {format:{configura
   this._total = a;
 }}});
 // Input 13
-var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, r, n, p) {
+var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, n, p, q) {
   this._id = a || uuid();
   this._topic = b;
   this._pagina = c;
@@ -1402,13 +1224,13 @@ var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, r, n, p) {
   this._layout = e;
   this._total = f;
   this._tags = g;
-  this._form = n;
+  this._form = p;
   this._visual = h;
   this._region = k;
   this._season = l;
-  this._location = p;
+  this._location = q;
   this._author = m;
-  this._text = r;
+  this._text = n;
   this._involved = {};
   this._version = Artikel.VERSION;
   this.putInvolved("onsite", new OtherBeteiligt);

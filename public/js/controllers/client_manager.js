@@ -4,6 +4,10 @@
  */
 class ClientManager {
 
+    static VERSION() {
+        return 1;
+    }
+
     /**
      * Create the ClientManager instance bound to this windowManager
      * @param {Window} windowManager the window manager to be bound to
@@ -15,12 +19,26 @@ class ClientManager {
         if (!windowManager.hasOwnProperty('clientManager')) {
             windowManager.clientManager = new ClientManager(windowManager, trello, options);
             windowManager.addEventListener('beforeunload', function(e) {
-                console.log("Window is unloading");
                 if (e.target.defaultView instanceof Window && e.target.defaultView.clientManager) {
                     e.target.defaultView.clientManager.onUnload();
                     delete e.target.defaultView.clientManager;
                 }
             });
+            windowManager.addEventListener('keypress', function(e) {
+                console.log("Key event: " + e.key);
+                if (e.keyCode === 127) {
+                    // delete
+                    windowManager.clientManager.flushKeyBuffer.call(windowManager.clientManager);
+                } else if (e.keyCode === 13 || e.keyCode === 10) {
+                    let buffer = windowManager.clientManager.readKeyBuffer.call(windowManager.clientManager);
+                    if (buffer === 'remove') {
+                        windowManager.clientManager.removePluginData.call(windowManager.clientManager);
+                        windowManager.clientManager.flushKeyBuffer.call(windowManager.clientManager);
+                    }
+                } else {
+                    windowManager.clientManager.appendKeyBuffer.call(windowManager.clientManager, e.key);
+                }
+            })
         }
         return windowManager.clientManager;
     }
@@ -39,6 +57,7 @@ class ClientManager {
         this._trello = trello;
         this._initialized = false;
         this._options = options || {};
+        this._keyBuffer = "";
     }
 
     /**
@@ -56,12 +75,37 @@ class ClientManager {
      */
     init() {
         if (!this._initialized) {
+            /**
+             * @type {ArtikelController}
+             * @private
+             */
             this._articleController = ArtikelController.getInstance(this._trello, this._window);
+            /**
+             * @type {ModuleController}
+             * @private
+             */
             this._moduleController = ModuleController.getInstance(this._trello, this._window);
+            /**
+             * @type {PluginController}
+             * @private
+             */
             this._pluginController = PluginController.getInstance(this._trello, this._window);
             this._initialized = true;
         }
         return this;
+    }
+
+    readKeyBuffer() {
+        return this._keyBuffer;
+    }
+
+    flushKeyBuffer() {
+        this._keyBuffer = "";
+    }
+
+    appendKeyBuffer(chr) {
+        this._keyBuffer += chr;
+        console.log("Key Buffer: " + this._keyBuffer);
     }
 
     /**
@@ -98,10 +142,21 @@ class ClientManager {
 
     /**
      * Get the plugin controller for this client
-     * @return {PluginController|*}
+     * @return {PluginController}
      */
     getPluginController() {
         return this._pluginController;
     }
 
+    /**
+     * Remove all plugin data on that board
+     */
+    removePluginData() {
+        let that = this;
+        this._pluginController.remove().then(function() {
+            that._moduleController.removePropertyBag().then(function() {
+                console.log("All board data cleared");
+            });
+        });
+    }
 }

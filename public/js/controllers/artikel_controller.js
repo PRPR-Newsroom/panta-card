@@ -148,7 +148,7 @@ class ArtikelController {
     /**
      * Fetch all articles from Trello
      */
-    fetchAll(onComplete) {
+    fetchAll() {
         let that = this;
         return this.trelloApi.cards('id', 'closed')
             .filter(function (card) {
