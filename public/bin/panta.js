@@ -1026,7 +1026,7 @@ BeteiligtBinding.prototype.onRegularLayout = function(a, b) {
   this.document.newSingleLineInput(b, ".pa.duedate", "duedate", "Deadline", a, this._action, "bestimmen\u2026", "text", !1);
   this.document.newSingleLineInput(b, ".pa.fee", "fee", "Honorar", a, this._action, "Betrag\u2026", "money", !1);
   this.document.newSingleLineInput(b, ".pa.charges", "charges", "Spesen", a, this._action, "Betrag\u2026", "money", !1);
-  this.document.newSingleLineInput(b, ".pa.project", "project", "Total Projekt", a, this._action, "Betrag\u2026", "money", !0);
+  this.document.newSingleLineInput(b, ".pa.project", "project", "Total Projekt", a, this._action, "Betrag\u2026", "money", !0).addClass("bold");
   this.document.newSingleLineInput(b, ".pa.cap_on_expenses", "capOnExpenses", "Kostendach", a, this._action, "Betrag\u2026", "money", !1);
 };
 BeteiligtBinding.prototype.onAdLayout = function(a, b) {

@@ -174,7 +174,8 @@ class BeteiligtBinding {
 
         this.document.newSingleLineInput(valueHolder, ".pa.fee", "fee", "Honorar", params, this._action, "Betrag…", "money", false);
         this.document.newSingleLineInput(valueHolder, ".pa.charges", "charges", "Spesen", params, this._action, "Betrag…", "money", false);
-        this.document.newSingleLineInput(valueHolder, ".pa.project", "project", "Total Projekt", params, this._action, "Betrag…", "money", true);
+        this.document.newSingleLineInput(valueHolder, ".pa.project", "project", "Total Projekt", params, this._action, "Betrag…", "money", true)
+            .addClass("bold");
         this.document.newSingleLineInput(valueHolder, ".pa.cap_on_expenses", "capOnExpenses", "Kostendach", params, this._action, "Betrag…", "money", false);
     }
 
