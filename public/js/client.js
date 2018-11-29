@@ -1,4 +1,3 @@
-
 TrelloPowerUp.initialize({
     // https://developers.trello.com/v1.0/reference#card-buttons
     'card-buttons': function (t, options) {
@@ -30,13 +29,23 @@ TrelloPowerUp.initialize({
                         return card;
                     });
             })
-            .then(function(card) {
+            .then(function (card) {
                 return t.get(card.id, 'shared', ModuleController.SHARED_NAME)
                     .then(function (list_data) {
                         return ModuleConfig.create(list_data);
                     })
                     .then(function (config) {
                         cm.getModuleController().insert(config, card);
+                        return card;
+                    });
+            })
+            .then(function(card) {
+                return t.get(card.id, 'shared', ModulePlanController.SHARED_NAME)
+                    .then(function (list_data) {
+                        return Plan.create(list_data);
+                    })
+                    .then(function (entity) {
+                        cm.getPlanController().insert(entity, card);
                         return card;
                     });
             })
@@ -79,44 +88,71 @@ TrelloPowerUp.initialize({
                     }
                 }
 
+                if (cm.isPlanModuleEnabled()) {
+                    let entity = cm.getPlanController().getByCard(card);
+                    if (entity instanceof Plan) {
+                        if (cm.getPlanController().hasContent(entity)) {
+                            badges.push({
+                                text: "",
+                                icon: './assets/ic_artikel.png'
+                            });
+
+                            if (entity.region) {
+                                badges.push({
+                                    text: 'region: ' + cm.getPlanController().getRegionMapping(entity.region),
+                                    color: 'sky'
+                                });
+                            }
+                            if (entity.online) {
+                                badges.push({
+                                    text: 'online: ' + cm.getPlanController().getOnlineMapping(entity.online),
+                                    color: 'blue'
+                                });
+                            }
+                        }
+                    }
+                }
+
                 return badges;
             })
     },
     // https://developers.trello.com/v1.0/reference#card-back-section
     'card-back-section': function (t, opts) {
         // Your Power-Up can have only one card back section and a maximum height of 500 pixels.
-        return [{
-            title: 'Artikel',
+        let modules = [{
+            title: 'M.PR.Plan',
             icon: './assets/ic_pantarhei.png',
             content: {
                 type: 'iframe',
-                url: t.signUrl('./artikel.html', {}),
+                url: t.signUrl('./plan.html', {}),
                 height: 500 // Max height is 500
             }
-        }]
+        }];
+
+        return modules;
     },
     // https://developers.trello.com/v1.0/reference#list-sorters
     'list-sorters': function (t) {
         let cm = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION);
         cm.init();
         return t.list('id', 'name')
-            .then(function(list) {
-                    let sorters = [];
-                    if (cm.isArticleModuleEnabled()) {
-                        sorters.push({
-                            text: "Pagina (1 -> 99)",
-                            callback: function (t, opts) {
-                                return sortOnPagina(getArticleControllerWith(cm, list, opts), t, opts, "asc");
-                            }
-                        });
-                        sorters.push({
-                            text: "Online (Mo. -> So.)",
-                            callback: function (t, opts) {
-                                return sortOnTags(getArticleControllerWith(cm, list, opts), t, opts, "asc");
-                            }
-                        });
-                    }
-                    return sorters;
+            .then(function (list) {
+                let sorters = [];
+                if (cm.isArticleModuleEnabled()) {
+                    sorters.push({
+                        text: "Pagina (1 -> 99)",
+                        callback: function (t, opts) {
+                            return sortOnPagina(getArticleControllerWith(cm, list, opts), t, opts, "asc");
+                        }
+                    });
+                    sorters.push({
+                        text: "Online (Mo. -> So.)",
+                        callback: function (t, opts) {
+                            return sortOnTags(getArticleControllerWith(cm, list, opts), t, opts, "asc");
+                        }
+                    });
+                }
+                return sorters;
             });
     }
 });

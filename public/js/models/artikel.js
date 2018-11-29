@@ -74,8 +74,8 @@ class Artikel {
      */
     constructor(id, topic, pagina, from, layout, total, tags, visual, region, season, author, text, form, location) {
         this._id = id || uuid();
-        this._topic = topic;
-        this._pagina = pagina;
+        this._measures = topic;
+        this._description = pagina;
         this._from = from;
         this._layout = layout;
         this._total = total;
@@ -210,19 +210,19 @@ class Artikel {
     }
 
     get topic() {
-        return this._topic;
+        return this._measures;
     }
 
     set topic(value) {
-        this._topic = value;
+        this._measures = value;
     }
 
     get pagina() {
-        return this._pagina;
+        return this._description;
     }
 
     set pagina(value) {
-        this._pagina = value;
+        this._description = value;
     }
 
     get layout() {

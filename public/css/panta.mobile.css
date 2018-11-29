@@ -14,7 +14,7 @@ form label {
     font-weight: normal;
 }
 
-form .u-border:not(.padding-fix):not(select) {
+form .u-border:not(.rows-2):not(select) {
     height: 40px;
 }
 

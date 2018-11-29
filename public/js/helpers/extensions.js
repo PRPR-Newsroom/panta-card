@@ -99,9 +99,10 @@ HTMLDocument.prototype.newSingleLineInput = function (valueHolder,
     if (property !== null) {
         sli.bind(valueHolder.data, property);
     }
+    let noop = function() {};
     sli.onFocus(actionCallback, actionParameters)
         .onEnterEditing(actionCallback, actionParameters)
-        .onChange(actionCallback, actionParameters)
+        .onChange(readonly ? noop : actionCallback, actionParameters)
         .render();
     return sli;
 };
