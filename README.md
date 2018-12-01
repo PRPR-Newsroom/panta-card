@@ -1,6 +1,6 @@
 # Panta.Card Power-Up
 
-Diese Panta.Card Power-Up umfasst beide Module:
+Dieses Panta.Card Power-Up umfasst beide Module:
 
 * Panta.Artikel
 * Panta.Beteiligt

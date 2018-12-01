@@ -32,28 +32,24 @@ class ArtikelController {
      * Get the singleton controller
      *
      * @param trelloApi the Trello API
+     * @param windowManager
      * @returns {ArtikelController}
      */
-    static getInstance(trelloApi) {
-        ArtikelController.prepare(trelloApi);
-        return window.articleController;
-    }
-
-    /**
-     * Create a new instance if there's no controller registered
-     * @param trelloApi
-     */
-    static prepare(trelloApi) {
-        if (!window.articleController) {
-            window.articleController = new ArtikelController(document, trelloApi);
+    static getInstance(trelloApi, windowManager) {
+        if (!windowManager.hasOwnProperty('articleController')) {
+            windowManager.articleController = new ArtikelController(windowManager, trelloApi);
         }
+        return windowManager.articleController;
     }
 
-    constructor(document, trelloApi) {
+    constructor(windowManager, trelloApi) {
         /**
          * @type {HTMLDocument}
          */
-        this.document = document;
+        this.document = windowManager.document;
+
+        this._window = windowManager;
+
         this.trelloApi = trelloApi;
         /**
          * @type {Artikel}
@@ -152,9 +148,8 @@ class ArtikelController {
     /**
      * Fetch all articles from Trello
      */
-    fetchAll(onComplete) {
+    fetchAll() {
         let that = this;
-        let ac = ArtikelController.getInstance(this.trelloApi);
         return this.trelloApi.cards('id', 'closed')
             .filter(function (card) {
                 return !card.closed;
@@ -162,12 +157,11 @@ class ArtikelController {
             .each(function (card) {
                 return that.trelloApi.get(card.id, 'shared', ArtikelController.SHARED_NAME)
                     .then(function (json) {
-                        ac.insert(Artikel.create(json), card);
+                        that.insert(Artikel.create(json), card);
                     });
             })
             .then(function () {
-                console.log("Fetch complete: " + ac.size() + " article(s) to process");
-                // onComplete.call(that);
+                console.log("Fetch complete: " + that.size() + " article(s) to process");
             })
     }
 
@@ -223,7 +217,7 @@ class ArtikelController {
     }
 
     canUnblock() {
-        if (!window.pluginController.upgrading) {
+        if (!this._window.clientManager.getPluginController().upgrading) {
             this._artikelBinding.unblock();
         }
     }
@@ -250,19 +244,49 @@ class ArtikelController {
      */
     render(artikel) {
         this._entity = artikel ? artikel : Artikel.create();
-        this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._entity) : new ArtikelBinding(this.document, this._entity, this.onDataChanged, this).bind();
+        this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._entity) : new ArtikelBinding(this.document, this._entity, this.onEvent, this).bind();
     }
 
     /**
-     * Called when the panta.Artikel part has changed. This will persist the artikel and set inform the source element to apply the change definitively so after this the
+     * Called when there's an event happening on the target input element
+     *
+     * @param {PInput} source the source input element (s. PInputs)
+     * @param ctx dictionary object with 'context', 'event' (change, focus)
+     */
+    onEvent(source, ctx) {
+        let event = ctx.hasOwnProperty('event') ? ctx['event'] : 'change';
+        switch (event) {
+            case 'focus':
+                ctx['context']._onFocus.call(ctx['context'], source, ctx);
+                break;
+            default:
+                ctx['context']._onChange.call(ctx['context'], source, ctx);
+                break;
+        }
+    }
+
+    /**
+     * Handle focus events
+     *
+     * @param {PInput} source the source input element (s. PInputs)
+     * @param ctx dictionary object with 'context', 'event' (change, focus)
+     * @private
+     */
+    _onFocus(source, ctx) {
+        // nothing to do
+    }
+
+    /**
+     * Called when the panta.Artikel part has changed. This will persist the entity and set inform the source element to apply the change definitively so after this the
      * PInput's value is set and cannot be rolled back. This would also be a good place to make some input validation
      *
-     * @param source the source input element (s. PInputs)
-     * @param ctx dictionary object with 'context' and 'artikel'
+     * @param {PInput} source the source input element (s. PInputs)
+     * @param ctx dictionary object with 'context', 'event' (change, focus)
+     * @private
      */
-    onDataChanged(source, ctx) {
+    _onChange(source, ctx) {
         source.setProperty();
-        ctx['context'].persist.call(ctx['context'], source.getBinding());
+        this.persist.call(this, source.getBinding());
     }
 
     /**

@@ -232,8 +232,41 @@ class PInput {
     onChange(func, ctx) {
         let that = this;
         this._input.onchange = function() {
+            ctx['event'] = 'change';
             func(that, ctx);
         };
+        return this;
+    }
+
+    /**
+     * Configure onFocus handler when this input element receives the focus (e.g. by clicking inside the element)
+     * @param func
+     * @param ctx
+     * @returns {PInput}
+     */
+    onFocus(func, ctx) {
+        let that = this;
+        this._input.onfocus = function() {
+            ctx['event'] = 'focus';
+            func(that, ctx);
+        }
+        return this;
+    }
+
+    /**
+     * Configure editing event handler respectively it will set the onblur handler because we also want to know when 
+     * an element looses focus
+     * 
+     * @param func callback to be called when this element looses focus
+     * @param ctx the context to be passed along the callback
+     * @returns {PInput}
+     */
+    onEnterEditing(func, ctx) {
+        let that = this;
+        this._input.onblur = function() {
+            ctx['event'] = 'blur';
+            func(that, ctx);
+        }
         return this;
     }
 

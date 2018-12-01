@@ -39,34 +39,30 @@ class ModuleController {
     /**
      * Get the singleton instance
      * @param trelloApi
+     * @param windowManager
      * @returns {ModuleController}
      */
-    static getInstance(trelloApi) {
-        ModuleController.prepare(trelloApi);
-        return window.moduleController;
-    }
-
-    /**
-     * Prepare the module controller by registering a controller in the window scope if there's none yet
-     * @param trelloApi
-     */
-    static prepare(trelloApi) {
-        if (!window.moduleController) {
-            window.moduleController = new ModuleController(document, trelloApi);
+    static getInstance(trelloApi, windowManager) {
+        if (!windowManager.hasOwnProperty('moduleController')) {
+            windowManager.moduleController = new ModuleController(windowManager, trelloApi);
         }
+        return windowManager.moduleController;
     }
 
     /**
      * The module controller for this document.
      *
-     * @param document the document that this controller is attached to
+     * @param windowManager the window manager that gives access to the underlying document
      * @param trelloApi the trello API to persist/read the module config entities
      */
-    constructor(document, trelloApi) {
+    constructor(windowManager, trelloApi) {
         /**
          * @type {HTMLDocument}
          */
-        this.document = document;
+        this.document = windowManager.document;
+
+        this._window = windowManager;
+
         this.trelloApi = trelloApi;
 
         /**
@@ -122,7 +118,7 @@ class ModuleController {
      */
     render(entity) {
         this._entity = entity;
-        this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(entity) : new BeteiligtBinding(this.document, entity, this.onDataChanged, this).bind();
+        this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(entity) : new BeteiligtBinding(this.document, entity, this.onEvent, this).bind();
     }
 
     /**
@@ -147,9 +143,9 @@ class ModuleController {
         let tpf = this.getTotalProjectFee();
         let cod = this.getCapOnExpenses();
         // set all dynamic properties in all OtherBeteiligt sections
-        Object.values(this._entity.sections).filter(function(section) {
+        Object.values(this._entity.sections).filter(function (section) {
             return section instanceof OtherBeteiligt;
-        }).forEach(function(section) {
+        }).forEach(function (section) {
             section.project = tpf;
             section.capOnExpenses = cod;
         });
@@ -157,27 +153,68 @@ class ModuleController {
     }
 
     /**
-     * Called when the data in this module has changed
+     * Called when an event on the source element happened
      * @param source the source input element
-     * @param args a dictionary object with 'context', 'valueHolder' and the entity 'config'
+     * @param args a dictionary object with 'context', 'valueHolder', the entity 'config' and the 'event'
      */
-    onDataChanged(source, args) {
+    onEvent(source, args) {
+        let event = args.hasOwnProperty('event') ? args['event'] : 'change';
+        switch (event) {
+            case 'focus':
+                args['context']._onFocus.call(args['context'], source, args);
+                break;
+            case 'blur':
+                args['context']._onLooseFocus.call(args['context']);
+                break;
+            default:
+                args['context']._onChange.call(args['context'], source, args);
+                break;
+        }
+    }
+
+    /**
+     * Handle focus events
+     *
+     * @param {PInput} source the source input element
+     * @param args a dictionary object with 'context', 'valueHolder', the entity 'config' and the 'event'
+     * @private
+     */
+    _onFocus(source, args) {
+        this._beteiligtBinding.enterEditing();
+    }
+
+    /**
+     * Handle loose focus on elements. This will call leaveEditing on the BeteiligtBinding
+     * @private
+     */
+    _onLooseFocus() {
+        this._beteiligtBinding.leaveEditing();
+    }
+
+    /**
+     * Handle change events for the source element. This will persist the entity and sync the
+     * entity references
+     *
+     * @param source the source input element
+     * @param args a dictionary object with 'context', 'valueHolder', the entity 'config' and the 'event'
+     * @private
+     */
+    _onChange(source, args) {
         source.setProperty();
-        let ctx = args['context'];
         /**
          * @var ModuleConfig
          */
         let config = args['config'];
         // update the config entity with this section
-        config.setSection(args['valueHolder']['involved-in'], source.getBinding());
+        config.sections[args['valueHolder']['involved-in']] = source.getBinding();
         // update the involved part of the entity
         // todo do this differently
         switch (source.getBoundProperty()) {
             case "capOnExpenses":
-                ctx.setProperty('cap_on_expenses', source.getValue());
+                this.setProperty('cap_on_expenses', source.getValue());
                 break;
             default:
-                ctx.persist.call(ctx, args['config']);
+                this.persist.call(this, args['config']);
                 console.log("Stored: " + source.getBoundProperty() + " = " + source.getValue());
                 break;
         }
@@ -211,7 +248,7 @@ class ModuleController {
             .filter(function (item) {
                 return item instanceof OtherBeteiligt;
             })
-            .map(function(item) {
+            .map(function (item) {
                 return [isNaN(item.fee) ? 0 : item.fee, isNaN(item.charges) ? 0 : item.charges];
             })
             .flat().reduce(function (previousValue, currentValue) {
@@ -226,6 +263,15 @@ class ModuleController {
     getCapOnExpenses() {
         let coe = this.getProperty('cap_on_expenses');
         return isNaN(coe) ? 0.0 : parseFloat(coe);
+    }
+
+    /**
+     * Get the configuration by its card id
+     * @param card the trello card id which is used in {@code insert}
+     * @return {{}}
+     */
+    getByCard(card) {
+        return this._repository.get(card);
     }
 
     /**
@@ -249,7 +295,6 @@ class ModuleController {
      */
     fetchAll(onComplete) {
         let that = this;
-        let controller = ModuleController.getInstance(this.trelloApi);
         return this.trelloApi.cards('id', 'closed')
             .filter(function (card) {
                 return !card.closed;
@@ -257,11 +302,11 @@ class ModuleController {
             .each(function (card) {
                 return that.trelloApi.get(card.id, 'shared', ModuleController.SHARED_NAME)
                     .then(function (json) {
-                        controller.insert(ModuleConfig.create(json), card);
+                        that.insert(ModuleConfig.create(json), card);
                     });
             })
             .then(function () {
-                console.log("Fetch complete: " + controller.size() + " module config(s)");
+                console.log("Fetch complete: " + that.size() + " module config(s)");
                 onComplete.call(that);
             })
     }
@@ -271,6 +316,7 @@ class ModuleController {
      * @param trelloApi
      * @param entity
      * @param cardId optionally a card id if it should not be the current one
+     * @returns {Promise} the set promise request
      */
     persist(entity, cardId) {
         // https://trello.com/1/cards/eFYBmEia/pluginData
@@ -304,9 +350,18 @@ class ModuleController {
     readPropertyBag() {
         let that = this;
         this.trelloApi.get('board', 'shared', ModuleController.PROPERTY_BAG_NAME, {})
-            .then(function(bag) {
+            .then(function (bag) {
                 that._propertyBag = bag;
             });
+    }
+
+    /**
+     * Remove the property bag
+     *
+     * @returns {Promise} the promise of that delete
+     */
+    removePropertyBag() {
+        return this.trelloApi.remove('board', 'shared', ModuleController.PROPERTY_BAG_NAME)
     }
 
     /**

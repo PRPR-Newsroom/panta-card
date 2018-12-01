@@ -21,12 +21,14 @@ if (!isMobile) {
 
 let t = TrelloPowerUp.iframe();
 
-if (!window.pluginController) {
-    window.pluginController = new PluginController(t);
-    window.pluginController.init();
+let cm = null;
+if (!window.clientManager) {
+    cm = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION).init();
+    // initialize the plugin controller separately
+    cm.getPluginController().init();
+} else {
+    cm = window.clientManager;
 }
-
-ArtikelController.prepare(t);
 
 // specials
 function enableReset(t) {

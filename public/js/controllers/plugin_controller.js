@@ -16,7 +16,15 @@ class PluginController {
         return "panta.App";
     }
 
-    constructor(trelloApi) {
+    static getInstance(trelloApi, windowManager) {
+        if (!windowManager.hasOwnProperty('pluginController')) {
+            windowManager.pluginController = new PluginController(trelloApi, windowManager);
+        }
+        return windowManager.pluginController;
+    }
+
+    constructor(trelloApi, windowManager) {
+        this._window = windowManager;
         this._trelloApi = trelloApi;
         this._upgrading = false;
         this._upgrades = {
@@ -42,14 +50,22 @@ class PluginController {
         //                 }
         //             });
         //     })
-        that._trelloApi.get('board', 'shared', PluginController.SHARED_NAME, 1)
+        this._trelloApi.get('board', 'shared', PluginController.SHARED_NAME, 1)
             .then(function (data) {
                 if (PluginController.VERSION > data) {
                     that._upgrading = true;
                     that.update.call(that, data, PluginController.VERSION);
                 }
             });
+    }
 
+    /**
+     * Remove the plugin data for this board
+     *
+     * @returns {Promise} the promise of that delete request
+     */
+    remove() {
+        return this._trelloApi.remove('board', 'shared', PluginController.SHARED_NAME);
     }
 
     /**
@@ -76,12 +92,13 @@ class PluginController {
             console.log("Applying upgrade %d ...", oldVersion);
             that._upgrades[oldVersion].call(this).then(function () {
                 console.log("... upgrade %d is successfully applied", oldVersion);
-                that._trelloApi.set('board', 'shared', PluginController.SHARED_NAME, oldVersion + 1);
-                that._update(oldVersion + 1, targetVersion);
+                that._trelloApi.set('board', 'shared', PluginController.SHARED_NAME, oldVersion + 1).then(function () {
+                    that._update(oldVersion + 1, targetVersion);
+                });
             });
         } else {
             console.log("No upgrades pending");
-            setTimeout(function() {
+            setTimeout(function () {
                 that._upgrading = false;
             }, 2000);
 
@@ -94,8 +111,9 @@ class PluginController {
      */
     _upgrade_1() {
         let that = this;
-        let ac = ArtikelController.getInstance(this._trelloApi);
-        let mc = ModuleController.getInstance(this._trelloApi);
+
+        let ac = this._window.clientManager.getArticleController();
+        let mc = this._window.clientManager.getModuleController();
 
         return ac.fetchAll.call(ac).then(function () {
             that._upgradeAllArticleToModuleConfig.call(that, ac, mc)
@@ -137,17 +155,19 @@ class PluginController {
                     return previous;
                 }, ModuleConfig.create());
 
-                Promise.all([
-                    mc.persist.call(mc, mconfig, cardId)
-                        .then(function () {
-                                article.version = Artikel.VERSION;
-                                article.clearInvolved();
-                                return ac.persist.call(ac, article, cardId);
-                            }
-                        )
-                ]).then(function () {
-                    that._upgradeArticleToModuleConfig.call(that, ac, mc, articles, index + 1, cardId);
-                });
+                // persist the module config
+                mc.persist.call(mc, mconfig, cardId)
+                    .then(function () {
+                            article.version = Artikel.VERSION;
+                            article.clearInvolved();
+                            return ac.persist.call(ac, article, cardId);
+                        }
+                    )
+                    // and then proceed with the next article
+                    .then(function () {
+                        that._upgradeArticleToModuleConfig.call(that, ac, mc, articles, index + 1, cardId)
+                    });
+
             } else {
                 console.log("Skipping article because its at version %d", article.version);
                 this._upgradeArticleToModuleConfig.call(this, ac, mc, articles, index + 1, cardId);

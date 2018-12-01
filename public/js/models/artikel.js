@@ -87,6 +87,12 @@ class Artikel {
         this._location = location;
         this._author = author;
         this._text = text;
+        /**
+         *
+         * @type {{}}
+         * @private
+         * @deprecated this is replaced by module configurations
+         */
         this._involved = {};
         this._version = Artikel.VERSION;
         this.putInvolved('onsite', new OtherBeteiligt());
@@ -109,6 +115,8 @@ class Artikel {
      * Get the associated involved container
      * @param name
      * @returns {CommonBeteiligt}
+     * 
+     * @deprecated this is replaced by module configurations
      */
     getInvolvedFor(name) {
         return this._involved[name];
@@ -118,6 +126,7 @@ class Artikel {
      * Put a new involved container onto the model and associate it with the given name
      * @param name
      * @param involved
+     * @deprecated this is replaced by module configurations
      */
     putInvolved(name, involved) {
         this._involved[name] = involved;
@@ -126,6 +135,7 @@ class Artikel {
     /**
      * Get the number of involvements
      * @returns {number}
+     * @deprecated this is replaced by module configurations
      */
     getInvolvedCount() {
         let that = this;
@@ -140,6 +150,8 @@ class Artikel {
 
     /**
      * Clear all involved sections
+     *
+     * @deprecated this is replaced by module configurations
      */
     clearInvolved() {
         this._involved = {};

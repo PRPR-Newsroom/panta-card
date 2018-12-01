@@ -1,7 +1,7 @@
 /**
  * @type {ModuleController}
  */
-let moduleController = ModuleController.getInstance(t);
+let moduleController = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION).init().getModuleController();
 t.render(function () {
     // s. http://bluebirdjs.com/docs/api-reference.html
     // .each exists

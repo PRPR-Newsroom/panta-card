@@ -20,11 +20,14 @@ let app = express();
 app.use(compression());
 
 // your manifest must have appropriate CORS headers, you could also use '*'
-app.use(cors({ origin: 'https://trello.com' }));
+app.use(cors({origin: 'https://trello.com'}));
 
 // https://github.com/mingchen/node-nocache
-app.use('/manifest.json', nocache, function (request, response) {
-  response.sendFile(__dirname + '/public/manifest.json');
+app.use('/version.jsonp', nocache, function (request, response) {
+    response.header('Content-Type', 'application/javascript');
+    fs.readFile(__dirname + '/VERSION', 'utf-8', function (err, contents) {
+        response.send('var versionInfo={name:"' + contents + '"}');
+    });
 });
 
 // http://expressjs.com/en/starter/static-files.html
@@ -32,4 +35,5 @@ app.use(express.static('public'));
 
 let server = https.createServer(options, app);
 
+console.log("Server listening on port " + (process.env.SERVER_PORT || 8443));
 server.listen(process.env.SERVER_PORT || 8443);

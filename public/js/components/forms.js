@@ -60,4 +60,19 @@ class PModuleConfig {
         this.valueHolder['renderer'].call(this, this.valueHolder);
         this.valueHolder.tab.addClass("selected");
     }
+
+    /**
+     * Enter editing mode by setting the editing marker class on the tab
+     */
+    beginEditing() {
+        this.valueHolder.tab.addClass('editing');
+    }
+
+    /**
+     * End editing mode by removing the marker class on the tab
+     */
+    endEditing() {
+        this.valueHolder.tab.removeClass('editing');
+    }
+
 }

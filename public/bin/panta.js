@@ -194,215 +194,8 @@ $jscomp.polyfill("Object.entries", function(a) {
     return b;
   };
 }, "es8", "es3");
-$jscomp.makeIterator = function(a) {
-  $jscomp.initSymbolIterator();
-  var b = a[Symbol.iterator];
-  return b ? b.call(a) : $jscomp.arrayIterator(a);
-};
-$jscomp.FORCE_POLYFILL_PROMISE = !1;
-$jscomp.polyfill("Promise", function(a) {
-  function b() {
-    this.batch_ = null;
-  }
-  function c(a) {
-    return a instanceof e ? a : new e(function(b, c) {
-      b(a);
-    });
-  }
-  if (a && !$jscomp.FORCE_POLYFILL_PROMISE) {
-    return a;
-  }
-  b.prototype.asyncExecute = function(a) {
-    null == this.batch_ && (this.batch_ = [], this.asyncExecuteBatch_());
-    this.batch_.push(a);
-    return this;
-  };
-  b.prototype.asyncExecuteBatch_ = function() {
-    var a = this;
-    this.asyncExecuteFunction(function() {
-      a.executeBatch_();
-    });
-  };
-  var d = $jscomp.global.setTimeout;
-  b.prototype.asyncExecuteFunction = function(a) {
-    d(a, 0);
-  };
-  b.prototype.executeBatch_ = function() {
-    for (; this.batch_ && this.batch_.length;) {
-      var a = this.batch_;
-      this.batch_ = [];
-      for (var b = 0; b < a.length; ++b) {
-        var c = a[b];
-        a[b] = null;
-        try {
-          c();
-        } catch (l) {
-          this.asyncThrow_(l);
-        }
-      }
-    }
-    this.batch_ = null;
-  };
-  b.prototype.asyncThrow_ = function(a) {
-    this.asyncExecuteFunction(function() {
-      throw a;
-    });
-  };
-  var e = function(a) {
-    this.state_ = 0;
-    this.result_ = void 0;
-    this.onSettledCallbacks_ = [];
-    var b = this.createResolveAndReject_();
-    try {
-      a(b.resolve, b.reject);
-    } catch (k) {
-      b.reject(k);
-    }
-  };
-  e.prototype.createResolveAndReject_ = function() {
-    function a(a) {
-      return function(d) {
-        c || (c = !0, a.call(b, d));
-      };
-    }
-    var b = this, c = !1;
-    return {resolve:a(this.resolveTo_), reject:a(this.reject_)};
-  };
-  e.prototype.resolveTo_ = function(a) {
-    if (a === this) {
-      this.reject_(new TypeError("A Promise cannot resolve to itself"));
-    } else {
-      if (a instanceof e) {
-        this.settleSameAsPromise_(a);
-      } else {
-        a: {
-          switch(typeof a) {
-            case "object":
-              var b = null != a;
-              break a;
-            case "function":
-              b = !0;
-              break a;
-            default:
-              b = !1;
-          }
-        }
-        b ? this.resolveToNonPromiseObj_(a) : this.fulfill_(a);
-      }
-    }
-  };
-  e.prototype.resolveToNonPromiseObj_ = function(a) {
-    var b = void 0;
-    try {
-      b = a.then;
-    } catch (k) {
-      this.reject_(k);
-      return;
-    }
-    "function" == typeof b ? this.settleSameAsThenable_(b, a) : this.fulfill_(a);
-  };
-  e.prototype.reject_ = function(a) {
-    this.settle_(2, a);
-  };
-  e.prototype.fulfill_ = function(a) {
-    this.settle_(1, a);
-  };
-  e.prototype.settle_ = function(a, b) {
-    if (0 != this.state_) {
-      throw Error("Cannot settle(" + a + ", " + b + "): Promise already settled in state" + this.state_);
-    }
-    this.state_ = a;
-    this.result_ = b;
-    this.executeOnSettledCallbacks_();
-  };
-  e.prototype.executeOnSettledCallbacks_ = function() {
-    if (null != this.onSettledCallbacks_) {
-      for (var a = 0; a < this.onSettledCallbacks_.length; ++a) {
-        f.asyncExecute(this.onSettledCallbacks_[a]);
-      }
-      this.onSettledCallbacks_ = null;
-    }
-  };
-  var f = new b;
-  e.prototype.settleSameAsPromise_ = function(a) {
-    var b = this.createResolveAndReject_();
-    a.callWhenSettled_(b.resolve, b.reject);
-  };
-  e.prototype.settleSameAsThenable_ = function(a, b) {
-    var c = this.createResolveAndReject_();
-    try {
-      a.call(b, c.resolve, c.reject);
-    } catch (l) {
-      c.reject(l);
-    }
-  };
-  e.prototype.then = function(a, b) {
-    function c(a, b) {
-      return "function" == typeof a ? function(b) {
-        try {
-          d(a(b));
-        } catch (q) {
-          g(q);
-        }
-      } : b;
-    }
-    var d, g, f = new e(function(a, b) {
-      d = a;
-      g = b;
-    });
-    this.callWhenSettled_(c(a, d), c(b, g));
-    return f;
-  };
-  e.prototype.catch = function(a) {
-    return this.then(void 0, a);
-  };
-  e.prototype.callWhenSettled_ = function(a, b) {
-    function c() {
-      switch(d.state_) {
-        case 1:
-          a(d.result_);
-          break;
-        case 2:
-          b(d.result_);
-          break;
-        default:
-          throw Error("Unexpected state: " + d.state_);
-      }
-    }
-    var d = this;
-    null == this.onSettledCallbacks_ ? f.asyncExecute(c) : this.onSettledCallbacks_.push(c);
-  };
-  e.resolve = c;
-  e.reject = function(a) {
-    return new e(function(b, c) {
-      c(a);
-    });
-  };
-  e.race = function(a) {
-    return new e(function(b, d) {
-      for (var e = $jscomp.makeIterator(a), f = e.next(); !f.done; f = e.next()) {
-        c(f.value).callWhenSettled_(b, d);
-      }
-    });
-  };
-  e.all = function(a) {
-    var b = $jscomp.makeIterator(a), d = b.next();
-    return d.done ? c([]) : new e(function(a, e) {
-      function f(b) {
-        return function(c) {
-          g[b] = c;
-          h--;
-          0 == h && a(g);
-        };
-      }
-      var g = [], h = 0;
-      do {
-        g.push(void 0), h++, c(d.value).callWhenSettled_(f(g.length - 1), e), d = b.next();
-      } while (!d.done);
-    });
-  };
-  return e;
-}, "es6", "es3");
+var PLUGIN_CONFIGURATION = {"module.artikel.enabled":!0, "module.beteiligt.enabled":!0};
+// Input 1
 var Repository = function() {
   this._repository = {};
 };
@@ -427,7 +220,7 @@ Repository.prototype.get = function(a) {
 Repository.prototype.isNew = function(a) {
   return !0;
 };
-// Input 1
+// Input 2
 var PInput = function(a, b, c, d, e, f, g) {
   this._document = a;
   this._label = 0 === b.length ? "" : b;
@@ -537,6 +330,23 @@ PInput.prototype.addClass = function(a) {
 PInput.prototype.onChange = function(a, b) {
   var c = this;
   this._input.onchange = function() {
+    b.event = "change";
+    a(c, b);
+  };
+  return this;
+};
+PInput.prototype.onFocus = function(a, b) {
+  var c = this;
+  this._input.onfocus = function() {
+    b.event = "focus";
+    a(c, b);
+  };
+  return this;
+};
+PInput.prototype.onEnterEditing = function(a, b) {
+  var c = this;
+  this._input.onblur = function() {
+    b.event = "blur";
     a(c, b);
   };
   return this;
@@ -623,7 +433,7 @@ SingleSelectInput.prototype.doCustomization = function(a, b) {
   b.addClass("focused-fix");
   return PInput.prototype.doCustomization.call(this, a);
 };
-// Input 2
+// Input 3
 var PModuleConfig = function(a, b, c) {
   this.document = a;
   this.label = b;
@@ -654,7 +464,78 @@ PModuleConfig.prototype.activate = function() {
   this.valueHolder.renderer.call(this, this.valueHolder);
   this.valueHolder.tab.addClass("selected");
 };
-// Input 3
+PModuleConfig.prototype.beginEditing = function() {
+  this.valueHolder.tab.addClass("editing");
+};
+PModuleConfig.prototype.endEditing = function() {
+  this.valueHolder.tab.removeClass("editing");
+};
+// Input 4
+var ClientManager = function(a, b, c) {
+  this._window = a;
+  this._trello = b;
+  this._initialized = !1;
+  this._options = c || {};
+  this._keyBuffer = "";
+};
+ClientManager.VERSION = function() {
+  return 1;
+};
+ClientManager.getOrCreateClientManager = function(a, b, c) {
+  a.hasOwnProperty("clientManager") || (a.clientManager = new ClientManager(a, b, c), a.addEventListener("beforeunload", function(a) {
+    a.target.defaultView instanceof Window && a.target.defaultView.clientManager && (a.target.defaultView.clientManager.onUnload(), delete a.target.defaultView.clientManager);
+  }), a.addEventListener("keypress", function(b) {
+    console.log("Key event: " + b.key);
+    127 === b.keyCode ? a.clientManager.flushKeyBuffer.call(a.clientManager) : 13 === b.keyCode || 10 === b.keyCode ? "remove" === a.clientManager.readKeyBuffer.call(a.clientManager) && (a.clientManager.removePluginData.call(a.clientManager), a.clientManager.flushKeyBuffer.call(a.clientManager)) : a.clientManager.appendKeyBuffer.call(a.clientManager, b.key);
+  }));
+  return a.clientManager;
+};
+ClientManager.getInstance = function(a) {
+  return a.clientManager;
+};
+ClientManager.prototype.onUnload = function() {
+  delete this._articleController;
+  delete this._moduleController;
+  delete this._pluginController;
+};
+ClientManager.prototype.init = function() {
+  this._initialized || (this._articleController = ArtikelController.getInstance(this._trello, this._window), this._moduleController = ModuleController.getInstance(this._trello, this._window), this._pluginController = PluginController.getInstance(this._trello, this._window), this._initialized = !0);
+  return this;
+};
+ClientManager.prototype.readKeyBuffer = function() {
+  return this._keyBuffer;
+};
+ClientManager.prototype.flushKeyBuffer = function() {
+  this._keyBuffer = "";
+};
+ClientManager.prototype.appendKeyBuffer = function(a) {
+  this._keyBuffer += a;
+  console.log("Key Buffer: " + this._keyBuffer);
+};
+ClientManager.prototype.isArticleModuleEnabled = function() {
+  return this._options.hasOwnProperty("module.artikel.enabled") && !0 === this._options["module.artikel.enabled"];
+};
+ClientManager.prototype.isBeteiligtModuleEnabled = function() {
+  return this._options.hasOwnProperty("module.beteiligt.enabled") && !0 === this._options["module.beteiligt.enabled"];
+};
+ClientManager.prototype.getArticleController = function() {
+  return this._articleController;
+};
+ClientManager.prototype.getModuleController = function() {
+  return this._moduleController;
+};
+ClientManager.prototype.getPluginController = function() {
+  return this._pluginController;
+};
+ClientManager.prototype.removePluginData = function() {
+  var a = this;
+  this._pluginController.remove().then(function() {
+    a._moduleController.removePropertyBag().then(function() {
+      console.log("All board data cleared");
+    });
+  });
+};
+// Input 5
 var BeteiligtRepository = function() {
   Repository.call(this);
 };
@@ -665,9 +546,10 @@ BeteiligtRepository.prototype.isNew = function(a) {
     return b._repository[c].id === a.id;
   });
 };
-// Input 4
+// Input 6
 var ModuleController = function(a, b) {
-  this.document = a;
+  this.document = a.document;
+  this._window = a;
   this.trelloApi = b;
   this._beteiligtBinding = null;
   this._repository = new BeteiligtRepository;
@@ -676,12 +558,9 @@ var ModuleController = function(a, b) {
   this.setVersionInfo();
   this.readPropertyBag();
 };
-ModuleController.getInstance = function(a) {
-  ModuleController.prepare(a);
-  return window.moduleController;
-};
-ModuleController.prepare = function(a) {
-  window.moduleController || (window.moduleController = new ModuleController(document, a));
+ModuleController.getInstance = function(a, b) {
+  b.hasOwnProperty("moduleController") || (b.moduleController = new ModuleController(b, a));
+  return b.moduleController;
 };
 ModuleController.prototype.setVersionInfo = function() {
   this.trelloApi.set("card", "shared", ModuleController.SHARED_META, this.getVersionInfo());
@@ -691,7 +570,7 @@ ModuleController.prototype.getVersionInfo = function() {
 };
 ModuleController.prototype.render = function(a) {
   this._entity = a;
-  this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(a) : (new BeteiligtBinding(this.document, a, this.onDataChanged, this)).bind();
+  this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(a) : (new BeteiligtBinding(this.document, a, this.onEvent, this)).bind();
 };
 ModuleController.prototype.insert = function(a, b) {
   a && this._repository.isNew(a) ? this._repository.add(a) : a && this._repository.replace(a, b);
@@ -707,16 +586,33 @@ ModuleController.prototype.update = function() {
   });
   this._beteiligtBinding.update(this._entity);
 };
-ModuleController.prototype.onDataChanged = function(a, b) {
-  a.setProperty();
-  var c = b.context;
-  b.config.setSection(b.valueHolder["involved-in"], a.getBinding());
-  switch(a.getBoundProperty()) {
-    case "capOnExpenses":
-      c.setProperty("cap_on_expenses", a.getValue());
+ModuleController.prototype.onEvent = function(a, b) {
+  switch(b.hasOwnProperty("event") ? b.event : "change") {
+    case "focus":
+      b.context._onFocus.call(b.context, a, b);
+      break;
+    case "blur":
+      b.context._onLooseFocus.call(b.context);
       break;
     default:
-      c.persist.call(c, b.config), console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue());
+      b.context._onChange.call(b.context, a, b);
+  }
+};
+ModuleController.prototype._onFocus = function(a, b) {
+  this._beteiligtBinding.enterEditing();
+};
+ModuleController.prototype._onLooseFocus = function() {
+  this._beteiligtBinding.leaveEditing();
+};
+ModuleController.prototype._onChange = function(a, b) {
+  a.setProperty();
+  b.config.sections[b.valueHolder["involved-in"]] = a.getBinding();
+  switch(a.getBoundProperty()) {
+    case "capOnExpenses":
+      this.setProperty("cap_on_expenses", a.getValue());
+      break;
+    default:
+      this.persist.call(this, b.config), console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue());
   }
 };
 ModuleController.prototype.getTotalPrice = function() {
@@ -745,6 +641,9 @@ ModuleController.prototype.getCapOnExpenses = function() {
   var a = this.getProperty("cap_on_expenses");
   return isNaN(a) ? 0.0 : parseFloat(a);
 };
+ModuleController.prototype.getByCard = function(a) {
+  return this._repository.get(a);
+};
 ModuleController.prototype.list = function() {
   return this._repository.all();
 };
@@ -752,15 +651,15 @@ ModuleController.prototype.size = function() {
   return Object.keys(this.list()).length;
 };
 ModuleController.prototype.fetchAll = function(a) {
-  var b = this, c = ModuleController.getInstance(this.trelloApi);
+  var b = this;
   return this.trelloApi.cards("id", "closed").filter(function(a) {
     return !a.closed;
   }).each(function(a) {
-    return b.trelloApi.get(a.id, "shared", ModuleController.SHARED_NAME).then(function(b) {
-      c.insert(ModuleConfig.create(b), a);
+    return b.trelloApi.get(a.id, "shared", ModuleController.SHARED_NAME).then(function(c) {
+      b.insert(ModuleConfig.create(c), a);
     });
   }).then(function() {
-    console.log("Fetch complete: " + c.size() + " module config(s)");
+    console.log("Fetch complete: " + b.size() + " module config(s)");
     a.call(b);
   });
 };
@@ -780,6 +679,9 @@ ModuleController.prototype.readPropertyBag = function() {
     a._propertyBag = b;
   });
 };
+ModuleController.prototype.removePropertyBag = function() {
+  return this.trelloApi.remove("board", "shared", ModuleController.PROPERTY_BAG_NAME);
+};
 ModuleController.prototype.clear = function() {
   Object.keys(this._repository.all()).forEach(function(a) {
     this.trelloApi.remove(a, "shared", ModuleController.SHARED_NAME);
@@ -795,7 +697,7 @@ $jscomp.global.Object.defineProperties(ModuleController, {VERSION:{configurable:
 }}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Beteiligt.PropertyBag";
 }}});
-// Input 5
+// Input 7
 var ArtikelRepository = function() {
   Repository.call(this);
 };
@@ -809,20 +711,18 @@ ArtikelRepository.prototype.isNew = function(a) {
     return b._repository[c].id === a.id;
   });
 };
-// Input 6
+// Input 8
 var ArtikelController = function(a, b) {
-  this.document = a;
+  this.document = a.document;
+  this._window = a;
   this.trelloApi = b;
   this._beteiligtBinding = this._artikelBinding = this._entity = null;
   this._repository = new ArtikelRepository;
   this.setVersionInfo();
 };
-ArtikelController.getInstance = function(a) {
-  ArtikelController.prepare(a);
-  return window.articleController;
-};
-ArtikelController.prepare = function(a) {
-  window.articleController || (window.articleController = new ArtikelController(document, a));
+ArtikelController.getInstance = function(a, b) {
+  b.hasOwnProperty("articleController") || (b.articleController = new ArtikelController(b, a));
+  return b.articleController;
 };
 ArtikelController.prototype.setVersionInfo = function() {
   this.trelloApi.set("card", "shared", ArtikelController.SHARED_META, this.getVersionInfo());
@@ -845,16 +745,16 @@ ArtikelController.prototype.getRegionMapping = function(a) {
 ArtikelController.prototype.getTagMapping = function(a) {
   return ArtikelBinding.getTagMapping(a);
 };
-ArtikelController.prototype.fetchAll = function(a) {
-  var b = this, c = ArtikelController.getInstance(this.trelloApi);
+ArtikelController.prototype.fetchAll = function() {
+  var a = this;
   return this.trelloApi.cards("id", "closed").filter(function(a) {
     return !a.closed;
-  }).each(function(a) {
-    return b.trelloApi.get(a.id, "shared", ArtikelController.SHARED_NAME).then(function(b) {
-      c.insert(Artikel.create(b), a);
+  }).each(function(b) {
+    return a.trelloApi.get(b.id, "shared", ArtikelController.SHARED_NAME).then(function(c) {
+      a.insert(Artikel.create(c), b);
     });
   }).then(function() {
-    console.log("Fetch complete: " + c.size() + " article(s) to process");
+    console.log("Fetch complete: " + a.size() + " article(s) to process");
   });
 };
 ArtikelController.prototype.list = function() {
@@ -878,7 +778,7 @@ ArtikelController.prototype.blockUi = function() {
   this._artikelBinding.blockUi();
 };
 ArtikelController.prototype.canUnblock = function() {
-  window.pluginController.upgrading || this._artikelBinding.unblock();
+  this._window.clientManager.getPluginController().upgrading || this._artikelBinding.unblock();
 };
 ArtikelController.prototype.getTotalPageCount = function() {
   return Object.values(this._repository.all()).map(function(a, b) {
@@ -890,11 +790,22 @@ ArtikelController.prototype.getTotalPageCount = function() {
 };
 ArtikelController.prototype.render = function(a) {
   this._entity = a ? a : Artikel.create();
-  this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._entity) : (new ArtikelBinding(this.document, this._entity, this.onDataChanged, this)).bind();
+  this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._entity) : (new ArtikelBinding(this.document, this._entity, this.onEvent, this)).bind();
 };
-ArtikelController.prototype.onDataChanged = function(a, b) {
+ArtikelController.prototype.onEvent = function(a, b) {
+  switch(b.hasOwnProperty("event") ? b.event : "change") {
+    case "focus":
+      b.context._onFocus.call(b.context, a, b);
+      break;
+    default:
+      b.context._onChange.call(b.context, a, b);
+  }
+};
+ArtikelController.prototype._onFocus = function(a, b) {
+};
+ArtikelController.prototype._onChange = function(a, b) {
   a.setProperty();
-  b.context.persist.call(b.context, a.getBinding());
+  this.persist.call(this, a.getBinding());
 };
 ArtikelController.prototype.persist = function(a, b) {
   return this.trelloApi.set(b || "card", "shared", ArtikelController.SHARED_NAME, a);
@@ -906,7 +817,7 @@ $jscomp.global.Object.defineProperties(ArtikelController, {VERSION:{configurable
 }}, SHARED_META:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Meta";
 }}});
-// Input 7
+// Input 9
 var ArtikelBinding = function(a, b, c, d) {
   this.document = a;
   this._action = c;
@@ -991,22 +902,30 @@ ArtikelBinding.prototype.blockUi = function() {
   }
 };
 ArtikelBinding.prototype.unblock = function() {
-  this.document.getElementsByClassName("overlay").forEach(null, function(a) {
+  this.document.getElementsByClassName("overlay").forEach(function(a) {
     a.parentNode.removeChild(a);
   });
   this._autoUpdater && clearInterval(this._autoUpdater);
 };
-// Input 8
-var PluginController = function(a) {
+// Input 10
+var PluginController = function(a, b) {
+  this._window = b;
   this._trelloApi = a;
   this._upgrading = !1;
   this._upgrades = {1:this._upgrade_1};
 };
+PluginController.getInstance = function(a, b) {
+  b.hasOwnProperty("pluginController") || (b.pluginController = new PluginController(a, b));
+  return b.pluginController;
+};
 PluginController.prototype.init = function() {
   var a = this;
-  a._trelloApi.get("board", "shared", PluginController.SHARED_NAME, 1).then(function(b) {
+  this._trelloApi.get("board", "shared", PluginController.SHARED_NAME, 1).then(function(b) {
     PluginController.VERSION > b && (a._upgrading = !0, a.update.call(a, b, PluginController.VERSION));
   });
+};
+PluginController.prototype.remove = function() {
+  return this._trelloApi.remove("board", "shared", PluginController.SHARED_NAME);
 };
 PluginController.prototype.update = function(a, b) {
   this._update(a, b);
@@ -1015,14 +934,15 @@ PluginController.prototype._update = function(a, b) {
   var c = this;
   a < b ? (console.log("Applying upgrade %d ...", a), c._upgrades[a].call(this).then(function() {
     console.log("... upgrade %d is successfully applied", a);
-    c._trelloApi.set("board", "shared", PluginController.SHARED_NAME, a + 1);
-    c._update(a + 1, b);
+    c._trelloApi.set("board", "shared", PluginController.SHARED_NAME, a + 1).then(function() {
+      c._update(a + 1, b);
+    });
   })) : (console.log("No upgrades pending"), setTimeout(function() {
     c._upgrading = !1;
   }, 2000));
 };
 PluginController.prototype._upgrade_1 = function() {
-  var a = this, b = ArtikelController.getInstance(this._trelloApi), c = ModuleController.getInstance(this._trelloApi);
+  var a = this, b = this._window.clientManager.getArticleController(), c = this._window.clientManager.getModuleController();
   return b.fetchAll.call(b).then(function() {
     a._upgradeAllArticleToModuleConfig.call(a, b, c);
   }).then(function() {
@@ -1038,11 +958,11 @@ PluginController.prototype._upgradeArticleToModuleConfig = function(a, b, c, d) 
     1 === h.version ? (f = Object.entries(h.involved).reduce(function(a, b) {
       a.sections[b[0]] = b[1];
       return a;
-    }, ModuleConfig.create()), Promise.all([b.persist.call(b, f, g).then(function() {
+    }, ModuleConfig.create()), b.persist.call(b, f, g).then(function() {
       h.version = Artikel.VERSION;
       h.clearInvolved();
       return a.persist.call(a, h, g);
-    })]).then(function() {
+    }).then(function() {
       e._upgradeArticleToModuleConfig.call(e, a, b, c, d + 1, g);
     })) : (console.log("Skipping article because its at version %d", h.version), this._upgradeArticleToModuleConfig.call(this, a, b, c, d + 1, g));
   } else {
@@ -1057,7 +977,7 @@ $jscomp.global.Object.defineProperties(PluginController, {VERSION:{configurable:
 }}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.App";
 }}});
-// Input 9
+// Input 11
 var BeteiligtBinding = function(a, b, c, d) {
   this.document = a;
   this._config = b;
@@ -1106,7 +1026,7 @@ BeteiligtBinding.prototype.onRegularLayout = function(a, b) {
   this.document.newSingleLineInput(b, ".pa.duedate", "duedate", "Deadline", a, this._action, "bestimmen\u2026", "text", !1);
   this.document.newSingleLineInput(b, ".pa.fee", "fee", "Honorar", a, this._action, "Betrag\u2026", "money", !1);
   this.document.newSingleLineInput(b, ".pa.charges", "charges", "Spesen", a, this._action, "Betrag\u2026", "money", !1);
-  this.document.newSingleLineInput(b, ".pa.project", "project", "Total Projekt", a, this._action, "Betrag\u2026", "money", !0);
+  this.document.newSingleLineInput(b, ".pa.project", "project", "Total Projekt", a, this._action, "Betrag\u2026", "money", !0).addClass("bold");
   this.document.newSingleLineInput(b, ".pa.cap_on_expenses", "capOnExpenses", "Kostendach", a, this._action, "Betrag\u2026", "money", !1);
 };
 BeteiligtBinding.prototype.onAdLayout = function(a, b) {
@@ -1127,16 +1047,22 @@ BeteiligtBinding.prototype.onAdLayout = function(a, b) {
 BeteiligtBinding.prototype._switchContent = function(a, b) {
   var c = this.document.getElementById("pa.tab.content");
   c.removeChildren();
-  this._onsite.valueHolder.tab.removeClass("selected");
-  this._text.valueHolder.tab.removeClass("selected");
-  this._photo.valueHolder.tab.removeClass("selected");
-  this._video.valueHolder.tab.removeClass("selected");
-  this._illu.valueHolder.tab.removeClass("selected");
-  this._ad.valueHolder.tab.removeClass("selected");
+  this._onsite.valueHolder.tab.removeClasses(["selected", "editing"]);
+  this._text.valueHolder.tab.removeClasses(["selected", "editing"]);
+  this._photo.valueHolder.tab.removeClasses(["selected", "editing"]);
+  this._video.valueHolder.tab.removeClasses(["selected", "editing"]);
+  this._illu.valueHolder.tab.removeClasses(["selected", "editing"]);
+  this._ad.valueHolder.tab.removeClasses(["selected", "editing"]);
   c.appendChild(b);
   this._activated = a;
 };
-// Input 10
+BeteiligtBinding.prototype.enterEditing = function() {
+  this._activated.beginEditing();
+};
+BeteiligtBinding.prototype.leaveEditing = function() {
+  this._activated.endEditing();
+};
+// Input 12
 var ModuleConfig = function(a, b) {
   this._id = a || uuid();
   this._sections = b;
@@ -1146,8 +1072,10 @@ ModuleConfig.create = function(a) {
   var b = JsonSerialization.getProperty(a, "sections") || {};
   return new ModuleConfig(JsonSerialization.getProperty(a, "id"), {onsite:OtherBeteiligt.create(b.onsite), text:OtherBeteiligt.create(b.text), photo:OtherBeteiligt.create(b.photo), video:OtherBeteiligt.create(b.video), illu:OtherBeteiligt.create(b.illu), ad:AdBeteiligt.create(b.ad)});
 };
-ModuleConfig.prototype.setSection = function(a, b) {
-  this._sections[a] = b;
+ModuleConfig.prototype.getContentCount = function() {
+  return Object.values(this.sections).filter(function(a) {
+    return !a.isEmpty();
+  }).length;
 };
 $jscomp.global.Object.defineProperties(ModuleConfig.prototype, {sections:{configurable:!0, enumerable:!0, get:function() {
   return this._sections;
@@ -1287,8 +1215,8 @@ $jscomp.global.Object.defineProperties(AdBeteiligt.prototype, {format:{configura
 }, set:function(a) {
   this._total = a;
 }}});
-// Input 11
-var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, r, n, p) {
+// Input 13
+var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, n, p, q) {
   this._id = a || uuid();
   this._topic = b;
   this._pagina = c;
@@ -1296,13 +1224,13 @@ var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, r, n, p) {
   this._layout = e;
   this._total = f;
   this._tags = g;
-  this._form = n;
+  this._form = p;
   this._visual = h;
   this._region = k;
   this._season = l;
-  this._location = p;
+  this._location = q;
   this._author = m;
-  this._text = r;
+  this._text = n;
   this._involved = {};
   this._version = Artikel.VERSION;
   this.putInvolved("onsite", new OtherBeteiligt);
@@ -1431,9 +1359,15 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, 
 $jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 2;
 }}});
-// Input 12
+// Input 14
 HTMLElement.prototype.addClass = function(a) {
   -1 === this.className.split(" ").indexOf(a) && (this.className += " " + a, this.className = this.className.trim());
+};
+HTMLElement.prototype.removeClasses = function(a) {
+  var b = this;
+  a.forEach(function(a, d) {
+    b.removeClass(a);
+  });
 };
 HTMLElement.prototype.removeClass = function(a) {
   var b = this.className.split(" ");
@@ -1454,9 +1388,9 @@ HTMLElement.prototype.setEventListener = function(a, b) {
   this.removeEventListener(a, b);
   this.addEventListener(a, b);
 };
-HTMLCollection.prototype.forEach = function(a, b) {
-  for (a = 0; a < this.length; a++) {
-    b(this[a]);
+HTMLCollection.prototype.forEach = function(a) {
+  for (var b = 0; b < this.length; b++) {
+    a(this[b]);
   }
 };
 function uuid() {
@@ -1468,18 +1402,18 @@ function uuid() {
   });
 }
 HTMLDocument.prototype.newMultiLineInput = function(a, b, c, d, e, f, g, h) {
-  return (new MultiLineInput(this, d, null, b, void 0 === h ? "" : h, void 0 === g ? 2 : g, !1)).bind(a.data, c).onChange(f, e).render();
+  return (new MultiLineInput(this, d, null, b, void 0 === h ? "" : h, void 0 === g ? 2 : g, !1)).bind(a.data, c).onFocus(f, e).onEnterEditing(f, e).onChange(f, e).render();
 };
 HTMLDocument.prototype.newSingleLineInput = function(a, b, c, d, e, f, g, h, k) {
   h = void 0 === h ? "text" : h;
   b = new SingleLineInput(this, d, null, b, void 0 === g ? "" : g, void 0 === k ? !1 : k);
   b.propertyType = h || "text";
   null !== c && b.bind(a.data, c);
-  b.onChange(f, e).render();
+  b.onFocus(f, e).onEnterEditing(f, e).onChange(f, e).render();
   return b;
 };
 HTMLDocument.prototype.newSingleSelect = function(a, b, c, d, e, f, g, h, k) {
-  var l = (new SingleSelectInput(this, d, null, b, void 0 === g ? "" : g)).bind(a.data, c).onChange(f, e);
+  var l = (new SingleSelectInput(this, d, null, b, void 0 === g ? "" : g)).bind(a.data, c).onFocus(f, e).onEnterEditing(f, e).onChange(f, e);
   k.forEach(function(a, b) {
     l.addOption(a.value, a.text);
   });
@@ -1493,10 +1427,10 @@ function newOption(a, b) {
   return {value:a, text:b};
 }
 ;
-// Input 13
+// Input 15
 var template_regular = '<div id="template">    <div class="row">        <div class="col-6">            <div class="row">                <div class="col-12 less-padding-right">                    <div class="pa.name"></div>                </div>                <div class="col-12 less-padding-right">                    <div class="pa.social"></div>                </div>                <div class="col-12 less-padding-right">                    <div class="pa.address"></div>                </div>            </div>        </div>        <div class="col-6">            <div class="row">                <div class="col-12 less-padding-left before-last-row">                    <div class="pa.notes"></div>                </div>            </div>            <div class="row">                <div class="col-12 less-padding-left align-bottom">                    <div class="pa.duedate"></div>                </div>            </div>        </div>    </div>    <div class="row">        <div class="col-12">            <div class="row">                <div class="col-3 less-padding-right">                    <div class="pa.fee"></div>                </div>                <div class="col-3 less-padding">                    <div class="pa.charges"></div>                </div>                <div class="col-3 less-padding">                    <div class="pa.project"></div>                </div>                <div class="col-3 less-padding-left">                    <div class="pa.cap_on_expenses"></div>                </div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-right">                <div class="pa.notes"></div>            </div>        </div>        <div class="row before-last-row">            <div class="col-6 less-padding-right">                <div class="pa.format"></div>            </div>            <div class="col-6 less-padding">                <div class="pa.placement"></div>            </div>        </div>        <div class="row align-bottom">            <div class="col-6 less-padding-right">                <div class="pa.price"></div>            </div>            <div class="col-6 less-padding">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-left">                <div class="pa.name"></div>            </div>            <div class="col-12 less-padding-left">                <div class="pa.social"></div>            </div>            <div class="col-12 less-padding-left">                <div class="pa.address"></div>            </div>        </div>    </div></div>';
-// Input 14
+// Input 16
 var JsonSerialization = function() {
 };
 JsonSerialization.prototype.serialize = function(a) {

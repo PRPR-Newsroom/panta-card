@@ -51,12 +51,18 @@ form .u-border.no-resize {
     font-size: 14px;
 }
 
-.tab.content span {
+/* Mark with 'hasContent' also when the tab is selected. When the user edits the tab then it will apply the 'editing' state */
+.tab.content span, .tab.content.selected span {
     border-bottom: 0.2em solid #F68712;
 }
 
 .tab.selected span {
     background-color: white;
+    border-bottom: 0.2em solid transparent;
+}
+
+/* When there's content but the user is editing the content then prefer 'editing' state over 'hasContent' */
+.tab.selected.editing span, .tab.selected.editing.content span {
     border-bottom: 0.2em solid #41B23B;
 }
 
