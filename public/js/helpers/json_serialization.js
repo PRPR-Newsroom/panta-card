@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * Serializes/Deserializes the entities using a JSON representation
  */
