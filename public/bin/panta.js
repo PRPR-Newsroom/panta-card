@@ -1,10 +1,6 @@
 // Input 0
 var $jscomp = $jscomp || {};
 $jscomp.scope = {};
-$jscomp.getGlobal = function(a) {
-  return "undefined" != typeof window && window === a ? a : "undefined" != typeof global && null != global ? global : a;
-};
-$jscomp.global = $jscomp.getGlobal(this);
 $jscomp.ASSUME_ES5 = !1;
 $jscomp.ASSUME_NO_NATIVE_MAP = !1;
 $jscomp.ASSUME_NO_NATIVE_SET = !1;
@@ -49,6 +45,10 @@ $jscomp.inherits = function(a, b) {
   }
   a.superClass_ = b.prototype;
 };
+$jscomp.getGlobal = function(a) {
+  return "undefined" != typeof window && window === a ? a : "undefined" != typeof global && null != global ? global : a;
+};
+$jscomp.global = $jscomp.getGlobal(this);
 $jscomp.defineProperty = $jscomp.ASSUME_ES5 || "function" == typeof Object.defineProperties ? Object.defineProperty : function(a, b, c) {
   a != Array.prototype && a != Object.prototype && (a[b] = c.value);
 };
@@ -94,6 +94,22 @@ $jscomp.iteratorPrototype = function(a) {
     return this;
   };
   return a;
+};
+$jscomp.makeIterator = function(a) {
+  $jscomp.initSymbolIterator();
+  $jscomp.initSymbol();
+  $jscomp.initSymbolIterator();
+  var b = a[Symbol.iterator];
+  return b ? b.call(a) : $jscomp.arrayIterator(a);
+};
+$jscomp.arrayFromIterator = function(a) {
+  for (var b, c = []; !(b = a.next()).done;) {
+    c.push(b.value);
+  }
+  return c;
+};
+$jscomp.arrayFromIterable = function(a) {
+  return a instanceof Array ? a : $jscomp.arrayFromIterator($jscomp.makeIterator(a));
 };
 $jscomp.iteratorFromArray = function(a, b) {
   $jscomp.initSymbolIterator();
@@ -194,8 +210,29 @@ $jscomp.polyfill("Object.entries", function(a) {
     return b;
   };
 }, "es8", "es3");
-var PLUGIN_CONFIGURATION = {"module.artikel.enabled":!0, "module.beteiligt.enabled":!0};
+var DI = function() {
+};
+DI.getInstance = function() {
+  null === DI.INSTANCE && this.create();
+  return DI.INSTANCE;
+};
+DI.create = function(a) {
+  if (DI.INSTANCE) {
+    return DI.INSTANCE;
+  }
+  a && a.hasOwnProperty("implementation") ? DI.INSTANCE = a.implementation() : (a = function(a) {
+    DI.apply(this, arguments);
+  }, $jscomp.inherits(a, DI), a.INSTANCE = DI.INSTANCE, a.getInstance = DI.getInstance, a.prototype.getArticleRepository = function() {
+    return new ArtikelRepository;
+  }, DI.INSTANCE = new a);
+  return DI.INSTANCE;
+};
+DI.prototype.getArticleRepository = function() {
+};
+DI.INSTANCE = null;
 // Input 1
+var PLUGIN_CONFIGURATION = {"module.artikel.enabled":!0, "module.beteiligt.enabled":!0};
+// Input 2
 var Repository = function() {
   this._repository = {};
 };
@@ -218,9 +255,8 @@ Repository.prototype.get = function(a) {
   return this._repository[a.id];
 };
 Repository.prototype.isNew = function(a) {
-  return !0;
 };
-// Input 2
+// Input 3
 var PInput = function(a, b, c, d, e, f, g) {
   this._document = a;
   this._label = 0 === b.length ? "" : b;
@@ -433,7 +469,7 @@ SingleSelectInput.prototype.doCustomization = function(a, b) {
   b.addClass("focused-fix");
   return PInput.prototype.doCustomization.call(this, a);
 };
-// Input 3
+// Input 4
 var PModuleConfig = function(a, b, c) {
   this.document = a;
   this.label = b;
@@ -470,7 +506,7 @@ PModuleConfig.prototype.beginEditing = function() {
 PModuleConfig.prototype.endEditing = function() {
   this.valueHolder.tab.removeClass("editing");
 };
-// Input 4
+// Input 5
 var ClientManager = function(a, b, c) {
   this._window = a;
   this._trello = b;
@@ -535,7 +571,7 @@ ClientManager.prototype.removePluginData = function() {
     });
   });
 };
-// Input 5
+// Input 6
 var BeteiligtRepository = function() {
   Repository.call(this);
 };
@@ -546,7 +582,7 @@ BeteiligtRepository.prototype.isNew = function(a) {
     return b._repository[c].id === a.id;
   });
 };
-// Input 6
+// Input 7
 var ModuleController = function(a, b) {
   this.document = a.document;
   this._window = a;
@@ -697,7 +733,7 @@ $jscomp.global.Object.defineProperties(ModuleController, {VERSION:{configurable:
 }}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Beteiligt.PropertyBag";
 }}});
-// Input 7
+// Input 8
 var ArtikelRepository = function() {
   Repository.call(this);
 };
@@ -711,17 +747,17 @@ ArtikelRepository.prototype.isNew = function(a) {
     return b._repository[c].id === a.id;
   });
 };
-// Input 8
-var ArtikelController = function(a, b) {
+// Input 9
+var ArtikelController = function(a, b, c) {
   this.document = a.document;
   this._window = a;
   this.trelloApi = b;
   this._beteiligtBinding = this._artikelBinding = this._entity = null;
-  this._repository = new ArtikelRepository;
+  this._repository = c;
   this.setVersionInfo();
 };
 ArtikelController.getInstance = function(a, b) {
-  b.hasOwnProperty("articleController") || (b.articleController = new ArtikelController(b, a));
+  b.hasOwnProperty("articleController") || (b.articleController = new ArtikelController(b, a, DI.getInstance().getArticleRepository()));
   return b.articleController;
 };
 ArtikelController.prototype.setVersionInfo = function() {
@@ -817,7 +853,7 @@ $jscomp.global.Object.defineProperties(ArtikelController, {VERSION:{configurable
 }}, SHARED_META:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Meta";
 }}});
-// Input 9
+// Input 10
 var ArtikelBinding = function(a, b, c, d) {
   this.document = a;
   this._action = c;
@@ -907,7 +943,7 @@ ArtikelBinding.prototype.unblock = function() {
   });
   this._autoUpdater && clearInterval(this._autoUpdater);
 };
-// Input 10
+// Input 11
 var PluginController = function(a, b) {
   this._window = b;
   this._trelloApi = a;
@@ -977,7 +1013,7 @@ $jscomp.global.Object.defineProperties(PluginController, {VERSION:{configurable:
 }}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.App";
 }}});
-// Input 11
+// Input 12
 var BeteiligtBinding = function(a, b, c, d) {
   this.document = a;
   this._config = b;
@@ -1062,7 +1098,7 @@ BeteiligtBinding.prototype.enterEditing = function() {
 BeteiligtBinding.prototype.leaveEditing = function() {
   this._activated.endEditing();
 };
-// Input 12
+// Input 13
 var ModuleConfig = function(a, b) {
   this._id = a || uuid();
   this._sections = b;
@@ -1215,7 +1251,7 @@ $jscomp.global.Object.defineProperties(AdBeteiligt.prototype, {format:{configura
 }, set:function(a) {
   this._total = a;
 }}});
-// Input 13
+// Input 14
 var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, n, p, q) {
   this._id = a || uuid();
   this._topic = b;
@@ -1359,9 +1395,10 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, 
 $jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 2;
 }}});
-// Input 14
+// Input 15
 HTMLElement.prototype.addClass = function(a) {
   -1 === this.className.split(" ").indexOf(a) && (this.className += " " + a, this.className = this.className.trim());
+  return this;
 };
 HTMLElement.prototype.removeClasses = function(a) {
   var b = this;
@@ -1378,6 +1415,7 @@ HTMLElement.prototype.removeClass = function(a) {
     });
     this.className = c.trim();
   }
+  return this;
 };
 HTMLElement.prototype.removeChildren = function() {
   for (; this.firstChild;) {
@@ -1420,17 +1458,17 @@ HTMLDocument.prototype.newSingleSelect = function(a, b, c, d, e, f, g, h, k) {
   l.setEmpty(h.value, h.text);
   return l.render();
 };
-function isBlank(a) {
+Window.prototype.isBlank = function(a) {
   return !a || 0 === (a + "").trim().length;
-}
+};
 function newOption(a, b) {
   return {value:a, text:b};
 }
 ;
-// Input 15
+// Input 16
 var template_regular = '<div id="template">    <div class="row">        <div class="col-6">            <div class="row">                <div class="col-12 less-padding-right">                    <div class="pa.name"></div>                </div>                <div class="col-12 less-padding-right">                    <div class="pa.social"></div>                </div>                <div class="col-12 less-padding-right">                    <div class="pa.address"></div>                </div>            </div>        </div>        <div class="col-6">            <div class="row">                <div class="col-12 less-padding-left before-last-row">                    <div class="pa.notes"></div>                </div>            </div>            <div class="row">                <div class="col-12 less-padding-left align-bottom">                    <div class="pa.duedate"></div>                </div>            </div>        </div>    </div>    <div class="row">        <div class="col-12">            <div class="row">                <div class="col-3 less-padding-right">                    <div class="pa.fee"></div>                </div>                <div class="col-3 less-padding">                    <div class="pa.charges"></div>                </div>                <div class="col-3 less-padding">                    <div class="pa.project"></div>                </div>                <div class="col-3 less-padding-left">                    <div class="pa.cap_on_expenses"></div>                </div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-right">                <div class="pa.notes"></div>            </div>        </div>        <div class="row before-last-row">            <div class="col-6 less-padding-right">                <div class="pa.format"></div>            </div>            <div class="col-6 less-padding">                <div class="pa.placement"></div>            </div>        </div>        <div class="row align-bottom">            <div class="col-6 less-padding-right">                <div class="pa.price"></div>            </div>            <div class="col-6 less-padding">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-left">                <div class="pa.name"></div>            </div>            <div class="col-12 less-padding-left">                <div class="pa.social"></div>            </div>            <div class="col-12 less-padding-left">                <div class="pa.address"></div>            </div>        </div>    </div></div>';
-// Input 16
+// Input 17
 var JsonSerialization = function() {
 };
 JsonSerialization.prototype.serialize = function(a) {

@@ -18,7 +18,7 @@ class Repository {
     /**
      * Add the entity for the given card
      * @param entity
-     * @param card
+     * @param {{id: number}} card
      */
     add(entity, card) {
         this._repository[card.id] = entity;
@@ -27,7 +27,7 @@ class Repository {
     /**
      * Replace the entity in the given card
      * @param entity
-     * @param card
+     * @param {{id: number}} card
      */
     replace(entity, card) {
         this._repository[card.id] = entity;
@@ -46,7 +46,7 @@ class Repository {
     /**
      *
      * @param card
-     * @returns {{}}
+     * @returns {{id: number}}
      */
     get(card) {
         return this._repository[card.id];
@@ -59,7 +59,5 @@ class Repository {
      *
      * @abstract
      */
-    isNew(entity) {
-        return true;
-    }
+    isNew(entity) {}
 }
