@@ -37,12 +37,15 @@ class ArtikelController {
      */
     static getInstance(trelloApi, windowManager) {
         if (!windowManager.hasOwnProperty('articleController')) {
-            windowManager.articleController = new ArtikelController(windowManager, trelloApi);
+            windowManager.articleController = new ArtikelController(windowManager, trelloApi, DI.getInstance().getArticleRepository());
         }
         return windowManager.articleController;
     }
 
-    constructor(windowManager, trelloApi) {
+    /**
+     * @param {Repository} repository
+     */
+    constructor(windowManager, trelloApi, repository) {
         /**
          * @type {HTMLDocument}
          */
@@ -73,7 +76,7 @@ class ArtikelController {
          * @type {ArtikelRepository}
          * @private
          */
-        this._repository = new ArtikelRepository();
+        this._repository = repository;
 
         this.setVersionInfo();
     }
@@ -99,7 +102,7 @@ class ArtikelController {
     /**
      * Insert the passed artikel into the repository and associates it with the given card
      * @param {Artikel} artikel
-     * @param {Trello.Card} card
+     * @param {{id: number}} card
      */
     insert(artikel, card) {
         if (artikel && this._repository.isNew(artikel)) {
@@ -111,7 +114,7 @@ class ArtikelController {
 
     /**
      * Get the artikel for the passed trello card
-     * @param card
+     * @param {id: number} card
      * @returns {*}
      */
     getByCard(card) {

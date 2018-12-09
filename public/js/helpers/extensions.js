@@ -2,12 +2,18 @@
 Some helper functions that make life easier ;-)
  */
 
+/**
+ * Add a CSS class to the element if it does not yet exist
+ * @param name
+ * @returns {HTMLElement} itself
+ */
 HTMLElement.prototype.addClass = function (name) {
     let names = this.className.split(" ");
     if (names.indexOf(name) === -1) {
         this.className += " " + name;
         this.className = this.className.trim();
     }
+    return this;
 };
 
 /**
@@ -22,8 +28,9 @@ HTMLElement.prototype.removeClasses = function(names) {
 };
 
 /**
- * Remove a single CSS class on this HTML element
+ * Removes a CSS class on an HTML element if it exists
  * @param name
+ * @returns {HTMLElement} itself
  */
 HTMLElement.prototype.removeClass = function (name) {
     let names = this.className.split(" ");
@@ -36,15 +43,24 @@ HTMLElement.prototype.removeClass = function (name) {
         });
         this.className = new_names.trim();
     }
+    return this;
 };
 
+/**
+ * Remove all children of an HTML element
+ */
 HTMLElement.prototype.removeChildren = function () {
     while (this.firstChild) {
         this.removeChild(this.firstChild);
     }
 };
 
-HTMLElement.prototype.setEventListener = function (event, callback) {
+/**
+ * (Re-)Set an event listener on this HTML element
+ * @param event
+ * @param callback
+ */
+HTMLElement.prototype.setEventListener = function(event, callback) {
     this.removeEventListener(event, callback);
     this.addEventListener(event, callback);
 };
@@ -73,6 +89,18 @@ function uuid() {
     return uuid;
 }
 
+/**
+ * Create a new MultiLineInput
+ * @param valueHolder
+ * @param targetId
+ * @param property
+ * @param label
+ * @param actionParameters
+ * @param actionCallback
+ * @param rows
+ * @param placeholder
+ * @returns {PInput}
+ */
 // TODO extract similar parts for all Input creations (such as event handlers)
 
 HTMLDocument.prototype.newMultiLineInput = function (valueHolder, targetId, property, label, actionParameters, actionCallback, rows = 2, placeholder = "") {
@@ -134,9 +162,14 @@ HTMLDocument.prototype.newSingleSelect = function (valueHolder, targetId, proper
     return ssi.render();
 };
 
-function isBlank(totest) {
+/**
+ * Check if a string is considered
+ * @param totest
+ * @returns {boolean}
+ */
+Window.prototype.isBlank = function(totest) {
     return (!totest || 0 === (totest + "").trim().length);
-}
+};
 
 /**
  * A helper function to create new options

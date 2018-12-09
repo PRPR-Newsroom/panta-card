@@ -1,3 +1,4 @@
+
 class ModuleConfig {
 
     static get VERSION() {
@@ -309,3 +310,8 @@ class AdBeteiligt extends CommonBeteiligt {
         return super.isEmpty() && !this.format && !this.placement && !this.price;
     }
 }
+
+// exports.ModuleConfig = ModuleConfig;
+// exports.CommonBeteiligt = CommonBeteiligt;
+// exports.OtherBeteiligt = OtherBeteiligt;
+// exports.AdBeteiligt = AdBeteiligt;
