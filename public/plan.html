@@ -10,8 +10,29 @@
     <link rel="stylesheet" href="css/chrome.css"/>
 </head>
 <body>
-<form id="panta.module">
+<form id="panta.module.plan">
     <span id="pa.plan.content"></span>
+</form>
+
+<form id="panta.module">
+    <!-- because we can only have one card-back-section per power-up we implement the panta.Beteiligt
+    on this page -->
+    <div class="row"><div class="col-12">&nbsp;</div></div>
+    <div class="row">
+        <div class="col-12">
+            <h3>Beteiligt.Plan</h3>
+        </div>
+    </div>
+    <div class="row navigation-bar">
+        <div id="pa.involved.onsite" class="col-xs-4 col-2 tab" data-label="vor.Ort" data-layout="regular"><span>Placeholder</span></div>
+        <div id="pa.involved.text" class="col-xs-4 col-2 tab" data-label="Journalist" data-layout="regular"><span>Placeholder</span></div>
+        <div id="pa.involved.photo" class="col-xs-4 col-2 tab" data-label="Visual" data-layout="regular"><span>Placeholder</span></div>
+        <div id="pa.involved.video" class="col-xs-4 col-2 tab" data-label="Event" data-layout="regular"><span>Placeholder</span></div>
+        <div id="pa.involved.illu" class="col-xs-4 col-2 tab" data-label="MC/Host" data-layout="regular"><span>Placeholder</span></div>
+        <div id="pa.involved.ad" class="col-xs-4 col-2 tab" data-label="weitere" data-layout="regular"><span>Placeholder</span></div>
+    </div>
+
+    <span id="pa.tab.content"></span>
 </form>
 
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
@@ -19,6 +40,7 @@
 <script src="bin/panta.js"></script>
 <script src="js/views/head.js"></script>
 <script src="js/views/plan.js"></script>
+<script src="js/views/module.js"></script>
 
 </body>
 </html>

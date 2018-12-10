@@ -30,6 +30,7 @@ class PInput {
         this._placeholder = placeholder;
         this._readonly = readonly;
         this._input = this._document.createElement(this._type);
+        this._labelInput = null;
         this._property = null;
         this._propertyType = "text";
     }
@@ -134,23 +135,23 @@ class PInput {
 
         this.setupEvents();
 
-        let label = this._document.createElement("label");
-        label.appendChild(this._document.createTextNode(this._label));
-        label.setAttribute("for", this._input.getAttribute("name"));
-        label.addClass("prop-" + this._type);
+        this._labelInput = this._document.createElement("label");
+        this._labelInput.appendChild(this._document.createTextNode(this._label));
+        this._labelInput.setAttribute("for", this._input.getAttribute("name"));
+        this._labelInput.addClass("prop-" + this._type);
         if (this._label.length === 0) {
             container.setAttribute("class", "field hidden");
         } else {
             container.setAttribute("class", "field");
         }
 
-        container.appendChild(label);
+        container.appendChild(this._labelInput);
         container.appendChild(this._input);
 
         if (this._target) {
             this._target.appendChild(container);
         }
-        this.doCustomization(this._input, label);
+        this.doCustomization(this._input, this._labelInput);
 
         return this;
     }
@@ -215,10 +216,20 @@ class PInput {
     /**
      * Add the CSS class to the element
      * @param className
+     * @param addToLabel if set to true it will add the class to the label instead of the input element
      * @returns {PInput}
      */
-    addClass(className) {
-        this._input.addClass(className);
+    addClass(className, addToLabel) {
+        if (addToLabel === true) {
+            this._labelInput.addClass(className);
+        } else {
+            this._input.addClass(className);
+        }
+        return this;
+    }
+
+    setHeight(height) {
+        this._input.style.height = height + "px";
         return this;
     }
 

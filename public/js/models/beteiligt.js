@@ -11,6 +11,7 @@ class ModuleConfig {
      */
     static create(jsonObj) {
         let sections = JsonSerialization.getProperty(jsonObj, 'sections') || {};
+        // TODO the section type must be dynamic
         return new ModuleConfig(JsonSerialization.getProperty(jsonObj, 'id'),
             {
                 'onsite': OtherBeteiligt.create(sections.onsite),
@@ -18,7 +19,7 @@ class ModuleConfig {
                 'photo': OtherBeteiligt.create(sections.photo),
                 'video': OtherBeteiligt.create(sections.video),
                 'illu': OtherBeteiligt.create(sections.illu),
-                'ad': AdBeteiligt.create(sections.ad)
+                'ad': OtherBeteiligt.create(sections.ad)
             });
     }
 

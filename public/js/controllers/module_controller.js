@@ -124,11 +124,11 @@ class ModuleController {
     /**
      * Insert the passed artikel into the repository and associates it with the given card
      * @param {ModuleConfig} entity
-     * @param {Trello.Card} card
+     * @param {{id: number}} card
      */
     insert(entity, card) {
         if (entity && this._repository.isNew(entity)) {
-            this._repository.add(entity);
+            this._repository.add(entity, card);
         } else if (entity) {
             this._repository.replace(entity, card);
         }
@@ -139,6 +139,7 @@ class ModuleController {
      */
     update() {
         // update the total price in the "ad" section
+        // TODO no hardcoded access!
         this._entity.sections['ad'].total = this.getTotalPrice();
         let tpf = this.getTotalProjectFee();
         let cod = this.getCapOnExpenses();
@@ -202,7 +203,7 @@ class ModuleController {
     _onChange(source, args) {
         source.setProperty();
         /**
-         * @var ModuleConfig
+         * @type {ModuleConfig}
          */
         let config = args['config'];
         // update the config entity with this section

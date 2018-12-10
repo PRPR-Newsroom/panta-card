@@ -120,7 +120,7 @@ TrelloPowerUp.initialize({
     'card-back-section': function (t, opts) {
         // Your Power-Up can have only one card back section and a maximum height of 500 pixels.
         let modules = [{
-            title: 'M.PR.Plan',
+            title: 'Plan',
             icon: './assets/ic_pantarhei.png',
             content: {
                 type: 'iframe',

@@ -67,20 +67,28 @@ class ModulePlanBinding extends Binding{
         /**
          * @type {MultiLineInput}
          */
-        this._measures = this.document.newMultiLineInput(valueHolder, '.pa.plan.measures', 'measures', 'Maßnahmen', params, this._action, 2, 'notieren…');
+        this._measures = this.document.newMultiLineInput(valueHolder, '.pa.plan.measures', 'measures', 'Massnahme', params, this._action, 2, 'notieren…')
+            .addClass("multiline");
         this._description = this.document.newMultiLineInput(valueHolder, '.pa.plan.description', 'description', 'Beschreibung', params, this._action, 3, 'notieren…')
-            .addClass("rows-2");
-        this._fee = this.document.newSingleLineInput(valueHolder, '.pa.plan.fee', 'fee', 'Honorar', params, this._action, 'Betrag…', 'money', false);
-        this._charges = this.document.newSingleLineInput(valueHolder, '.pa.plan.charges', 'charges', 'Total CHF', params, this._action, 'Betrag…', 'money', true)
+            .addClass("rows-2")
+            .setHeight(128);
+        this._fee = this.document.newSingleLineInput(valueHolder, '.pa.plan.fee', 'fee', 'Total Honorar Beteiligte', params, this._action, 'Betrag…', 'money', false)
+            .addClass('multiline', true);
+        this._charges = this.document.newSingleLineInput(valueHolder, '.pa.plan.charges', 'charges', 'Total Honorar Projekt', params, this._action, 'Betrag…', 'money', true)
+            .addClass('multiline', true)
             .addClass('bold');
 
-        this._thirdPartyCharges = this.document.newSingleLineInput(valueHolder, '.pa.plan.thirdPartyCharges', 'thirdPartyCharges', 'Drittkosten', params, this._action, 'Betrag…', 'money', false);
-        this._thirdPartyTotalCosts = this.document.newSingleLineInput(valueHolder, '.pa.plan.thirdPartyTotalCosts', 'thirdPartyTotalCosts', 'Total CHF', params, this._action, 'Betrag…', 'money', true)
-            .addClass('bold');
+        this._thirdPartyCharges = this.document.newSingleLineInput(valueHolder, '.pa.plan.thirdPartyCharges', 'thirdPartyCharges', 'Total Spesen Beteiligte', params, this._action, 'Betrag…', 'money', false)
+            .addClass('multiline', true);
+        this._thirdPartyTotalCosts = this.document.newSingleLineInput(valueHolder, '.pa.plan.thirdPartyTotalCosts', 'thirdPartyTotalCosts', 'Total Spesen Projekt', params, this._action, 'Betrag…', 'money', true)
+            .addClass('bold')
+            .addClass('multiline', true);
 
-        this._capOnDepenses = this.document.newSingleLineInput(valueHolder, '.pa.plan.capOnDepenses', 'capOnDepenses', 'Kostendach', params, this._action, 'Betrag…', 'money', false);
-        this._totalCosts = this.document.newSingleLineInput(valueHolder, '.pa.plan.totalCosts', 'totalCosts', 'Gesammt-Total', params, this._action, 'Betrag…', 'money', true)
-            .addClass('bold');
+        this._capOnDepenses = this.document.newSingleLineInput(valueHolder, '.pa.plan.capOnDepenses', 'capOnDepenses', 'Kostendach Projekt', params, this._action, 'Betrag…', 'money', false)
+            .addClass('multiline', true);
+        this._totalCosts = this.document.newSingleLineInput(valueHolder, '.pa.plan.totalCosts', 'totalCosts', 'Total Projekt', params, this._action, 'Betrag…', 'money', true)
+            .addClass('bold')
+            .addClass('multiline', true);
 
         this._visual = this._visual = this.document.newSingleSelect(valueHolder, 'pa.plan.visual', 'visual', 'Visual', params, this._action, 'x-Liste', newOption('', '…'), [
             newOption("picture", "Bild"),

@@ -27,6 +27,6 @@ t.render(function () {
             planController.update();
         })
         .then(function () {
-            t.sizeTo('#panta\\.module').done();
+            t.sizeTo('#panta\\.module\\.plan').done();
         })
 });

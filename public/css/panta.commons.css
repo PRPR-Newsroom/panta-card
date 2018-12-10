@@ -33,6 +33,15 @@ form .u-border.no-resize {
     font-weight: bold;
 }
 
+label.multiline {
+    white-space: pre-wrap;
+    height: 30px;
+}
+
+textarea.multiline.text.u-border, textarea.multiline.money.u-border {
+    height: 54px;
+}
+
 .number, .money {
     text-align: right;
 }
