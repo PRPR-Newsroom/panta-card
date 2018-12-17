@@ -34,13 +34,12 @@ let template_regular = '<div id="template">'+
     '                    <div class="pa.fee"></div>'+
     '                </div>'+
     '                <div class="col-3 less-padding">'+
-    '                    <div class="pa.charges"></div>'+
+    '                    <div class="pa.projectFee"></div>'+
     '                </div>'+
     '                <div class="col-3 less-padding">'+
-    '                    <div class="pa.project"></div>'+
     '                </div>'+
     '                <div class="col-3 less-padding-left">'+
-    '                    <div class="pa.cap_on_expenses"></div>'+
+    '                    <div class="pa.project"></div>'+
     '                </div>'+
     '            </div>'+
     '        </div>'+
@@ -104,7 +103,7 @@ let template_plan = '<div id="template">'+
     '                    <div class="pa.plan.fee"></div>'+
     '                </div>'+
     '                <div class="col-6 less-padding-left">'+
-    '                    <div class="pa.plan.charges"></div>'+
+    '                    <div class="pa.plan.projectFee"></div>'+
     '                </div>'+
     '            </div>'+
     ''+

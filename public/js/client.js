@@ -94,7 +94,7 @@ TrelloPowerUp.initialize({
                         if (cm.getPlanController().hasContent(entity)) {
                             badges.push({
                                 text: "",
-                                icon: './assets/ic_artikel.png'
+                                icon: './assets/ic_plan.png'
                             });
 
                             if (entity.region) {
@@ -121,7 +121,7 @@ TrelloPowerUp.initialize({
         // Your Power-Up can have only one card back section and a maximum height of 500 pixels.
         let modules = [{
             title: 'Plan',
-            icon: './assets/ic_pantarhei.png',
+            icon: './assets/ic_plan.png',
             content: {
                 type: 'iframe',
                 url: t.signUrl('./plan.html', {}),

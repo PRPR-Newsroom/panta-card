@@ -14,17 +14,48 @@ class ModulePlanController extends Controller {
      * @param windowManager
      * @returns {ModulePlanController}
      */
-    static getInstance(trelloApi, windowManager) {
+    static getInstance(trelloApi, windowManager, telephone) {
         if (!windowManager.hasOwnProperty('planController')) {
-            windowManager.planController = new ModulePlanController(windowManager, trelloApi);
+            windowManager.planController = new ModulePlanController(windowManager, trelloApi, telephone);
         }
         return windowManager.planController;
     }
 
-    constructor(windowManager, trelloApi) {
+    constructor(windowManager, trelloApi, telephone) {
         super(new ModulePlanRepository());
         this._window = windowManager;
         this._trello = trelloApi;
+        /**
+         * The wire to the client manager
+         * @type {MessagePort}
+         */
+        this._telephone = telephone;
+        let that = this;
+        this._telephone.onmessage = function(ev) {
+            let response = ev.data;
+            Object.values(response.result||[]).forEach(function(item) {
+                Object.entries(item).forEach(function(item) {
+                    let property = item[0];
+                    let value = item[1];
+                    switch (property) {
+                        case "fee:current":
+                            this._entity.fee = value;
+                            break;
+                        case "fee:overall":
+                            this._entity.projectFee = value;
+                            break;
+                        case "charge:current":
+                            this._entity.thirdPartyCharges = value;
+                            break;
+                        case "charge:overall":
+                            this._entity.thirdPartyTotalCosts = value;
+                            break;
+                    }
+                    this._binding.update(this._entity);
+                }, this);
+            }, that);
+
+        };
         /**
          * @type {ModulePlanBinding}
          * @private
@@ -51,11 +82,13 @@ class ModulePlanController extends Controller {
     }
 
     update() {
+        this._telephone.postMessage({
+            'get': ['fee:current',
+            'fee:overall',
+            'charge:current',
+            'charge:overall']
+        });
         this._entity.capOnDepenses = this.getCapOnDepenses();
-        this._entity.charges = this.getTotalFeeCharges();
-        this._entity.thirdPartyTotalCosts = this.getThirdPartyCosts();
-        this._entity.totalCosts = this._entity.charges + this._entity.thirdPartyTotalCosts;
-
         this._binding.update(this._entity);
         return super.update();
     }
@@ -114,6 +147,21 @@ class ModulePlanController extends Controller {
     getCapOnDepenses() {
         let cod = this.getProperty('cap_on_depenses');
         return isNaN(cod) ? 0.0 : parseFloat(cod);
+    }
+
+    /**
+     * Get overall project costs (charges + thirdPartyCharges)
+     */
+    getProjectCosts() {
+        return Object.values(this._repository.all()).map(function (item, index) {
+            let number = parseInt(item.thirdPartyCharges);
+            if (isNaN(number)) {
+                return 0;
+            }
+            return number;
+        }).reduce(function (previousValue, currentValue) {
+            return parseInt(previousValue) + parseInt(currentValue);
+        }, 0);
     }
 
     /**

@@ -180,7 +180,7 @@ class BeteiligtBinding {
 
         this.document.newSingleLineInput(valueHolder, ".pa.fee", "fee", "Honorar Massnahme", params, this._action, "Betrag…", "money", false)
             .addClass('multiline', true);
-        this.document.newSingleLineInput(valueHolder, ".pa.charges", "charges", "Spesen Massnahme", params, this._action, "Betrag…", "money", false)
+        this.document.newSingleLineInput(valueHolder, ".pa.projectFee", "projectFee", "Spesen Massnahme", params, this._action, "Betrag…", "money", false)
             .addClass('multiline', true);
         this.document.newSingleLineInput(valueHolder, ".pa.project", "project", "Total Beteiligte", params, this._action, "Betrag…", "money", true)
             .addClass("bold")

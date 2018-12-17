@@ -174,21 +174,6 @@ $jscomp.polyfill("String.prototype.startsWith", function(a) {
     return g >= f;
   };
 }, "es6", "es3");
-$jscomp.findInternal = function(a, b, c) {
-  a instanceof String && (a = String(a));
-  for (var d = a.length, e = 0; e < d; e++) {
-    var f = a[e];
-    if (b.call(c, f, e, a)) {
-      return {i:e, v:f};
-    }
-  }
-  return {i:-1, v:void 0};
-};
-$jscomp.polyfill("Array.prototype.find", function(a) {
-  return a ? a : function(a, c) {
-    return $jscomp.findInternal(this, a, c).v;
-  };
-}, "es6", "es3");
 $jscomp.owns = function(a, b) {
   return Object.prototype.hasOwnProperty.call(a, b);
 };
@@ -210,6 +195,21 @@ $jscomp.polyfill("Object.entries", function(a) {
     return b;
   };
 }, "es8", "es3");
+$jscomp.findInternal = function(a, b, c) {
+  a instanceof String && (a = String(a));
+  for (var d = a.length, e = 0; e < d; e++) {
+    var f = a[e];
+    if (b.call(c, f, e, a)) {
+      return {i:e, v:f};
+    }
+  }
+  return {i:-1, v:void 0};
+};
+$jscomp.polyfill("Array.prototype.find", function(a) {
+  return a ? a : function(a, c) {
+    return $jscomp.findInternal(this, a, c).v;
+  };
+}, "es6", "es3");
 var DI = function() {
 };
 DI.getInstance = function() {
@@ -536,8 +536,54 @@ ClientManager.prototype.onUnload = function() {
   delete this._pluginController;
 };
 ClientManager.prototype.init = function() {
-  this._initialized || (this._articleController = ArtikelController.getInstance(this._trello, this._window), this._moduleController = ModuleController.getInstance(this._trello, this._window), this._pluginController = PluginController.getInstance(this._trello, this._window), this._planController = ModulePlanController.getInstance(this._trello, this._window), this._initialized = !0);
+  this._initialized || (this._telephones = {}, this._telephones[ArtikelController.SHARED_NAME] = this._createMessageChannel(), this._telephones[ModuleController.SHARED_NAME] = this._createMessageChannel(), this._telephones[PluginController.SHARED_NAME] = this._createMessageChannel(), this._telephones[ModulePlanController.SHARED_NAME] = this._createMessageChannel(), this._articleController = ArtikelController.getInstance(this._trello, this._window, this._telephones[ArtikelController.SHARED_NAME].port2), 
+  this._moduleController = ModuleController.getInstance(this._trello, this._window, this._telephones[ModuleController.SHARED_NAME].port2), this._pluginController = PluginController.getInstance(this._trello, this._window), this._planController = ModulePlanController.getInstance(this._trello, this._window, this._telephones[ModulePlanController.SHARED_NAME].port2), this._initialized = !0);
   return this;
+};
+ClientManager.prototype._createMessageChannel = function() {
+  var a = this, b = new MessageChannel;
+  b.port1.onmessage = function(b) {
+    console.log("Received data from sub-module: " + JSON.stringify(b.data));
+    b = b.data;
+    Object.values(b.get || []).forEach(function(b) {
+      switch(b) {
+        case "fee:current":
+          a._getCurrentFee();
+          break;
+        case "fee:overall":
+          a._getOverallFee();
+          break;
+        case "charge:current":
+          a._getCurrentCharge();
+          break;
+        case "charge:overall":
+          a._getOverallCharge();
+      }
+    }, a);
+    Object.values(b.result || []).forEach(function(a) {
+      Object.entries(a).forEach(function(a) {
+        this._sendResponse(ModulePlanController.SHARED_NAME, a[0], a[1]);
+      }, this);
+    }, a);
+  };
+  return b;
+};
+ClientManager.prototype._sendResponse = function(a, b, c) {
+  var d = {};
+  d[b] = c;
+  this._telephones[a].port1.postMessage({result:[d]});
+};
+ClientManager.prototype._getCurrentCharge = function() {
+  this._telephones[ModuleController.SHARED_NAME].port1.postMessage({get:["charge:current"]});
+};
+ClientManager.prototype._getCurrentFee = function() {
+  this._telephones[ModuleController.SHARED_NAME].port1.postMessage({get:["fee:current"]});
+};
+ClientManager.prototype._getOverallCharge = function() {
+  this._telephones[ModuleController.SHARED_NAME].port1.postMessage({get:["charge:overall"]});
+};
+ClientManager.prototype._getOverallFee = function() {
+  this._telephones[ModuleController.SHARED_NAME].port1.postMessage({get:["fee:overall"]});
 };
 ClientManager.prototype.readKeyBuffer = function() {
   return this._keyBuffer;
@@ -622,7 +668,7 @@ BeteiligtRepository.prototype.isNew = function(a) {
   });
 };
 // Input 9
-var ModuleController = function(a, b) {
+var ModuleController = function(a, b, c) {
   this.document = a.document;
   this._window = a;
   this.trelloApi = b;
@@ -630,12 +676,39 @@ var ModuleController = function(a, b) {
   this._repository = new BeteiligtRepository;
   this._entity = null;
   this._propertyBag = {};
+  this._telephone = c;
+  this._telephone.onmessage = this._onMessage();
   this.setVersionInfo();
   this.readPropertyBag();
 };
-ModuleController.getInstance = function(a, b) {
-  b.hasOwnProperty("moduleController") || (b.moduleController = new ModuleController(b, a));
+ModuleController.getInstance = function(a, b, c) {
+  b.hasOwnProperty("moduleController") || (b.moduleController = new ModuleController(b, a, c));
   return b.moduleController;
+};
+ModuleController.prototype._onMessage = function() {
+  var a = this;
+  return function(b) {
+    Object.values(b.data.get).forEach(function(a) {
+      switch(a) {
+        case "fee:current":
+          this._sendResponse(a, this.getTotalFee());
+          break;
+        case "fee:overall":
+          this._sendResponse(a, this.getOverallTotalFee());
+          break;
+        case "charge:current":
+          this._sendResponse(a, this.getTotalCharges());
+          break;
+        case "charge:overall":
+          this._sendResponse(a, this.getOverallTotalCharges());
+      }
+    }, a);
+  };
+};
+ModuleController.prototype._sendResponse = function(a, b) {
+  var c = {};
+  c[a] = b;
+  this._telephone.postMessage({result:[c]});
 };
 ModuleController.prototype.setVersionInfo = function() {
   this.trelloApi.set("card", "shared", ModuleController.SHARED_META, this.getVersionInfo());
@@ -652,7 +725,7 @@ ModuleController.prototype.insert = function(a, b) {
 };
 ModuleController.prototype.update = function() {
   this._entity.sections.ad.total = this.getTotalPrice();
-  var a = this.getTotalProjectFee(), b = this.getCapOnExpenses();
+  var a = this.getTotalProjectCosts(), b = this.getCapOnExpenses();
   Object.values(this._entity.sections).filter(function(a) {
     return a instanceof OtherBeteiligt;
   }).forEach(function(c) {
@@ -682,13 +755,9 @@ ModuleController.prototype._onLooseFocus = function() {
 ModuleController.prototype._onChange = function(a, b) {
   a.setProperty();
   b.config.sections[b.valueHolder["involved-in"]] = a.getBinding();
-  switch(a.getBoundProperty()) {
-    case "capOnExpenses":
-      this.setProperty("cap_on_expenses", a.getValue());
-      break;
-    default:
-      this.persist.call(this, b.config), console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue());
-  }
+  this.persist.call(this, b.config).then(function() {
+    console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue());
+  });
 };
 ModuleController.prototype.getTotalPrice = function() {
   return Object.values(this._repository.all()).map(function(a) {
@@ -701,14 +770,54 @@ ModuleController.prototype.getTotalPrice = function() {
     return parseFloat(a) + parseFloat(b);
   }, 0.0);
 };
-ModuleController.prototype.getTotalProjectFee = function() {
+ModuleController.prototype.getTotalProjectCosts = function() {
   return Object.values(this._repository.all()).map(function(a) {
     return Object.values(a.sections);
   }).flat().filter(function(a) {
     return a instanceof OtherBeteiligt;
   }).map(function(a) {
-    return [isNaN(a.fee) ? 0 : a.fee, isNaN(a.charges) ? 0 : a.charges];
+    return [isNaN(a.fee) ? 0 : a.fee, isNaN(a.projectFee) ? 0 : a.projectFee];
   }).flat().reduce(function(a, b) {
+    return parseFloat(a) + parseFloat(b);
+  }, 0.0);
+};
+ModuleController.prototype.getOverallTotalFee = function() {
+  return Object.values(this._repository.all()).map(function(a) {
+    return Object.values(a.sections);
+  }).flat().filter(function(a) {
+    return a instanceof OtherBeteiligt;
+  }).map(function(a) {
+    return isNaN(a.fee) ? 0.0 : a.fee;
+  }).reduce(function(a, b) {
+    return parseFloat(a) + parseFloat(b);
+  }, 0.0);
+};
+ModuleController.prototype.getTotalFee = function() {
+  return Object.values(this._entity.sections).filter(function(a) {
+    return a instanceof OtherBeteiligt;
+  }).map(function(a) {
+    return isNaN(a.fee) ? 0.0 : a.fee;
+  }).reduce(function(a, b) {
+    return parseFloat(a) + parseFloat(b);
+  }, 0.0);
+};
+ModuleController.prototype.getTotalCharges = function() {
+  return Object.values(this._entity.sections).filter(function(a) {
+    return a instanceof OtherBeteiligt;
+  }).map(function(a) {
+    return isNaN(a.charges) ? 0.0 : a.charges;
+  }).reduce(function(a, b) {
+    return parseFloat(a) + parseFloat(b);
+  }, 0.0);
+};
+ModuleController.prototype.getOverallTotalCharges = function() {
+  return Object.values(this._repository.all()).map(function(a) {
+    return Object.values(a.sections);
+  }).flat().filter(function(a) {
+    return a instanceof OtherBeteiligt;
+  }).map(function(a) {
+    return isNaN(a.charges) ? 0.0 : a.charges;
+  }).reduce(function(a, b) {
     return parseFloat(a) + parseFloat(b);
   }, 0.0);
 };
@@ -787,16 +896,17 @@ ArtikelRepository.prototype.isNew = function(a) {
   });
 };
 // Input 11
-var ArtikelController = function(a, b, c) {
+var ArtikelController = function(a, b, c, d) {
   this.document = a.document;
   this._window = a;
   this.trelloApi = b;
   this._beteiligtBinding = this._artikelBinding = this._entity = null;
   this._repository = c;
+  this._telephone = d;
   this.setVersionInfo();
 };
-ArtikelController.getInstance = function(a, b) {
-  b.hasOwnProperty("articleController") || (b.articleController = new ArtikelController(b, a, DI.getInstance().getArticleRepository()));
+ArtikelController.getInstance = function(a, b, c) {
+  b.hasOwnProperty("articleController") || (b.articleController = new ArtikelController(b, a, DI.getInstance().getArticleRepository(), c));
   return b.articleController;
 };
 ArtikelController.prototype.setVersionInfo = function() {
@@ -1028,10 +1138,10 @@ ModulePlanBinding.prototype.onLayout = function(a) {
   b = {context:this._context, valueHolder:a, entity:this._entity};
   this._measures = this.document.newMultiLineInput(a, ".pa.plan.measures", "measures", "Massnahme", b, this._action, 2, "notieren\u2026").addClass("multiline");
   this._description = this.document.newMultiLineInput(a, ".pa.plan.description", "description", "Beschreibung", b, this._action, 3, "notieren\u2026").addClass("rows-2").setHeight(128);
-  this._fee = this.document.newSingleLineInput(a, ".pa.plan.fee", "fee", "Total Honorar Beteiligte", b, this._action, "Betrag\u2026", "money", !1).addClass("multiline", !0);
-  this._charges = this.document.newSingleLineInput(a, ".pa.plan.charges", "charges", "Total Honorar Projekt", b, this._action, "Betrag\u2026", "money", !0).addClass("multiline", !0).addClass("bold");
-  this._thirdPartyCharges = this.document.newSingleLineInput(a, ".pa.plan.thirdPartyCharges", "thirdPartyCharges", "Total Spesen Beteiligte", b, this._action, "Betrag\u2026", "money", !1).addClass("multiline", !0);
-  this._thirdPartyTotalCosts = this.document.newSingleLineInput(a, ".pa.plan.thirdPartyTotalCosts", "thirdPartyTotalCosts", "Total Spesen Projekt", b, this._action, "Betrag\u2026", "money", !0).addClass("bold").addClass("multiline", !0);
+  this._fee = this.document.newSingleLineInput(a, ".pa.plan.fee", "fee", "Total Honorar Beteiligte", b, this._action, "", "money", !0).addClass("multiline", !0);
+  this._charges = this.document.newSingleLineInput(a, ".pa.plan.projectFee", "projectFee", "Total Honorar Projekt", b, this._action, "", "money", !0).addClass("multiline", !0).addClass("bold");
+  this._thirdPartyCharges = this.document.newSingleLineInput(a, ".pa.plan.thirdPartyCharges", "thirdPartyCharges", "Total Spesen Beteiligte", b, this._action, "", "money", !0).addClass("multiline", !0);
+  this._thirdPartyTotalCosts = this.document.newSingleLineInput(a, ".pa.plan.thirdPartyTotalCosts", "thirdPartyTotalCosts", "Total Spesen Projekt", b, this._action, "", "money", !0).addClass("bold").addClass("multiline", !0);
   this._capOnDepenses = this.document.newSingleLineInput(a, ".pa.plan.capOnDepenses", "capOnDepenses", "Kostendach Projekt", b, this._action, "Betrag\u2026", "money", !1).addClass("multiline", !0);
   this._totalCosts = this.document.newSingleLineInput(a, ".pa.plan.totalCosts", "totalCosts", "Total Projekt", b, this._action, "Betrag\u2026", "money", !0).addClass("bold").addClass("multiline", !0);
   this._visual = this.document.newSingleSelect(a, "pa.plan.visual", "visual", "Visual", b, this._action, "x-Liste", newOption("", "\u2026"), [newOption("picture", "Bild"), newOption("icon", "Icon"), newOption("graphics", "Grafik"), newOption("videos", "Video"), newOption("illustrations", "Illu")]);
@@ -1048,17 +1158,40 @@ ModulePlanBinding.prototype._switchContent = function(a) {
   b.appendChild(a);
 };
 // Input 15
-var ModulePlanController = function(a, b) {
+var ModulePlanController = function(a, b, c) {
   Controller.call(this, new ModulePlanRepository);
   this._window = a;
   this._trello = b;
+  this._telephone = c;
+  var d = this;
+  this._telephone.onmessage = function(a) {
+    Object.values(a.data.result || []).forEach(function(a) {
+      Object.entries(a).forEach(function(a) {
+        var b = a[1];
+        switch(a[0]) {
+          case "fee:current":
+            this._entity.fee = b;
+            break;
+          case "fee:overall":
+            this._entity.projectFee = b;
+            break;
+          case "charge:current":
+            this._entity.thirdPartyCharges = b;
+            break;
+          case "charge:overall":
+            this._entity.thirdPartyTotalCosts = b;
+        }
+        this._binding.update(this._entity);
+      }, this);
+    }, d);
+  };
   this._binding = null;
   this._propertyBag = {};
   this.readPropertyBag();
 };
 $jscomp.inherits(ModulePlanController, Controller);
-ModulePlanController.getInstance = function(a, b) {
-  b.hasOwnProperty("planController") || (b.planController = new ModulePlanController(b, a));
+ModulePlanController.getInstance = function(a, b, c) {
+  b.hasOwnProperty("planController") || (b.planController = new ModulePlanController(b, a, c));
   return b.planController;
 };
 ModulePlanController.prototype.render = function(a) {
@@ -1067,10 +1200,8 @@ ModulePlanController.prototype.render = function(a) {
   return Controller.prototype.render.call(this, a);
 };
 ModulePlanController.prototype.update = function() {
+  this._telephone.postMessage({get:["fee:current", "fee:overall", "charge:current", "charge:overall"]});
   this._entity.capOnDepenses = this.getCapOnDepenses();
-  this._entity.charges = this.getTotalFeeCharges();
-  this._entity.thirdPartyTotalCosts = this.getThirdPartyCosts();
-  this._entity.totalCosts = this._entity.charges + this._entity.thirdPartyTotalCosts;
   this._binding.update(this._entity);
   return Controller.prototype.update.call(this);
 };
@@ -1096,6 +1227,14 @@ ModulePlanController.prototype.readPropertyBag = function() {
 ModulePlanController.prototype.getCapOnDepenses = function() {
   var a = this.getProperty("cap_on_depenses");
   return isNaN(a) ? 0.0 : parseFloat(a);
+};
+ModulePlanController.prototype.getProjectCosts = function() {
+  return Object.values(this._repository.all()).map(function(a, b) {
+    a = parseInt(a.thirdPartyCharges);
+    return isNaN(a) ? 0 : a;
+  }).reduce(function(a, b) {
+    return parseInt(a) + parseInt(b);
+  }, 0);
 };
 ModulePlanController.prototype.getThirdPartyCosts = function() {
   return Object.values(this._repository.all()).map(function(a, b) {
@@ -1265,7 +1404,7 @@ BeteiligtBinding.prototype.onRegularLayout = function(a, b) {
   this.document.newMultiLineInput(b, ".pa.notes", "notes", "Notiz", a, this._action, 6, "formulieren\u2026").addClass("rows-2");
   this.document.newSingleLineInput(b, ".pa.duedate", "duedate", "Deadline", a, this._action, "bestimmen\u2026", "text", !1);
   this.document.newSingleLineInput(b, ".pa.fee", "fee", "Honorar Massnahme", a, this._action, "Betrag\u2026", "money", !1).addClass("multiline", !0);
-  this.document.newSingleLineInput(b, ".pa.charges", "charges", "Spesen Massnahme", a, this._action, "Betrag\u2026", "money", !1).addClass("multiline", !0);
+  this.document.newSingleLineInput(b, ".pa.projectFee", "projectFee", "Spesen Massnahme", a, this._action, "Betrag\u2026", "money", !1).addClass("multiline", !0);
   this.document.newSingleLineInput(b, ".pa.project", "project", "Total Beteiligte", a, this._action, "Betrag\u2026", "money", !0).addClass("bold").addClass("multiline", !0);
   this.document.newSingleLineInput(b, ".pa.cap_on_expenses", "capOnExpenses", "Kostendach Total Projekt", a, this._action, "Betrag\u2026", "money", !1).addClass("multiline", !0);
 };
@@ -1315,7 +1454,7 @@ BeteiligtBinding.prototype.leaveEditing = function() {
 var Plan = function(a, b, c, d, e, f, g, h, k, l, m, n, p, q, r) {
   this._id = a || uuid();
   this._fee = d;
-  this._charges = e;
+  this._projectFee = e;
   this._thirdPartyCharges = f;
   this._thirdPartyTotalCosts = g;
   this._capOnDepenses = h;
@@ -1335,7 +1474,7 @@ Plan.create = function(a) {
 };
 Plan._create = function(a) {
   if (a) {
-    var b = new Plan(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "measures"), JsonSerialization.getProperty(a, "description"), JsonSerialization.getProperty(a, "fee"), JsonSerialization.getProperty(a, "charges"), JsonSerialization.getProperty(a, "thirdPartyCharges"), JsonSerialization.getProperty(a, "thirdPartyTotalCosts"), 0.0, JsonSerialization.getProperty(a, "totalCosts"), JsonSerialization.getProperty(a, "visual"), JsonSerialization.getProperty(a, "form"), JsonSerialization.getProperty(a, 
+    var b = new Plan(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "measures"), JsonSerialization.getProperty(a, "description"), JsonSerialization.getProperty(a, "fee"), JsonSerialization.getProperty(a, "projectFee"), JsonSerialization.getProperty(a, "thirdPartyCharges"), JsonSerialization.getProperty(a, "thirdPartyTotalCosts"), 0.0, JsonSerialization.getProperty(a, "totalCosts"), JsonSerialization.getProperty(a, "visual"), JsonSerialization.getProperty(a, "form"), JsonSerialization.getProperty(a, 
     "online"), JsonSerialization.getProperty(a, "season"), JsonSerialization.getProperty(a, "region"), JsonSerialization.getProperty(a, "place"));
     b.version = JsonSerialization.getProperty(a, "version");
     return b;
@@ -1361,10 +1500,10 @@ $jscomp.global.Object.defineProperties(Plan.prototype, {id:{configurable:!0, enu
   return this._fee;
 }, set:function(a) {
   this._fee = a;
-}}, charges:{configurable:!0, enumerable:!0, get:function() {
-  return this._charges;
+}}, projectFee:{configurable:!0, enumerable:!0, get:function() {
+  return this._projectFee;
 }, set:function(a) {
-  this._charges = a;
+  this._projectFee = a;
 }}, thirdPartyCharges:{configurable:!0, enumerable:!0, get:function() {
   return this._thirdPartyCharges;
 }, set:function(a) {
@@ -1784,9 +1923,9 @@ function newOption(a, b) {
 }
 ;
 // Input 22
-var template_regular = '<div id="template">    <div class="row">        <div class="col-6">            <div class="row">                <div class="col-12 less-padding-right">                    <div class="pa.name"></div>                </div>                <div class="col-12 less-padding-right">                    <div class="pa.social"></div>                </div>                <div class="col-12 less-padding-right">                    <div class="pa.address"></div>                </div>            </div>        </div>        <div class="col-6">            <div class="row">                <div class="col-12 less-padding-left before-last-row">                    <div class="pa.notes"></div>                </div>            </div>            <div class="row">                <div class="col-12 less-padding-left align-bottom">                    <div class="pa.duedate"></div>                </div>            </div>        </div>    </div>    <div class="row">        <div class="col-12">            <div class="row">                <div class="col-3 less-padding-right">                    <div class="pa.fee"></div>                </div>                <div class="col-3 less-padding">                    <div class="pa.charges"></div>                </div>                <div class="col-3 less-padding">                    <div class="pa.project"></div>                </div>                <div class="col-3 less-padding-left">                    <div class="pa.cap_on_expenses"></div>                </div>            </div>        </div>    </div></div>', 
+var template_regular = '<div id="template">    <div class="row">        <div class="col-6">            <div class="row">                <div class="col-12 less-padding-right">                    <div class="pa.name"></div>                </div>                <div class="col-12 less-padding-right">                    <div class="pa.social"></div>                </div>                <div class="col-12 less-padding-right">                    <div class="pa.address"></div>                </div>            </div>        </div>        <div class="col-6">            <div class="row">                <div class="col-12 less-padding-left before-last-row">                    <div class="pa.notes"></div>                </div>            </div>            <div class="row">                <div class="col-12 less-padding-left align-bottom">                    <div class="pa.duedate"></div>                </div>            </div>        </div>    </div>    <div class="row">        <div class="col-12">            <div class="row">                <div class="col-3 less-padding-right">                    <div class="pa.fee"></div>                </div>                <div class="col-3 less-padding">                    <div class="pa.projectFee"></div>                </div>                <div class="col-3 less-padding">                </div>                <div class="col-3 less-padding-left">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-right">                <div class="pa.notes"></div>            </div>        </div>        <div class="row before-last-row">            <div class="col-6 less-padding-right">                <div class="pa.format"></div>            </div>            <div class="col-6 less-padding">                <div class="pa.placement"></div>            </div>        </div>        <div class="row align-bottom">            <div class="col-6 less-padding-right">                <div class="pa.price"></div>            </div>            <div class="col-6 less-padding">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-left">                <div class="pa.name"></div>            </div>            <div class="col-12 less-padding-left">                <div class="pa.social"></div>            </div>            <div class="col-12 less-padding-left">                <div class="pa.address"></div>            </div>        </div>    </div></div>', 
-template_plan = '<div id="template">    <div class="row">        <div class="col-6">            <div class="row">                <div class="col-12 less-padding-right">                    <div class="pa.plan.measures"></div>                </div>                <div class="col-12 less-padding-right before-last-row">                    <div class="pa.plan.description"></div>                </div>            </div>        </div>        <div class="col-6">            <div class="row">                <div class="col-6 less-padding">                    <div class="pa.plan.fee"></div>                </div>                <div class="col-6 less-padding-left">                    <div class="pa.plan.charges"></div>                </div>            </div>            <div class="row">                <div class="col-6 less-padding">                    <div class="pa.plan.thirdPartyCharges"></div>                </div>                <div class="col-6 less-padding-left">                    <div class="pa.plan.thirdPartyTotalCosts"></div>                </div>            </div>            <div class="row">                <div class="col-6 less-padding before-last-row">                    <div class="pa.plan.capOnDepenses"></div>                </div>                <div class="col-6 less-padding-left before-last-row">                    <div class="pa.plan.totalCosts"></div>                </div>            </div>        </div>    </div>    <div class="row">        <div class="col-12">            <div class="row align-bottom">                <div class="col-2 col-xs-4 less-padding-right">                    <div id="pa.plan.visual"></div>                </div>                <div class="col-2 col-xs-4 less-padding">                    <div id="pa.plan.form"></div>                </div>                <div class="col-2 col-xs-4 less-padding">                    <div id="pa.plan.online"></div>                </div>                <div class="col-2 col-xs-4 less-padding">                    <div id="pa.plan.season"></div>                </div>                <div class="col-2 col-xs-4 less-padding">                    <div id="pa.plan.region"></div>                </div>                <div class="col-2 col-xs-4 less-padding-left">                    <div id="pa.plan.place"></div>                </div>            </div>        </div>    </div></div>';
+template_plan = '<div id="template">    <div class="row">        <div class="col-6">            <div class="row">                <div class="col-12 less-padding-right">                    <div class="pa.plan.measures"></div>                </div>                <div class="col-12 less-padding-right before-last-row">                    <div class="pa.plan.description"></div>                </div>            </div>        </div>        <div class="col-6">            <div class="row">                <div class="col-6 less-padding">                    <div class="pa.plan.fee"></div>                </div>                <div class="col-6 less-padding-left">                    <div class="pa.plan.projectFee"></div>                </div>            </div>            <div class="row">                <div class="col-6 less-padding">                    <div class="pa.plan.thirdPartyCharges"></div>                </div>                <div class="col-6 less-padding-left">                    <div class="pa.plan.thirdPartyTotalCosts"></div>                </div>            </div>            <div class="row">                <div class="col-6 less-padding before-last-row">                    <div class="pa.plan.capOnDepenses"></div>                </div>                <div class="col-6 less-padding-left before-last-row">                    <div class="pa.plan.totalCosts"></div>                </div>            </div>        </div>    </div>    <div class="row">        <div class="col-12">            <div class="row align-bottom">                <div class="col-2 col-xs-4 less-padding-right">                    <div id="pa.plan.visual"></div>                </div>                <div class="col-2 col-xs-4 less-padding">                    <div id="pa.plan.form"></div>                </div>                <div class="col-2 col-xs-4 less-padding">                    <div id="pa.plan.online"></div>                </div>                <div class="col-2 col-xs-4 less-padding">                    <div id="pa.plan.season"></div>                </div>                <div class="col-2 col-xs-4 less-padding">                    <div id="pa.plan.region"></div>                </div>                <div class="col-2 col-xs-4 less-padding-left">                    <div id="pa.plan.place"></div>                </div>            </div>        </div>    </div></div>';
 // Input 23
 var JsonSerialization = function() {
 };

@@ -29,7 +29,7 @@ class Plan {
                 JsonSerialization.getProperty(json, 'measures'),
                 JsonSerialization.getProperty(json, 'description'),
                 JsonSerialization.getProperty(json, 'fee'),
-                JsonSerialization.getProperty(json, 'charges'),
+                JsonSerialization.getProperty(json, 'projectFee'),
                 JsonSerialization.getProperty(json, 'thirdPartyCharges'),
                 JsonSerialization.getProperty(json, 'thirdPartyTotalCosts'),
                 0.0 /* this property is not persisted in here so should not be managed here */,
@@ -56,7 +56,7 @@ class Plan {
      * @param measures Textfeld – Stichwort zum Inhalt immer fix hinterlegt
      * @param description Fixe Zahl, entspricht der Seitenzahl = Start des Arikels in einem Projekt. Ist zentral für das SORTIEREN innerhalb der Liste
      * @param fee
-     * @param charges
+     * @param projectFee
      * @param thirdPartyCharges
      * @param thirdPartyTotalCosts
      * @param capOnDepenses
@@ -68,11 +68,11 @@ class Plan {
      * @param region
      * @param place
      */
-    constructor(id, measures, description, fee, charges, thirdPartyCharges, thirdPartyTotalCosts, capOnDepenses, totalCosts,
+    constructor(id, measures, description, fee, projectFee, thirdPartyCharges, thirdPartyTotalCosts, capOnDepenses, totalCosts,
                 visual, form, online, season, region, place) {
         this._id = id || uuid();
         this._fee = fee;
-        this._charges = charges;
+        this._projectFee = projectFee;
         this._thirdPartyCharges = thirdPartyCharges;
         this._thirdPartyTotalCosts = thirdPartyTotalCosts;
         this._capOnDepenses = capOnDepenses;
@@ -125,6 +125,9 @@ class Plan {
         this._description = value;
     }
 
+    /**
+     * The total of all current fees (Honorare der Beteiligten)
+     */
     get fee() {
         return this._fee;
     }
@@ -133,14 +136,21 @@ class Plan {
         this._fee = value;
     }
 
-    get charges() {
-        return this._charges;
+    /**
+     * The overall total of all fees (Total aller Honorare im gesamten Projekt)
+     */
+    get projectFee() {
+        return this._projectFee;
     }
 
-    set charges(value) {
-        this._charges = value;
+    set projectFee(value) {
+        this._projectFee = value;
     }
 
+    /**
+     * The total of all current charges (Total der Spesen der Beteiligten)
+     * @returns {*}
+     */
     get thirdPartyCharges() {
         return this._thirdPartyCharges;
     }
@@ -149,6 +159,10 @@ class Plan {
         this._thirdPartyCharges = value;
     }
 
+    /**
+     * The overall total of all charges in this projct/BOARD
+     * @returns {*}
+     */
     get thirdPartyTotalCosts() {
         return this._thirdPartyTotalCosts;
     }
@@ -157,10 +171,18 @@ class Plan {
         this._thirdPartyTotalCosts = value;
     }
 
+    /**
+     * Get Kostendach
+     * @returns {*}
+     */
     get capOnDepenses() {
         return this._capOnDepenses;
     }
 
+    /**
+     * Set Kostendach
+     * @param value
+     */
     set capOnDepenses(value) {
         this._capOnDepenses = value;
     }

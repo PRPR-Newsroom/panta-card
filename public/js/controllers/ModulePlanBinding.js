@@ -72,15 +72,15 @@ class ModulePlanBinding extends Binding{
         this._description = this.document.newMultiLineInput(valueHolder, '.pa.plan.description', 'description', 'Beschreibung', params, this._action, 3, 'notieren…')
             .addClass("rows-2")
             .setHeight(128);
-        this._fee = this.document.newSingleLineInput(valueHolder, '.pa.plan.fee', 'fee', 'Total Honorar Beteiligte', params, this._action, 'Betrag…', 'money', false)
+        this._fee = this.document.newSingleLineInput(valueHolder, '.pa.plan.fee', 'fee', 'Total Honorar Beteiligte', params, this._action, '', 'money', true)
             .addClass('multiline', true);
-        this._charges = this.document.newSingleLineInput(valueHolder, '.pa.plan.charges', 'charges', 'Total Honorar Projekt', params, this._action, 'Betrag…', 'money', true)
+        this._charges = this.document.newSingleLineInput(valueHolder, '.pa.plan.projectFee', 'projectFee', 'Total Honorar Projekt', params, this._action, '', 'money', true)
             .addClass('multiline', true)
             .addClass('bold');
 
-        this._thirdPartyCharges = this.document.newSingleLineInput(valueHolder, '.pa.plan.thirdPartyCharges', 'thirdPartyCharges', 'Total Spesen Beteiligte', params, this._action, 'Betrag…', 'money', false)
+        this._thirdPartyCharges = this.document.newSingleLineInput(valueHolder, '.pa.plan.thirdPartyCharges', 'thirdPartyCharges', 'Total Spesen Beteiligte', params, this._action, '', 'money', true)
             .addClass('multiline', true);
-        this._thirdPartyTotalCosts = this.document.newSingleLineInput(valueHolder, '.pa.plan.thirdPartyTotalCosts', 'thirdPartyTotalCosts', 'Total Spesen Projekt', params, this._action, 'Betrag…', 'money', true)
+        this._thirdPartyTotalCosts = this.document.newSingleLineInput(valueHolder, '.pa.plan.thirdPartyTotalCosts', 'thirdPartyTotalCosts', 'Total Spesen Projekt', params, this._action, '', 'money', true)
             .addClass('bold')
             .addClass('multiline', true);
 

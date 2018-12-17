@@ -74,16 +74,23 @@ class ClientManager {
      */
     init() {
         if (!this._initialized) {
+            this._telephones = {};
+
+            this._telephones[ArtikelController.SHARED_NAME] = this._createMessageChannel();
+            this._telephones[ModuleController.SHARED_NAME] = this._createMessageChannel();
+            this._telephones[PluginController.SHARED_NAME] = this._createMessageChannel();
+            this._telephones[ModulePlanController.SHARED_NAME] = this._createMessageChannel();
+
             /**
              * @type {ArtikelController}
              * @private
              */
-            this._articleController = ArtikelController.getInstance(this._trello, this._window);
+            this._articleController = ArtikelController.getInstance(this._trello, this._window, this._telephones[ArtikelController.SHARED_NAME].port2);
             /**
              * @type {ModuleController}
              * @private
              */
-            this._moduleController = ModuleController.getInstance(this._trello, this._window);
+            this._moduleController = ModuleController.getInstance(this._trello, this._window, this._telephones[ModuleController.SHARED_NAME].port2);
             /**
              * @type {PluginController}
              * @private
@@ -94,11 +101,77 @@ class ClientManager {
              * @type {ModulePlanController}
              * @private
              */
-            this._planController = ModulePlanController.getInstance(this._trello, this._window);
+            this._planController = ModulePlanController.getInstance(this._trello, this._window, this._telephones[ModulePlanController.SHARED_NAME].port2);
 
             this._initialized = true;
         }
         return this;
+    }
+
+    _createMessageChannel() {
+        let that = this;
+        let mc = new MessageChannel();
+        mc.port1.onmessage = function(ev) {
+            console.log("Received data from sub-module: " + JSON.stringify(ev.data));
+            let req = ev.data;
+            Object.values(req.get || []).forEach(function(item) {
+                switch (item) {
+                    case "fee:current":
+                        that._getCurrentFee();
+                        break;
+                    case "fee:overall":
+                        that._getOverallFee();
+                        break;
+                    case "charge:current":
+                        that._getCurrentCharge();
+                        break;
+                    case "charge:overall":
+                        that._getOverallCharge();
+                        break;
+                }
+            }, that);
+            Object.values(req.result||[]).forEach(function(item) {
+                Object.entries(item).forEach(function(item) {
+                    let property = item[0];
+                    let value = item[1];
+                    this._sendResponse(ModulePlanController.SHARED_NAME, property, value);
+                }, this);
+            }, that);
+
+        };
+        return mc;
+    }
+
+    _sendResponse(controller, property, value) {
+        let dto = {};
+        dto[property] = value;
+        this._telephones[controller].port1.postMessage({
+            'result': [dto]
+        })
+    }
+
+    _getCurrentCharge() {
+        this._telephones[ModuleController.SHARED_NAME].port1.postMessage({
+            'get': ['charge:current']
+        });
+    }
+
+    _getCurrentFee() {
+        this._telephones[ModuleController.SHARED_NAME].port1.postMessage({
+            'get': ['fee:current']
+        });
+    }
+
+    _getOverallCharge() {
+        this._telephones[ModuleController.SHARED_NAME].port1.postMessage({
+            'get': ['charge:overall']
+        });
+    }
+
+    _getOverallFee() {
+        this._telephones[ModuleController.SHARED_NAME].port1.postMessage({
+            'get': ['fee:overall']
+        });
     }
 
     readKeyBuffer() {
