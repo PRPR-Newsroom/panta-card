@@ -17,6 +17,30 @@ HTMLElement.prototype.addClass = function (name) {
 };
 
 /**
+ * Add a conditional formatting rule
+ * @param closure
+ */
+HTMLElement.prototype.addConditionalFormatting = function(closure) {
+    if (!this.conditionalFormatting) {
+        this.conditionalFormatting = [];
+    }
+    this.conditionalFormatting.push(closure);
+};
+
+HTMLElement.prototype.applyConditionalFormatting = function (entity) {
+    (this.conditionalFormatting||[]).forEach(function(closure) {
+        let rule = closure.call(this, entity);
+        this.removeClass(rule.name + "-not");
+        this.removeClass(rule.name);
+        if (rule.active) {
+            this.addClass(rule.name);
+        } else {
+            this.addClass(rule.name + "-not");
+        }
+    }, this);
+};
+
+/**
  * Remove all CSS classes on this HTML element
  * @param names
  */

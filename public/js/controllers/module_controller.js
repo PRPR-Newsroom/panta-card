@@ -111,9 +111,9 @@ class ModuleController {
      */
     _onMessage() {
         let that = this;
-        return function(ev) {
+        return function (ev) {
             let data = ev.data;
-            Object.values(data.get).forEach(function(item) {
+            Object.values(data.get).forEach(function (item) {
                 switch (item) {
                     case "fee:current":
                         this._sendResponse(item, this.getTotalFee());
@@ -126,6 +126,9 @@ class ModuleController {
                         break;
                     case "charge:overall":
                         this._sendResponse(item, this.getOverallTotalCharges());
+                        break;
+                    case 'costs:overall':
+                        this._sendResponse(item, this.getOverallCosts());
                         break;
                 }
             }, that);
@@ -142,7 +145,7 @@ class ModuleController {
         let dto = {};
         dto[property] = value;
         this._telephone.postMessage({
-           'result': [dto],
+            'result': [dto],
         });
     }
 
@@ -261,7 +264,7 @@ class ModuleController {
         // update the config entity with this section
         config.sections[args['valueHolder']['involved-in']] = source.getBinding();
         // update the involved part of the entity
-        this.persist.call(this, args['config']).then(function() {
+        this.persist.call(this, args['config']).then(function () {
             console.log("Stored: " + source.getBoundProperty() + " = " + source.getValue());
         });
     }
@@ -296,7 +299,7 @@ class ModuleController {
                 return item instanceof OtherBeteiligt;
             })
             .map(function (item) {
-                return [isNaN(item.fee) ? 0 : item.fee, isNaN(item.projectFee) ? 0 : item.projectFee];
+                return [isNaN(item.fee) ? 0 : item.fee, isNaN(item.charges) ? 0 : item.charges];
             })
             .flat().reduce(function (previousValue, currentValue) {
                 return parseFloat(previousValue) + parseFloat(currentValue);
@@ -368,6 +371,27 @@ class ModuleController {
             .map(function (item) {
                 return isNaN(item.charges) ? 0.0 : item.charges;
             })
+            .reduce(function (previousValue, currentValue) {
+                return parseFloat(previousValue) + parseFloat(currentValue);
+            }, 0.0);
+    }
+
+    /**
+     * Get the overall costs of this BOARD
+     * @returns {number}
+     */
+    getOverallCosts() {
+        return Object.values(this._repository.all()).map(function (item) {
+            // we only need the sections without the keys
+            return Object.values(item.sections);
+        }).flat() // flatten the entries
+            .filter(function (item) {
+                return item instanceof OtherBeteiligt;
+            })
+            .map(function (item) {
+                return [isNaN(item.charges) ? 0.0 : item.charges, isNaN(item.fee) ? 0.0 : item.fee];
+            })
+            .flat()
             .reduce(function (previousValue, currentValue) {
                 return parseFloat(previousValue) + parseFloat(currentValue);
             }, 0.0);

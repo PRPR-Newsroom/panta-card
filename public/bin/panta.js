@@ -301,6 +301,7 @@ PInput.prototype._updateValue = function(a) {
 PInput.prototype.update = function(a) {
   this._entity = a;
   "select" !== this._type && this._updateProperty();
+  this._updateConditionalFormatting();
   return this;
 };
 PInput.prototype.render = function() {
@@ -362,6 +363,14 @@ PInput.prototype._setClassWhenEvent = function(a, b, c, d) {
 PInput.prototype.addClass = function(a, b) {
   !0 === b ? this._labelInput.addClass(a) : this._input.addClass(a);
   return this;
+};
+PInput.prototype.addConditionalFormatting = function(a, b) {
+  !0 === b ? this._labelInput.addConditionalFormatting(a) : this._input.addConditionalFormatting(a);
+  return this;
+};
+PInput.prototype._updateConditionalFormatting = function() {
+  this._labelInput.applyConditionalFormatting(this._entity);
+  this._input.applyConditionalFormatting(this._entity);
 };
 PInput.prototype.setHeight = function(a) {
   this._input.style.height = a + "px";
@@ -446,6 +455,7 @@ $jscomp.inherits(SingleLineInput, PInput);
 SingleLineInput.prototype.doCustomization = function(a, b) {
   a.setAttribute("rows", 1);
   a.addClass("no-resize");
+  a.style.paddingTop = Math.max(0, a.offsetHeight - 23) + "px";
   return PInput.prototype.doCustomization.call(this, a, b);
 };
 var SingleSelectInput = function(a, b, c, d, e, f) {
@@ -558,6 +568,9 @@ ClientManager.prototype._createMessageChannel = function() {
           break;
         case "charge:overall":
           a._getOverallCharge();
+          break;
+        case "costs:overall":
+          a._getOverallCosts();
       }
     }, a);
     Object.values(b.result || []).forEach(function(a) {
@@ -584,6 +597,9 @@ ClientManager.prototype._getOverallCharge = function() {
 };
 ClientManager.prototype._getOverallFee = function() {
   this._telephones[ModuleController.SHARED_NAME].port1.postMessage({get:["fee:overall"]});
+};
+ClientManager.prototype._getOverallCosts = function() {
+  this._telephones[ModuleController.SHARED_NAME].port1.postMessage({get:["costs:overall"]});
 };
 ClientManager.prototype.readKeyBuffer = function() {
   return this._keyBuffer;
@@ -701,6 +717,9 @@ ModuleController.prototype._onMessage = function() {
           break;
         case "charge:overall":
           this._sendResponse(a, this.getOverallTotalCharges());
+          break;
+        case "costs:overall":
+          this._sendResponse(a, this.getOverallCosts());
       }
     }, a);
   };
@@ -776,7 +795,7 @@ ModuleController.prototype.getTotalProjectCosts = function() {
   }).flat().filter(function(a) {
     return a instanceof OtherBeteiligt;
   }).map(function(a) {
-    return [isNaN(a.fee) ? 0 : a.fee, isNaN(a.projectFee) ? 0 : a.projectFee];
+    return [isNaN(a.fee) ? 0 : a.fee, isNaN(a.charges) ? 0 : a.charges];
   }).flat().reduce(function(a, b) {
     return parseFloat(a) + parseFloat(b);
   }, 0.0);
@@ -818,6 +837,17 @@ ModuleController.prototype.getOverallTotalCharges = function() {
   }).map(function(a) {
     return isNaN(a.charges) ? 0.0 : a.charges;
   }).reduce(function(a, b) {
+    return parseFloat(a) + parseFloat(b);
+  }, 0.0);
+};
+ModuleController.prototype.getOverallCosts = function() {
+  return Object.values(this._repository.all()).map(function(a) {
+    return Object.values(a.sections);
+  }).flat().filter(function(a) {
+    return a instanceof OtherBeteiligt;
+  }).map(function(a) {
+    return [isNaN(a.charges) ? 0.0 : a.charges, isNaN(a.fee) ? 0.0 : a.fee];
+  }).flat().reduce(function(a, b) {
     return parseFloat(a) + parseFloat(b);
   }, 0.0);
 };
@@ -1137,14 +1167,16 @@ ModulePlanBinding.prototype.onLayout = function(a) {
   this._switchContent(b);
   b = {context:this._context, valueHolder:a, entity:this._entity};
   this._measures = this.document.newMultiLineInput(a, ".pa.plan.measures", "measures", "Massnahme", b, this._action, 2, "notieren\u2026").addClass("multiline");
-  this._description = this.document.newMultiLineInput(a, ".pa.plan.description", "description", "Beschreibung", b, this._action, 3, "notieren\u2026").addClass("rows-2").setHeight(128);
+  this._description = this.document.newMultiLineInput(a, ".pa.plan.description", "description", "Beschreibung", b, this._action, 3, "notieren\u2026").addClass("rows-2");
   this._fee = this.document.newSingleLineInput(a, ".pa.plan.fee", "fee", "Total Honorar Beteiligte", b, this._action, "", "money", !0).addClass("multiline", !0);
   this._charges = this.document.newSingleLineInput(a, ".pa.plan.projectFee", "projectFee", "Total Honorar Projekt", b, this._action, "", "money", !0).addClass("multiline", !0).addClass("bold");
   this._thirdPartyCharges = this.document.newSingleLineInput(a, ".pa.plan.thirdPartyCharges", "thirdPartyCharges", "Total Spesen Beteiligte", b, this._action, "", "money", !0).addClass("multiline", !0);
   this._thirdPartyTotalCosts = this.document.newSingleLineInput(a, ".pa.plan.thirdPartyTotalCosts", "thirdPartyTotalCosts", "Total Spesen Projekt", b, this._action, "", "money", !0).addClass("bold").addClass("multiline", !0);
   this._capOnDepenses = this.document.newSingleLineInput(a, ".pa.plan.capOnDepenses", "capOnDepenses", "Kostendach Projekt", b, this._action, "Betrag\u2026", "money", !1).addClass("multiline", !0);
-  this._totalCosts = this.document.newSingleLineInput(a, ".pa.plan.totalCosts", "totalCosts", "Total Projekt", b, this._action, "Betrag\u2026", "money", !0).addClass("bold").addClass("multiline", !0);
-  this._visual = this.document.newSingleSelect(a, "pa.plan.visual", "visual", "Visual", b, this._action, "x-Liste", newOption("", "\u2026"), [newOption("picture", "Bild"), newOption("icon", "Icon"), newOption("graphics", "Grafik"), newOption("videos", "Video"), newOption("illustrations", "Illu")]);
+  this._totalCosts = this.document.newSingleLineInput(a, ".pa.plan.totalCosts", "totalCosts", "Total Projekt", b, this._action, "Betrag\u2026", "money", !0).addClass("bold").addClass("multiline", !0).addConditionalFormatting(function(a) {
+    return {name:"rule-costs-exceeded", active:a.capOnDepenses < a.totalCosts};
+  }, !1);
+  this._visual = this._visual = this.document.newSingleSelect(a, "pa.plan.visual", "visual", "Visual", b, this._action, "x-Liste", newOption("", "\u2026"), [newOption("picture", "Bild"), newOption("icon", "Icon"), newOption("graphics", "Grafik"), newOption("videos", "Video"), newOption("illustrations", "Illu")]);
   this._form = this.document.newSingleSelect(a, "pa.plan.form", "form", "Form", b, this._action, "x-Liste", newOption("", "\u2026"), [newOption("news", "News"), newOption("article", "Artikel"), newOption("report", "Report")]);
   this._online = this.document.newSingleSelect(a, "pa.plan.online", "online", "Online", b, this._action, "Liste-Tag", newOption("", "\u2026"), [newOption("monday", ArtikelBinding.getTagMapping("monday")), newOption("tuesday", ArtikelBinding.getTagMapping("tuesday")), newOption("wednesday", ArtikelBinding.getTagMapping("wednesday")), newOption("thursday", ArtikelBinding.getTagMapping("thursday")), newOption("friday", ArtikelBinding.getTagMapping("friday")), newOption("saturday", ArtikelBinding.getTagMapping("saturday")), 
   newOption("sunday", ArtikelBinding.getTagMapping("sunday"))]);
@@ -1180,10 +1212,14 @@ var ModulePlanController = function(a, b, c) {
             break;
           case "charge:overall":
             this._entity.thirdPartyTotalCosts = b;
+            break;
+          case "costs:overall":
+            d._entity.totalCosts = b;
         }
-        this._binding.update(this._entity);
       }, this);
     }, d);
+    d._entity.capOnDepenses = d.getCapOnDepenses();
+    d._binding.update(d._entity);
   };
   this._binding = null;
   this._propertyBag = {};
@@ -1200,8 +1236,9 @@ ModulePlanController.prototype.render = function(a) {
   return Controller.prototype.render.call(this, a);
 };
 ModulePlanController.prototype.update = function() {
-  this._telephone.postMessage({get:["fee:current", "fee:overall", "charge:current", "charge:overall"]});
+  this._telephone.postMessage({get:["fee:current", "fee:overall", "charge:current", "charge:overall", "costs:overall"]});
   this._entity.capOnDepenses = this.getCapOnDepenses();
+  this._entity.totalCosts = this.getProjectCosts();
   this._binding.update(this._entity);
   return Controller.prototype.update.call(this);
 };
@@ -1229,10 +1266,9 @@ ModulePlanController.prototype.getCapOnDepenses = function() {
   return isNaN(a) ? 0.0 : parseFloat(a);
 };
 ModulePlanController.prototype.getProjectCosts = function() {
-  return Object.values(this._repository.all()).map(function(a, b) {
-    a = parseInt(a.thirdPartyCharges);
-    return isNaN(a) ? 0 : a;
-  }).reduce(function(a, b) {
+  return Object.values(this._repository.all()).map(function(a) {
+    return [isNaN(a.projectFee) ? 0 : a.projectFee, isNaN(a.thirdPartyTotalCosts) ? 0 : a.thirdPartyTotalCosts];
+  }).flat().reduce(function(a, b) {
     return parseInt(a) + parseInt(b);
   }, 0);
 };
@@ -1401,12 +1437,12 @@ BeteiligtBinding.prototype.onRegularLayout = function(a, b) {
   this.document.newSingleLineInput(b, ".pa.name", "name", "Name", a, this._action, "eintippen\u2026", "text", !1);
   this.document.newSingleLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", a, this._action, "notieren\u2026");
   this.document.newMultiLineInput(b, ".pa.address", "address", "Adresse", a, this._action, 2, "festhalten\u2026");
-  this.document.newMultiLineInput(b, ".pa.notes", "notes", "Notiz", a, this._action, 6, "formulieren\u2026").addClass("rows-2");
+  this.document.newMultiLineInput(b, ".pa.notes", "notes", "Notiz", a, this._action, 6, "formulieren\u2026");
   this.document.newSingleLineInput(b, ".pa.duedate", "duedate", "Deadline", a, this._action, "bestimmen\u2026", "text", !1);
-  this.document.newSingleLineInput(b, ".pa.fee", "fee", "Honorar Massnahme", a, this._action, "Betrag\u2026", "money", !1).addClass("multiline", !0);
-  this.document.newSingleLineInput(b, ".pa.projectFee", "projectFee", "Spesen Massnahme", a, this._action, "Betrag\u2026", "money", !1).addClass("multiline", !0);
-  this.document.newSingleLineInput(b, ".pa.project", "project", "Total Beteiligte", a, this._action, "Betrag\u2026", "money", !0).addClass("bold").addClass("multiline", !0);
-  this.document.newSingleLineInput(b, ".pa.cap_on_expenses", "capOnExpenses", "Kostendach Total Projekt", a, this._action, "Betrag\u2026", "money", !1).addClass("multiline", !0);
+  this.document.newSingleLineInput(b, ".pa.fee", "fee", "Honorar Massnahme", a, this._action, "Betrag\u2026", "money", !1);
+  this.document.newSingleLineInput(b, ".pa.charges", "charges", "Spesen Massnahme", a, this._action, "Betrag\u2026", "money", !1);
+  this.document.newSingleLineInput(b, ".pa.project", "project", "Total Beteiligte", a, this._action, "Betrag\u2026", "money", !0).addClass("bold");
+  this.document.newSingleLineInput(b, ".pa.cap_on_expenses", "capOnExpenses", "Kostendach Total Projekt", a, this._action, "Betrag\u2026", "money", !1);
 };
 BeteiligtBinding.prototype.onLayout = function(a, b) {
   switch(b.layout) {
@@ -1854,6 +1890,18 @@ HTMLElement.prototype.addClass = function(a) {
   -1 === this.className.split(" ").indexOf(a) && (this.className += " " + a, this.className = this.className.trim());
   return this;
 };
+HTMLElement.prototype.addConditionalFormatting = function(a) {
+  this.conditionalFormatting || (this.conditionalFormatting = []);
+  this.conditionalFormatting.push(a);
+};
+HTMLElement.prototype.applyConditionalFormatting = function(a) {
+  (this.conditionalFormatting || []).forEach(function(b) {
+    b = b.call(this, a);
+    this.removeClass(b.name + "-not");
+    this.removeClass(b.name);
+    b.active ? this.addClass(b.name) : this.addClass(b.name + "-not");
+  }, this);
+};
 HTMLElement.prototype.removeClasses = function(a) {
   var b = this;
   a.forEach(function(a, d) {
@@ -1923,9 +1971,9 @@ function newOption(a, b) {
 }
 ;
 // Input 22
-var template_regular = '<div id="template">    <div class="row">        <div class="col-6">            <div class="row">                <div class="col-12 less-padding-right">                    <div class="pa.name"></div>                </div>                <div class="col-12 less-padding-right">                    <div class="pa.social"></div>                </div>                <div class="col-12 less-padding-right">                    <div class="pa.address"></div>                </div>            </div>        </div>        <div class="col-6">            <div class="row">                <div class="col-12 less-padding-left before-last-row">                    <div class="pa.notes"></div>                </div>            </div>            <div class="row">                <div class="col-12 less-padding-left align-bottom">                    <div class="pa.duedate"></div>                </div>            </div>        </div>    </div>    <div class="row">        <div class="col-12">            <div class="row">                <div class="col-3 less-padding-right">                    <div class="pa.fee"></div>                </div>                <div class="col-3 less-padding">                    <div class="pa.projectFee"></div>                </div>                <div class="col-3 less-padding">                </div>                <div class="col-3 less-padding-left">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
-template_ad = '<div id="template" class="row">    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-right">                <div class="pa.notes"></div>            </div>        </div>        <div class="row before-last-row">            <div class="col-6 less-padding-right">                <div class="pa.format"></div>            </div>            <div class="col-6 less-padding">                <div class="pa.placement"></div>            </div>        </div>        <div class="row align-bottom">            <div class="col-6 less-padding-right">                <div class="pa.price"></div>            </div>            <div class="col-6 less-padding">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6">        <div class="row">            <div class="col-12 less-padding-left">                <div class="pa.name"></div>            </div>            <div class="col-12 less-padding-left">                <div class="pa.social"></div>            </div>            <div class="col-12 less-padding-left">                <div class="pa.address"></div>            </div>        </div>    </div></div>', 
-template_plan = '<div id="template">    <div class="row">        <div class="col-6">            <div class="row">                <div class="col-12 less-padding-right">                    <div class="pa.plan.measures"></div>                </div>                <div class="col-12 less-padding-right before-last-row">                    <div class="pa.plan.description"></div>                </div>            </div>        </div>        <div class="col-6">            <div class="row">                <div class="col-6 less-padding">                    <div class="pa.plan.fee"></div>                </div>                <div class="col-6 less-padding-left">                    <div class="pa.plan.projectFee"></div>                </div>            </div>            <div class="row">                <div class="col-6 less-padding">                    <div class="pa.plan.thirdPartyCharges"></div>                </div>                <div class="col-6 less-padding-left">                    <div class="pa.plan.thirdPartyTotalCosts"></div>                </div>            </div>            <div class="row">                <div class="col-6 less-padding before-last-row">                    <div class="pa.plan.capOnDepenses"></div>                </div>                <div class="col-6 less-padding-left before-last-row">                    <div class="pa.plan.totalCosts"></div>                </div>            </div>        </div>    </div>    <div class="row">        <div class="col-12">            <div class="row align-bottom">                <div class="col-2 col-xs-4 less-padding-right">                    <div id="pa.plan.visual"></div>                </div>                <div class="col-2 col-xs-4 less-padding">                    <div id="pa.plan.form"></div>                </div>                <div class="col-2 col-xs-4 less-padding">                    <div id="pa.plan.online"></div>                </div>                <div class="col-2 col-xs-4 less-padding">                    <div id="pa.plan.season"></div>                </div>                <div class="col-2 col-xs-4 less-padding">                    <div id="pa.plan.region"></div>                </div>                <div class="col-2 col-xs-4 less-padding-left">                    <div id="pa.plan.place"></div>                </div>            </div>        </div>    </div></div>';
+var template_regular = '<div id="template">    <div class="row">        <div class="col-6">            <div class="row">                <div class="col-12">                    <div class="pa.name"></div>                </div>                <div class="col-12">                    <div class="pa.social"></div>                </div>            </div>        </div>        <div class="col-6 line-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-6">            <div class="pa.address"></div>        </div>        <div class="col-6">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-12">            <div class="row">                <div class="col-4">                    <div class="pa.fee"></div>                </div>                <div class="col-4">                    <div class="pa.charges"></div>                </div>                <div class="col-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
+template_ad = '<div id="template" class="row">    <div class="col-6">        <div class="row ">            <div class="col-12">                <div class="pa.notes"></div>            </div>        </div>        <div class="row">            <div class="col-6">                <div class="pa.format"></div>            </div>            <div class="col-6">                <div class="pa.placement"></div>            </div>        </div>        <div class="row">            <div class="col-6">                <div class="pa.price"></div>            </div>            <div class="col-6">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6">        <div class="row">            <div class="col-12">                <div class="pa.name"></div>            </div>            <div class="col-12">                <div class="pa.social"></div>            </div>            <div class="col-12">                <div class="pa.address"></div>            </div>        </div>    </div></div>', 
+template_plan = '<div id="template">    <div class="row">        <div class="col-6 line-2 line-xs-3">            <div class="pa.plan.measures"></div>        </div>        <div class="col-3">            <div class="pa.plan.fee"></div>        </div>        <div class="col-3">            <div class="pa.plan.projectFee"></div>        </div>    </div>    <div class="row">        <div class="col-6 line-6 line-xs-8">            <div class="pa.plan.description"></div>        </div>        <div class="col-6">            <div class="row">                <div class="col-6">                    <div class="pa.plan.thirdPartyCharges"></div>                </div>                <div class="col-6">                    <div class="pa.plan.thirdPartyTotalCosts"></div>                </div>                <div class="col-6 line-xs-2">                    <div class="pa.plan.capOnDepenses"></div>                </div>                <div class="col-6 line-2 line-xs-2">                    <div class="pa.plan.totalCosts"></div>                </div>            </div>        </div>    </div>    <div class="row">        <div class="col-2 col-xs-4">            <div id="pa.plan.visual"></div>        </div>        <div class="col-2 col-xs-4">            <div id="pa.plan.form"></div>        </div>        <div class="col-2 col-xs-4">            <div id="pa.plan.online"></div>        </div>        <div class="col-2 col-xs-4">            <div id="pa.plan.season"></div>        </div>        <div class="col-2 col-xs-4">            <div id="pa.plan.region"></div>        </div>        <div class="col-2 col-xs-4">            <div id="pa.plan.place"></div>        </div>    </div></div>';
 // Input 23
 var JsonSerialization = function() {
 };

@@ -31,10 +31,10 @@ class ModulePlanController extends Controller {
          */
         this._telephone = telephone;
         let that = this;
-        this._telephone.onmessage = function(ev) {
+        this._telephone.onmessage = function (ev) {
             let response = ev.data;
-            Object.values(response.result||[]).forEach(function(item) {
-                Object.entries(item).forEach(function(item) {
+            Object.values(response.result || []).forEach(function (item) {
+                Object.entries(item).forEach(function (item) {
                     let property = item[0];
                     let value = item[1];
                     switch (property) {
@@ -50,10 +50,14 @@ class ModulePlanController extends Controller {
                         case "charge:overall":
                             this._entity.thirdPartyTotalCosts = value;
                             break;
+                        case "costs:overall":
+                            that._entity.totalCosts = value;
+                            break;
                     }
-                    this._binding.update(this._entity);
                 }, this);
             }, that);
+            that._entity.capOnDepenses = that.getCapOnDepenses();
+            that._binding.update(that._entity);
 
         };
         /**
@@ -84,11 +88,13 @@ class ModulePlanController extends Controller {
     update() {
         this._telephone.postMessage({
             'get': ['fee:current',
-            'fee:overall',
-            'charge:current',
-            'charge:overall']
+                'fee:overall',
+                'charge:current',
+                'charge:overall',
+                'costs:overall']
         });
         this._entity.capOnDepenses = this.getCapOnDepenses();
+        this._entity.totalCosts = this.getProjectCosts();
         this._binding.update(this._entity);
         return super.update();
     }
@@ -153,13 +159,9 @@ class ModulePlanController extends Controller {
      * Get overall project costs (charges + thirdPartyCharges)
      */
     getProjectCosts() {
-        return Object.values(this._repository.all()).map(function (item, index) {
-            let number = parseInt(item.thirdPartyCharges);
-            if (isNaN(number)) {
-                return 0;
-            }
-            return number;
-        }).reduce(function (previousValue, currentValue) {
+        return Object.values(this._repository.all()).map(function (item) {
+            return [isNaN(item.projectFee) ? 0 : item.projectFee, isNaN(item.thirdPartyTotalCosts) ? 0 : item.thirdPartyTotalCosts];
+        }).flat().reduce(function (previousValue, currentValue) {
             return parseInt(previousValue) + parseInt(currentValue);
         }, 0);
     }

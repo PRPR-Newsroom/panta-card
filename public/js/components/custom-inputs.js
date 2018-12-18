@@ -107,6 +107,7 @@ class PInput {
         if (this._type !== 'select') {
             this._updateProperty();
         }
+        this._updateConditionalFormatting();
         return this;
     }
 
@@ -226,6 +227,20 @@ class PInput {
             this._input.addClass(className);
         }
         return this;
+    }
+
+    addConditionalFormatting(rule, addToLabel) {
+        if (addToLabel === true) {
+            this._labelInput.addConditionalFormatting(rule);
+        } else {
+            this._input.addConditionalFormatting(rule);
+        }
+        return this;
+    }
+
+    _updateConditionalFormatting() {
+        this._labelInput.applyConditionalFormatting(this._entity);
+        this._input.applyConditionalFormatting(this._entity);
     }
 
     setHeight(height) {
@@ -412,6 +427,9 @@ class SingleLineInput extends PInput {
     doCustomization(element, label) {
         element.setAttribute("rows", 1);
         element.addClass('no-resize');
+        let inputHeight = element.offsetHeight;
+        // TODO 23px must be computed
+        element.style.paddingTop = Math.max(0, inputHeight - 23) + "px";
         return super.doCustomization(element, label);
     }
 }

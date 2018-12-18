@@ -4,7 +4,7 @@ html, body {
 
 form textarea {
     /* We need to override the Trello default */
-    min-height: 36px;
+    min-height: 26px;
     padding-bottom: 2px;
 }
 

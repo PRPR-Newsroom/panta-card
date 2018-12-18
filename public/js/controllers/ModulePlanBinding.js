@@ -1,4 +1,4 @@
-class ModulePlanBinding extends Binding{
+class ModulePlanBinding extends Binding {
 
     /**
      * Create the BeteiligtBinding that binds to the passed root document. The config is the entity that is managed
@@ -70,8 +70,7 @@ class ModulePlanBinding extends Binding{
         this._measures = this.document.newMultiLineInput(valueHolder, '.pa.plan.measures', 'measures', 'Massnahme', params, this._action, 2, 'notieren…')
             .addClass("multiline");
         this._description = this.document.newMultiLineInput(valueHolder, '.pa.plan.description', 'description', 'Beschreibung', params, this._action, 3, 'notieren…')
-            .addClass("rows-2")
-            .setHeight(128);
+            .addClass("rows-2");
         this._fee = this.document.newSingleLineInput(valueHolder, '.pa.plan.fee', 'fee', 'Total Honorar Beteiligte', params, this._action, '', 'money', true)
             .addClass('multiline', true);
         this._charges = this.document.newSingleLineInput(valueHolder, '.pa.plan.projectFee', 'projectFee', 'Total Honorar Projekt', params, this._action, '', 'money', true)
@@ -86,9 +85,17 @@ class ModulePlanBinding extends Binding{
 
         this._capOnDepenses = this.document.newSingleLineInput(valueHolder, '.pa.plan.capOnDepenses', 'capOnDepenses', 'Kostendach Projekt', params, this._action, 'Betrag…', 'money', false)
             .addClass('multiline', true);
+
         this._totalCosts = this.document.newSingleLineInput(valueHolder, '.pa.plan.totalCosts', 'totalCosts', 'Total Projekt', params, this._action, 'Betrag…', 'money', true)
             .addClass('bold')
-            .addClass('multiline', true);
+            .addClass('multiline', true)
+            .addConditionalFormatting(function (entity) {
+                /** @type Plan entity */
+                return {
+                    'name': 'rule-costs-exceeded',
+                    'active': entity.capOnDepenses < entity.totalCosts
+                };
+            }, false);
 
         this._visual = this._visual = this.document.newSingleSelect(valueHolder, 'pa.plan.visual', 'visual', 'Visual', params, this._action, 'x-Liste', newOption('', '…'), [
             newOption("picture", "Bild"),

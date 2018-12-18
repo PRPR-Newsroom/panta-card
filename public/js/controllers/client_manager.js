@@ -128,6 +128,9 @@ class ClientManager {
                     case "charge:overall":
                         that._getOverallCharge();
                         break;
+                    case 'costs:overall':
+                        that._getOverallCosts();
+                        break;
                 }
             }, that);
             Object.values(req.result||[]).forEach(function(item) {
@@ -171,6 +174,12 @@ class ClientManager {
     _getOverallFee() {
         this._telephones[ModuleController.SHARED_NAME].port1.postMessage({
             'get': ['fee:overall']
+        });
+    }
+
+    _getOverallCosts() {
+        this._telephones[ModuleController.SHARED_NAME].port1.postMessage({
+            'get': ['costs:overall']
         });
     }
 

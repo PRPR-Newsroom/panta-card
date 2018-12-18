@@ -177,15 +177,11 @@ class BeteiligtBinding {
         this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Notiz", params, this._action, 6, "formulieren…");
         this.document.newSingleLineInput(valueHolder, ".pa.duedate", "duedate", "Deadline", params, this._action, "bestimmen…", "text", false);
 
-        this.document.newSingleLineInput(valueHolder, ".pa.fee", "fee", "Honorar Massnahme", params, this._action, "Betrag…", "money", false)
-            .addClass('multiline', true);
-        this.document.newSingleLineInput(valueHolder, ".pa.projectFee", "projectFee", "Spesen Massnahme", params, this._action, "Betrag…", "money", false)
-            .addClass('multiline', true);
+        this.document.newSingleLineInput(valueHolder, ".pa.fee", "fee", "Honorar Massnahme", params, this._action, "Betrag…", "money", false);
+        this.document.newSingleLineInput(valueHolder, ".pa.charges", "charges", "Spesen Massnahme", params, this._action, "Betrag…", "money", false);
         this.document.newSingleLineInput(valueHolder, ".pa.project", "project", "Total Beteiligte", params, this._action, "Betrag…", "money", true)
-            .addClass("bold")
-            .addClass('multiline', true);
-        this.document.newSingleLineInput(valueHolder, ".pa.cap_on_expenses", "capOnExpenses", "Kostendach Total Projekt", params, this._action, "Betrag…", "money", false)
-            .addClass('multiline', true);
+            .addClass("bold");
+        this.document.newSingleLineInput(valueHolder, ".pa.cap_on_expenses", "capOnExpenses", "Kostendach Total Projekt", params, this._action, "Betrag…", "money", false);
     }
 
     onLayout(forms, valueHolder) {
