@@ -2,6 +2,12 @@ html, body {
     overflow-y: auto;
 }
 
+form textarea {
+    /* We need to override the Trello default */
+    min-height: 36px;
+    padding-bottom: 2px;
+}
+
 form label.focused-fix {
     border-color: #798d99;
 }
@@ -27,10 +33,6 @@ form label {
     font-weight: normal;
 }
 
-form .u-border:not(.rows-2) {
-    height: 40px;
-}
-
 form .u-border, form .u-border:focus {
     border-top: none;
     overflow: auto;
@@ -39,12 +41,10 @@ form .u-border, form .u-border:focus {
     border-radius: 0 0 3px 3px;
     background: rgba(0, 0, 0, .03);
     padding-top: 0;
-
     -webkit-appearance: none;
     -webkit-box-shadow: none;
     -moz-box-shadow: none;
     box-shadow: none !important;
-    min-height: 36px;
     margin-bottom: 4px;
 }
 
@@ -56,11 +56,6 @@ form select.u-border, form select.u-border:focus {
     border-right: 1px solid #798d99;
     border-bottom: 1px solid #798d99;
     outline: none;
-
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-
     -moz-appearance: none;
     -webkit-appearance: none;
     appearance: none;
@@ -73,11 +68,11 @@ form select.u-border, form select.u-border:focus {
     padding-bottom: 8px;
 }
 
-.field {
-    min-height: 60px;
-}
+/*.field {*/
+    /*min-height: 60px;*/
+/*}*/
 
 .field * {
-    line-height: 1.1;
+    line-height: 16px;
 }
 

@@ -1,6 +1,3 @@
 @supports (-webkit-appearance:none) {
 
-    form textarea.u-border.rows-2 {
-        height: 104px;
-    }
 }
