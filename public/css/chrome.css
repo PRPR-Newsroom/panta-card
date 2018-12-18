@@ -1,6 +1,3 @@
 @supports (-webkit-appearance:none) {
 
-    form textarea.u-border.padding-fix {
-        height: 104px;
-    }
 }

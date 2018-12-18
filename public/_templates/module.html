@@ -1,0 +1,161 @@
+<html>
+<head>
+    <title>Grid Test</title>
+    <link rel="stylesheet" href="https://p.trellocdn.com/power-up.min.css"/>
+    <link rel="stylesheet" href="../css/grid.css"/>
+    <link rel="stylesheet" href="../css/panta.commons.css"/>
+    <link rel="stylesheet" href="../css/panta.responsive.css"/>
+    <link rel="stylesheet" href="../css/chrome.css"/>
+    <style>
+        body, html {
+            max-width: 500px;
+        }
+    </style>
+</head>
+<form>
+    <div class="row">
+        <div class="col-9">
+            <div class="row">
+                <div class="col-12">
+                    <div id="pa.topic">
+                        <div class="field">
+                            <label class="prop-textarea">Massnahme</label>
+                            <textarea name="name_.pa.plan.measures" placeholder="notieren…" title="Massnahme"
+                                      autocomplete="new-password" class="text u-border multiline" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6">
+                    <div id="pa.input-from">
+                        <div class="field"><label class="prop-textarea hovered">Input
+                            von</label><textarea name="name_pa.input-from" placeholder="Name" title="Input von"
+                                                 autocomplete="new-password" class="text u-border no-resize"
+                                                 rows="1"></textarea></div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div id="pa.author">
+                        <div class="field"><label
+                                class="prop-textarea">Textautor*in</label><textarea
+                                name="name_pa.author" placeholder="Name" title="Textautor*in"
+                                autocomplete="new-password" class="text u-border no-resize" rows="1"></textarea></div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div id="pa.text">
+                        <div class="field"><label class="prop-textarea hovered">Textbox</label><textarea
+                                name="name_pa.text" placeholder="Lauftext" title="Textbox" autocomplete="new-password"
+                                class="text u-border" rows="2"></textarea></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-3">
+            <div id="pa.pagina">
+                <div class="field"><label class="prop-textarea multiline hovered">Total Honorar
+                    Beteiligte</label><textarea name="name_.pa.plan.fee" placeholder="" title="Total Honorar Beteiligte"
+                                                autocomplete="new-password" readonly="readonly"
+                                                class="money u-border no-resize" rows="1"></textarea></div>
+            </div>
+            <div id="pa.layout">
+                <div class="field"><label class="prop-textarea hovered">Seiten
+                    Layout</label><textarea name="name_pa.layout" placeholder="Zahl" title="Seiten Layout"
+                                            autocomplete="new-password" class="number u-border no-resize"
+                                            rows="1"></textarea></div>
+            </div>
+            <div id="pa.total">
+                <div class="field"><label class="prop-textarea hovered">Seiten
+                    Total</label><textarea name="name_pa.total" placeholder="Summe" title="Seiten Total"
+                                           autocomplete="new-password" readonly="readonly"
+                                           class="number u-border no-resize bold" rows="1"></textarea></div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-2">
+            <div id="pa.visual">
+                <div class="field"><label class="prop-select focused-fix hovered">Visual</label><select
+                        name="name_pa.visual" title="Visual" autocomplete="new-password" class="text u-border">
+                    <option value="">…</option>
+                    <option value="picture">Bild</option>
+                    <option value="icon">Icon</option>
+                    <option value="graphics">Grafik</option>
+                    <option value="videos">Video</option>
+                    <option value="illustrations">Illu</option>
+                </select></div>
+            </div>
+        </div>
+        <div class="col-2">
+            <div id="pa.form">
+                <div class="field"><label class="prop-select focused-fix hovered">Form</label><select
+                        name="name_pa.visual" title="Visual" autocomplete="new-password" class="text u-border">
+                    <option value="">…</option>
+                    <option value="picture">Bild</option>
+                    <option value="icon">Icon</option>
+                    <option value="graphics">Grafik</option>
+                    <option value="videos">Video</option>
+                    <option value="illustrations">Illu</option>
+                </select></div>
+            </div>
+        </div>
+        <div class="col-2">
+            <div id="pa.online">
+                <div class="field"><label class="prop-select focused-fix hovered">Online</label><select
+                        name="name_pa.visual" title="Visual" autocomplete="new-password" class="text u-border">
+                    <option value="">…</option>
+                    <option value="picture">Bild</option>
+                    <option value="icon">Icon</option>
+                    <option value="graphics">Grafik</option>
+                    <option value="videos">Video</option>
+                    <option value="illustrations">Illu</option>
+                </select></div>
+            </div>
+        </div>
+        <div class="col-2">
+            <div id="pa.season">
+                <div class="field"><label class="prop-select focused-fix hovered">Saison</label><select
+                        name="name_pa.visual" title="Visual" autocomplete="new-password" class="text u-border">
+                    <option value="">…</option>
+                    <option value="picture">Bild</option>
+                    <option value="icon">Icon</option>
+                    <option value="graphics">Grafik</option>
+                    <option value="videos">Video</option>
+                    <option value="illustrations">Illu</option>
+                </select></div>
+            </div>
+        </div>
+        <div class="col-2">
+            <div id="pa.region">
+                <div class="field"><label class="prop-select focused-fix hovered">Region</label><select
+                        name="name_pa.visual" title="Visual" autocomplete="new-password" class="text u-border">
+                    <option value="">…</option>
+                    <option value="picture">Bild</option>
+                    <option value="icon">Icon</option>
+                    <option value="graphics">Grafik</option>
+                    <option value="videos">Video</option>
+                    <option value="illustrations">Illu</option>
+                </select></div>
+            </div>
+        </div>
+        <div class="col-2">
+            <div id="pa.ort">
+                <div class="field"><label class="prop-select focused-fix hovered">Ort</label><select
+                        name="name_pa.visual" title="Visual" autocomplete="new-password" class="text u-border">
+                    <option value="">…</option>
+                    <option value="picture">Bild</option>
+                    <option value="icon">Icon</option>
+                    <option value="graphics">Grafik</option>
+                    <option value="videos">Video</option>
+                    <option value="illustrations">Illu</option>
+                </select></div>
+            </div>
+        </div>
+    </div>
+</form>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../bin/panta.js"></script>
+</html>
