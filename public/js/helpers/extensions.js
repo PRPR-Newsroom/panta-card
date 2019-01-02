@@ -186,6 +186,15 @@ HTMLDocument.prototype.newSingleSelect = function (valueHolder, targetId, proper
     return ssi.render();
 };
 
+HTMLDocument.prototype.createStylesheet = function(href) {
+    let link  = this.createElement('link');
+    link.rel  = 'stylesheet';
+    link.type = 'text/css';
+    link.href = href;
+    link.media = 'all';
+    return link;
+}
+
 /**
  * Check if a string is considered
  * @param totest

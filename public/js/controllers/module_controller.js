@@ -196,14 +196,14 @@ class ModuleController {
         // update the total price in the "ad" section
         // TODO no hardcoded access!
         this._entity.sections['ad'].total = this.getTotalPrice();
-        let tpf = this.getTotalProjectCosts();
-        let cod = this.getCapOnExpenses();
+        let totalProject = this.getTotalProject();
+        let cod = this.getCapOnDepenses();
         // set all dynamic properties in all OtherBeteiligt sections
         Object.values(this._entity.sections).filter(function (section) {
             return section instanceof OtherBeteiligt;
         }).forEach(function (section) {
-            section.project = tpf;
-            section.capOnExpenses = cod;
+            section.project = totalProject;
+            section.capOnDepenses = cod;
         });
         this._beteiligtBinding.update(this._entity);
     }
@@ -358,6 +358,23 @@ class ModuleController {
     }
 
     /**
+     * Get the total of charges in all sections
+     */
+    getTotalProject() {
+        return Object.values(this._entity.sections)
+            .filter(function (item) {
+                return item instanceof OtherBeteiligt;
+            })
+            .map(function (item) {
+                return [isNaN(item.fee) ? 0 : item.fee, isNaN(item.charges) ? 0 : item.charges]
+            })
+            .flat()
+            .reduce(function (previousValue, currentValue) {
+                return parseFloat(previousValue) + parseFloat(currentValue);
+            }, 0.0);
+    }
+
+    /**
      * Get the overall charges total of this BOARD
      */
     getOverallTotalCharges() {
@@ -398,11 +415,11 @@ class ModuleController {
     }
 
     /**
-     * Get the cap on expenses (Kostendach) which is a global property on the board
+     * Get the cap on depenses (Kostendach) which is a global property on the board
      * @returns {*}
      */
-    getCapOnExpenses() {
-        let coe = this.getProperty('cap_on_expenses');
+    getCapOnDepenses() {
+        let coe = this.getProperty('cap_on_depenses');
         return isNaN(coe) ? 0.0 : parseFloat(coe);
     }
 

@@ -93,9 +93,12 @@ class ModulePlanController extends Controller {
                 'charge:overall',
                 'costs:overall']
         });
-        this._entity.capOnDepenses = this.getCapOnDepenses();
-        this._entity.totalCosts = this.getProjectCosts();
-        this._binding.update(this._entity);
+        if (this._entity) {
+            this._entity.capOnDepenses = this.getCapOnDepenses();
+        }
+        if (this._binding) {
+            this._binding.update(this._entity);
+        }
         return super.update();
     }
 
@@ -153,56 +156,6 @@ class ModulePlanController extends Controller {
     getCapOnDepenses() {
         let cod = this.getProperty('cap_on_depenses');
         return isNaN(cod) ? 0.0 : parseFloat(cod);
-    }
-
-    /**
-     * Get overall project costs (charges + thirdPartyCharges)
-     */
-    getProjectCosts() {
-        return Object.values(this._repository.all()).map(function (item) {
-            return [isNaN(item.projectFee) ? 0 : item.projectFee, isNaN(item.thirdPartyTotalCosts) ? 0 : item.thirdPartyTotalCosts];
-        }).flat().reduce(function (previousValue, currentValue) {
-            return parseInt(previousValue) + parseInt(currentValue);
-        }, 0);
-    }
-
-    /**
-     * Get all third-party costs over the current board
-     *
-     * <pre>Rechnet über das ganze Board das aktuelle Total der Drittkosten</pre>
-     *
-     * @returns {any}
-     */
-    getThirdPartyCosts() {
-        return Object.values(this._repository.all()).map(function (item, index) {
-            let number = parseInt(item.thirdPartyCharges);
-            if (isNaN(number)) {
-                return 0;
-            }
-            return number;
-        }).reduce(function (previousValue, currentValue) {
-            return parseInt(previousValue) + parseInt(currentValue);
-        }, 0);
-    }
-
-    /**
-     * Get total fee costs on this board
-     *
-     * <pre>Hier wird automatisch die laufende SUMME von «Honorar Total CHF» PLUS «Drittkosten Total CHF»
-     * gerechnet und dargestellt</pre>
-     *
-     * @returns {any}
-     */
-    getTotalFeeCharges() {
-        return Object.values(this._repository.all()).map(function (item, index) {
-            let number = parseInt(item.fee);
-            if (isNaN(number)) {
-                return 0;
-            }
-            return number;
-        }).reduce(function (previousValue, currentValue) {
-            return parseInt(previousValue) + parseInt(currentValue);
-        }, 0);
     }
 
     /**

@@ -83,7 +83,7 @@ class ModulePlanBinding extends Binding {
             .addClass('bold')
             .addClass('multiline', true);
 
-        this._capOnDepenses = this.document.newSingleLineInput(valueHolder, '.pa.plan.capOnDepenses', 'capOnDepenses', 'Kostendach Projekt', params, this._action, 'Betrag…', 'money', false)
+        this._capOnDepenses = this.document.newSingleLineInput(valueHolder, '.pa.plan.capOnDepenses', 'capOnDepenses', 'Kostendach Projekt', params, this._action, '', 'money', false)
             .addClass('multiline', true);
 
         this._totalCosts = this.document.newSingleLineInput(valueHolder, '.pa.plan.totalCosts', 'totalCosts', 'Total Projekt', params, this._action, 'Betrag…', 'money', true)

@@ -19,6 +19,10 @@ form .u-border.no-resize {
     overflow-wrap: normal;
 }
 
+form textarea.u-border.no-resize {
+    overflow: hidden;
+}
+
 .u-border.pagina {
     font-size: 16pt;
     padding: 0 0.3em 0 0.3em;
@@ -120,69 +124,6 @@ textarea.rule-costs-exceeded {
 
 textarea.rule-costs-exceeded-not {
     color: green;
-}
-
-@media (max-width: 500px) {
-
-    .line-xs-1 textarea {
-        height: 26px; }
-
-    .line-xs-2 textarea {
-        height: 42px; }
-
-    .line-xs-3 textarea {
-        height: 58px; }
-
-    .line-xs-4 textarea {
-        height: 74px; }
-
-    .line-xs-5 textarea {
-        height: 90px; }
-
-    .line-xs-6 textarea {
-        height: 106px; }
-
-    .line-xs-7 textarea {
-        height: 122px; }
-
-    .line-xs-8 textarea {
-        height: 138px; }
-
-    .col-xs-1 {
-        width: 8.33%; }
-
-    .col-xs-2 {
-        width: 16.66%; }
-
-    .col-xs-3 {
-        width: 25%; }
-
-    .col-xs-4 {
-        width: 33.33%; }
-
-    .col-xs-5 {
-        width: 41.66%; }
-
-    .col-xs-6 {
-        width: 50%; }
-
-    .col-xs-7 {
-        width: 58.33%; }
-
-    .col-xs-8 {
-        width: 66.66%; }
-
-    .col-xs-9 {
-        width: 75%; }
-
-    .col-xs-10 {
-        width: 83.33%; }
-
-    .col-xs-11 {
-        width: 91.66%; }
-
-    .col-xs-12 {
-        width: 100%; }
 }
 
 ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */

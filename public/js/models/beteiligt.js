@@ -171,20 +171,20 @@ class OtherBeteiligt extends CommonBeteiligt {
                 JsonSerialization.getProperty(jsonObj, 'fee'),
                 JsonSerialization.getProperty(jsonObj, 'charges'),
                 JsonSerialization.getProperty(jsonObj, 'project'),
-                JsonSerialization.getProperty(jsonObj, 'capOnExpenses')
+                JsonSerialization.getProperty(jsonObj, 'capOnDepenses')
             )
         } else {
             return new OtherBeteiligt();
         }
     }
 
-    constructor(id, name, social, address, notes, duedate, fee, charges, project, capOnExpenses) {
+    constructor(id, name, social, address, notes, duedate, fee, charges, project, capOnDepenses) {
         super(id, name, social, address, notes);
         this._duedate = duedate;
         this._fee = fee;
         this._charges = charges;
         this._project = project;
-        this._capOnExpenses = capOnExpenses;
+        this._capOnDepenses = capOnDepenses;
         this.type = "other";
     }
 
@@ -220,12 +220,12 @@ class OtherBeteiligt extends CommonBeteiligt {
         this._project = value;
     }
 
-    get capOnExpenses() {
-        return this._capOnExpenses;
+    get capOnDepenses() {
+        return this._capOnDepenses;
     }
 
-    set capOnExpenses(value) {
-        this._capOnExpenses = value;
+    set capOnDepenses(value) {
+        this._capOnDepenses = value;
     }
 
     isEmpty() {
