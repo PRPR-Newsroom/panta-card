@@ -1,11 +1,17 @@
 
 class PModuleConfig {
 
+    /**
+     *
+     * @param document
+     * @param label will be removed soon and replaced by the "data-label" attribute in the HTML document
+     * @param valueHolder
+     */
     constructor(document, label, valueHolder) {
         this.document = document;
         this.label = label;
         /**
-         * @type {{data: null, renderer: renderer, tab: HTMLElement | null}}
+         * @type {{layout: string, renderer: renderer, data: null, tab: HTMLElement, "involved-in": *, binding: BeteiligtBinding, label: string}}
          */
         this.valueHolder = valueHolder;
     }
@@ -25,7 +31,7 @@ class PModuleConfig {
 
     render() {
         this.update(this._entity);
-        this.valueHolder.tab.innerHTML = "<span>" + this.label + "</span>";
+        this.valueHolder.tab.innerHTML = "<span>" + (this.valueHolder.label || this.label) + "</span>";
         let that = this;
         this.valueHolder.tab.addEventListener('click', function(e) {
             that.activate();

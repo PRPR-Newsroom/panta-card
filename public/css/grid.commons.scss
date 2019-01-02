@@ -1,0 +1,29 @@
+@import 'variables';
+
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+[class*="col-"] {
+  float: left;
+  padding: 0px;
+  border: 0px solid red;
+  textarea {
+    height: $height;
+  }
+}
+[class*="col-"]::after {
+  content: "";
+}
+
+.field {
+  padding: 2px;
+}
+
+.row::after {
+  content: "";
+  clear: both;
+  display: table;
+}

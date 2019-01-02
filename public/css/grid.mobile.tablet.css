@@ -21,64 +21,64 @@
   clear: both;
   display: table; }
 
-.line-1 textarea {
+.line-tablet-1 textarea {
   height: 26px; }
 
-.line-2 textarea {
-  height: 44px; }
+.line-tablet-2 textarea {
+  height: 42px; }
 
-.line-3 textarea {
-  height: 62px; }
+.line-tablet-3 textarea {
+  height: 58px; }
 
-.line-4 textarea {
-  height: 80px; }
+.line-tablet-4 textarea {
+  height: 74px; }
 
-.line-5 textarea {
-  height: 98px; }
+.line-tablet-5 textarea {
+  height: 90px; }
 
-.line-6 textarea {
-  height: 116px; }
+.line-tablet-6 textarea {
+  height: 106px; }
 
-.line-7 textarea {
-  height: 134px; }
+.line-tablet-7 textarea {
+  height: 122px; }
 
-.line-8 textarea {
-  height: 152px; }
+.line-tablet-8 textarea {
+  height: 138px; }
 
-.col-1 {
+.col-tablet-1 {
   width: 8.33%; }
 
-.col-2 {
+.col-tablet-2 {
   width: 16.66%; }
 
-.col-3 {
+.col-tablet-3 {
   width: 25%; }
 
-.col-4 {
+.col-tablet-4 {
   width: 33.33%; }
 
-.col-5 {
+.col-tablet-5 {
   width: 41.66%; }
 
-.col-6 {
+.col-tablet-6 {
   width: 50%; }
 
-.col-7 {
+.col-tablet-7 {
   width: 58.33%; }
 
-.col-8 {
+.col-tablet-8 {
   width: 66.66%; }
 
-.col-9 {
+.col-tablet-9 {
   width: 75%; }
 
-.col-10 {
+.col-tablet-10 {
   width: 83.33%; }
 
-.col-11 {
+.col-tablet-11 {
   width: 91.66%; }
 
-.col-12 {
+.col-tablet-12 {
   width: 100%; }
 
-/*# sourceMappingURL=grid.css.map */
+/*# sourceMappingURL=grid.mobile.tablet.css.map */

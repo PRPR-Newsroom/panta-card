@@ -1,9 +1,9 @@
 @supports (-moz-appearance:meterbar) {
-    form textarea.u-border:not(.padding-fix) {
+    form textarea.u-border:not(.rows-2) {
         /* should only be set for FF */
 
     }
-    form textarea.u-border.padding-fix {
+    form textarea.u-border.rows-2 {
         height: 100px;
         margin-bottom: 1px;
     }

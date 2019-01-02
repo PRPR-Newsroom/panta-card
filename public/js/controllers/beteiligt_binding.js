@@ -31,12 +31,12 @@ class BeteiligtBinding {
         this._context = context;
 
         this._involvements = {
-            'onsite': this._buildValueHolder('onsite', 'pa.involved.onsite', this.onRegularLayout),
-            'text': this._buildValueHolder('text', 'pa.involved.text', this.onRegularLayout),
-            'photo': this._buildValueHolder('photo', 'pa.involved.photo', this.onRegularLayout),
-            'video': this._buildValueHolder('video', 'pa.involved.video', this.onRegularLayout),
-            'illu': this._buildValueHolder('illu', 'pa.involved.illu', this.onRegularLayout),
-            'ad': this._buildValueHolder('ad', 'pa.involved.ad', this.onAdLayout)
+            'onsite': this._buildValueHolder('onsite', 'pa.involved.onsite', this.onLayout),
+            'text': this._buildValueHolder('text', 'pa.involved.text', this.onLayout),
+            'photo': this._buildValueHolder('photo', 'pa.involved.photo', this.onLayout),
+            'video': this._buildValueHolder('video', 'pa.involved.video', this.onLayout),
+            'illu': this._buildValueHolder('illu', 'pa.involved.illu', this.onLayout),
+            'ad': this._buildValueHolder('ad', 'pa.involved.ad', this.onLayout)
         };
 
         /**
@@ -84,18 +84,24 @@ class BeteiligtBinding {
 
     /**
      * Creates a new value-holder element
+     * @param involvedIn
      * @param tabId
-     * @returns {{data: null, renderer: renderer, tab: HTMLElement | null}}
+     * @param renderer
+     * @returns {{layout: string, renderer: renderer, data: null, tab: HTMLElement, "involved-in": *, binding: BeteiligtBinding, label: string}}
+     * @private
      */
     _buildValueHolder(involvedIn, tabId, renderer) {
         let that = this;
+        let tab = that.document.getElementById(tabId);
         return {
             'involved-in': involvedIn,
             'data': null,
             'renderer': function (valueHolder) {
                 renderer.call(that, this, valueHolder);
             },
-            'tab': that.document.getElementById(tabId),
+            'tab': tab,
+            'layout': tab.getAttribute("data-layout"),
+            'label': tab.getAttribute("data-label"),
             'binding': that
         };
     }
@@ -171,11 +177,23 @@ class BeteiligtBinding {
         this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Notiz", params, this._action, 6, "formulieren…");
         this.document.newSingleLineInput(valueHolder, ".pa.duedate", "duedate", "Deadline", params, this._action, "bestimmen…", "text", false);
 
-        this.document.newSingleLineInput(valueHolder, ".pa.fee", "fee", "Honorar", params, this._action, "Betrag…", "money", false);
-        this.document.newSingleLineInput(valueHolder, ".pa.charges", "charges", "Spesen", params, this._action, "Betrag…", "money", false);
-        this.document.newSingleLineInput(valueHolder, ".pa.project", "project", "Total Projekt", params, this._action, "Betrag…", "money", true)
+        this.document.newSingleLineInput(valueHolder, ".pa.fee", "fee", "Honorar Massnahme", params, this._action, "Betrag…", "money", false);
+        this.document.newSingleLineInput(valueHolder, ".pa.charges", "charges", "Spesen Massnahme", params, this._action, "Betrag…", "money", false);
+        this.document.newSingleLineInput(valueHolder, ".pa.project", "project", "Total Beteiligte", params, this._action, "Betrag…", "money", true)
             .addClass("bold");
-        this.document.newSingleLineInput(valueHolder, ".pa.cap_on_expenses", "capOnExpenses", "Kostendach", params, this._action, "Betrag…", "money", false);
+        this.document.newSingleLineInput(valueHolder, ".pa.cap_on_depenses", "capOnDepenses", "Kostendach Total Projekt", params, this._action, "Betrag…", "money", false);
+    }
+
+    onLayout(forms, valueHolder) {
+        switch (valueHolder.layout) {
+            case "ad":
+                this.onAdLayout(forms, valueHolder);
+                break;
+            case "regular":
+            default:
+                this.onRegularLayout(forms, valueHolder);
+                break;
+        }
     }
 
     /**

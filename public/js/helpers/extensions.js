@@ -17,6 +17,30 @@ HTMLElement.prototype.addClass = function (name) {
 };
 
 /**
+ * Add a conditional formatting rule
+ * @param closure
+ */
+HTMLElement.prototype.addConditionalFormatting = function(closure) {
+    if (!this.conditionalFormatting) {
+        this.conditionalFormatting = [];
+    }
+    this.conditionalFormatting.push(closure);
+};
+
+HTMLElement.prototype.applyConditionalFormatting = function (entity) {
+    (this.conditionalFormatting||[]).forEach(function(closure) {
+        let rule = closure.call(this, entity);
+        this.removeClass(rule.name + "-not");
+        this.removeClass(rule.name);
+        if (rule.active) {
+            this.addClass(rule.name);
+        } else {
+            this.addClass(rule.name + "-not");
+        }
+    }, this);
+};
+
+/**
  * Remove all CSS classes on this HTML element
  * @param names
  */
@@ -127,9 +151,10 @@ HTMLDocument.prototype.newSingleLineInput = function (valueHolder,
     if (property !== null) {
         sli.bind(valueHolder.data, property);
     }
+    let noop = function() {};
     sli.onFocus(actionCallback, actionParameters)
         .onEnterEditing(actionCallback, actionParameters)
-        .onChange(actionCallback, actionParameters)
+        .onChange(readonly ? noop : actionCallback, actionParameters)
         .render();
     return sli;
 };
@@ -161,6 +186,15 @@ HTMLDocument.prototype.newSingleSelect = function (valueHolder, targetId, proper
     return ssi.render();
 };
 
+HTMLDocument.prototype.createStylesheet = function(href) {
+    let link  = this.createElement('link');
+    link.rel  = 'stylesheet';
+    link.type = 'text/css';
+    link.href = href;
+    link.media = 'all';
+    return link;
+}
+
 /**
  * Check if a string is considered
  * @param totest
@@ -181,4 +215,8 @@ function newOption(value, text) {
         'value': value,
         'text': text
     };
+}
+
+function isNumber(number) {
+    return number && !isNaN(number)
 }

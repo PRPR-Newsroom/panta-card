@@ -14,7 +14,7 @@ form label {
     font-weight: normal;
 }
 
-form .u-border:not(.padding-fix):not(select) {
+form .u-border:not(.rows-2):not(select) {
     height: 40px;
 }
 
@@ -31,7 +31,7 @@ form label:not(.prop-select) {
 
 form .u-border:not(select), form .u-border:focus:not(select) {
     border-top: none;
-    overflow: auto;
+    /*overflow: auto;*/
     outline: none;
     outline: 0 !important;
     border-radius: 0 0 3px 3px;

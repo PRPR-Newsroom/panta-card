@@ -6,7 +6,7 @@ t.render(function () {
     stag.async = true;
     stag.addEventListener('load', function (e) {
         document.getElementsByClassName("plugin-version").forEach(function (element) {
-            element.innerText = "1.1.0";
+            element.innerText = "1.1.0_Preview-Module-P";
         });
     });
     document.getElementsByTagName("body")[0].appendChild(stag);

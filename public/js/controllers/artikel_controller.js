@@ -35,17 +35,25 @@ class ArtikelController {
      * @param windowManager
      * @returns {ArtikelController}
      */
-    static getInstance(trelloApi, windowManager) {
+    static getInstance(trelloApi, windowManager, telephone) {
         if (!windowManager.hasOwnProperty('articleController')) {
-            windowManager.articleController = new ArtikelController(windowManager, trelloApi, DI.getInstance().getArticleRepository());
+            windowManager.articleController = new ArtikelController(
+                windowManager,
+                trelloApi,
+                DI.getInstance().getArticleRepository(),
+                telephone
+            );
         }
         return windowManager.articleController;
     }
 
     /**
+     * @param windowManager
+     * @param trelloApi
      * @param {Repository} repository
+     * @param telephone
      */
-    constructor(windowManager, trelloApi, repository) {
+    constructor(windowManager, trelloApi, repository, telephone) {
         /**
          * @type {HTMLDocument}
          */
@@ -77,6 +85,12 @@ class ArtikelController {
          * @private
          */
         this._repository = repository;
+
+        /**
+         * The telephone to the client manager
+         * @type {MessagePort}
+         */
+        this._telephone = telephone;
 
         this.setVersionInfo();
     }
