@@ -795,7 +795,7 @@ ModuleController.prototype.getTotalProjectCosts = function() {
   }).flat().filter(function(a) {
     return a instanceof OtherBeteiligt;
   }).map(function(a) {
-    return [isNaN(a.fee) ? 0 : a.fee, isNaN(a.charges) ? 0 : a.charges];
+    return [isNumber(a.fee) ? a.fee : 0, isNumber(a.charges) ? a.charges : 0];
   }).flat().reduce(function(a, b) {
     return parseFloat(a) + parseFloat(b);
   }, 0.0);
@@ -806,7 +806,7 @@ ModuleController.prototype.getOverallTotalFee = function() {
   }).flat().filter(function(a) {
     return a instanceof OtherBeteiligt;
   }).map(function(a) {
-    return isNaN(a.fee) ? 0.0 : a.fee;
+    return isNumber(a.fee) ? a.fee : 0.0;
   }).reduce(function(a, b) {
     return parseFloat(a) + parseFloat(b);
   }, 0.0);
@@ -815,7 +815,7 @@ ModuleController.prototype.getTotalFee = function() {
   return Object.values(this._entity.sections).filter(function(a) {
     return a instanceof OtherBeteiligt;
   }).map(function(a) {
-    return isNaN(a.fee) ? 0.0 : a.fee;
+    return isNumber(a.fee) ? a.fee : 0.0;
   }).reduce(function(a, b) {
     return parseFloat(a) + parseFloat(b);
   }, 0.0);
@@ -824,7 +824,7 @@ ModuleController.prototype.getTotalCharges = function() {
   return Object.values(this._entity.sections).filter(function(a) {
     return a instanceof OtherBeteiligt;
   }).map(function(a) {
-    return isNaN(a.charges) ? 0.0 : a.charges;
+    return isNumber(a.charges) ? a.charges : 0.0;
   }).reduce(function(a, b) {
     return parseFloat(a) + parseFloat(b);
   }, 0.0);
@@ -833,7 +833,7 @@ ModuleController.prototype.getTotalProject = function() {
   return Object.values(this._entity.sections).filter(function(a) {
     return a instanceof OtherBeteiligt;
   }).map(function(a) {
-    return [isNaN(a.fee) ? 0 : a.fee, isNaN(a.charges) ? 0 : a.charges];
+    return [isNumber(a.fee) ? a.fee : 0, isNumber(a.charges) ? a.charges : 0];
   }).flat().reduce(function(a, b) {
     return parseFloat(a) + parseFloat(b);
   }, 0.0);
@@ -844,7 +844,7 @@ ModuleController.prototype.getOverallTotalCharges = function() {
   }).flat().filter(function(a) {
     return a instanceof OtherBeteiligt;
   }).map(function(a) {
-    return isNaN(a.charges) ? 0.0 : a.charges;
+    return isNumber(a.charges) ? a.charges : 0.0;
   }).reduce(function(a, b) {
     return parseFloat(a) + parseFloat(b);
   }, 0.0);
@@ -855,7 +855,7 @@ ModuleController.prototype.getOverallCosts = function() {
   }).flat().filter(function(a) {
     return a instanceof OtherBeteiligt;
   }).map(function(a) {
-    return [isNaN(a.charges) ? 0.0 : a.charges, isNaN(a.fee) ? 0.0 : a.fee];
+    return [isNumber(a.charges) ? a.charges : 0.0, isNumber(a.fee) ? a.fee : 0.0];
   }).flat().reduce(function(a, b) {
     return parseFloat(a) + parseFloat(b);
   }, 0.0);
@@ -1961,6 +1961,9 @@ Window.prototype.isBlank = function(a) {
 };
 function newOption(a, b) {
   return {value:a, text:b};
+}
+function isNumber(a) {
+  return a && !isNaN(a);
 }
 ;
 // Input 22

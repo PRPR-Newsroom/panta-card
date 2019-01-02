@@ -216,3 +216,7 @@ function newOption(value, text) {
         'text': text
     };
 }
+
+function isNumber(number) {
+    return number && !isNaN(number)
+}

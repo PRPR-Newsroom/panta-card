@@ -299,7 +299,7 @@ class ModuleController {
                 return item instanceof OtherBeteiligt;
             })
             .map(function (item) {
-                return [isNaN(item.fee) ? 0 : item.fee, isNaN(item.charges) ? 0 : item.charges];
+                return [!isNumber(item.fee) ? 0 : item.fee, !isNumber(item.charges) ? 0 : item.charges];
             })
             .flat().reduce(function (previousValue, currentValue) {
                 return parseFloat(previousValue) + parseFloat(currentValue);
@@ -318,7 +318,7 @@ class ModuleController {
                 return item instanceof OtherBeteiligt;
             })
             .map(function (item) {
-                return isNaN(item.fee) ? 0.0 : item.fee;
+                return !isNumber(item.fee) ? 0.0 : item.fee;
             })
             .reduce(function (previousValue, currentValue) {
                 return parseFloat(previousValue) + parseFloat(currentValue);
@@ -334,7 +334,7 @@ class ModuleController {
                 return item instanceof OtherBeteiligt;
             })
             .map(function (item) {
-                return isNaN(item.fee) ? 0.0 : item.fee;
+                return !isNumber(item.fee) ? 0.0 : item.fee;
             })
             .reduce(function (previousValue, currentValue) {
                 return parseFloat(previousValue) + parseFloat(currentValue);
@@ -350,7 +350,7 @@ class ModuleController {
                 return item instanceof OtherBeteiligt;
             })
             .map(function (item) {
-                return isNaN(item.charges) ? 0.0 : item.charges;
+                return !isNumber(item.charges) ? 0.0 : item.charges;
             })
             .reduce(function (previousValue, currentValue) {
                 return parseFloat(previousValue) + parseFloat(currentValue);
@@ -366,7 +366,7 @@ class ModuleController {
                 return item instanceof OtherBeteiligt;
             })
             .map(function (item) {
-                return [isNaN(item.fee) ? 0 : item.fee, isNaN(item.charges) ? 0 : item.charges]
+                return [!isNumber(item.fee) ? 0 : item.fee, !isNumber(item.charges) ? 0 : item.charges]
             })
             .flat()
             .reduce(function (previousValue, currentValue) {
@@ -386,7 +386,7 @@ class ModuleController {
                 return item instanceof OtherBeteiligt;
             })
             .map(function (item) {
-                return isNaN(item.charges) ? 0.0 : item.charges;
+                return !isNumber(item.charges) ? 0.0 : item.charges;
             })
             .reduce(function (previousValue, currentValue) {
                 return parseFloat(previousValue) + parseFloat(currentValue);
@@ -406,7 +406,7 @@ class ModuleController {
                 return item instanceof OtherBeteiligt;
             })
             .map(function (item) {
-                return [isNaN(item.charges) ? 0.0 : item.charges, isNaN(item.fee) ? 0.0 : item.fee];
+                return [!isNumber(item.charges) ? 0.0 : item.charges, !isNumber(item.fee) ? 0.0 : item.fee];
             })
             .flat()
             .reduce(function (previousValue, currentValue) {
