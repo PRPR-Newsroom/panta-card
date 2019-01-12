@@ -1,5 +1,5 @@
 const PLUGIN_CONFIGURATION = {
-    'module.artikel.enabled': true,
+    'module.artikel.enabled': false,
     'module.beteiligt.enabled': true,
-    'module.plan.enabled': false
+    'module.plan.enabled': true
 };

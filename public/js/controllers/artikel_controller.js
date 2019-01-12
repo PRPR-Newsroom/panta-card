@@ -221,6 +221,9 @@ class ArtikelController {
      * Called when the artikel has changed and the controller should re-compute dynamic properties (totals)
      */
     update() {
+        if (!this._window.clientManager.isArticleModuleEnabled()) {
+            throw "Module is not enabled";
+        }
         // calc total
         this._entity.total = this.getTotalPageCount();
         this._artikelBinding.update(this._entity);

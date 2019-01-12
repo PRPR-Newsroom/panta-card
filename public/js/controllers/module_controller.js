@@ -200,6 +200,9 @@ class ModuleController {
      * Update the form with this module config
      */
     update() {
+        if (!this._window.clientManager.isBeteiligtModuleEnabled()) {
+            throw "Module is not enabled";
+        }
         // update the total price in the "ad" section
         // TODO no hardcoded access!
         this._entity.sections['ad'].total = this.getTotalPrice();

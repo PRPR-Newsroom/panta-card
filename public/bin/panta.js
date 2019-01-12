@@ -231,7 +231,7 @@ DI.prototype.getArticleRepository = function() {
 };
 DI.INSTANCE = null;
 // Input 1
-var PLUGIN_CONFIGURATION = {"module.artikel.enabled":!0, "module.beteiligt.enabled":!0, "module.plan.enabled":!1};
+var PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0};
 // Input 2
 var Repository = function() {
   this._repository = {};
@@ -746,6 +746,9 @@ ModuleController.prototype.insert = function(a, b) {
   a && this._repository.isNew(a) ? this._repository.add(a, b) : a && this._repository.replace(a, b);
 };
 ModuleController.prototype.update = function() {
+  if (!this._window.clientManager.isBeteiligtModuleEnabled()) {
+    throw "Module is not enabled";
+  }
   this._entity.sections.ad.total = this.getTotalPrice();
   var a = this.getTotalProject(), b = this.getCapOnDepenses();
   Object.values(this._entity.sections).filter(function(a) {
@@ -998,6 +1001,9 @@ ArtikelController.prototype.manage = function(a) {
   return a;
 };
 ArtikelController.prototype.update = function() {
+  if (!this._window.clientManager.isArticleModuleEnabled()) {
+    throw "Module is not enabled";
+  }
   this._entity.total = this.getTotalPageCount();
   this._artikelBinding.update(this._entity);
 };
@@ -1100,22 +1106,28 @@ ArtikelBinding.prototype.update = function(a) {
   return this;
 };
 ArtikelBinding.prototype.bind = function() {
-  var a = {context:this._context, artikel:this._entity}, b = {data:this._entity};
-  this._topic = this.document.newMultiLineInput(b, "pa.topic", "topic", "Thema", a, this._action, 2, "Lauftext");
-  this._from = this.document.newSingleLineInput(b, "pa.input-from", "from", "Input von", a, this._action, "Name");
-  this._author = this.document.newSingleLineInput(b, "pa.author", "author", "Textautor*in", a, this._action, "Name");
-  this._text = this.document.newMultiLineInput(b, "pa.text", "text", "Textbox", a, this._action, 2, "Lauftext");
-  this._pagina = this.document.newSingleLineInput(b, "pa.pagina", "pagina", "Pagina", a, this._action, "Zahl", "number", !1).addClass("pagina").addClass("bold");
-  this._layout = this.document.newSingleLineInput(b, "pa.layout", "layout", "Seiten Layout", a, this._action, "Zahl", "number", !1);
-  this._total = this.document.newSingleLineInput(b, "pa.total", "total", "Seiten Total", a, this._action, "Summe", "number", !0).addClass("bold");
-  this._tags = this.document.newSingleSelect(b, "pa.tags", "tags", "Online", a, this._action, "Liste-Tag", newOption("", "\u2026"), [newOption("monday", ArtikelBinding.getTagMapping("monday")), newOption("tuesday", ArtikelBinding.getTagMapping("tuesday")), newOption("wednesday", ArtikelBinding.getTagMapping("wednesday")), newOption("thursday", ArtikelBinding.getTagMapping("thursday")), newOption("friday", ArtikelBinding.getTagMapping("friday")), newOption("saturday", ArtikelBinding.getTagMapping("saturday")), 
-  newOption("sunday", ArtikelBinding.getTagMapping("sunday"))]);
-  this._visual = this.document.newSingleSelect(b, "pa.visual", "visual", "Visual", a, this._action, "x-Liste", newOption("", "\u2026"), [newOption("picture", "Bild"), newOption("icon", "Icon"), newOption("graphics", "Grafik"), newOption("videos", "Video"), newOption("illustrations", "Illu")]);
-  this._region = this.document.newSingleSelect(b, "pa.region", "region", "Region", a, this._action, "x-Liste", newOption("", "\u2026"), [newOption("north", ArtikelBinding.getRegionMapping("north")), newOption("south", ArtikelBinding.getRegionMapping("south"))]);
-  this._season = this.document.newSingleSelect(b, "pa.season", "season", "Saison", a, this._action, "x-Liste", newOption("", "\u2026"), [newOption("summer", "Sommer"), newOption("fall", "Herbst")]);
-  this._form = this.document.newSingleSelect(b, "pa.form", "form", "Form", a, this._action, "x-Liste", newOption("", "\u2026"), [newOption("news", "News"), newOption("article", "Artikel"), newOption("report", "Report")]);
-  this._location = this.document.newSingleSelect(b, "pa.location", "location", "Ort", a, this._action, "x-Liste", newOption("", "\u2026"), [newOption("cds", "CDS"), newOption("sto", "STO"), newOption("tam", "TAM"), newOption("wid", "WID"), newOption("buech", "Buech"), newOption("rustico", "Rustico"), newOption("schlatt", "Schlatt")]);
+  this.onLayout({data:this._entity}, {context:this._context, artikel:this._entity});
   return this;
+};
+ArtikelBinding.prototype.onLayout = function(a, b) {
+  var c = this.document.createElement("div");
+  c.innerHTML = template_artikel;
+  c = c.cloneNode(!0);
+  this._switchContent(c);
+  this._topic = this.document.newMultiLineInput(a, "pa.topic", "topic", "Thema", b, this._action, 2, "Lauftext");
+  this._from = this.document.newSingleLineInput(a, "pa.input-from", "from", "Input von", b, this._action, "Name");
+  this._author = this.document.newSingleLineInput(a, "pa.author", "author", "Textautor*in", b, this._action, "Name");
+  this._text = this.document.newMultiLineInput(a, "pa.text", "text", "Textbox", b, this._action, 2, "Lauftext");
+  this._pagina = this.document.newSingleLineInput(a, "pa.pagina", "pagina", "Pagina", b, this._action, "Zahl", "number", !1).addClass("pagina").addClass("bold");
+  this._layout = this.document.newSingleLineInput(a, "pa.layout", "layout", "Seiten Layout", b, this._action, "Zahl", "number", !1);
+  this._total = this.document.newSingleLineInput(a, "pa.total", "total", "Seiten Total", b, this._action, "Summe", "number", !0).addClass("bold");
+  this._tags = this.document.newSingleSelect(a, "pa.tags", "tags", "Online", b, this._action, "Liste-Tag", newOption("", "\u2026"), [newOption("monday", ArtikelBinding.getTagMapping("monday")), newOption("tuesday", ArtikelBinding.getTagMapping("tuesday")), newOption("wednesday", ArtikelBinding.getTagMapping("wednesday")), newOption("thursday", ArtikelBinding.getTagMapping("thursday")), newOption("friday", ArtikelBinding.getTagMapping("friday")), newOption("saturday", ArtikelBinding.getTagMapping("saturday")), 
+  newOption("sunday", ArtikelBinding.getTagMapping("sunday"))]);
+  this._visual = this.document.newSingleSelect(a, "pa.visual", "visual", "Visual", b, this._action, "x-Liste", newOption("", "\u2026"), [newOption("picture", "Bild"), newOption("icon", "Icon"), newOption("graphics", "Grafik"), newOption("videos", "Video"), newOption("illustrations", "Illu")]);
+  this._region = this.document.newSingleSelect(a, "pa.region", "region", "Region", b, this._action, "x-Liste", newOption("", "\u2026"), [newOption("north", ArtikelBinding.getRegionMapping("north")), newOption("south", ArtikelBinding.getRegionMapping("south"))]);
+  this._season = this.document.newSingleSelect(a, "pa.season", "season", "Saison", b, this._action, "x-Liste", newOption("", "\u2026"), [newOption("summer", "Sommer"), newOption("fall", "Herbst")]);
+  this._form = this.document.newSingleSelect(a, "pa.form", "form", "Form", b, this._action, "x-Liste", newOption("", "\u2026"), [newOption("news", "News"), newOption("article", "Artikel"), newOption("report", "Report")]);
+  this._location = this.document.newSingleSelect(a, "pa.location", "location", "Ort", b, this._action, "x-Liste", newOption("", "\u2026"), [newOption("cds", "CDS"), newOption("sto", "STO"), newOption("tam", "TAM"), newOption("wid", "WID"), newOption("buech", "Buech"), newOption("rustico", "Rustico"), newOption("schlatt", "Schlatt")]);
 };
 ArtikelBinding.prototype.blockUi = function() {
   if (!(0 < this.document.getElementsByClassName("overlay").length)) {
@@ -1133,6 +1145,11 @@ ArtikelBinding.prototype.unblock = function() {
     a.parentNode.removeChild(a);
   });
   this._autoUpdater && clearInterval(this._autoUpdater);
+};
+ArtikelBinding.prototype._switchContent = function(a) {
+  var b = this.document.getElementById("pa.artikel.content");
+  b.removeChildren();
+  b.appendChild(a);
 };
 // Input 13
 var Binding = function(a, b, c, d) {
@@ -1209,29 +1226,29 @@ var ModulePlanController = function(a, b, c) {
   this._telephone = c;
   var d = this;
   this._telephone.onmessage = function(a) {
-    Object.values(a.data.result || []).forEach(function(a) {
-      Object.entries(a).forEach(function(a) {
-        var b = a[1];
-        switch(a[0]) {
-          case "fee:current":
-            this._entity.fee = b;
-            break;
-          case "fee:overall":
-            this._entity.projectFee = b;
-            break;
-          case "charge:current":
-            this._entity.thirdPartyCharges = b;
-            break;
-          case "charge:overall":
-            this._entity.thirdPartyTotalCosts = b;
-            break;
-          case "costs:overall":
-            d._entity.totalCosts = b;
-        }
-      }, this);
-    }, d);
-    d._entity.capOnDepenses = d.getCapOnDepenses();
-    d._binding.update(d._entity);
+    a = Object.values(a.data.result || []).map(function(a) {
+      return Object.entries(a);
+    }).flat().reduce(function(a, b) {
+      a = b[1];
+      switch(b[0]) {
+        case "fee:current":
+          d._entity.fee !== a && (d._entity.fee = a);
+          break;
+        case "fee:overall":
+          d._entity.projectFee !== a && (d._entity.projectFee = a);
+          break;
+        case "charge:current":
+          d._entity.thirdPartyCharges !== a && (d._entity.thirdPartyCharges = a);
+          break;
+        case "charge:overall":
+          d._entity.thirdPartyTotalCosts !== a && (d._entity.thirdPartyTotalCosts = a);
+          break;
+        case "costs:overall":
+          d._entity.totalCosts !== a && (d._entity.totalCosts = a);
+      }
+    }, !1);
+    d._entity.capOnDepenses !== d.getCapOnDepenses() && (d._entity.capOnDepenses = d.getCapOnDepenses());
+    a && (console.log("Update needed"), d._binding.update(d._entity));
   };
   this._binding = null;
   this._propertyBag = {};
@@ -1248,6 +1265,9 @@ ModulePlanController.prototype.render = function(a) {
   return Controller.prototype.render.call(this, a);
 };
 ModulePlanController.prototype.update = function() {
+  if (!this._window.clientManager.isPlanModuleEnabled()) {
+    throw "Module is not enabled";
+  }
   this._telephone.postMessage({get:["fee:current", "fee:overall", "charge:current", "charge:overall", "costs:overall"]});
   this._entity && (this._entity.capOnDepenses = this.getCapOnDepenses());
   this._binding && this._binding.update(this._entity);
@@ -1403,7 +1423,6 @@ BeteiligtBinding.prototype.initLayouts = function(a) {
 };
 BeteiligtBinding.prototype._buildValueHolder = function(a, b, c, d) {
   var e = this;
-  console.log("Tab: " + b);
   b = e.document.getElementById(b);
   return {"involved-in":a, data:null, renderer:function(a) {
     d.call(e, this, a);
@@ -1745,19 +1764,25 @@ $jscomp.global.Object.defineProperties(AdBeteiligt.prototype, {format:{configura
   this._total = a;
 }}});
 // Input 20
-var PluginConfiguration = function(a, b, c) {
+var PluginConfiguration = function(a, b, c, d) {
   this._version = a;
   this._description = b;
-  this._modules = c || [];
+  this._card = c;
+  this._modules = d || [];
 };
 PluginConfiguration.create = function(a) {
   return this._create(a);
 };
 PluginConfiguration._create = function(a) {
-  return a ? new PluginConfiguration(JsonSerialization.getProperty(a, "version") || "1.0.0", JsonSerialization.getProperty(a, "description") || "Dieses Panta.Card Power-Up umfasst das Modul:", JsonSerialization.getProperty(a, "modules") || [{id:"module.artikel", name:"Artikel"}]) : new PluginConfiguration("1.0.0", "Dieses Panta.Card Power-Up umfasst das Modul", [{id:"module.beteiligt", name:"Beteiligt", config:{layouts:[{name:"onsite", layout:"regular", container:"pa.involved.onsite", label:"vor.Ort"}, 
-  {name:"text", layout:"regular", container:"pa.involved.text", label:"Journalist"}, {name:"photo", layout:"regular", container:"pa.involved.photo", label:"Visual"}, {name:"video", layout:"regular", container:"pa.involved.video", label:"Event"}, {name:"illu", layout:"regular", container:"pa.involved.illu", label:"MC/Host"}, {name:"ad", layout:"regular", container:"pa.involved.ad", label:"weitere"}]}}]);
+  return a ? new PluginConfiguration(JsonSerialization.getProperty(a, "version") || "1.0.0", JsonSerialization.getProperty(a, "description") || "Dieses Panta.Card Power-Up umfasst das Modul:", JsonSerialization.getProperty(a, "card"), JsonSerialization.getProperty(a, "modules") || [{id:"module.artikel", name:"Artikel"}]) : new PluginConfiguration("1.0.0", "Dieses Panta.Card Power-Up umfasst das Modul", {title:"Plan", icon:"./assets/ic_plan.png", content:{file:"./plan.html"}}, [{id:"module.beteiligt", 
+  name:"Beteiligt", config:{layouts:[{name:"onsite", layout:"regular", container:"pa.involved.onsite", label:"vor.Ort"}, {name:"text", layout:"regular", container:"pa.involved.text", label:"Journalist"}, {name:"photo", layout:"regular", container:"pa.involved.photo", label:"Visual"}, {name:"video", layout:"regular", container:"pa.involved.video", label:"Event"}, {name:"illu", layout:"regular", container:"pa.involved.illu", label:"MC/Host"}, {name:"ad", layout:"regular", container:"pa.involved.ad", 
+  label:"weitere"}]}}]);
 };
-$jscomp.global.Object.defineProperties(PluginConfiguration.prototype, {modules:{configurable:!0, enumerable:!0, get:function() {
+$jscomp.global.Object.defineProperties(PluginConfiguration.prototype, {card:{configurable:!0, enumerable:!0, get:function() {
+  return this._card;
+}, set:function(a) {
+  this._card = a;
+}}, modules:{configurable:!0, enumerable:!0, get:function() {
   return this._modules;
 }, set:function(a) {
   this._modules = a;
@@ -2016,7 +2041,8 @@ function isNumber(a) {
 // Input 23
 var template_regular = '<div id="template">    <div class="row">        <div class="col-6 col-phone-12">            <div class="row">                <div class="col-12 col-phone-12">                    <div class="pa.name"></div>                </div>                <div class="col-12 col-phone-12">                    <div class="pa.social"></div>                </div>            </div>        </div>        <div class="col-6 col-phone-12 line-4 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-6 col-phone-6">            <div class="pa.address"></div>        </div>        <div class="col-6 col-phone-6">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-12 col-phone-12">            <div class="row">                <div class="col-4 col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.notes"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.format"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.placement"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.price"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.name"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.social"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.address"></div>            </div>        </div>    </div></div>', 
-template_plan = '<div id="template">    <div class="row">        <div class="col-6 col-phone-12 line-2">            <div class="pa.plan.measures"></div>        </div>        <div class="col-3 col-phone-6">            <div class="pa.plan.fee"></div>        </div>        <div class="col-3 col-phone-6">            <div class="pa.plan.projectFee"></div>        </div>    </div>    <div class="row">        <div class="col-6 col-phone-12 line-6 line-phone-4">            <div class="pa.plan.description"></div>        </div>        <div class="col-6 col-phone-12">            <div class="row">                <div class="col-6 col-phone-6 line-phone-2">                    <div class="pa.plan.thirdPartyCharges"></div>                </div>                <div class="col-6 col-phone-6 line-phone-3">                    <div class="pa.plan.thirdPartyTotalCosts"></div>                </div>                <div class="col-6 col-phone-6 line-phone-1">                    <div class="pa.plan.capOnDepenses"></div>                </div>                <div class="col-6 col-phone-6 line-phone-1 line-2">                    <div class="pa.plan.totalCosts"></div>                </div>            </div>        </div>    </div>    <div class="row">        <div class="col-2 col-phone-4">            <div id="pa.plan.visual"></div>        </div>        <div class="col-2 col-phone-4">            <div id="pa.plan.form"></div>        </div>        <div class="col-2 col-phone-4">            <div id="pa.plan.online"></div>        </div>        <div class="col-2 col-phone-4">            <div id="pa.plan.season"></div>        </div>        <div class="col-2 col-phone-4">            <div id="pa.plan.region"></div>        </div>        <div class="col-2 col-phone-4">            <div id="pa.plan.place"></div>        </div>    </div></div>';
+template_plan = '<div id="template">    <div class="row">        <div class="col-6 col-phone-12 line-2">            <div class="pa.plan.measures"></div>        </div>        <div class="col-3 col-phone-6">            <div class="pa.plan.fee"></div>        </div>        <div class="col-3 col-phone-6">            <div class="pa.plan.projectFee"></div>        </div>    </div>    <div class="row">        <div class="col-6 col-phone-12 line-6 line-phone-4">            <div class="pa.plan.description"></div>        </div>        <div class="col-6 col-phone-12">            <div class="row">                <div class="col-6 col-phone-6 line-phone-2">                    <div class="pa.plan.thirdPartyCharges"></div>                </div>                <div class="col-6 col-phone-6 line-phone-3">                    <div class="pa.plan.thirdPartyTotalCosts"></div>                </div>                <div class="col-6 col-phone-6 line-phone-1">                    <div class="pa.plan.capOnDepenses"></div>                </div>                <div class="col-6 col-phone-6 line-phone-1 line-2">                    <div class="pa.plan.totalCosts"></div>                </div>            </div>        </div>    </div>    <div class="row">        <div class="col-2 col-phone-4">            <div id="pa.plan.visual"></div>        </div>        <div class="col-2 col-phone-4">            <div id="pa.plan.form"></div>        </div>        <div class="col-2 col-phone-4">            <div id="pa.plan.online"></div>        </div>        <div class="col-2 col-phone-4">            <div id="pa.plan.season"></div>        </div>        <div class="col-2 col-phone-4">            <div id="pa.plan.region"></div>        </div>        <div class="col-2 col-phone-4">            <div id="pa.plan.place"></div>        </div>    </div></div>', 
+template_artikel = '<div id="template">    <div class="row">        <div class="col-9">            <div id="pa.topic"></div>        </div>        <div class="col-3">            <div id="pa.pagina"></div>        </div>    </div>    <div class="row">        <div class="col-9">            <div class="row">                <div class="col-6">                    <div id="pa.input-from"></div>                </div>                <div class="col-6">                    <div id="pa.author"></div>                </div>            </div>        </div>        <div class="col-3">            <div id="pa.layout"></div>        </div>    </div>    <div class="row">        <div class="col-9">            <div id="pa.text"></div>        </div>        <div class="col-3">            <div id="pa.total"></div>        </div>    </div>    <div class="col-12">        <div class="row">            <div class="col-2 col-phone-4">                <div id="pa.visual"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.form"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.tags"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.season"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.region"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.location"></div>            </div>        </div>    </div></div>';
 // Input 24
 var JsonSerialization = function() {
 };

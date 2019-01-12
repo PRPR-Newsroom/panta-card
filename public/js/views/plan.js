@@ -2,6 +2,7 @@
  * @type {ModulePlanController}
  */
 let planController = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION).init().getPlanController();
+
 t.render(function () {
     // s. http://bluebirdjs.com/docs/api-reference.html
     // .each exists

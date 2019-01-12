@@ -3,7 +3,7 @@ TrelloPowerUp.initialize({
     'card-buttons': function (t, options) {
         return [{
             icon: './assets/ic_pantarhei.png',
-            text: 'panta.Card',
+            text: 'Panta Einstellungen',
             callback: function (t) {
                 return t.popup({
                     title: "Einstellungen",
@@ -39,7 +39,7 @@ TrelloPowerUp.initialize({
                         return card;
                     });
             })
-            .then(function(card) {
+            .then(function (card) {
                 return t.get(card.id, 'shared', ModulePlanController.SHARED_NAME)
                     .then(function (list_data) {
                         return Plan.create(list_data);
@@ -119,17 +119,19 @@ TrelloPowerUp.initialize({
     // https://developers.trello.com/v1.0/reference#card-back-section
     'card-back-section': function (t, opts) {
         // Your Power-Up can have only one card back section and a maximum height of 500 pixels.
-        let modules = [{
-            title: 'Plan',
-            icon: './assets/ic_plan.png',
-            content: {
-                type: 'iframe',
-                url: t.signUrl('./plan.html', {}),
-                height: 500 // Max height is 500
-            }
-        }];
-
-        return modules;
+        let pc = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION).init().getPluginController();
+        return pc.getPluginConfiguration()
+            .then(function (config) {
+                return {
+                    title: config.card.title,
+                    icon: config.card.icon,
+                    content: {
+                        type: 'iframe',
+                        url: t.signUrl(config.card.content.file, {}),
+                        height: 500 // Max height is 500
+                    }
+                };
+            });
     },
     // https://developers.trello.com/v1.0/reference#list-sorters
     'list-sorters': function (t) {

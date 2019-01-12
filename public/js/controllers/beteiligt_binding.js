@@ -95,7 +95,6 @@ class BeteiligtBinding {
      */
     _buildValueHolder(involvedIn, tabId, config, renderer) {
         let that = this;
-        console.log("Tab: " + tabId);
         let tab = that.document.getElementById(tabId);
         return {
             'involved-in': involvedIn,

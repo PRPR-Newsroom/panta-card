@@ -33,33 +33,39 @@ class ModulePlanController extends Controller {
         let that = this;
         this._telephone.onmessage = function (ev) {
             let response = ev.data;
-            // TODO map the update to a boolean that controls the UI update (issue of "flimmern")
-            Object.values(response.result || []).forEach(function (item) {
-                Object.entries(item).forEach(function (item) {
-                    let property = item[0];
-                    let value = item[1];
+            let needUpdate = Object.values(response.result || [])
+                .map(function (item) {
+                    return Object.entries(item);
+                })
+                .flat()
+                .reduce(function(previous, propertyItem) {
+                    let property = propertyItem[0];
+                    let value = propertyItem[1];
                     switch (property) {
                         case "fee:current":
-                            this._entity.fee = value;
+                            previous |= that._entity.fee !== value ? (that._entity.fee = value, true) : false;
                             break;
                         case "fee:overall":
-                            this._entity.projectFee = value;
+                            previous |=  that._entity.projectFee !== value ? (that._entity.projectFee = value, true) : false;
                             break;
                         case "charge:current":
-                            this._entity.thirdPartyCharges = value;
+                            previous |=  that._entity.thirdPartyCharges !== value ? (that._entity.thirdPartyCharges = value, true) : false;
                             break;
                         case "charge:overall":
-                            this._entity.thirdPartyTotalCosts = value;
+                            previous |=  that._entity.thirdPartyTotalCosts !== value ? (that._entity.thirdPartyTotalCosts = value, true) : false;
                             break;
                         case "costs:overall":
-                            that._entity.totalCosts = value;
+                            previous |=  that._entity.totalCosts !== value ? (that._entity.totalCosts = value, true) : false;
                             break;
                     }
-                }, this);
-            }, that);
-            that._entity.capOnDepenses = that.getCapOnDepenses();
-            that._binding.update(that._entity);
-
+                }, false);
+            if (that._entity.capOnDepenses !== that.getCapOnDepenses()) {
+                that._entity.capOnDepenses = that.getCapOnDepenses();
+            }
+            if (needUpdate) {
+                console.log("Update needed");
+                that._binding.update(that._entity);
+            }
         };
         /**
          * @type {ModulePlanBinding}
@@ -87,6 +93,10 @@ class ModulePlanController extends Controller {
     }
 
     update() {
+        if (!this._window.clientManager.isPlanModuleEnabled()) {
+            throw "Module is not enabled";
+        }
+
         this._telephone.postMessage({
             'get': ['fee:current',
                 'fee:overall',
