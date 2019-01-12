@@ -1,15 +1,43 @@
+    /**
+ * @type {PluginController}
+ */
+let pluginController = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION).init().getPluginController();
+
 t.render(function () {
 
-    let stag = document.createElement('script');
-    // TODO this is somehow not yet working because on sandbox the /version resource cannot be created somehow
-    stag.setAttribute('src', '/version.jsonp');
-    stag.async = true;
-    stag.addEventListener('load', function (e) {
-        document.getElementsByClassName("plugin-version").forEach(function (element) {
-            element.innerText = "1.1.0_Preview-Module-P";
-        });
-    });
-    document.getElementsByTagName("body")[0].appendChild(stag);
+    return pluginController.getPluginConfiguration()
+        .then(function (config) {
+            if (config instanceof PluginConfiguration) {
+                document.getElementsByClassName("plugin-version").forEach(function (element) {
+                    element.innerHTML = config.version;
+                });
 
-    return t.sizeTo("#content").done();
+                document.getElementsByClassName("plugin-description").forEach(function (element) {
+                    element.innerHTML = config.description;
+                });
+
+                document.getElementsByClassName("plugin-modules").forEach(function (element) {
+                    let list = Object.values(config.modules).map(function(module) {
+                        let item = document.createElement("li");
+                        item.setAttribute("id", module.id);
+                        item.innerText = module.name;
+                        return item;
+                    }).reduce(function(prev, curr) {
+                        prev.appendChild(curr);
+                        return prev;
+                    }, document.createElement("ul"));
+                    element.appendChild(list);
+                });
+
+            } else {
+                document.getElementsByClassName("plugin-version").forEach(function (element) {
+                    element.innerText = "<unknown_version>";
+                });
+
+                document.getElementsByClassName("plugin-description").forEach(function (element) {
+                    element.innerText = "<not_set>";
+                });
+            }
+            return t.sizeTo("#content").done();
+        });
 });

@@ -231,7 +231,7 @@ DI.prototype.getArticleRepository = function() {
 };
 DI.INSTANCE = null;
 // Input 1
-var PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0};
+var PLUGIN_CONFIGURATION = {"module.artikel.enabled":!0, "module.beteiligt.enabled":!0, "module.plan.enabled":!1};
 // Input 2
 var Repository = function() {
   this._repository = {};
@@ -546,8 +546,8 @@ ClientManager.prototype.onUnload = function() {
   delete this._pluginController;
 };
 ClientManager.prototype.init = function() {
-  this._initialized || (this._telephones = {}, this._telephones[ArtikelController.SHARED_NAME] = this._createMessageChannel(), this._telephones[ModuleController.SHARED_NAME] = this._createMessageChannel(), this._telephones[PluginController.SHARED_NAME] = this._createMessageChannel(), this._telephones[ModulePlanController.SHARED_NAME] = this._createMessageChannel(), this._articleController = ArtikelController.getInstance(this._trello, this._window, this._telephones[ArtikelController.SHARED_NAME].port2), 
-  this._moduleController = ModuleController.getInstance(this._trello, this._window, this._telephones[ModuleController.SHARED_NAME].port2), this._pluginController = PluginController.getInstance(this._trello, this._window), this._planController = ModulePlanController.getInstance(this._trello, this._window, this._telephones[ModulePlanController.SHARED_NAME].port2), this._initialized = !0);
+  this._initialized || (this._telephones = {}, this._telephones[ArtikelController.SHARED_NAME] = this._createMessageChannel(), this._telephones[ModuleController.SHARED_NAME] = this._createMessageChannel(), this._telephones[PluginController.SHARED_NAME] = this._createMessageChannel(), this._telephones[ModulePlanController.SHARED_NAME] = this._createMessageChannel(), this._pluginController = PluginController.getInstance(this._trello, this._window), this._articleController = ArtikelController.getInstance(this._trello, 
+  this._window, this._telephones[ArtikelController.SHARED_NAME].port2), this._moduleController = ModuleController.getInstance(this._trello, this._window, this._telephones[ModuleController.SHARED_NAME].port2), this._planController = ModulePlanController.getInstance(this._trello, this._window, this._telephones[ModulePlanController.SHARED_NAME].port2), this._initialized = !0);
   return this;
 };
 ClientManager.prototype._createMessageChannel = function() {
@@ -735,9 +735,12 @@ ModuleController.prototype.setVersionInfo = function() {
 ModuleController.prototype.getVersionInfo = function() {
   return {version:ModuleController.VERSION};
 };
-ModuleController.prototype.render = function(a) {
+ModuleController.prototype.render = function(a, b) {
   this._entity = a;
-  this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(a) : (new BeteiligtBinding(this.document, a, this.onEvent, this)).bind();
+  this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(a) : this._createBinding(a, b);
+};
+ModuleController.prototype._createBinding = function(a, b) {
+  return (new BeteiligtBinding(this.document, a, this.onEvent, this)).bind(b);
 };
 ModuleController.prototype.insert = function(a, b) {
   a && this._repository.isNew(a) ? this._repository.add(a, b) : a && this._repository.replace(a, b);
@@ -1323,6 +1326,11 @@ PluginController.prototype.init = function() {
     PluginController.VERSION > b && (a._upgrading = !0, a.update.call(a, b, PluginController.VERSION));
   });
 };
+PluginController.prototype.getPluginConfiguration = function() {
+  return this._trelloApi.get("organization", "shared", PluginController.CONFIGURATION_NAME, null).then(function(a) {
+    return PluginConfiguration.create(a);
+  });
+};
 PluginController.prototype.remove = function() {
   return this._trelloApi.remove("board", "shared", PluginController.SHARED_NAME);
 };
@@ -1375,6 +1383,8 @@ $jscomp.global.Object.defineProperties(PluginController, {VERSION:{configurable:
   return 2;
 }}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.App";
+}}, CONFIGURATION_NAME:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.App.Configuration";
 }}});
 // Input 17
 var BeteiligtBinding = function(a, b, c, d) {
@@ -1382,15 +1392,22 @@ var BeteiligtBinding = function(a, b, c, d) {
   this._config = b;
   this._action = c;
   this._context = d;
-  this._involvements = {onsite:this._buildValueHolder("onsite", "pa.involved.onsite", this.onLayout), text:this._buildValueHolder("text", "pa.involved.text", this.onLayout), photo:this._buildValueHolder("photo", "pa.involved.photo", this.onLayout), video:this._buildValueHolder("video", "pa.involved.video", this.onLayout), illu:this._buildValueHolder("illu", "pa.involved.illu", this.onLayout), ad:this._buildValueHolder("ad", "pa.involved.ad", this.onLayout)};
   this._activated = this._ad = this._illu = this._video = this._photo = this._text = this._onsite = null;
 };
-BeteiligtBinding.prototype._buildValueHolder = function(a, b, c) {
-  var d = this;
-  b = d.document.getElementById(b);
+BeteiligtBinding.prototype.initLayouts = function(a) {
+  var b = this;
+  this._involvements = Object.values(a).reduce(function(a, d) {
+    a[d.name] = b._buildValueHolder(d.name, d.container, d, b.onLayout);
+    return a;
+  }, {});
+};
+BeteiligtBinding.prototype._buildValueHolder = function(a, b, c, d) {
+  var e = this;
+  console.log("Tab: " + b);
+  b = e.document.getElementById(b);
   return {"involved-in":a, data:null, renderer:function(a) {
-    c.call(d, this, a);
-  }, tab:b, layout:b.getAttribute("data-layout"), label:b.getAttribute("data-label"), binding:d};
+    d.call(e, this, a);
+  }, tab:b, layout:c.layout || b.getAttribute("data-layout"), label:c.label || b.getAttribute("data-label"), binding:e};
 };
 BeteiligtBinding.prototype.update = function(a) {
   this._activated.activate();
@@ -1402,7 +1419,8 @@ BeteiligtBinding.prototype.update = function(a) {
   this._config = a;
   return this;
 };
-BeteiligtBinding.prototype.bind = function() {
+BeteiligtBinding.prototype.bind = function(a) {
+  this.initLayouts(a);
   this._onsite = null !== this._onsite ? this._onsite.update(this._config) : this._onsite = (new PModuleConfig(this.document, "vor.Ort", this._involvements.onsite)).bind(this._config, "onsite").render();
   this._text = null !== this._text ? this._text.update(this._config) : this._text = (new PModuleConfig(this.document, "Text", this._involvements.text)).bind(this._config, "text").render();
   this._photo = null !== this._photo ? this._photo.update(this._config) : this._photo = (new PModuleConfig(this.document, "Foto", this._involvements.photo)).bind(this._config, "photo").render();
@@ -1727,6 +1745,35 @@ $jscomp.global.Object.defineProperties(AdBeteiligt.prototype, {format:{configura
   this._total = a;
 }}});
 // Input 20
+var PluginConfiguration = function(a, b, c) {
+  this._version = a;
+  this._description = b;
+  this._modules = c || [];
+};
+PluginConfiguration.create = function(a) {
+  return this._create(a);
+};
+PluginConfiguration._create = function(a) {
+  return a ? new PluginConfiguration(JsonSerialization.getProperty(a, "version") || "1.0.0", JsonSerialization.getProperty(a, "description") || "Dieses Panta.Card Power-Up umfasst das Modul:", JsonSerialization.getProperty(a, "modules") || [{id:"module.artikel", name:"Artikel"}]) : new PluginConfiguration("1.0.0", "Dieses Panta.Card Power-Up umfasst das Modul", [{id:"module.beteiligt", name:"Beteiligt", config:{layouts:[{name:"onsite", layout:"regular", container:"pa.involved.onsite", label:"vor.Ort"}, 
+  {name:"text", layout:"regular", container:"pa.involved.text", label:"Journalist"}, {name:"photo", layout:"regular", container:"pa.involved.photo", label:"Visual"}, {name:"video", layout:"regular", container:"pa.involved.video", label:"Event"}, {name:"illu", layout:"regular", container:"pa.involved.illu", label:"MC/Host"}, {name:"ad", layout:"regular", container:"pa.involved.ad", label:"weitere"}]}}]);
+};
+$jscomp.global.Object.defineProperties(PluginConfiguration.prototype, {modules:{configurable:!0, enumerable:!0, get:function() {
+  return this._modules;
+}, set:function(a) {
+  this._modules = a;
+}}, version:{configurable:!0, enumerable:!0, get:function() {
+  return this._version;
+}, set:function(a) {
+  this._version = a;
+}}, description:{configurable:!0, enumerable:!0, get:function() {
+  return this._description;
+}, set:function(a) {
+  this._description = a;
+}}});
+$jscomp.global.Object.defineProperties(PluginConfiguration, {VERSION:{configurable:!0, enumerable:!0, get:function() {
+  return 1;
+}}});
+// Input 21
 var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, n, p, q) {
   this._id = a || uuid();
   this._measures = b;
@@ -1870,7 +1917,7 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, 
 $jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 2;
 }}});
-// Input 21
+// Input 22
 HTMLElement.prototype.addClass = function(a) {
   -1 === this.className.split(" ").indexOf(a) && (this.className += " " + a, this.className = this.className.trim());
   return this;
@@ -1966,11 +2013,11 @@ function isNumber(a) {
   return a && !isNaN(a);
 }
 ;
-// Input 22
+// Input 23
 var template_regular = '<div id="template">    <div class="row">        <div class="col-6 col-phone-12">            <div class="row">                <div class="col-12 col-phone-12">                    <div class="pa.name"></div>                </div>                <div class="col-12 col-phone-12">                    <div class="pa.social"></div>                </div>            </div>        </div>        <div class="col-6 col-phone-12 line-4 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-6 col-phone-6">            <div class="pa.address"></div>        </div>        <div class="col-6 col-phone-6">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-12 col-phone-12">            <div class="row">                <div class="col-4 col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.notes"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.format"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.placement"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.price"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.name"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.social"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.address"></div>            </div>        </div>    </div></div>', 
 template_plan = '<div id="template">    <div class="row">        <div class="col-6 col-phone-12 line-2">            <div class="pa.plan.measures"></div>        </div>        <div class="col-3 col-phone-6">            <div class="pa.plan.fee"></div>        </div>        <div class="col-3 col-phone-6">            <div class="pa.plan.projectFee"></div>        </div>    </div>    <div class="row">        <div class="col-6 col-phone-12 line-6 line-phone-4">            <div class="pa.plan.description"></div>        </div>        <div class="col-6 col-phone-12">            <div class="row">                <div class="col-6 col-phone-6 line-phone-2">                    <div class="pa.plan.thirdPartyCharges"></div>                </div>                <div class="col-6 col-phone-6 line-phone-3">                    <div class="pa.plan.thirdPartyTotalCosts"></div>                </div>                <div class="col-6 col-phone-6 line-phone-1">                    <div class="pa.plan.capOnDepenses"></div>                </div>                <div class="col-6 col-phone-6 line-phone-1 line-2">                    <div class="pa.plan.totalCosts"></div>                </div>            </div>        </div>    </div>    <div class="row">        <div class="col-2 col-phone-4">            <div id="pa.plan.visual"></div>        </div>        <div class="col-2 col-phone-4">            <div id="pa.plan.form"></div>        </div>        <div class="col-2 col-phone-4">            <div id="pa.plan.online"></div>        </div>        <div class="col-2 col-phone-4">            <div id="pa.plan.season"></div>        </div>        <div class="col-2 col-phone-4">            <div id="pa.plan.region"></div>        </div>        <div class="col-2 col-phone-4">            <div id="pa.plan.place"></div>        </div>    </div></div>';
-// Input 23
+// Input 24
 var JsonSerialization = function() {
 };
 JsonSerialization.prototype.serialize = function(a) {

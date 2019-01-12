@@ -30,15 +30,6 @@ class BeteiligtBinding {
          */
         this._context = context;
 
-        this._involvements = {
-            'onsite': this._buildValueHolder('onsite', 'pa.involved.onsite', this.onLayout),
-            'text': this._buildValueHolder('text', 'pa.involved.text', this.onLayout),
-            'photo': this._buildValueHolder('photo', 'pa.involved.photo', this.onLayout),
-            'video': this._buildValueHolder('video', 'pa.involved.video', this.onLayout),
-            'illu': this._buildValueHolder('illu', 'pa.involved.illu', this.onLayout),
-            'ad': this._buildValueHolder('ad', 'pa.involved.ad', this.onLayout)
-        };
-
         /**
          * @type {PModuleConfig}
          * @private
@@ -82,6 +73,18 @@ class BeteiligtBinding {
         this._activated = null;
     }
 
+    initLayouts(configuration) {
+        let that = this;
+        this._involvements = Object.values(configuration).reduce(function (prev, curr) {
+            prev[curr.name] = that._buildValueHolder(
+                curr.name,
+                curr.container,
+                curr,
+                that.onLayout);
+            return prev;
+        }, {});
+    }
+
     /**
      * Creates a new value-holder element
      * @param involvedIn
@@ -90,8 +93,9 @@ class BeteiligtBinding {
      * @returns {{layout: string, renderer: renderer, data: null, tab: HTMLElement, "involved-in": *, binding: BeteiligtBinding, label: string}}
      * @private
      */
-    _buildValueHolder(involvedIn, tabId, renderer) {
+    _buildValueHolder(involvedIn, tabId, config, renderer) {
         let that = this;
+        console.log("Tab: " + tabId);
         let tab = that.document.getElementById(tabId);
         return {
             'involved-in': involvedIn,
@@ -100,8 +104,10 @@ class BeteiligtBinding {
                 renderer.call(that, this, valueHolder);
             },
             'tab': tab,
-            'layout': tab.getAttribute("data-layout"),
-            'label': tab.getAttribute("data-label"),
+            // TODO data-layout is obsolete when switched to module configuration
+            'layout': config.layout || tab.getAttribute("data-layout"),
+            // TODO data-label is obsolete when switched to module configuration
+            'label': config.label || tab.getAttribute("data-label"),
             'binding': that
         };
     }
@@ -115,9 +121,9 @@ class BeteiligtBinding {
     update(config) {
         this._activated.activate();
         // update all PModuleConfigs with the new config entity
-        Object.values(this).filter(function(property) {
+        Object.values(this).filter(function (property) {
             return (property instanceof PModuleConfig)
-        }).forEach(function(module) {
+        }).forEach(function (module) {
             module.update(config);
         });
         // update the entity as well otherwise on change callbacks will re-store old entity states
@@ -130,7 +136,8 @@ class BeteiligtBinding {
      *
      * @returns {BeteiligtBinding}
      */
-    bind() {
+    bind(configuration) {
+        this.initLayouts(configuration);
         this._onsite = this._onsite !== null ? this._onsite.update(this._config) : (this._onsite = new PModuleConfig(this.document, 'vor.Ort', this._involvements.onsite)
             .bind(this._config, 'onsite')
             .render());

@@ -40,6 +40,7 @@ class ModuleController {
      * Get the singleton instance
      * @param trelloApi
      * @param windowManager
+     * @param telephone
      * @returns {ModuleController}
      */
     static getInstance(trelloApi, windowManager, telephone) {
@@ -61,7 +62,6 @@ class ModuleController {
          * @type {HTMLDocument}
          */
         this.document = windowManager.document;
-
         this._window = windowManager;
 
         this.trelloApi = trelloApi;
@@ -170,10 +170,17 @@ class ModuleController {
     /**
      * Initialize the module with this module config
      * @param entity
+     * @param configuration
      */
-    render(entity) {
+    render(entity, configuration) {
         this._entity = entity;
-        this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(entity) : new BeteiligtBinding(this.document, entity, this.onEvent, this).bind();
+        this._beteiligtBinding = this._beteiligtBinding
+            ? this._beteiligtBinding.update(entity)
+            : this._createBinding(entity, configuration);
+    }
+
+    _createBinding(entity, configuration) {
+        return new BeteiligtBinding(this.document, entity, this.onEvent, this).bind(configuration)
     }
 
     /**

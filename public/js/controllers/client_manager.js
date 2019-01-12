@@ -82,6 +82,12 @@ class ClientManager {
             this._telephones[ModulePlanController.SHARED_NAME] = this._createMessageChannel();
 
             /**
+             * @type {PluginController}
+             * @private
+             */
+            this._pluginController = PluginController.getInstance(this._trello, this._window);
+
+            /**
              * @type {ArtikelController}
              * @private
              */
@@ -91,11 +97,6 @@ class ClientManager {
              * @private
              */
             this._moduleController = ModuleController.getInstance(this._trello, this._window, this._telephones[ModuleController.SHARED_NAME].port2);
-            /**
-             * @type {PluginController}
-             * @private
-             */
-            this._pluginController = PluginController.getInstance(this._trello, this._window);
 
             /**
              * @type {ModulePlanController}
@@ -114,6 +115,7 @@ class ClientManager {
         mc.port1.onmessage = function(ev) {
             console.log("Received data from sub-module: " + JSON.stringify(ev.data));
             let req = ev.data;
+            // handle GET requests
             Object.values(req.get || []).forEach(function(item) {
                 switch (item) {
                     case "fee:current":
@@ -133,6 +135,7 @@ class ClientManager {
                         break;
                 }
             }, that);
+            // handle GET responses
             Object.values(req.result||[]).forEach(function(item) {
                 Object.entries(item).forEach(function(item) {
                     let property = item[0];

@@ -33,6 +33,7 @@ class ModulePlanController extends Controller {
         let that = this;
         this._telephone.onmessage = function (ev) {
             let response = ev.data;
+            // TODO map the update to a boolean that controls the UI update (issue of "flimmern")
             Object.values(response.result || []).forEach(function (item) {
                 Object.entries(item).forEach(function (item) {
                     let property = item[0];
