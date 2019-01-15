@@ -47,63 +47,7 @@ class PluginConfiguration {
                 JsonSerialization.getProperty(json, 'modules') || [{"id": 'module.artikel', "name": "Artikel"}]
             )
         } else {
-            return new PluginConfiguration(
-                "1.0.0",
-                "Dieses Panta.Card Power-Up umfasst das Modul",
-                {
-                    "title": "Plan",
-                    "icon": "./assets/ic_plan.png",
-                    "content": {
-                        "file": "./plan.html"
-                    },
-                },
-                [
-                    {
-                        "id": 'module.beteiligt',
-                        "name": "Beteiligt",
-                        "config": {
-                            "layouts": [
-                                {
-                                    "name": "onsite",
-                                    "layout": "regular",
-                                    "container": "pa.involved.onsite",
-                                    "label": "vor.Ort"
-                                },
-                                {
-                                    "name": "text",
-                                    "layout": "regular",
-                                    "container": "pa.involved.text",
-                                    "label": "Journalist"
-                                },
-                                {
-                                    "name": "photo",
-                                    "layout": "regular",
-                                    "container": "pa.involved.photo",
-                                    "label": "Visual"
-                                },
-                                {
-                                    "name": "video",
-                                    "layout": "regular",
-                                    "container": "pa.involved.video",
-                                    "label": "Event"
-                                },
-                                {
-                                    "name": "illu",
-                                    "layout": "regular",
-                                    "container": "pa.involved.illu",
-                                    "label": "MC/Host"
-                                },
-                                {
-                                    "name": "ad",
-                                    "layout": "regular",
-                                    "container": "pa.involved.ad",
-                                    "label": "weitere"
-                                }
-                            ]
-                        }
-                    }
-                ]
-            );
+            return null;
         }
     }
 

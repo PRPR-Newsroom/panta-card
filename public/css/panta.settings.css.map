@@ -1,0 +1,7 @@
+{
+"version": 3,
+"mappings": "AAAA,UAAW;EACT,gBAAgB,EAAE,WAAW",
+"sources": ["panta.settings.scss"],
+"names": [],
+"file": "panta.settings.css"
+}

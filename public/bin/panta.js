@@ -1347,7 +1347,7 @@ PluginController.prototype.init = function() {
   });
 };
 PluginController.prototype.getPluginConfiguration = function() {
-  return this._trelloApi.get("organization", "shared", PluginController.CONFIGURATION_NAME, null).then(function(a) {
+  return this._trelloApi.get("board", "shared", PluginController.CONFIGURATION_NAME, null).then(function(a) {
     return PluginConfiguration.create(a);
   });
 };
@@ -1774,9 +1774,7 @@ PluginConfiguration.create = function(a) {
   return this._create(a);
 };
 PluginConfiguration._create = function(a) {
-  return a ? new PluginConfiguration(JsonSerialization.getProperty(a, "version") || "1.0.0", JsonSerialization.getProperty(a, "description") || "Dieses Panta.Card Power-Up umfasst das Modul:", JsonSerialization.getProperty(a, "card"), JsonSerialization.getProperty(a, "modules") || [{id:"module.artikel", name:"Artikel"}]) : new PluginConfiguration("1.0.0", "Dieses Panta.Card Power-Up umfasst das Modul", {title:"Plan", icon:"./assets/ic_plan.png", content:{file:"./plan.html"}}, [{id:"module.beteiligt", 
-  name:"Beteiligt", config:{layouts:[{name:"onsite", layout:"regular", container:"pa.involved.onsite", label:"vor.Ort"}, {name:"text", layout:"regular", container:"pa.involved.text", label:"Journalist"}, {name:"photo", layout:"regular", container:"pa.involved.photo", label:"Visual"}, {name:"video", layout:"regular", container:"pa.involved.video", label:"Event"}, {name:"illu", layout:"regular", container:"pa.involved.illu", label:"MC/Host"}, {name:"ad", layout:"regular", container:"pa.involved.ad", 
-  label:"weitere"}]}}]);
+  return a ? new PluginConfiguration(JsonSerialization.getProperty(a, "version") || "1.0.0", JsonSerialization.getProperty(a, "description") || "Dieses Panta.Card Power-Up umfasst das Modul:", JsonSerialization.getProperty(a, "card"), JsonSerialization.getProperty(a, "modules") || [{id:"module.artikel", name:"Artikel"}]) : null;
 };
 $jscomp.global.Object.defineProperties(PluginConfiguration.prototype, {card:{configurable:!0, enumerable:!0, get:function() {
   return this._card;
@@ -2030,6 +2028,11 @@ HTMLDocument.prototype.createStylesheet = function(a) {
 };
 Window.prototype.isBlank = function(a) {
   return !a || 0 === (a + "").trim().length;
+};
+String.prototype.toHTML = function() {
+  var a = document.createElement("textarea");
+  a.innerHTML = this;
+  return a.value;
 };
 function newOption(a, b) {
   return {value:a, text:b};

@@ -68,12 +68,13 @@ class PluginController {
     }
 
     /**
-     * Get the plugin description
+     * Get the plugin configuration of this board
      *
      * @returns {PromiseLike<PluginConfiguration>|Promise<PluginConfiguration>}
      */
     getPluginConfiguration() {
-        return this._trelloApi.get('organization', 'shared', PluginController.CONFIGURATION_NAME, null)
+        // Endpoint: https://trello.com/1/boards/<ID>/pluginData
+        return this._trelloApi.get('board', 'shared', PluginController.CONFIGURATION_NAME, null)
             .then(function (data) {
                 return PluginConfiguration.create(data);
             });

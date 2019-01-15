@@ -204,6 +204,12 @@ Window.prototype.isBlank = function(totest) {
     return (!totest || 0 === (totest + "").trim().length);
 };
 
+String.prototype.toHTML = function() {
+    var txt = document.createElement('textarea');
+    txt.innerHTML = this;
+    return txt.value;
+};
+
 /**
  * A helper function to create new options
  * @param value

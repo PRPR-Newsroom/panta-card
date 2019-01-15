@@ -7,7 +7,8 @@ TrelloPowerUp.initialize({
             callback: function (t) {
                 return t.popup({
                     title: "Einstellungen",
-                    url: "settings.html"
+                    url: "settings.html",
+                    height: 184
                 })
             }
         }];
@@ -122,15 +123,27 @@ TrelloPowerUp.initialize({
         let pc = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION).init().getPluginController();
         return pc.getPluginConfiguration()
             .then(function (config) {
-                return {
-                    title: config.card.title,
-                    icon: config.card.icon,
-                    content: {
-                        type: 'iframe',
-                        url: t.signUrl(config.card.content.file, {}),
-                        height: 500 // Max height is 500
+                if (config) {
+                    return {
+                        title: config.card.title,
+                        icon: config.card.icon,
+                        content: {
+                            type: 'iframe',
+                            url: t.signUrl(config.card.content.file, {}),
+                            height: 500 // Max height is 500
+                        }
+                    };
+                } else {
+                    return {
+                        title: 'Panta Plugin',
+                        icon: "./assets/ic_artikel.png",
+                        content: {
+                            type: 'iframe',
+                            url: t.signUrl("./plugin.html"),
+                            height: 200
+                        }
                     }
-                };
+                }
             });
     },
     // https://developers.trello.com/v1.0/reference#list-sorters
