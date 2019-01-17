@@ -129,6 +129,8 @@ class PInput {
         this._renderType();
         if (this._readonly) {
             this._input.setAttribute("readonly", "readonly");
+        } else {
+            this._input.setAttribute("tabindex", autoTabIndex());
         }
 
         this._input.addClass(this.propertyType);
@@ -348,6 +350,10 @@ class PInput {
 
     }
 
+    getTabIndex() {
+        return this._readonly ? -1 : parseInt(this._input.getAttribute("tabindex"));
+    }
+
     /**
      * Format the number using the user's locale. If it's not a number it will return an empty string (null is not working
      * in all browsers, eg. IE/Edge)
@@ -427,9 +433,22 @@ class SingleLineInput extends PInput {
     doCustomization(element, label) {
         element.setAttribute("rows", 1);
         element.addClass('no-resize');
-        let inputHeight = element.offsetHeight;
-        // TODO 23px must be computed
-        element.style.paddingTop = Math.max(0, inputHeight - 23) + "px";
+
+        if (isMobileBrowser()) {
+            // compute the correct height of that input element to match the parent row element
+            // note that this only works for one row divs and not rows that contain multi-lines
+            let row = element.getClosestParentByClassName("row");
+            if (row) {
+                let style = getComputedStyle(element.getClosestParentByClassName("field"));
+                let paddings = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+                element.style.height = (row.offsetHeight - label.offsetHeight - element.getMarginBottom() - paddings) + "px";
+            } else {
+                console.log("Could not find a parent with class «row»");
+            }
+        }
+
+        // TODO 23px must be computed... not quite sure why 23 pixels :-( but it works so for the moment I'm fine with it
+        element.style.paddingTop = Math.max(0, element.offsetHeight - 23) + "px";
         return super.doCustomization(element, label);
     }
 }

@@ -5,11 +5,12 @@ if (!isMobile) {
     let head  = document.getElementsByTagName('head')[0];
     head.appendChild(document.createStylesheet('css/panta.responsive.css'));
     head.appendChild(document.createStylesheet('css/grid.css'));
-
+    console.log("Desktop browser detected: " + navigator.userAgent);
 } else {
     let head  = document.getElementsByTagName('head')[0];
     head.appendChild(document.createStylesheet('css/panta.mobile.css'));
     head.appendChild(document.createStylesheet('css/grid.mobile.phone.css'));
+    console.log("Mobile browser detected");
 }
 
 let t = TrelloPowerUp.iframe();

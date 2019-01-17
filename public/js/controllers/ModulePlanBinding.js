@@ -58,7 +58,7 @@ class ModulePlanBinding extends Binding {
      */
     onLayout(valueHolder) {
         let virtual = this.document.createElement('div');
-        virtual.innerHTML = template_plan;
+        virtual.innerHTML = isMobileBrowser() ? template_plan_mobile : template_plan;
         let templ = virtual.cloneNode(true);
         this._switchContent(templ);
 
@@ -83,7 +83,7 @@ class ModulePlanBinding extends Binding {
             .addClass('bold')
             .addClass('multiline', true);
 
-        this._capOnDepenses = this.document.newSingleLineInput(valueHolder, '.pa.plan.capOnDepenses', 'capOnDepenses', 'Kostendach Projekt', params, this._action, '', 'money', false)
+        this._capOnDepenses = this.document.newSingleLineInput(valueHolder, '.pa.plan.capOnDepenses', 'capOnDepenses', 'Kostendach Projekt', params, this._action, 'Betrag…', 'money', false)
             .addClass('multiline', true);
 
         this._totalCosts = this.document.newSingleLineInput(valueHolder, '.pa.plan.totalCosts', 'totalCosts', 'Total Projekt', params, this._action, 'Betrag…', 'money', true)
