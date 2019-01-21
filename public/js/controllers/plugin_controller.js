@@ -38,6 +38,11 @@ class PluginController {
         this._upgrades = {
             1: this._upgrade_1
         }
+        /**
+         * @type {PluginRepository}
+         * @private
+         */
+        this._repository = PluginRepository.INSTANCE;
     }
 
     /**
@@ -78,6 +83,10 @@ class PluginController {
             .then(function (data) {
                 return PluginConfiguration.create(data);
             });
+    }
+
+    getAvailableModules() {
+        return this._repository.all();
     }
 
     /**

@@ -10,9 +10,9 @@ t.render(function () {
         .then(function (jsonobj) {
             return ClientManager.getInstance(window).getPluginController().getPluginConfiguration()
                 .then(function (configuration) {
-                    let module_config = configuration.modules.filter(function(module) {
+                    let module_config = configuration.modules.filter(function (module) {
                         return module.id === 'module.beteiligt';
-                    }).map(function(module) {
+                    }).map(function (module) {
                         return module.config.layouts;
                     })[0];
                     moduleController.render(ModuleConfig.create(jsonobj), module_config);

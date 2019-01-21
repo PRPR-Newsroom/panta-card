@@ -6,7 +6,8 @@ let pluginController = ClientManager.getOrCreateClientManager(window, t, PLUGIN_
 t.render(function () {
 
     return pluginController.getPluginConfiguration()
-        .then(function (config) {
+        .then(function (data) {
+            let config = data instanceof PluginConfiguration ? data : new PluginConfiguration("1.0.0", "Beschreibung hinzufügen...", null, pluginController.getAvailableModules());
             if (config instanceof PluginConfiguration) {
                 document.getElementsByClassName("plugin-version").forEach(function (element) {
                     element.innerHTML = config.version;
@@ -31,19 +32,8 @@ t.render(function () {
                     element.appendChild(list);
                 });
 
-            } else {
-                document.getElementsByClassName("plugin-version").forEach(function (element) {
-                    element.innerText = "<unknown_version>";
-                });
-
-                document.getElementsByClassName("plugin-description").forEach(function (element) {
-                    element.innerText = "<not_set>";
-                    element.setAttribute("data-content", element.innerText);
-                    element.setAttribute("data-name", "description");
-                });
             }
 
-            // TODO extension function to enable editable toggle
             let editables = document.getElementsByClassName("editable");
             editables.forEach(function (editable) {
                 editable.setEventListener('click', function (e) {
@@ -53,7 +43,7 @@ t.render(function () {
                     let input = document.createElement("textarea");
                     input.setAttribute("class", "editor")
                     input.innerText = content;
-                    input.setEventListener('click', function(e) {
+                    input.setEventListener('click', function (e) {
                         e.stopPropagation();
                     });
                     let container = editable.parentElement;
@@ -63,7 +53,6 @@ t.render(function () {
                 });
             });
 
-            // TODO extension function for editable toggle
             document.getElementById("content").setEventListener('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -79,7 +68,7 @@ t.render(function () {
                         return {
                             "name": editable.getAttribute("data-name"),
                             "content": content
-                    }
+                        }
                     } else {
                         editable.removeClass("hidden");
                         return null;
@@ -87,8 +76,12 @@ t.render(function () {
                 }).filter(function (item) {
                     return item !== null;
                 });
-                console.log("Update: " + JSON.stringify(updates));
-                // TODO do update in Trello
+                if (updates.length > 0) {
+                    console.log("Update: " + JSON.stringify(updates));
+                    // TODO do update in Trello
+                } else {
+                    // no updates
+                }
             });
 
             return t.sizeTo("#content").done();

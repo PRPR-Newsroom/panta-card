@@ -6,6 +6,7 @@ class PluginConfiguration {
     set card(value) {
         this._card = value;
     }
+
     get modules() {
         return this._modules;
     }
@@ -44,13 +45,22 @@ class PluginConfiguration {
                 JsonSerialization.getProperty(json, 'version') || '1.0.0',
                 JsonSerialization.getProperty(json, 'description') || 'Dieses Panta.Card Power-Up umfasst das Modul:',
                 JsonSerialization.getProperty(json, 'card'),
-                JsonSerialization.getProperty(json, 'modules') || [{"id": 'module.artikel', "name": "Artikel"}]
+                JsonSerialization.getProperty(json, 'modules') || [
+                    new PluginModuleConfig("module.artikel", "Artikel", {})
+                ]
             )
         } else {
             return null;
         }
     }
 
+    /**
+     *
+     * @param version
+     * @param description
+     * @param card
+     * @param modules
+     */
     constructor(version, description, card, modules) {
         this._version = version;
         this._description = description;

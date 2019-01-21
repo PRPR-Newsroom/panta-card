@@ -139,8 +139,7 @@ TrelloPowerUp.initialize({
                         icon: "./assets/ic_artikel.png",
                         content: {
                             type: 'iframe',
-                            url: t.signUrl("./plugin.html"),
-                            height: 200
+                            url: t.signUrl("./plugin.html")
                         }
                     }
                 }
