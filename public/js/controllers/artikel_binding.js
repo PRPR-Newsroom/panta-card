@@ -102,6 +102,16 @@ class ArtikelBinding {
     bind() {
         let params = {'context': this._context, 'artikel': this._entity};
         let valueHolder = {'data': this._entity};
+        this.onLayout(valueHolder, params);
+        return this;
+    }
+
+    onLayout(valueHolder, params) {
+        let virtual = this.document.createElement('div');
+        virtual.innerHTML = template_artikel;
+        let templ = virtual.cloneNode(true);
+        this._switchContent(templ);
+
         this._topic = this.document.newMultiLineInput(valueHolder, "pa.topic", 'topic', 'Thema', params, this._action, 2, "Lauftext");
         this._from = this.document.newSingleLineInput(valueHolder, 'pa.input-from', 'from', 'Input von', params, this._action, "Name");
         this._author = this.document.newSingleLineInput(valueHolder, 'pa.author', 'author', 'Textautor*in', params, this._action, 'Name');
@@ -162,8 +172,6 @@ class ArtikelBinding {
             newOption("rustico", "Rustico"),
             newOption("schlatt", "Schlatt"),
         ]);
-
-        return this;
     }
 
     /**
@@ -195,6 +203,18 @@ class ArtikelBinding {
         if (this._autoUpdater) {
             clearInterval(this._autoUpdater);
         }
+    }
+
+    /**
+     * Switch content by removing any previous content first, resetting UI states and then set the new tab content
+     * @param forms
+     * @param templ
+     * @private
+     */
+    _switchContent(templ) {
+        let content = this.document.getElementById("pa.artikel.content");
+        content.removeChildren();
+        content.appendChild(templ);
     }
 
 }

@@ -8,21 +8,29 @@ t.render(function () {
     // noinspection JSUnresolvedFunction
     return t.get('card', 'shared', ModuleController.SHARED_NAME)
         .then(function (jsonobj) {
-            moduleController.render(ModuleConfig.create(jsonobj));
+            return ClientManager.getInstance(window).getPluginController().getPluginConfiguration()
+                .then(function (configuration) {
+                    let module_config = configuration.modules.filter(function (module) {
+                        return module.id === 'module.beteiligt';
+                    }).map(function (module) {
+                        return module.config.layouts;
+                    })[0];
+                    moduleController.render(ModuleConfig.create(jsonobj), module_config);
+                });
         })
-        .then(function() {
+        .then(function () {
             return t.cards('id', 'closed');
         })
-        .filter(function(card) {
+        .filter(function (card) {
             return !card.closed;
         })
-        .each(function(card) {
+        .each(function (card) {
             return t.get(card.id, 'shared', ModuleController.SHARED_NAME)
-                .then(function(json) {
+                .then(function (json) {
                     moduleController.insert(ModuleConfig.create(json), card);
                 });
         })
-        .then(function() {
+        .then(function () {
             moduleController.update();
         })
         .then(function () {

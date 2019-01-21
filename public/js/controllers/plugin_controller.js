@@ -9,11 +9,19 @@ class PluginController {
     }
 
     /**
-     * The name that is used to store the artikels in trello
+     * The name that is used to store the plugin version in trello
      * @returns {string}
      */
     static get SHARED_NAME() {
         return "panta.App";
+    }
+
+    /**
+     * The name that is used to store the plugin configuration in trello
+     * @returns {string}
+     */
+    static get CONFIGURATION_NAME() {
+        return "panta.App.Configuration";
     }
 
     static getInstance(trelloApi, windowManager) {
@@ -30,6 +38,11 @@ class PluginController {
         this._upgrades = {
             1: this._upgrade_1
         }
+        /**
+         * @type {PluginRepository}
+         * @private
+         */
+        this._repository = PluginRepository.INSTANCE;
     }
 
     /**
@@ -57,6 +70,23 @@ class PluginController {
                     that.update.call(that, data, PluginController.VERSION);
                 }
             });
+    }
+
+    /**
+     * Get the plugin configuration of this board
+     *
+     * @returns {PromiseLike<PluginConfiguration>|Promise<PluginConfiguration>}
+     */
+    getPluginConfiguration() {
+        // Endpoint: https://trello.com/1/boards/<ID>/pluginData
+        return this._trelloApi.get('board', 'shared', PluginController.CONFIGURATION_NAME, null)
+            .then(function (data) {
+                return PluginConfiguration.create(data);
+            });
+    }
+
+    getAvailableModules() {
+        return this._repository.all();
     }
 
     /**

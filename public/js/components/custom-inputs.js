@@ -30,6 +30,7 @@ class PInput {
         this._placeholder = placeholder;
         this._readonly = readonly;
         this._input = this._document.createElement(this._type);
+        this._labelInput = null;
         this._property = null;
         this._propertyType = "text";
     }
@@ -68,20 +69,21 @@ class PInput {
     _updateProperty() {
         // this should maybe use this._value instead of accessing the property directly. otherwise the _value property does not make much sense anymore
         let propertyValue = this._entity[this.getBoundProperty()];
-        if (!propertyValue) {
+        if (propertyValue === null) {
             this._input.value = null;
-        }
-        switch (this.propertyType) {
-            case "number":
-                this._updateValue(this._formatNumber(propertyValue));
-                break;
-            case "money":
-                this._updateValue(this._formatNumber(propertyValue, {minimumFractionDigits: 2}));
-                break;
-            case 'text':
-            default:
-                this._updateValue(propertyValue || "");
-                break;
+        } else {
+            switch (this.propertyType) {
+                case "number":
+                    this._updateValue(this._formatNumber(propertyValue));
+                    break;
+                case "money":
+                    this._updateValue(this._formatNumber(propertyValue, {minimumFractionDigits: 2}));
+                    break;
+                case 'text':
+                default:
+                    this._updateValue(propertyValue || "");
+                    break;
+            }
         }
     }
 
@@ -106,6 +108,7 @@ class PInput {
         if (this._type !== 'select') {
             this._updateProperty();
         }
+        this._updateConditionalFormatting();
         return this;
     }
 
@@ -127,6 +130,8 @@ class PInput {
         this._renderType();
         if (this._readonly) {
             this._input.setAttribute("readonly", "readonly");
+        } else {
+            this._input.setAttribute("tabindex", autoTabIndex());
         }
 
         this._input.addClass(this.propertyType);
@@ -134,23 +139,23 @@ class PInput {
 
         this.setupEvents();
 
-        let label = this._document.createElement("label");
-        label.appendChild(this._document.createTextNode(this._label));
-        label.setAttribute("for", this._input.getAttribute("name"));
-        label.addClass("prop-" + this._type);
+        this._labelInput = this._document.createElement("label");
+        this._labelInput.appendChild(this._document.createTextNode(this._label));
+        this._labelInput.setAttribute("for", this._input.getAttribute("name"));
+        this._labelInput.addClass("prop-" + this._type);
         if (this._label.length === 0) {
             container.setAttribute("class", "field hidden");
         } else {
             container.setAttribute("class", "field");
         }
 
-        container.appendChild(label);
+        container.appendChild(this._labelInput);
         container.appendChild(this._input);
 
         if (this._target) {
             this._target.appendChild(container);
         }
-        this.doCustomization(this._input, label);
+        this.doCustomization(this._input, this._labelInput);
 
         return this;
     }
@@ -215,10 +220,34 @@ class PInput {
     /**
      * Add the CSS class to the element
      * @param className
+     * @param addToLabel if set to true it will add the class to the label instead of the input element
      * @returns {PInput}
      */
-    addClass(className) {
-        this._input.addClass(className);
+    addClass(className, addToLabel) {
+        if (addToLabel === true) {
+            this._labelInput.addClass(className);
+        } else {
+            this._input.addClass(className);
+        }
+        return this;
+    }
+
+    addConditionalFormatting(rule, addToLabel) {
+        if (addToLabel === true) {
+            this._labelInput.addConditionalFormatting(rule);
+        } else {
+            this._input.addConditionalFormatting(rule);
+        }
+        return this;
+    }
+
+    _updateConditionalFormatting() {
+        this._labelInput.applyConditionalFormatting(this._entity);
+        this._input.applyConditionalFormatting(this._entity);
+    }
+
+    setHeight(height) {
+        this._input.style.height = height + "px";
         return this;
     }
 
@@ -322,6 +351,10 @@ class PInput {
 
     }
 
+    getTabIndex() {
+        return this._readonly ? -1 : parseInt(this._input.getAttribute("tabindex"));
+    }
+
     /**
      * Format the number using the user's locale. If it's not a number it will return an empty string (null is not working
      * in all browsers, eg. IE/Edge)
@@ -401,6 +434,22 @@ class SingleLineInput extends PInput {
     doCustomization(element, label) {
         element.setAttribute("rows", 1);
         element.addClass('no-resize');
+
+        if (isMobileBrowser()) {
+            // compute the correct height of that input element to match the parent row element
+            // note that this only works for one row divs and not rows that contain multi-lines
+            let row = element.getClosestParentByClassName("row");
+            if (row) {
+                let style = getComputedStyle(element.getClosestParentByClassName("field"));
+                let paddings = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+                element.style.height = (row.offsetHeight - label.offsetHeight - element.getMarginBottom() - paddings) + "px";
+            } else {
+                console.log("Could not find a parent with class «row»");
+            }
+        }
+
+        // TODO 23px must be computed... not quite sure why 23 pixels :-( but it works so for the moment I'm fine with it
+        element.style.paddingTop = Math.max(0, element.offsetHeight - 23) + "px";
         return super.doCustomization(element, label);
     }
 }

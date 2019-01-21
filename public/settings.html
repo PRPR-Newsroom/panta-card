@@ -1,19 +1,28 @@
 <html>
 <head>
     <link rel="stylesheet" href="https://p.trellocdn.com/power-up.min.css">
-    <script src="https://p.trellocdn.com/power-up.min.js"></script>
+    <link rel="stylesheet" href="css/panta.commons.css"/>
+    <link rel="stylesheet" href="css/panta.settings.css"/>
+    <link rel="stylesheet" href="css/firefox.css"/>
+    <link rel="stylesheet" href="css/chrome.css"/>
 </head>
 <body>
-<div id="content">
-    <h1>Panta Power-Up</h1>
-    <p>Dieses Panta.Card Power-Up umfasst beide Module:</p>
-    <ul>
-        <li>Panta.Artikel</li>
-        <li>Panta.Beteiligt</li>
-    </ul>
+<div id="content" style="min-height: 200px">
+    <form>
+        <div class="row">
+            <div class="col-12 line-2">
+                <p class="plugin-description editable"></p>
+            </div>
+        </div>
 
-    <small>Version: <span class="plugin-version"></span></small>
+    </form>
+
+    <span class="plugin-modules"></span>
+
+    <small>Version: <span class="plugin-version"/></small>
 </div>
+
+<script src="https://p.trellocdn.com/power-up.min.js"></script>
 <script src="bin/panta.js"></script>
 <script src="js/views/head.js"></script>
 <script src="js/settings.js"></script>

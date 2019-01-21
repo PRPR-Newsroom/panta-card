@@ -7,12 +7,17 @@
   float: left;
   padding: 0px;
   border: 0px solid red; }
+  [class*="col-"] textarea {
+    height: 26px; }
+
+[class*="col-"]::after {
+  content: ""; }
 
 .field {
-  padding: 3px; }
+  padding: 2px; }
 
-.row:not(.min) {
-  height: 56px; }
+.row {
+  max-width: 500px; }
 
 .row::after {
   content: "";
@@ -20,22 +25,28 @@
   display: table; }
 
 .line-1 textarea {
-  height: 20px; }
+  height: 26px; }
 
 .line-2 textarea {
-  height: 36px; }
+  height: 44px; }
 
 .line-3 textarea {
-  height: 52px; }
+  height: 62px; }
 
 .line-4 textarea {
-  height: 68px; }
+  height: 80px; }
 
 .line-5 textarea {
-  height: 84px; }
+  height: 98px; }
 
 .line-6 textarea {
-  height: 100px; }
+  height: 116px; }
+
+.line-7 textarea {
+  height: 134px; }
+
+.line-8 textarea {
+  height: 152px; }
 
 .col-1 {
   width: 8.33%; }

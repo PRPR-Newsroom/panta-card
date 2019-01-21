@@ -40,11 +40,12 @@ class ModuleController {
      * Get the singleton instance
      * @param trelloApi
      * @param windowManager
+     * @param telephone
      * @returns {ModuleController}
      */
-    static getInstance(trelloApi, windowManager) {
+    static getInstance(trelloApi, windowManager, telephone) {
         if (!windowManager.hasOwnProperty('moduleController')) {
-            windowManager.moduleController = new ModuleController(windowManager, trelloApi);
+            windowManager.moduleController = new ModuleController(windowManager, trelloApi, telephone);
         }
         return windowManager.moduleController;
     }
@@ -54,13 +55,13 @@ class ModuleController {
      *
      * @param windowManager the window manager that gives access to the underlying document
      * @param trelloApi the trello API to persist/read the module config entities
+     * @param telephone
      */
-    constructor(windowManager, trelloApi) {
+    constructor(windowManager, trelloApi, telephone) {
         /**
          * @type {HTMLDocument}
          */
         this.document = windowManager.document;
-
         this._window = windowManager;
 
         this.trelloApi = trelloApi;
@@ -90,8 +91,62 @@ class ModuleController {
          */
         this._propertyBag = {};
 
+        /**
+         * The wire to the client manager
+         * @type {MessagePort}
+         */
+        this._telephone = telephone;
+
+        this._telephone.onmessage = this._onMessage();
+
         this.setVersionInfo();
         this.readPropertyBag();
+    }
+
+    /**
+     * Get a function that handles client manager communication
+     *
+     * @returns {Function}
+     * @private
+     */
+    _onMessage() {
+        let that = this;
+        return function (ev) {
+            let data = ev.data;
+            Object.values(data.get).forEach(function (item) {
+                switch (item) {
+                    case "fee:current":
+                        this._sendResponse(item, this.getTotalFee());
+                        break;
+                    case "fee:overall":
+                        this._sendResponse(item, this.getOverallTotalFee());
+                        break;
+                    case "charge:current":
+                        this._sendResponse(item, this.getTotalCharges());
+                        break;
+                    case "charge:overall":
+                        this._sendResponse(item, this.getOverallTotalCharges());
+                        break;
+                    case 'costs:overall':
+                        this._sendResponse(item, this.getOverallCosts());
+                        break;
+                }
+            }, that);
+        };
+    }
+
+    /**
+     * Send the response back to the client manager
+     * @param property
+     * @param value
+     * @private
+     */
+    _sendResponse(property, value) {
+        let dto = {};
+        dto[property] = value;
+        this._telephone.postMessage({
+            'result': [dto],
+        });
     }
 
     /**
@@ -115,20 +170,27 @@ class ModuleController {
     /**
      * Initialize the module with this module config
      * @param entity
+     * @param configuration
      */
-    render(entity) {
+    render(entity, configuration) {
         this._entity = entity;
-        this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(entity) : new BeteiligtBinding(this.document, entity, this.onEvent, this).bind();
+        this._beteiligtBinding = this._beteiligtBinding
+            ? this._beteiligtBinding.update(entity)
+            : this._createBinding(entity, configuration);
+    }
+
+    _createBinding(entity, configuration) {
+        return new BeteiligtBinding(this.document, entity, this.onEvent, this).bind(configuration)
     }
 
     /**
      * Insert the passed artikel into the repository and associates it with the given card
      * @param {ModuleConfig} entity
-     * @param {Trello.Card} card
+     * @param {{id: number}} card
      */
     insert(entity, card) {
         if (entity && this._repository.isNew(entity)) {
-            this._repository.add(entity);
+            this._repository.add(entity, card);
         } else if (entity) {
             this._repository.replace(entity, card);
         }
@@ -138,16 +200,20 @@ class ModuleController {
      * Update the form with this module config
      */
     update() {
+        if (!this._window.clientManager.isBeteiligtModuleEnabled()) {
+            throw "Module is not enabled";
+        }
         // update the total price in the "ad" section
+        // TODO no hardcoded access!
         this._entity.sections['ad'].total = this.getTotalPrice();
-        let tpf = this.getTotalProjectFee();
-        let cod = this.getCapOnExpenses();
+        let totalProject = this.getTotalProject();
+        let cod = this.getCapOnDepenses();
         // set all dynamic properties in all OtherBeteiligt sections
         Object.values(this._entity.sections).filter(function (section) {
             return section instanceof OtherBeteiligt;
         }).forEach(function (section) {
-            section.project = tpf;
-            section.capOnExpenses = cod;
+            section.project = totalProject;
+            section.capOnDepenses = cod;
         });
         this._beteiligtBinding.update(this._entity);
     }
@@ -202,22 +268,16 @@ class ModuleController {
     _onChange(source, args) {
         source.setProperty();
         /**
-         * @var ModuleConfig
+         * @type {ModuleConfig}
          */
         let config = args['config'];
         // update the config entity with this section
         config.sections[args['valueHolder']['involved-in']] = source.getBinding();
+        this._beteiligtBinding.rememberFocus(source);
         // update the involved part of the entity
-        // todo do this differently
-        switch (source.getBoundProperty()) {
-            case "capOnExpenses":
-                this.setProperty('cap_on_expenses', source.getValue());
-                break;
-            default:
-                this.persist.call(this, args['config']);
-                console.log("Stored: " + source.getBoundProperty() + " = " + source.getValue());
-                break;
-        }
+        this.persist.call(this, args['config']).then(function () {
+            console.log("Stored: " + source.getBoundProperty() + " = " + source.getValue());
+        });
     }
 
     /**
@@ -237,10 +297,11 @@ class ModuleController {
     }
 
     /**
-     * Get the total project fee over all module configs on that board
+     * Get the total project costs (fee plus charges) over all module configs on
+     * that board
      * @returns {number}
      */
-    getTotalProjectFee() {
+    getTotalProjectCosts() {
         return Object.values(this._repository.all()).map(function (item) {
             // we only need the sections without the keys
             return Object.values(item.sections);
@@ -249,7 +310,7 @@ class ModuleController {
                 return item instanceof OtherBeteiligt;
             })
             .map(function (item) {
-                return [isNaN(item.fee) ? 0 : item.fee, isNaN(item.charges) ? 0 : item.charges];
+                return [!isNumber(item.fee) ? 0 : item.fee, !isNumber(item.charges) ? 0 : item.charges];
             })
             .flat().reduce(function (previousValue, currentValue) {
                 return parseFloat(previousValue) + parseFloat(currentValue);
@@ -257,11 +318,119 @@ class ModuleController {
     }
 
     /**
-     * Get the cap on expenses (Kostendach) which is a global property on the board
+     * Get the overall fee total of this BOARD
+     */
+    getOverallTotalFee() {
+        return Object.values(this._repository.all()).map(function (item) {
+            // we only need the sections without the keys
+            return Object.values(item.sections);
+        }).flat() // flatten the entries
+            .filter(function (item) {
+                return item instanceof OtherBeteiligt;
+            })
+            .map(function (item) {
+                return !isNumber(item.fee) ? 0.0 : item.fee;
+            })
+            .reduce(function (previousValue, currentValue) {
+                return parseFloat(previousValue) + parseFloat(currentValue);
+            }, 0.0);
+    }
+
+    /**
+     * Get the fee total in all sections
+     */
+    getTotalFee() {
+        return Object.values(this._entity.sections)
+            .filter(function (item) {
+                return item instanceof OtherBeteiligt;
+            })
+            .map(function (item) {
+                return !isNumber(item.fee) ? 0.0 : item.fee;
+            })
+            .reduce(function (previousValue, currentValue) {
+                return parseFloat(previousValue) + parseFloat(currentValue);
+            }, 0.0);
+    }
+
+    /**
+     * Get the total of charges in all sections
+     */
+    getTotalCharges() {
+        return Object.values(this._entity.sections)
+            .filter(function (item) {
+                return item instanceof OtherBeteiligt;
+            })
+            .map(function (item) {
+                return !isNumber(item.charges) ? 0.0 : item.charges;
+            })
+            .reduce(function (previousValue, currentValue) {
+                return parseFloat(previousValue) + parseFloat(currentValue);
+            }, 0.0);
+    }
+
+    /**
+     * Get the total of charges in all sections
+     */
+    getTotalProject() {
+        return Object.values(this._entity.sections)
+            .filter(function (item) {
+                return item instanceof OtherBeteiligt;
+            })
+            .map(function (item) {
+                return [!isNumber(item.fee) ? 0 : item.fee, !isNumber(item.charges) ? 0 : item.charges]
+            })
+            .flat()
+            .reduce(function (previousValue, currentValue) {
+                return parseFloat(previousValue) + parseFloat(currentValue);
+            }, 0.0);
+    }
+
+    /**
+     * Get the overall charges total of this BOARD
+     */
+    getOverallTotalCharges() {
+        return Object.values(this._repository.all()).map(function (item) {
+            // we only need the sections without the keys
+            return Object.values(item.sections);
+        }).flat() // flatten the entries
+            .filter(function (item) {
+                return item instanceof OtherBeteiligt;
+            })
+            .map(function (item) {
+                return !isNumber(item.charges) ? 0.0 : item.charges;
+            })
+            .reduce(function (previousValue, currentValue) {
+                return parseFloat(previousValue) + parseFloat(currentValue);
+            }, 0.0);
+    }
+
+    /**
+     * Get the overall costs of this BOARD
+     * @returns {number}
+     */
+    getOverallCosts() {
+        return Object.values(this._repository.all()).map(function (item) {
+            // we only need the sections without the keys
+            return Object.values(item.sections);
+        }).flat() // flatten the entries
+            .filter(function (item) {
+                return item instanceof OtherBeteiligt;
+            })
+            .map(function (item) {
+                return [!isNumber(item.charges) ? 0.0 : item.charges, !isNumber(item.fee) ? 0.0 : item.fee];
+            })
+            .flat()
+            .reduce(function (previousValue, currentValue) {
+                return parseFloat(previousValue) + parseFloat(currentValue);
+            }, 0.0);
+    }
+
+    /**
+     * Get the cap on depenses (Kostendach) which is a global property on the board
      * @returns {*}
      */
-    getCapOnExpenses() {
-        let coe = this.getProperty('cap_on_expenses');
+    getCapOnDepenses() {
+        let coe = this.getProperty('cap_on_depenses');
         return isNaN(coe) ? 0.0 : parseFloat(coe);
     }
 

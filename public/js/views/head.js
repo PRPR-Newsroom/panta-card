@@ -3,20 +3,14 @@ let isMobile = navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/
 
 if (!isMobile) {
     let head  = document.getElementsByTagName('head')[0];
-    let link  = document.createElement('link');
-    link.rel  = 'stylesheet';
-    link.type = 'text/css';
-    link.href = 'css/panta.responsive.css';
-    link.media = 'all';
-    head.appendChild(link);
+    head.appendChild(document.createStylesheet('css/panta.responsive.css'));
+    head.appendChild(document.createStylesheet('css/grid.css'));
+    console.log("Desktop browser detected: " + navigator.userAgent);
 } else {
     let head  = document.getElementsByTagName('head')[0];
-    let link  = document.createElement('link');
-    link.rel  = 'stylesheet';
-    link.type = 'text/css';
-    link.href = 'css/panta.mobile.css';
-    link.media = 'all';
-    head.appendChild(link);
+    head.appendChild(document.createStylesheet('css/panta.mobile.css'));
+    head.appendChild(document.createStylesheet('css/grid.mobile.phone.css'));
+    console.log("Mobile browser detected");
 }
 
 let t = TrelloPowerUp.iframe();

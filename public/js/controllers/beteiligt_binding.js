@@ -30,15 +30,6 @@ class BeteiligtBinding {
          */
         this._context = context;
 
-        this._involvements = {
-            'onsite': this._buildValueHolder('onsite', 'pa.involved.onsite', this.onRegularLayout),
-            'text': this._buildValueHolder('text', 'pa.involved.text', this.onRegularLayout),
-            'photo': this._buildValueHolder('photo', 'pa.involved.photo', this.onRegularLayout),
-            'video': this._buildValueHolder('video', 'pa.involved.video', this.onRegularLayout),
-            'illu': this._buildValueHolder('illu', 'pa.involved.illu', this.onRegularLayout),
-            'ad': this._buildValueHolder('ad', 'pa.involved.ad', this.onAdLayout)
-        };
-
         /**
          * @type {PModuleConfig}
          * @private
@@ -80,22 +71,44 @@ class BeteiligtBinding {
          * @private
          */
         this._activated = null;
+
+        this._currentTabIndex = -1;
+    }
+
+    initLayouts(configuration) {
+        let that = this;
+        this._involvements = Object.values(configuration).reduce(function (prev, curr) {
+            prev[curr.name] = that._buildValueHolder(
+                curr.name,
+                curr.container,
+                curr,
+                that.onLayout);
+            return prev;
+        }, {});
     }
 
     /**
      * Creates a new value-holder element
+     * @param involvedIn
      * @param tabId
-     * @returns {{data: null, renderer: renderer, tab: HTMLElement | null}}
+     * @param renderer
+     * @returns {{layout: string, renderer: renderer, data: null, tab: HTMLElement, "involved-in": *, binding: BeteiligtBinding, label: string}}
+     * @private
      */
-    _buildValueHolder(involvedIn, tabId, renderer) {
+    _buildValueHolder(involvedIn, tabId, config, renderer) {
         let that = this;
+        let tab = that.document.getElementById(tabId);
         return {
             'involved-in': involvedIn,
             'data': null,
             'renderer': function (valueHolder) {
                 renderer.call(that, this, valueHolder);
             },
-            'tab': that.document.getElementById(tabId),
+            'tab': tab,
+            // TODO data-layout is obsolete when switched to module configuration
+            'layout': config.layout || tab.getAttribute("data-layout"),
+            // TODO data-label is obsolete when switched to module configuration
+            'label': config.label || tab.getAttribute("data-label"),
             'binding': that
         };
     }
@@ -109,9 +122,9 @@ class BeteiligtBinding {
     update(config) {
         this._activated.activate();
         // update all PModuleConfigs with the new config entity
-        Object.values(this).filter(function(property) {
+        Object.values(this).filter(function (property) {
             return (property instanceof PModuleConfig)
-        }).forEach(function(module) {
+        }).forEach(function (module) {
             module.update(config);
         });
         // update the entity as well otherwise on change callbacks will re-store old entity states
@@ -124,7 +137,8 @@ class BeteiligtBinding {
      *
      * @returns {BeteiligtBinding}
      */
-    bind() {
+    bind(configuration) {
+        this.initLayouts(configuration);
         this._onsite = this._onsite !== null ? this._onsite.update(this._config) : (this._onsite = new PModuleConfig(this.document, 'vor.Ort', this._involvements.onsite)
             .bind(this._config, 'onsite')
             .render());
@@ -148,9 +162,57 @@ class BeteiligtBinding {
         this._ad = this._ad !== null ? this._ad.update(this._config) : (this._ad = new PModuleConfig(this.document, 'Inserat', this._involvements.ad)
             .bind(this._config, 'ad')
             .render());
+        // activate the first tab when rendering this layout. when the layout was already rendered then it will not call bind() but update
+        this._onsite.activate();
+        // we set the activated manually here but is actually also set when rendering the layout which is triggered by activate() on the PModuleConfig but this is not obvious
+        // and therefore we set it here manually
         this._activated = this._onsite;
-        this._activated.activate();
         return this;
+    }
+
+    /**
+     * Update the input fields in that form instead of re-rendering the whole form
+     *
+     * @param forms
+     * @param valueHolder
+     */
+    onLayoutUpdate(forms, valueHolder) {
+        forms.setFieldValue("name", valueHolder.data, "name");
+        forms.setFieldValue("social", valueHolder.data, "social");
+        forms.setFieldValue("address", valueHolder.data, "address");
+        forms.setFieldValue("notes", valueHolder.data, "notes");
+        forms.setFieldValue("duedate", valueHolder.data, "duedate");
+
+        forms.setFieldValue("fee", valueHolder.data, "fee");
+        forms.setFieldValue("charges", valueHolder.data, "charges");
+        forms.setFieldValue("project", valueHolder.data, "project");
+        forms.setFieldValue("capOnDepenses", valueHolder.data, "capOnDepenses");
+    }
+
+    /**
+     * Called when it should render the layout. This will check if the layout is already rendered on the document. If
+     * it is then it will only do a data update instead of a full re-rendering. To check if the content was already
+     * rendered it uses an internal state. The
+     * @param forms
+     * @param valueHolder
+     */
+    onLayout(forms, valueHolder) {
+        // check if we need to switch the layout or if it's already the right one
+        if (forms === this._activated) {
+            console.log("onLayout: only update the layout with new values");
+            this.onLayoutUpdate(forms, valueHolder);
+        } else {
+            console.log("onLayout: do a full layout");
+            switch (valueHolder.layout) {
+                case "ad":
+                    this.onAdLayout(forms, valueHolder);
+                    break;
+                case "regular":
+                default:
+                    this.onRegularLayout(forms, valueHolder);
+                    break;
+            }
+        }
     }
 
     /**
@@ -160,22 +222,22 @@ class BeteiligtBinding {
      */
     onRegularLayout(forms, valueHolder) {
         let virtual = this.document.createElement('div');
-        virtual.innerHTML = template_regular;
+        virtual.innerHTML = isMobileBrowser() ? template_regular_mobile : template_regular;
         let templ = virtual.cloneNode(true);
         this._switchContent(forms, templ);
 
         let params = {'context': this._context, 'valueHolder': valueHolder, 'config': this._config};
-        this.document.newSingleLineInput(valueHolder, ".pa.name", "name", "Name", params, this._action, "eintippen…", "text", false);
-        this.document.newSingleLineInput(valueHolder, ".pa.social", "social", "Telefon.Mail.Webseite", params, this._action, "notieren…");
-        this.document.newMultiLineInput(valueHolder, ".pa.address", "address", "Adresse", params, this._action, 2, "festhalten…");
-        this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Notiz", params, this._action, 6, "formulieren…");
-        this.document.newSingleLineInput(valueHolder, ".pa.duedate", "duedate", "Deadline", params, this._action, "bestimmen…", "text", false);
+        forms.setField("name", this.document.newSingleLineInput(valueHolder, ".pa.name", "name", "Name", params, this._action, "eintippen…", "text", false));
+        forms.setField("social", this.document.newSingleLineInput(valueHolder, ".pa.social", "social", "Telefon.Mail.Webseite", params, this._action, "notieren…"));
+        forms.setField("address", this.document.newMultiLineInput(valueHolder, ".pa.address", "address", "Adresse", params, this._action, 2, "festhalten…"));
+        forms.setField("notes", this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Notiz", params, this._action, 6, "formulieren…"));
+        forms.setField("duedate", this.document.newSingleLineInput(valueHolder, ".pa.duedate", "duedate", "Deadline", params, this._action, "bestimmen…", "text", false));
 
-        this.document.newSingleLineInput(valueHolder, ".pa.fee", "fee", "Honorar", params, this._action, "Betrag…", "money", false);
-        this.document.newSingleLineInput(valueHolder, ".pa.charges", "charges", "Spesen", params, this._action, "Betrag…", "money", false);
-        this.document.newSingleLineInput(valueHolder, ".pa.project", "project", "Total Projekt", params, this._action, "Betrag…", "money", true)
-            .addClass("bold");
-        this.document.newSingleLineInput(valueHolder, ".pa.cap_on_expenses", "capOnExpenses", "Kostendach", params, this._action, "Betrag…", "money", false);
+        forms.setField("fee", this.document.newSingleLineInput(valueHolder, ".pa.fee", "fee", "Honorar Massnahme", params, this._action, "Betrag…", "money", false));
+        forms.setField("charges", this.document.newSingleLineInput(valueHolder, ".pa.charges", "charges", "Spesen Massnahme", params, this._action, "Betrag…", "money", false));
+        forms.setField("project", this.document.newSingleLineInput(valueHolder, ".pa.project", "project", "Total Beteiligte", params, this._action, "Betrag…", "money", true)
+            .addClass("bold"));
+        forms.setField("capOnDepenses", this.document.newSingleLineInput(valueHolder, ".pa.cap_on_depenses", "capOnDepenses", "Kostendach Total Projekt", params, this._action, "Betrag…", "money", false));
     }
 
     /**
@@ -236,4 +298,10 @@ class BeteiligtBinding {
         this._activated.endEditing();
     }
 
+    /**
+     * @param {PInput} element
+     */
+    rememberFocus(element) {
+        this._currentTabIndex = element.getTabIndex();
+    }
 }

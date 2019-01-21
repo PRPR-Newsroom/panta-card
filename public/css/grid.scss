@@ -1,69 +1,49 @@
-* {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
-}
-
-[class*="col-"] {
-  float: left;
-  padding: 0px;
-  border: 0px solid red;
-}
-
-.field {
-  padding: 3px;
-}
-
-.row:not(.min) {
-  //&.line-1 {
-  //  height: 56px;
-  //}
-  //&.line-6 {
-  //  height: (56px)*2;
-  //}
-  height: 56px;
-
-}
-
-.row::after {
-  content: "";
-  clear: both;
-  display: table;
-}
+@import 'variables';
+@import "grid.commons";
 
 .line-1 {
   textarea {
-    height: 20px;
+    height: $height;
   }
 }
 
 .line-2 {
   textarea {
-    height: (20px+16*1);
+    height: ($height+$line-height*1);
   }
 }
 
 .line-3 {
   textarea {
-    height: (20px+16*2);
+    height: ($height+$line-height*2);
   }
 }
 
 .line-4 {
   textarea {
-    height: (20px+16*3);
+    height: ($height+$line-height*3);
   }
 }
 
 .line-5 {
   textarea {
-    height: (20px+16*4);
+    height: ($height+$line-height*4);
   }
 }
 
 .line-6 {
   textarea {
-    height: (20px+16*5);
+    height: ($height+$line-height*5);
+  }
+}
+.line-7 {
+  textarea {
+    height: ($height+$line-height*6);
+  }
+}
+.line-8 {
+  textarea {
+    height: ($height+$line-height*7);
   }
 }
 

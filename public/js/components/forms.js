@@ -1,13 +1,23 @@
-
 class PModuleConfig {
 
+    /**
+     *
+     * @param document
+     * @param label will be removed soon and replaced by the "data-label" attribute in the HTML document
+     * @param valueHolder
+     */
     constructor(document, label, valueHolder) {
         this.document = document;
         this.label = label;
         /**
-         * @type {{data: null, renderer: renderer, tab: HTMLElement | null}}
+         * @type {{layout: string, renderer: renderer, data: null, tab: HTMLElement, "involved-in": *, binding: BeteiligtBinding, label: string}}
          */
         this.valueHolder = valueHolder;
+        /**
+         * Store the input fields as an associative array
+         * @type {{}}
+         */
+        this.inputFields = {};
     }
 
     /**
@@ -23,17 +33,23 @@ class PModuleConfig {
         return this;
     }
 
+    /**
+     * This will render tab label and set the entity on the value holder
+     *
+     * @returns {PModuleConfig}
+     */
     render() {
         this.update(this._entity);
-        this.valueHolder.tab.innerHTML = "<span>" + this.label + "</span>";
+        this.valueHolder.tab.innerHTML = "<span>" + (this.valueHolder.label || this.label) + "</span>";
         let that = this;
-        this.valueHolder.tab.addEventListener('click', function(e) {
+        this.valueHolder.tab.addEventListener('click', function (e) {
             that.activate();
         });
         return this;
     }
 
     /**
+     * This updates the module config but not the input fields
      * @param {ModuleConfig} entity
      * @returns {PModuleConfig}
      */
@@ -54,11 +70,35 @@ class PModuleConfig {
     }
 
     /**
-     * This will call the renderer on this valueHolder and mark the this tab as 'selected' (css class)
+     * This will call the renderer on this valueHolder (which typically will re-create the layout) and mark this tab
+     * as 'selected' (css class)
      */
     activate() {
         this.valueHolder['renderer'].call(this, this.valueHolder);
         this.valueHolder.tab.addClass("selected");
+    }
+
+    /**
+     *
+     * @param name
+     * @param {PInput} inputField
+     */
+    setField(name, inputField) {
+        this.inputFields[name] = inputField;
+    }
+
+    /**
+     * Set the field value
+     *
+     * @param key the key that was used to associate the field value in #setField
+     * @param entity the entity that holds the data
+     * @param property the property inside the entity
+     */
+    setFieldValue(key, entity, property) {
+        let field = this.inputFields[key];
+        if (field && field instanceof PInput) {
+            field.bind(entity, property);
+        }
     }
 
     /**
