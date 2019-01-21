@@ -4,10 +4,11 @@
 let planController = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION).init().getPlanController();
 
 t.render(function () {
+    console.log("Render Plugin");
+    DI.getInstance().getTabIndexProvider().reset();
     // s. http://bluebirdjs.com/docs/api-reference.html
     // .each exists
     // noinspection JSUnresolvedFunction
-
     return t.get('card', 'shared', ModulePlanController.SHARED_NAME)
         .then(function (jsonobj) {
             planController.render(Plan.create(jsonobj));

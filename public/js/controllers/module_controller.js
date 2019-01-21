@@ -273,6 +273,7 @@ class ModuleController {
         let config = args['config'];
         // update the config entity with this section
         config.sections[args['valueHolder']['involved-in']] = source.getBinding();
+        this._beteiligtBinding.rememberFocus(source);
         // update the involved part of the entity
         this.persist.call(this, args['config']).then(function () {
             console.log("Stored: " + source.getBoundProperty() + " = " + source.getValue());

@@ -28,8 +28,20 @@ class DI {
              */
             class DefaultDI extends DI {
 
+                constructor() {
+                    super();
+                    /**
+                     * @type {TabIndexProvider}
+                     */
+                    this.tabIndexProvider = new TabIndexProvider();
+                }
+
                 getArticleRepository() {
                     return new ArtikelRepository();
+                }
+
+                getTabIndexProvider() {
+                    return this.tabIndexProvider;
                 }
             }
             DI.INSTANCE = new DefaultDI();
@@ -42,6 +54,13 @@ class DI {
      * @abstract
      */
     getArticleRepository() {}
+
+    /**
+     * Get a singleton provider
+     * @return {TabIndexProvider}
+     * @abstract
+     */
+    getTabIndexProvider() {}
 
 }
 
