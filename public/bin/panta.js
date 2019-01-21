@@ -282,16 +282,19 @@ PInput.prototype.bind = function(a, b) {
 };
 PInput.prototype._updateProperty = function() {
   var a = this._entity[this.getBoundProperty()];
-  a || (this._input.value = null);
-  switch(this.propertyType) {
-    case "number":
-      this._updateValue(this._formatNumber(a));
-      break;
-    case "money":
-      this._updateValue(this._formatNumber(a, {minimumFractionDigits:2}));
-      break;
-    default:
-      this._updateValue(a || "");
+  if (null === a) {
+    this._input.value = null;
+  } else {
+    switch(this.propertyType) {
+      case "number":
+        this._updateValue(this._formatNumber(a));
+        break;
+      case "money":
+        this._updateValue(this._formatNumber(a, {minimumFractionDigits:2}));
+        break;
+      default:
+        this._updateValue(a || "");
+    }
   }
 };
 PInput.prototype._updateValue = function(a) {
@@ -1201,7 +1204,7 @@ ModulePlanBinding.prototype.onLayout = function(a) {
   this._charges = this.document.newSingleLineInput(a, ".pa.plan.projectFee", "projectFee", "Total Honorar Projekt", b, this._action, "", "money", !0).addClass("multiline", !0).addClass("bold");
   this._thirdPartyCharges = this.document.newSingleLineInput(a, ".pa.plan.thirdPartyCharges", "thirdPartyCharges", "Total Spesen Beteiligte", b, this._action, "", "money", !0).addClass("multiline", !0);
   this._thirdPartyTotalCosts = this.document.newSingleLineInput(a, ".pa.plan.thirdPartyTotalCosts", "thirdPartyTotalCosts", "Total Spesen Projekt", b, this._action, "", "money", !0).addClass("bold").addClass("multiline", !0);
-  this._capOnDepenses = this.document.newSingleLineInput(a, ".pa.plan.capOnDepenses", "capOnDepenses", "Kostendach Projekt", b, this._action, "Betrag\u2026", "money", !1).addClass("multiline", !0);
+  this._capOnDepenses = this.document.newSingleLineInput(a, ".pa.plan.capOnDepenses", "capOnDepenses", "Kostendach Projekt\u2026", b, this._action, "Betrag\u2026", "money", !1).addClass("multiline", !0);
   this._totalCosts = this.document.newSingleLineInput(a, ".pa.plan.totalCosts", "totalCosts", "Total Projekt", b, this._action, "Betrag\u2026", "money", !0).addClass("bold").addClass("multiline", !0).addConditionalFormatting(function(a) {
     return {name:"rule-costs-exceeded", active:a.capOnDepenses < a.totalCosts};
   }, !1);
@@ -1291,7 +1294,7 @@ ModulePlanController.prototype.readPropertyBag = function() {
 };
 ModulePlanController.prototype.getCapOnDepenses = function() {
   var a = this.getProperty("cap_on_depenses");
-  return isNaN(a) ? 0.0 : parseFloat(a);
+  return isNaN(a) ? null : parseFloat(a);
 };
 ModulePlanController.prototype.getByCard = function(a) {
   return this._repository.get(a);

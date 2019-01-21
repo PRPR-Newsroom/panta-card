@@ -155,7 +155,7 @@ class ModulePlanController extends Controller {
      */
     getCapOnDepenses() {
         let cod = this.getProperty('cap_on_depenses');
-        return isNaN(cod) ? 0.0 : parseFloat(cod);
+        return isNaN(cod) ? null : parseFloat(cod);
     }
 
     /**

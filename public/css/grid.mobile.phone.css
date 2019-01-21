@@ -16,6 +16,9 @@
 .field {
   padding: 2px; }
 
+.row {
+  max-width: 500px; }
+
 .row::after {
   content: "";
   clear: both;

@@ -69,20 +69,21 @@ class PInput {
     _updateProperty() {
         // this should maybe use this._value instead of accessing the property directly. otherwise the _value property does not make much sense anymore
         let propertyValue = this._entity[this.getBoundProperty()];
-        if (!propertyValue) {
+        if (propertyValue === null) {
             this._input.value = null;
-        }
-        switch (this.propertyType) {
-            case "number":
-                this._updateValue(this._formatNumber(propertyValue));
-                break;
-            case "money":
-                this._updateValue(this._formatNumber(propertyValue, {minimumFractionDigits: 2}));
-                break;
-            case 'text':
-            default:
-                this._updateValue(propertyValue || "");
-                break;
+        } else {
+            switch (this.propertyType) {
+                case "number":
+                    this._updateValue(this._formatNumber(propertyValue));
+                    break;
+                case "money":
+                    this._updateValue(this._formatNumber(propertyValue, {minimumFractionDigits: 2}));
+                    break;
+                case 'text':
+                default:
+                    this._updateValue(propertyValue || "");
+                    break;
+            }
         }
     }
 
