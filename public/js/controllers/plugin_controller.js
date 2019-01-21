@@ -79,7 +79,14 @@ class PluginController {
      */
     getPluginConfiguration() {
         // Endpoint: https://trello.com/1/boards/<ID>/pluginData
-        return this._trelloApi.get('board', 'shared', PluginController.CONFIGURATION_NAME, null)
+        let plan = new PluginConfiguration("1.2.0_Module-P", "Das Panta Plan Modul",
+            new PluginCardConfig("Plan", "./assets/ic_plan.png", {
+                "file": "./plan.html"
+            }), [
+                this._repository.get({"id": 3}),
+                this._repository.get({"id": 2})
+            ]);
+        return this._trelloApi.get('board', 'shared', PluginController.CONFIGURATION_NAME, plan)
             .then(function (data) {
                 return PluginConfiguration.create(data);
             });
