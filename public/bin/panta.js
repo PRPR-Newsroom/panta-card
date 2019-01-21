@@ -1382,8 +1382,7 @@ PluginController.prototype.init = function() {
   });
 };
 PluginController.prototype.getPluginConfiguration = function() {
-  var a = new PluginConfiguration("1.2.0_Module-P", "Das Panta Plan Modul", new PluginCardConfig("Plan", "./assets/ic_plan.png", {file:"./plan.html"}), [this._repository.get({id:3}), this._repository.get({id:2})]);
-  return this._trelloApi.get("board", "shared", PluginController.CONFIGURATION_NAME, a).then(function(a) {
+  return this._trelloApi.get("board", "shared", PluginController.CONFIGURATION_NAME, null).then(function(a) {
     return PluginConfiguration.create(a);
   });
 };
