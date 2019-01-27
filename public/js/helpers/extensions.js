@@ -274,7 +274,7 @@ String.prototype.toHTML = function() {
  * @returns {boolean}
  */
 Window.prototype.isMobileBrowser = function () {
-    return this.navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/) !== null
+    return this.navigator.userAgent.match(/(iPhone|iPod|Android|BlackBerry|Windows Phone)/) !== null
 };
 
 /**
