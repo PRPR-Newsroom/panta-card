@@ -1,7 +1,5 @@
 
-let isMobile = navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/) !== null;
-
-if (!isMobile) {
+if (!isMobileBrowser()) {
     let head  = document.getElementsByTagName('head')[0];
     head.appendChild(document.createStylesheet('css/panta.responsive.css'));
     head.appendChild(document.createStylesheet('css/grid.css'));

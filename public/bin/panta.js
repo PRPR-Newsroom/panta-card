@@ -2155,7 +2155,7 @@ String.prototype.toHTML = function() {
   return a.value;
 };
 Window.prototype.isMobileBrowser = function() {
-  return null !== this.navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/);
+  return null !== this.navigator.userAgent.match(/(iPhone|iPod|Android|BlackBerry|Windows Phone)/);
 };
 Window.prototype.autoTabIndex = function() {
   return DI.getInstance().getTabIndexProvider().getAndIncrement();
