@@ -1,0 +1,39 @@
+form {
+
+  label {
+    color: #606565;
+    font-weight: normal;
+    max-width: 500px;
+
+    &:not(.prop-select) {
+      border-radius: 3px 3px 0 0;
+      background: rgba(0, 0, 0, .03);
+      margin-bottom: 0;
+      padding: 0 0 0 0.4em;
+      border-left: 1px solid #798d99;
+      border-right: 1px solid #798d99;
+      border-top: 1px solid #798d99;
+      border-bottom: 0;
+    }
+  }
+
+  .u-border:not(select), .u-border:focus:not(select) {
+    border-top: none;
+    overflow: auto;
+    outline: none;
+    outline: 0 !important;
+    border-radius: 0 0 3px 3px;
+    background: rgba(0, 0, 0, .03);
+    padding-top: 0;
+
+    -webkit-appearance: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none !important;
+    margin-bottom: 4px;
+  }
+
+  input {
+    height: 48px;
+  }
+}

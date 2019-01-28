@@ -4,25 +4,6 @@ html, body {
     height: 100%;
 }
 
-form {
-    padding-top: 5px;
-}
-
-textarea {
-    resize: vertical;
-    width: 100%;
-    height: 100%;
-}
-
-form .u-border.no-resize {
-    resize: none;
-    overflow-wrap: normal;
-}
-
-form textarea.u-border.no-resize {
-    overflow: hidden;
-}
-
 .u-border.pagina {
     font-size: 16pt;
     padding: 0 0.3em 0 0.3em;
@@ -118,13 +99,15 @@ form textarea.u-border.no-resize {
     line-height: normal;
 }
 
+/* this must be in commons (or maybe a file called conditional.formats.css) and not in panta.forms! */
 textarea.rule-costs-exceeded {
     color: red;
 }
-
 textarea.rule-costs-exceeded-not {
     color: green;
 }
+
+/* some fixes */
 
 ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
     opacity: 0.5; /* Firefox */

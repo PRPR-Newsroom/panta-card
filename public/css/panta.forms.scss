@@ -1,0 +1,34 @@
+/* TODO use this panta.forms */
+form {
+  padding-top: 5px;
+
+  textarea {
+    resize: vertical;
+    width: 100%;
+    /* We need to override the Trello default */
+    min-height: 26px;
+    padding-bottom: 2px;
+  }
+
+  .u-border.no-resize {
+    resize: none;
+    overflow-wrap: normal;
+  }
+
+  textarea.u-border.no-resize {
+    overflow: hidden;
+  }
+
+  label.focused-fix {
+    border-color: #798d99;
+  }
+
+  label.hovered:not(.prop-select) {
+    border-color: #b6bbbf;
+  }
+
+  label.focused:not(.prop-select) {
+    border-color: #a5acb0;
+  }
+
+}

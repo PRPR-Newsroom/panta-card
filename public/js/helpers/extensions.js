@@ -270,11 +270,29 @@ String.prototype.toHTML = function() {
 };
 
 /**
+ * Add a CSS by its file name
+ * @param filename
+ */
+Window.prototype.addCss = function(filename) {
+    let head  = document.getElementsByTagName('head')[0];
+    head.appendChild(document.createStylesheet(filename));
+};
+
+/**
+ * Whether it should use default select styles or custom styles.
+ *
+ * @returns {boolean}
+ */
+Window.prototype.useDefaultSelectStyle = function() {
+    return this.navigator.userAgent.match(/(iPhone|iPod|Android|BlackBerry|iPad|Windows Phone)/) !== null;
+};
+
+/**
  * Check if it is a mobile browser
  * @returns {boolean}
  */
 Window.prototype.isMobileBrowser = function () {
-    return this.navigator.userAgent.match(/(iPhone|iPod|Android|BlackBerry|Windows Phone)/) !== null
+    return this.navigator.userAgent.match(/(iPhone|iPod|Android|BlackBerry|Windows Phone)/) !== null;
 };
 
 /**
