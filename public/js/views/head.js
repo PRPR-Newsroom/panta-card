@@ -1,14 +1,18 @@
 
 if (!isMobileBrowser()) {
-    let head  = document.getElementsByTagName('head')[0];
-    head.appendChild(document.createStylesheet('css/panta.responsive.css'));
-    head.appendChild(document.createStylesheet('css/grid.css'));
+    addCss("css/panta.responsive.css");
+    addCss("css/grid.css");
     console.log("Desktop browser detected: " + navigator.userAgent);
 } else {
-    let head  = document.getElementsByTagName('head')[0];
-    head.appendChild(document.createStylesheet('css/panta.mobile.css'));
-    head.appendChild(document.createStylesheet('css/grid.mobile.phone.css'));
+    addCss("css/panta.mobile.css");
+    addCss("css/grid.mobile.phone.css");
     console.log("Mobile browser detected");
+}
+
+if (useDefaultSelectStyle()) {
+    addCss("css/panta.custom.input.mobile.css");
+} else {
+    addCss("css/panta.custom.input.css");
 }
 
 let t = TrelloPowerUp.iframe();

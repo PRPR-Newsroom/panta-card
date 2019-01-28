@@ -58,6 +58,7 @@ class ModulePlanController extends Controller {
                             previous |=  that._entity.totalCosts !== value ? (that._entity.totalCosts = value, true) : false;
                             break;
                     }
+                    return previous;
                 }, false);
             if (that._entity.capOnDepenses !== that.getCapOnDepenses()) {
                 that._entity.capOnDepenses = that.getCapOnDepenses();
