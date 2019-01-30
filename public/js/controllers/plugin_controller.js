@@ -79,7 +79,13 @@ class PluginController {
      */
     getPluginConfiguration() {
         // Endpoint: https://trello.com/1/boards/<ID>/pluginData
-        return this._trelloApi.get('board', 'shared', PluginController.CONFIGURATION_NAME, null)
+        let article = new PluginConfiguration("1.2.2_Module-A", "Das Panta Plan Modul",
+            new PluginCardConfig("Article", "./assets/ic_artikel.png", {
+                "file": "./artikel.html"
+            }), [
+                this._repository.get({"id": 1})
+            ]);
+        return this._trelloApi.get('board', 'shared', PluginController.CONFIGURATION_NAME, article)
             .then(function (data) {
                 return PluginConfiguration.create(data);
             });
@@ -189,7 +195,9 @@ class PluginController {
                 mc.persist.call(mc, mconfig, cardId)
                     .then(function () {
                             article.version = Artikel.VERSION;
-                            article.clearInvolved();
+                            if (typeof article.clearInvolved === "function") {
+                                article.clearInvolved();
+                            }
                             return ac.persist.call(ac, article, cardId);
                         }
                     )

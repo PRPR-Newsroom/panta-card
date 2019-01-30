@@ -197,6 +197,13 @@ class ModuleController {
     }
 
     /**
+     * Hide the whole module
+     */
+    hide() {
+        this.document.getElementById("panta.module").addClass("hidden");
+    }
+
+    /**
      * Update the form with this module config
      */
     update() {
