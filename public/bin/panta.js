@@ -767,6 +767,9 @@ ModuleController.prototype._createBinding = function(a, b) {
 ModuleController.prototype.insert = function(a, b) {
   a && this._repository.isNew(a) ? this._repository.add(a, b) : a && this._repository.replace(a, b);
 };
+ModuleController.prototype.hide = function() {
+  this.document.getElementById("panta.module").addClass("hidden");
+};
 ModuleController.prototype.update = function() {
   if (!this._window.clientManager.isBeteiligtModuleEnabled()) {
     throw "Module is not enabled";
@@ -1426,7 +1429,7 @@ PluginController.prototype._upgradeArticleToModuleConfig = function(a, b, c, d) 
       return a;
     }, ModuleConfig.create()), b.persist.call(b, f, g).then(function() {
       h.version = Artikel.VERSION;
-      h.clearInvolved();
+      "function" === typeof h.clearInvolved && h.clearInvolved();
       return a.persist.call(a, h, g);
     }).then(function() {
       e._upgradeArticleToModuleConfig.call(e, a, b, c, d + 1, g);
@@ -1895,8 +1898,8 @@ $jscomp.global.Object.defineProperties(PluginConfiguration, {VERSION:{configurab
 // Input 25
 var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, n, p, q) {
   this._id = a || uuid();
-  this._measures = b;
-  this._description = c;
+  this._topic = b;
+  this._pagina = c;
   this._from = d;
   this._layout = e;
   this._total = f;
@@ -1908,14 +1911,7 @@ var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, n, p, q) {
   this._location = q;
   this._author = m;
   this._text = n;
-  this._involved = {};
   this._version = Artikel.VERSION;
-  this.putInvolved("onsite", new OtherBeteiligt);
-  this.putInvolved("text", new OtherBeteiligt);
-  this.putInvolved("photo", new OtherBeteiligt);
-  this.putInvolved("video", new OtherBeteiligt);
-  this.putInvolved("illu", new OtherBeteiligt);
-  this.putInvolved("ad", new AdBeteiligt);
 };
 Artikel.create = function(a) {
   return this._create(a);
@@ -1926,7 +1922,6 @@ Artikel._create = function(a) {
     "nord" === b && (b = "north");
     b = new Artikel(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "topic"), JsonSerialization.getProperty(a, "pagina"), JsonSerialization.getProperty(a, "from"), JsonSerialization.getProperty(a, "layout"), JsonSerialization.getProperty(a, "total"), JsonSerialization.getProperty(a, "tags"), JsonSerialization.getProperty(a, "visual"), b, JsonSerialization.getProperty(a, "season"), JsonSerialization.getProperty(a, "author"), JsonSerialization.getProperty(a, "text"), JsonSerialization.getProperty(a, 
     "form"), JsonSerialization.getProperty(a, "location"));
-    b.involved = JsonSerialization.getProperty(a, "involved");
     b.version = JsonSerialization.getProperty(a, "version");
     return b;
   }
@@ -1935,47 +1930,10 @@ Artikel._create = function(a) {
 Artikel.prototype.isEmpty = function() {
   return isBlank(this.topic) && isBlank(this.pagina) && isBlank(this.from) && isBlank(this.layout) && isBlank(this.tags) && isBlank(this.visual) && isBlank(this.region) && isBlank(this.season) && isBlank(this.location) && isBlank(this.author) && isBlank(this.text);
 };
-Artikel.prototype.getInvolvedFor = function(a) {
-  return this._involved[a];
-};
-Artikel.prototype.putInvolved = function(a, b) {
-  this._involved[a] = b;
-};
-Artikel.prototype.getInvolvedCount = function() {
-  var a = this, b = 0;
-  Object.keys(this._involved).forEach(function(c) {
-    a.getInvolvedFor(c).isEmpty() || b++;
-  });
-  return b;
-};
-Artikel.prototype.clearInvolved = function() {
-  this._involved = {};
-};
 $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, enumerable:!0, get:function() {
   return this._id;
 }, set:function(a) {
   this._id = a;
-}}, involved:{configurable:!0, enumerable:!0, get:function() {
-  return this._involved;
-}, set:function(a) {
-  for (var b in a) {
-    if (a.hasOwnProperty(b)) {
-      switch(b) {
-        case "onsite":
-        case "text":
-        case "photo":
-        case "video":
-        case "illu":
-          this.putInvolved(b, OtherBeteiligt.create(a[b]));
-          break;
-        case "ad":
-          this.putInvolved(b, AdBeteiligt.create(a[b]));
-          break;
-        default:
-          console.log("Unknown involved part: " + b);
-      }
-    }
-  }
 }}, from:{configurable:!0, enumerable:!0, get:function() {
   return this._from;
 }, set:function(a) {
@@ -1985,13 +1943,13 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, 
 }, set:function(a) {
   this._location = a;
 }}, topic:{configurable:!0, enumerable:!0, get:function() {
-  return this._measures;
+  return this._topic;
 }, set:function(a) {
-  this._measures = a;
+  this._topic = a;
 }}, pagina:{configurable:!0, enumerable:!0, get:function() {
-  return this._description;
+  return this._pagina;
 }, set:function(a) {
-  this._description = a;
+  this._pagina = a;
 }}, layout:{configurable:!0, enumerable:!0, get:function() {
   return this._layout;
 }, set:function(a) {
@@ -2034,7 +1992,7 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, 
   this._version = a;
 }}});
 $jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enumerable:!0, get:function() {
-  return 2;
+  return 3;
 }}});
 // Input 26
 HTMLElement.prototype.addClass = function(a) {

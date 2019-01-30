@@ -189,7 +189,9 @@ class PluginController {
                 mc.persist.call(mc, mconfig, cardId)
                     .then(function () {
                             article.version = Artikel.VERSION;
-                            article.clearInvolved();
+                            if (typeof article.clearInvolved === "function") {
+                                article.clearInvolved();
+                            }
                             return ac.persist.call(ac, article, cardId);
                         }
                     )

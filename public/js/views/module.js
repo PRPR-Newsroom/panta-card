@@ -15,7 +15,9 @@ t.render(function () {
                     }).map(function (module) {
                         return module.config.layouts;
                     })[0];
-                    moduleController.render(ModuleConfig.create(jsonobj), module_config);
+                    if (module_config) {
+                        moduleController.render(ModuleConfig.create(jsonobj), module_config);
+                    }
                 });
         })
         .then(function () {
@@ -31,9 +33,15 @@ t.render(function () {
                 });
         })
         .then(function () {
-            moduleController.update();
+            if (ClientManager.getInstance(window).isBeteiligtModuleEnabled()) {
+                moduleController.update();
+            } else {
+                moduleController.hide()
+            }
         })
         .then(function () {
-            t.sizeTo('#panta\\.module').done();
+            if (ClientManager.getInstance(window).isBeteiligtModuleEnabled()) {
+                t.sizeTo('#panta\\.module').done();
+            }
         })
 });
