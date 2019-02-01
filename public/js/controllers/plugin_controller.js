@@ -79,7 +79,7 @@ class PluginController {
      */
     getPluginConfiguration() {
         // Endpoint: https://trello.com/1/boards/<ID>/pluginData
-        let article = new PluginConfiguration("1.2.4_Module-A", "Das Panta Plan Modul",
+        let article = new PluginConfiguration("1.2.5_Module-A", "Das Panta Plan Modul",
             new PluginCardConfig("Artikel", "./assets/ic_artikel.png", {
                 "file": "./artikel.html"
             }), [
