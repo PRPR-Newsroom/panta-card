@@ -411,6 +411,18 @@ class MultiLineInput extends PInput {
      */
     doCustomization(element, label) {
         element.setAttribute("rows", this._rows);
+        if (isMobileBrowser()) {
+            // compute the correct height of that input element to match the parent row element
+            // note that this only works for one row divs and not rows that contain multi-lines
+            let row = element.getClosestParentByClassName("mobile-row") || element.getClosestParentByClassName("row");
+            if (row) {
+                let style = getComputedStyle(element.getClosestParentByClassName("field"));
+                let paddings = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+                element.style.height = ((row.offsetHeight - label.offsetHeight - element.getMarginBottom() - paddings) - 1) + "px";
+            } else {
+                console.log("Could not find a parent with class «row» or «mobile-row»");
+            }
+        }
         return super.doCustomization(element);
     }
 }
@@ -438,13 +450,13 @@ class SingleLineInput extends PInput {
         if (isMobileBrowser()) {
             // compute the correct height of that input element to match the parent row element
             // note that this only works for one row divs and not rows that contain multi-lines
-            let row = element.getClosestParentByClassName("row");
+            let row = element.getClosestParentByClassName("mobile-row") || element.getClosestParentByClassName("row");
             if (row) {
                 let style = getComputedStyle(element.getClosestParentByClassName("field"));
                 let paddings = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
                 element.style.height = (row.offsetHeight - label.offsetHeight - element.getMarginBottom() - paddings) + "px";
             } else {
-                console.log("Could not find a parent with class «row»");
+                console.log("Could not find a parent with class «row» or «mobile-row»");
             }
         }
 

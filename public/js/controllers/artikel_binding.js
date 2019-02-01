@@ -113,14 +113,16 @@ class ArtikelBinding {
         this._switchContent(templ);
 
         this._topic = this.document.newMultiLineInput(valueHolder, "pa.topic", 'topic', 'Thema', params, this._action, 2, "Lauftext");
+        // this is a beschiss because the order of the elements matter to correctly compute height
+        this._layout = this.document.newSingleLineInput(valueHolder, 'pa.layout', 'layout', 'Seiten Layout', params, this._action, 'Zahl', 'number', false);
         this._from = this.document.newSingleLineInput(valueHolder, 'pa.input-from', 'from', 'Input von', params, this._action, "Name");
         this._author = this.document.newSingleLineInput(valueHolder, 'pa.author', 'author', 'Textautor*in', params, this._action, 'Name');
+        this._total = this.document.newSingleLineInput(valueHolder, 'pa.total', 'total', 'Seiten Total', params, this._action, 'Summe', 'number', true)
+            .addClass('bold');
         this._text = this.document.newMultiLineInput(valueHolder, 'pa.text', 'text', 'Textbox', params, this._action, 2, 'Lauftext');
+
         this._pagina = this.document.newSingleLineInput(valueHolder, 'pa.pagina', 'pagina', 'Pagina', params, this._action, 'Zahl', 'number', false)
             .addClass('pagina')
-            .addClass('bold');
-        this._layout = this.document.newSingleLineInput(valueHolder, 'pa.layout', 'layout', 'Seiten Layout', params, this._action, 'Zahl', 'number', false);
-        this._total = this.document.newSingleLineInput(valueHolder, 'pa.total', 'total', 'Seiten Total', params, this._action, 'Summe', 'number', true)
             .addClass('bold');
 
         this._tags = this.document.newSingleSelect(valueHolder, 'pa.tags', 'tags', 'Online', params, this._action, 'Liste-Tag', newOption('', '…'), [
