@@ -187,7 +187,7 @@ let template_artikel = '<div id="template">'+
     '            <div id="pa.pagina"></div>'+
     '        </div>'+
     '    </div>'+
-    '    <div class="row">'+
+    '    <div class="row mobile-row">'+
     '        <div class="col-9 col-phone-9">'+
     '            <div class="row">'+
     '                <div class="col-6 col-phone-6">'+
@@ -202,7 +202,7 @@ let template_artikel = '<div id="template">'+
     '            <div id="pa.layout"></div>'+
     '        </div>'+
     '    </div>'+
-    '    <div class="row">'+
+    '    <div class="row mobile-row">'+
     '        <div class="col-9 col-phone-9">'+
     '            <div id="pa.text"></div>'+
     '        </div>'+
