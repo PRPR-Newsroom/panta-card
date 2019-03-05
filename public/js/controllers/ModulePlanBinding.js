@@ -57,9 +57,7 @@ class ModulePlanBinding extends Binding {
      * @param valueHolder
      */
     onLayout(valueHolder) {
-        let virtual = this.document.createElement('div');
-        virtual.innerHTML = isMobileBrowser() ? template_plan_mobile : template_plan;
-        let templ = virtual.cloneNode(true);
+        let templ = createByTemplate(template_plan, template_plan_mobile);
         this._switchContent(templ);
 
         let params = {'context': this._context, 'valueHolder': valueHolder, 'entity': this._entity};

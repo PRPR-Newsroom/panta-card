@@ -293,3 +293,34 @@ let template_plan_mobile = '<div id="template">'+
     '        </div>'+
     '    </div>'+
     '</div>';
+
+let template_settings_module = '<div class="row module-container">'+
+    '    <div class="col-2 module-icon"><img src="/assets/ic_pantarhei.png" class="panta-js-icon" width="16px" height="16px"/></div>'+
+    '    <div class="col-8 module-title"></div>'+
+    '    <div class="col-2 module-enable">' +
+    '       <label class="panta-checkbox-container">' +
+    '           <input class="panta-js-checkbox" type="checkbox" checked="checked">' +
+    '           <span class="panta-checkbox-checkmark"></span>' +
+    '       </label>' +
+    '    </div>'+
+    '</div>';
+
+let template_settings_editable = '<div class="row module-editable-container">'+
+    '    <div class="col-2 module-editable-color"><button class="panta-btn panta-btn-dot panta-js-button"></button> </div>'+
+    '    <div class="col-8 module-editable-name"></div>'+
+    '    <div class="col-2 module-editable-show">' +
+    '       <label class="panta-checkbox-container">' +
+    '           <input class="panta-js-checkbox" type="checkbox" checked="checked">' +
+    '           <span class="panta-checkbox-checkmark"></span>' +
+    '       </label>' +
+    '    </div>'+
+    '</div>';
+
+let template_settings_editable_option = '<div class="row module-editable-option-container">'+
+    '    <div class="col-10 module-editable-option-name">' +
+    '       <input type="text" class="panta-js-name"/>' +
+    '    </div>'+
+    '    <div class="col-2 module-editable-option-actions">' +
+    '       <button class="panta-btn panta-btn-icon"><img src="/assets/ic_trash.svg" width="16px" height="16px"/></button>' +
+    '    </div>'+
+    '</div>';

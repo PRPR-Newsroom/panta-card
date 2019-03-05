@@ -1,0 +1,63 @@
+/* Customize the label (the container) */
+.panta-checkbox-container {
+  display: block;
+  position: relative;
+  padding-left: 35px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  font-size: 22px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none; }
+
+/* Hide the browser's default checkbox */
+.panta-checkbox-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0; }
+
+/* Create a custom checkbox */
+.panta-checkbox-checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 25px;
+  width: 25px;
+  background-color: transparent; }
+
+/* On mouse-over, add a grey background color */
+.panta-checkbox-container:hover input ~ .panta-checkbox-checkmark:after {
+  border-color: #fab974; }
+
+/* When the checkbox is checked, add a blue background */
+.panta-checkbox-container input:checked ~ .panta-checkbox-checkmark:after {
+  border-color: #F68712; }
+
+.panta-checkbox-container:hover input:checked ~ .panta-checkbox-checkmark:after {
+  border-color: #fab974; }
+
+/* Create the checkmark/indicator (hidden when not checked) */
+.panta-checkbox-checkmark:after {
+  content: "";
+  position: absolute; }
+
+/* Show the checkmark when checked */
+.panta-checkbox-container input:checked ~ .panta-checkbox-checkmark:after {
+  display: block; }
+
+/* Style the checkmark/indicator */
+.panta-checkbox-container .panta-checkbox-checkmark:after {
+  left: 9px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid #fdebd7;
+  border-width: 0 2px 2px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg); }
+
+/*# sourceMappingURL=panta.custom.checkbox.css.map */

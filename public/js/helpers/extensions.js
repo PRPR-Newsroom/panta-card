@@ -132,6 +132,28 @@ HTMLElement.prototype.getClosestChildByTagName = function (tagName) {
 };
 
 /**
+ * Get the closest child element that contains that class name or null if none
+ * @param className
+ * @returns {*}
+ */
+HTMLElement.prototype.getClosestChildByClassName = function (className) {
+    let found = Object.values(this.children).find(function(child) {
+        return child.hasClass(className);
+    }, this);
+    if (found != null) {
+        return found;
+    } else {
+        for (let i = 0;i<this.children.length;i++) {
+            let child = this.children.item(i).getClosestChildByClassName(className);
+            if (child!==null) {
+                return child;
+            }
+        }
+        return null;
+    }
+};
+
+/**
  * Get the closest parent element that contains that class name or null if none
  * @param className
  * @returns {*}
@@ -252,7 +274,7 @@ HTMLDocument.prototype.createStylesheet = function (href) {
     link.href = href;
     link.media = 'all';
     return link;
-}
+};
 
 /**
  * Check if a string is considered
@@ -300,6 +322,18 @@ Window.prototype.isMobileBrowser = function () {
  */
 Window.prototype.autoTabIndex = function() {
     return DI.getInstance().getTabIndexProvider().getAndIncrement();
+};
+
+/**
+ *
+ * @param desktop_template
+ * @param mobile_template
+ * @returns {Node}
+ */
+Window.prototype.createByTemplate = function(desktop_template, mobile_template) {
+    let virtual = this.document.createElement('div');
+    virtual.innerHTML = isMobileBrowser() ? mobile_template : desktop_template;
+    return virtual.cloneNode(true);
 };
 
 /**

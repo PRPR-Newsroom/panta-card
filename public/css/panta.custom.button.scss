@@ -1,0 +1,25 @@
+@import "variables";
+
+.panta-btn {
+  border: 1px solid $border-color;
+
+  &.panta-btn-dot, &.panta-btn-icon {
+    padding: 0;
+    margin: 0;
+  }
+
+  &.panta-btn-dot {
+    -webkit-border-radius: 8px;
+    -moz-border-radius: 8px;
+    border-radius: 8px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &.panta-btn-icon {
+    width: 32px;
+    height: 32px;
+    border: 0;
+    margin-left: 2px;
+  }
+}

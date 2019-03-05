@@ -194,6 +194,13 @@ $jscomp.polyfill("Array.prototype.find", function(a) {
     return $jscomp.findInternal(this, a, c).v;
   };
 }, "es6", "es3");
+$jscomp.polyfill("Array.prototype.values", function(a) {
+  return a ? a : function() {
+    return $jscomp.iteratorFromArray(this, function(a, c) {
+      return c;
+    });
+  };
+}, "es8", "es3");
 var TabIndexProvider = function() {
   this.current = 1;
 };
@@ -256,6 +263,19 @@ Repository.prototype.get = function(a) {
 Repository.prototype.isNew = function(a) {
 };
 // Input 4
+var AbstractItem = function() {
+};
+AbstractItem.prototype.decorate = function(a) {
+  a.addClass("panta-item");
+  a.setEventListener("mouseenter", function(b) {
+    a.addClass("hovered");
+  });
+  a.setEventListener("mouseleave", function(b) {
+    a.removeClass("hovered");
+  });
+  return this;
+};
+// Input 5
 var PInput = function(a, b, c, d, e, f, g) {
   this._document = a;
   this._label = 0 === b.length ? "" : b;
@@ -508,7 +528,7 @@ SingleSelectInput.prototype.doCustomization = function(a, b) {
   b.addClass("focused-fix");
   return PInput.prototype.doCustomization.call(this, a);
 };
-// Input 5
+// Input 6
 var PModuleConfig = function(a, b, c) {
   this.document = a;
   this.label = b;
@@ -552,7 +572,124 @@ PModuleConfig.prototype.beginEditing = function() {
 PModuleConfig.prototype.endEditing = function() {
   this.valueHolder.tab.removeClass("editing");
 };
-// Input 6
+// Input 7
+var ModuleEditableItem = function(a, b) {
+  AbstractItem.call(this);
+  this._module = a;
+  this._editable = b;
+};
+$jscomp.inherits(ModuleEditableItem, AbstractItem);
+ModuleEditableItem.prototype.setOnEnterListener = function(a) {
+  this._onEnterHandler = a;
+  return this;
+};
+ModuleEditableItem.prototype.render = function() {
+  var a = this, b = createByTemplate(template_settings_editable, template_settings_editable);
+  this.decorate(b);
+  b.getElementsByClassName("module-editable-name").forEach(function(b) {
+    b instanceof HTMLElement && (b.innerText = a.editable.label);
+  });
+  b.setEventListener("click", function() {
+    a._onEnterHandler(a.module, a.editable);
+  });
+  b.getClosestChildByClassName("panta-checkbox-container").setEventListener("click", function(a) {
+    a.preventDefault();
+    a.stopPropagation();
+    a = a.srcElement.getClosestParentByClassName("panta-checkbox-container").getClosestChildByClassName("panta-js-checkbox");
+    a.checked = !a.checked;
+  });
+  var c = b.getClosestChildByClassName("module-editable-color").getClosestChildByClassName("panta-js-button");
+  c.addClass("panta-bgcolor-" + a.editable.color);
+  c.setEventListener("click", function(a) {
+    a.preventDefault();
+    a.stopPropagation();
+  });
+  return b;
+};
+$jscomp.global.Object.defineProperties(ModuleEditableItem.prototype, {module:{configurable:!0, enumerable:!0, get:function() {
+  return this._module;
+}, set:function(a) {
+  this._module = a;
+}}, editable:{configurable:!0, enumerable:!0, get:function() {
+  return this._editable;
+}, set:function(a) {
+  this._editable = a;
+}}});
+// Input 8
+var ModuleSettingsItem = function(a, b) {
+  AbstractItem.call(this);
+  this._document = a;
+  this._module = b;
+};
+$jscomp.inherits(ModuleSettingsItem, AbstractItem);
+ModuleSettingsItem.prototype.setOnEnterListener = function(a) {
+  this._onEnterHandler = a;
+  return this;
+};
+ModuleSettingsItem.prototype.setOnActivationListener = function(a) {
+  this._onActivationHandler = a;
+  return this;
+};
+ModuleSettingsItem.prototype.render = function() {
+  var a = this, b = createByTemplate(template_settings_module, template_settings_module);
+  b.setEventListener("click", function(b) {
+    a._onEnterHandler(a.module);
+  });
+  b.getElementsByClassName("module-title").forEach(function(b) {
+    b.innerText = a.module.name;
+    b.setAttribute("id", a.module.id);
+  });
+  this.decorate(b);
+  b.getClosestChildByClassName("panta-js-icon").setAttribute("src", a.module.config.icon);
+  var c = b.getClosestChildByClassName("panta-checkbox-container");
+  c.getClosestChildByClassName("panta-js-checkbox").checked = a.module.config.enabled;
+  c.setEventListener("click", function(b) {
+    b.preventDefault();
+    b.stopPropagation();
+    b = b.srcElement.getClosestParentByClassName("panta-checkbox-container").getClosestChildByClassName("panta-js-checkbox");
+    b.checked = !b.checked;
+    a._onActivationHandler(a.module, b.checked);
+  });
+  return b;
+};
+$jscomp.global.Object.defineProperties(ModuleSettingsItem.prototype, {module:{configurable:!0, enumerable:!0, get:function() {
+  return this._module;
+}, set:function(a) {
+  this._module = a;
+}}, icon:{configurable:!0, enumerable:!0, get:function() {
+  return this._icon;
+}, set:function(a) {
+  this._icon = a;
+}}, enabled:{configurable:!0, enumerable:!0, get:function() {
+  return this._enabled;
+}, set:function(a) {
+  this._enabled = a;
+}}, label:{configurable:!0, enumerable:!0, get:function() {
+  return this._label;
+}, set:function(a) {
+  this._label = a;
+}}, document:{configurable:!0, enumerable:!0, get:function() {
+  return this._document;
+}}});
+// Input 9
+var ModuleEditableTextItem = function(a) {
+  AbstractItem.call(this);
+  this._value = a;
+};
+$jscomp.inherits(ModuleEditableTextItem, AbstractItem);
+ModuleEditableTextItem.prototype.render = function() {
+  var a = this, b = createByTemplate(template_settings_editable_option, template_settings_editable_option);
+  b.getElementsByClassName("module-editable-option-name").forEach(function(b) {
+    b instanceof HTMLElement && (b.getClosestChildByClassName("panta-js-name").value = a.value);
+  });
+  return b;
+};
+$jscomp.global.Object.defineProperties(ModuleEditableTextItem.prototype, {value:{configurable:!0, enumerable:!0, get:function() {
+  return this._value;
+}, set:function(a) {
+  this._value = a;
+}}});
+// Input 10
 var ClientManager = function(a, b, c) {
   this._window = a;
   this._trello = b;
@@ -674,7 +811,7 @@ ClientManager.prototype.removePluginData = function() {
     console.log("All board data cleared");
   });
 };
-// Input 7
+// Input 11
 var Controller = function(a) {
   this._repository = a;
 };
@@ -699,12 +836,117 @@ Controller.prototype.persist = function(a, b) {
 };
 Controller.prototype.clear = function() {
 };
-// Input 8
+// Input 12
+var ModuleSettingsController = function(a, b, c, d, e) {
+  this.trello = a;
+  this.pluginController = b;
+  this.module = c;
+  this.document = e;
+  this.editable = d;
+};
+ModuleSettingsController.create = function(a, b, c, d, e) {
+  return new ModuleSettingsController(a, b, c, d, e);
+};
+ModuleSettingsController.prototype.render = function(a) {
+  this.clearContent();
+  this.module ? this.module && this.editable ? this.edit() : this.view() : this.index(a);
+};
+ModuleSettingsController.prototype.edit = function() {
+  var a = this, b = this.pluginController.findModuleById(this.module).config.editables.find(function(b) {
+    return b.id === a.editable;
+  });
+  a.document.getElementsByClassName("settings-content").forEach(function(c) {
+    var d = a.document.createElement("p");
+    d.innerHTML = "<strong>Stichworte:</strong>";
+    var e = a.document.createElement("p");
+    e.innerHTML = "Die Stichworte werden f\u00fcr das ganze Board definiert. Wenn ein Stichwort bereits in einer Trello Card verwendet und hier das Stichwort entfernt wird, dann ist dieses Stichwort in dieser Trello Card ebenfalls nicht mehr vorhanden. Falls jedoch ein bestehendes Stichwort nur umbenannt wird, dann wird das dazugeh\u00f6rige Trello Card Stichwort ebenfalls den neuen Namen tragen.";
+    c.appendChild(e);
+    c.appendChild(d);
+    b.values.map(function(a) {
+      return (new ModuleEditableTextItem(a)).render();
+    }).reduce(function(a, b) {
+      a.appendChild(b);
+      return a;
+    }, c);
+    c.appendChild(a.document.createElement("br"));
+    d = a.document.createElement("div");
+    d.addClass("panta-item");
+    e = a.document.createElement("a");
+    e.innerHTML = "<strong>Neues Stichwort hinzuf\u00fcgen</strong>";
+    d.appendChild(e);
+    c.appendChild(d);
+  });
+  this.hideVersion();
+};
+ModuleSettingsController.prototype.view = function() {
+  var a = this, b = this.pluginController.findModuleById(this.module);
+  a.document.getElementsByClassName("settings-content").forEach(function(c) {
+    var d = a.document.createElement("p");
+    d.innerHTML = "<strong>Auswahllisten:</strong>";
+    var e = a.document.createElement("p");
+    e.innerHTML = "Die Auswahllisten werden f\u00fcr das ganze Trello Board definiert. F\u00fcr jede Auswahlliste kann eine Farbe angegeben, eine Bezeichnung vergeben werden. Zudem kann angegeben werden, ob die Auswahlliste auf der Trello Card Vorderseite angezeigt werden soll. Falls diese Option aktiviert ist, dann wird der Wert der Auswahlliste in der ausgew\u00e4hlten Farbe angezeigt.";
+    c.appendChild(e);
+    c.appendChild(d);
+    b.config.editables.map(function(c) {
+      return (new ModuleEditableItem(b, c, a.trello)).setOnEnterListener(function(b, c) {
+        a.trello.popup({title:c.label, url:"settings.html", height:184, args:{module:b.id, editable:c.id}});
+      }).render();
+    }).reduce(function(a, b) {
+      a.appendChild(b);
+      return a;
+    }, c);
+  });
+  this.hideVersion();
+};
+ModuleSettingsController.prototype.hideVersion = function() {
+  this.document.getElementsByClassName("plugin-version-container").forEach(function(a) {
+    a.addClass("hidden");
+  });
+};
+ModuleSettingsController.prototype.index = function(a) {
+  var b = this;
+  a instanceof PluginConfiguration && (this.document.getElementsByClassName("plugin-version").forEach(function(c) {
+    c.setEventListener("click", function() {
+      b.trello.remove("board", "shared", PluginController.CONFIGURATION_NAME);
+    });
+    c.innerHTML = a.version;
+  }), this.document.getElementsByClassName("plugin-description").forEach(function(b) {
+    b.innerHTML = a.description;
+    b.setAttribute("data-content", b.innerText);
+    b.setAttribute("data-name", "description");
+  }), this.document.getElementsByClassName("settings-content").forEach(function(c) {
+    var d = b.document.createElement("p");
+    d.innerHTML = "<strong>Module:</strong>";
+    var e = b.document.createElement("p");
+    e.innerHTML = "Folgende Module sind f\u00fcr dieses Board verf\u00fcgbar. Sobald mindestens ein Modul aktiviert ist, wird dieses Modul in der Trello Card dargestellt.";
+    c.appendChild(e);
+    c.appendChild(d);
+    d = Object.values(a.modules).map(function(c) {
+      return (new ModuleSettingsItem(b.document, c, b.trello)).setOnEnterListener(function(a) {
+        b.trello.popup({title:a.name, url:"settings.html", height:184, args:{module:a.id}});
+      }).setOnActivationListener(function(c, d) {
+        a.card = {icon:c.config.icon, title:c.name, content:{file:c.config.view}};
+        c.config.enabled = d;
+        b.trello.set("board", "shared", PluginController.CONFIGURATION_NAME, a);
+      }).render();
+    }).reduce(function(a, b) {
+      a.appendChild(b);
+      return a;
+    }, document.createElement("div"));
+    c.appendChild(d);
+  }));
+};
+ModuleSettingsController.prototype.clearContent = function() {
+  this.document.getElementsByClassName("settings-content").forEach(function(a) {
+    a.removeChildren();
+  });
+};
+// Input 13
 var ModulePlanRepository = function() {
   Repository.call(this);
 };
 $jscomp.inherits(ModulePlanRepository, Repository);
-// Input 9
+// Input 14
 var BeteiligtRepository = function() {
   Repository.call(this);
 };
@@ -715,7 +957,7 @@ BeteiligtRepository.prototype.isNew = function(a) {
     return b._repository[c].id === a.id;
   });
 };
-// Input 10
+// Input 15
 var ModuleController = function(a, b, c) {
   this.document = a.document;
   this._window = a;
@@ -962,7 +1204,7 @@ $jscomp.global.Object.defineProperties(ModuleController, {VERSION:{configurable:
 }}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Beteiligt.PropertyBag";
 }}});
-// Input 11
+// Input 16
 var ArtikelRepository = function() {
   Repository.call(this);
 };
@@ -976,7 +1218,7 @@ ArtikelRepository.prototype.isNew = function(a) {
     return b._repository[c].id === a.id;
   });
 };
-// Input 12
+// Input 17
 var ArtikelController = function(a, b, c, d) {
   this.document = a.document;
   this._window = a;
@@ -1086,7 +1328,7 @@ $jscomp.global.Object.defineProperties(ArtikelController, {VERSION:{configurable
 }}, SHARED_META:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Meta";
 }}});
-// Input 13
+// Input 18
 var ArtikelBinding = function(a, b, c, d) {
   this.document = a;
   this._action = c;
@@ -1187,7 +1429,7 @@ ArtikelBinding.prototype._switchContent = function(a) {
   b.removeChildren();
   b.appendChild(a);
 };
-// Input 14
+// Input 19
 var Binding = function(a, b, c, d) {
   this.document = a;
   this._entity = b;
@@ -1198,7 +1440,7 @@ Binding.prototype.update = function(a) {
 };
 Binding.prototype.bind = function() {
 };
-// Input 15
+// Input 20
 var ModulePlanBinding = function(a, b, c, d) {
   Binding.call(this, a, b, c, d);
 };
@@ -1226,9 +1468,7 @@ ModulePlanBinding.prototype.bind = function() {
   return this;
 };
 ModulePlanBinding.prototype.onLayout = function(a) {
-  var b = this.document.createElement("div");
-  b.innerHTML = isMobileBrowser() ? template_plan_mobile : template_plan;
-  b = b.cloneNode(!0);
+  var b = createByTemplate(template_plan, template_plan_mobile);
   this._switchContent(b);
   b = {context:this._context, valueHolder:a, entity:this._entity};
   this._measures = this.document.newMultiLineInput(a, ".pa.plan.measures", "measures", "Massnahme", b, this._action, 2, "notieren\u2026").addClass("multiline");
@@ -1254,18 +1494,20 @@ ModulePlanBinding.prototype._switchContent = function(a) {
   b.removeChildren();
   b.appendChild(a);
 };
-// Input 16
+// Input 21
 var PluginRepository = function() {
   Repository.call(this);
 };
 $jscomp.inherits(PluginRepository, Repository);
 $jscomp.global.Object.defineProperties(PluginRepository, {INSTANCE:{configurable:!0, enumerable:!0, get:function() {
-  PluginRepository.instance || (PluginRepository.instance = new PluginRepository, PluginRepository.instance.add(new PluginModuleConfig("module.artikel", "Artikel", {}), {id:1}), PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", "Beteiligt", {layouts:{onsite:{name:"onsite", container:"pa.involved.onsite", layout:"regular", label:"vor.Ort"}, text:{name:"text", container:"pa.involved.text", layout:"regular", label:"Journalist"}, photo:{name:"photo", container:"pa.involved.photo", 
-  layout:"regular", label:"Visual"}, video:{name:"video", container:"pa.involved.video", layout:"regular", label:"Event"}, illu:{name:"illu", container:"pa.involved.illu", layout:"regular", label:"MC/Host"}, ad:{name:"ad", container:"pa.involved.ad", layout:"regular", label:"weitere"}}}), {id:2}), PluginRepository.instance.add(new PluginModuleConfig("module.plan", "Plan", {}), {id:3}));
+  PluginRepository.instance || (PluginRepository.instance = new PluginRepository, PluginRepository.instance.add(new PluginModuleConfig("module.artikel", "Artikel", {enabled:!1, icon:"./assets/ic_artikel.png", view:"./artikel.html", editables:[{id:"visual", label:"Visual", color:"blue", show_on_front:!1, values:["Bild", "Icon", "Grafik", "Video", "Illu"]}, {id:"form", label:"Form", color:"green", show_on_front:!1, values:["News", "Artikel", "Report"]}, {id:"online", label:"Online", color:"yellow", 
+  show_on_front:!1, values:"... Mo Di Mi Do Fr Sa So".split(" ")}, {id:"season", label:"Saison", color:"sky", show_on_front:!1, values:["Sommer", "Herbst"]}, {id:"region", label:"Region", color:"lime", show_on_front:!1, values:["Nord", "S\u00fcd"]}, {id:"place", label:"Ort", color:"orange", show_on_front:!1, values:"CDS STO TAM WID Buech Rustico Schlatt".split(" ")}]}), {id:1}), PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", "Beteiligt", {enabled:!1, icon:"./assets/ic_beteiligt.png", 
+  view:"./artikel.html", layouts:{onsite:{name:"onsite", container:"pa.involved.onsite", layout:"regular", label:"vor.Ort"}, text:{name:"text", container:"pa.involved.text", layout:"regular", label:"Journalist"}, photo:{name:"photo", container:"pa.involved.photo", layout:"regular", label:"Visual"}, video:{name:"video", container:"pa.involved.video", layout:"regular", label:"Event"}, illu:{name:"illu", container:"pa.involved.illu", layout:"regular", label:"MC/Host"}, ad:{name:"ad", container:"pa.involved.ad", 
+  layout:"regular", label:"weitere"}}}), {id:2}), PluginRepository.instance.add(new PluginModuleConfig("module.plan", "Plan", {enabled:!1, icon:"./assets/ic_plan.png", view:"./plan.html"}), {id:3}));
   return PluginRepository.instance;
 }}});
 PluginRepository.instance = null;
-// Input 17
+// Input 22
 var ModulePlanController = function(a, b, c) {
   Controller.call(this, new ModulePlanRepository);
   this._window = a;
@@ -1377,7 +1619,7 @@ $jscomp.global.Object.defineProperties(ModulePlanController, {SHARED_NAME:{confi
 }}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Plan.PropertyBag";
 }}});
-// Input 18
+// Input 23
 var PluginController = function(a, b) {
   this._window = b;
   this._trelloApi = a;
@@ -1396,8 +1638,15 @@ PluginController.prototype.init = function() {
   });
 };
 PluginController.prototype.getPluginConfiguration = function() {
-  return this._trelloApi.get("board", "shared", PluginController.CONFIGURATION_NAME, null).then(function(a) {
-    return PluginConfiguration.create(a);
+  var a = this;
+  return this._trelloApi.get("board", "shared", PluginController.CONFIGURATION_NAME, null).then(function(b) {
+    console.log("dlkjf", b);
+    return b ? PluginConfiguration.create(b) : new PluginConfiguration("1.0.0", "Panta.Card Power-Up", null, a.getAvailableModules());
+  });
+};
+PluginController.prototype.findModuleById = function(a) {
+  return Object.values(this._repository.all()).find(function(b) {
+    return b.id === a;
   });
 };
 PluginController.prototype.getAvailableModules = function() {
@@ -1458,10 +1707,10 @@ $jscomp.global.Object.defineProperties(PluginController, {VERSION:{configurable:
 }}, CONFIGURATION_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.App.Configuration";
 }}});
-// Input 19
+// Input 24
 var BeteiligtBinding = function(a, b, c, d) {
   this.document = a;
-  this._config = b;
+  this._editable = b;
   this._action = c;
   this._context = d;
   this._activated = this._ad = this._illu = this._video = this._photo = this._text = this._onsite = null;
@@ -1488,17 +1737,17 @@ BeteiligtBinding.prototype.update = function(a) {
   }).forEach(function(b) {
     b.update(a);
   });
-  this._config = a;
+  this._editable = a;
   return this;
 };
 BeteiligtBinding.prototype.bind = function(a) {
   this.initLayouts(a);
-  this._onsite = null !== this._onsite ? this._onsite.update(this._config) : this._onsite = (new PModuleConfig(this.document, "vor.Ort", this._involvements.onsite)).bind(this._config, "onsite").render();
-  this._text = null !== this._text ? this._text.update(this._config) : this._text = (new PModuleConfig(this.document, "Text", this._involvements.text)).bind(this._config, "text").render();
-  this._photo = null !== this._photo ? this._photo.update(this._config) : this._photo = (new PModuleConfig(this.document, "Foto", this._involvements.photo)).bind(this._config, "photo").render();
-  this._video = null !== this._video ? this._video.update(this._config) : this._video = (new PModuleConfig(this.document, "Video", this._involvements.video)).bind(this._config, "video").render();
-  this._illu = null !== this._illu ? this._illu.update(this._config) : this._illu = (new PModuleConfig(this.document, "Illu.Grafik", this._involvements.illu)).bind(this._config, "illu").render();
-  this._ad = null !== this._ad ? this._ad.update(this._config) : this._ad = (new PModuleConfig(this.document, "Inserat", this._involvements.ad)).bind(this._config, "ad").render();
+  this._onsite = null !== this._onsite ? this._onsite.update(this._editable) : this._onsite = (new PModuleConfig(this.document, "vor.Ort", this._involvements.onsite)).bind(this._editable, "onsite").render();
+  this._text = null !== this._text ? this._text.update(this._editable) : this._text = (new PModuleConfig(this.document, "Text", this._involvements.text)).bind(this._editable, "text").render();
+  this._photo = null !== this._photo ? this._photo.update(this._editable) : this._photo = (new PModuleConfig(this.document, "Foto", this._involvements.photo)).bind(this._editable, "photo").render();
+  this._video = null !== this._video ? this._video.update(this._editable) : this._video = (new PModuleConfig(this.document, "Video", this._involvements.video)).bind(this._editable, "video").render();
+  this._illu = null !== this._illu ? this._illu.update(this._editable) : this._illu = (new PModuleConfig(this.document, "Illu.Grafik", this._involvements.illu)).bind(this._editable, "illu").render();
+  this._ad = null !== this._ad ? this._ad.update(this._editable) : this._ad = (new PModuleConfig(this.document, "Inserat", this._involvements.ad)).bind(this._editable, "ad").render();
   this._onsite.activate();
   this._activated = this._onsite;
   return this;
@@ -1532,7 +1781,7 @@ BeteiligtBinding.prototype.onRegularLayout = function(a, b) {
   c.innerHTML = isMobileBrowser() ? template_regular_mobile : template_regular;
   c = c.cloneNode(!0);
   this._switchContent(a, c);
-  c = {context:this._context, valueHolder:b, config:this._config};
+  c = {context:this._context, valueHolder:b, config:this._editable};
   a.setField("name", this.document.newSingleLineInput(b, ".pa.name", "name", "Name", c, this._action, "eintippen\u2026", "text", !1));
   a.setField("social", this.document.newSingleLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", c, this._action, "notieren\u2026"));
   a.setField("address", this.document.newMultiLineInput(b, ".pa.address", "address", "Adresse", c, this._action, 2, "festhalten\u2026"));
@@ -1548,7 +1797,7 @@ BeteiligtBinding.prototype.onAdLayout = function(a, b) {
   c.innerHTML = template_ad;
   c = c.cloneNode(!0);
   this._switchContent(a, c);
-  a = {context:this._context, valueHolder:b, config:this._config};
+  a = {context:this._context, valueHolder:b, config:this._editable};
   this.document.newSingleLineInput(b, ".pa.name", "name", "Kontakt", a, this._action, "eintippen\u2026", "text", !1);
   this.document.newSingleLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", a, this._action, "notieren\u2026");
   this.document.newMultiLineInput(b, ".pa.address", "address", "Adresse", a, this._action, 2, "eingeben\u2026");
@@ -1579,7 +1828,7 @@ BeteiligtBinding.prototype.leaveEditing = function() {
 BeteiligtBinding.prototype.rememberFocus = function(a) {
   this._currentTabIndex = a.getTabIndex();
 };
-// Input 20
+// Input 25
 var PluginCardConfig = function(a, b, c) {
   this._title = a;
   this._icon = b;
@@ -1598,11 +1847,14 @@ $jscomp.global.Object.defineProperties(PluginCardConfig.prototype, {title:{confi
 }, set:function(a) {
   this._content = a;
 }}});
-// Input 21
+// Input 26
 var PluginModuleConfig = function(a, b, c) {
   this._id = a;
   this._name = b;
   this._config = c;
+};
+PluginModuleConfig.create = function(a) {
+  return new PluginModuleConfig(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "name"), JsonSerialization.getProperty(a, "config"));
 };
 $jscomp.global.Object.defineProperties(PluginModuleConfig.prototype, {config:{configurable:!0, enumerable:!0, get:function() {
   return this._config;
@@ -1617,7 +1869,7 @@ $jscomp.global.Object.defineProperties(PluginModuleConfig.prototype, {config:{co
 }, set:function(a) {
   this._id = a;
 }}});
-// Input 22
+// Input 27
 var Plan = function(a, b, c, d, e, f, g, h, k, l, m, n, p, q, r) {
   this._id = a || uuid();
   this._fee = d;
@@ -1719,7 +1971,7 @@ $jscomp.global.Object.defineProperties(Plan.prototype, {id:{configurable:!0, enu
 $jscomp.global.Object.defineProperties(Plan, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
 }}});
-// Input 23
+// Input 28
 var ModuleConfig = function(a, b) {
   this._id = a || uuid();
   this._sections = b;
@@ -1872,7 +2124,7 @@ $jscomp.global.Object.defineProperties(AdBeteiligt.prototype, {format:{configura
 }, set:function(a) {
   this._total = a;
 }}});
-// Input 24
+// Input 29
 var PluginConfiguration = function(a, b, c, d) {
   this._version = a;
   this._description = b;
@@ -1883,7 +2135,18 @@ PluginConfiguration.create = function(a) {
   return this._create(a);
 };
 PluginConfiguration._create = function(a) {
-  return a ? new PluginConfiguration(JsonSerialization.getProperty(a, "version") || "1.0.0", JsonSerialization.getProperty(a, "description") || "Dieses Panta.Card Power-Up umfasst das Modul:", JsonSerialization.getProperty(a, "card"), JsonSerialization.getProperty(a, "modules") || [new PluginModuleConfig("module.artikel", "Artikel", {})]) : null;
+  return a ? new PluginConfiguration(JsonSerialization.getProperty(a, "version") || "1.0.0", JsonSerialization.getProperty(a, "description") || "Dieses Panta.Card Power-Up umfasst das Modul:", JsonSerialization.getProperty(a, "card"), this._readModules(a)) : new PluginConfiguration("1.0.0", "Panta.Card Power-Up", null, []);
+};
+PluginConfiguration._readModules = function(a) {
+  a = JsonSerialization.getProperty(a, "modules") || {1:JSON.stringify(new PluginModuleConfig("module.artikel", "Artikel", {}))};
+  return Object.values(a).map(function(a) {
+    return PluginModuleConfig.create(a);
+  });
+};
+PluginConfiguration.prototype.hasActiveModules = function() {
+  return Object.values(this._modules).find(function(a) {
+    return a && a.config && a.config.enabled;
+  });
 };
 $jscomp.global.Object.defineProperties(PluginConfiguration.prototype, {card:{configurable:!0, enumerable:!0, get:function() {
   return this._card;
@@ -1905,7 +2168,7 @@ $jscomp.global.Object.defineProperties(PluginConfiguration.prototype, {card:{con
 $jscomp.global.Object.defineProperties(PluginConfiguration, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
 }}});
-// Input 25
+// Input 30
 var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, n, p, q) {
   this._id = a || uuid();
   this._topic = b;
@@ -2004,7 +2267,7 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, 
 $jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 3;
 }}});
-// Input 26
+// Input 31
 HTMLElement.prototype.addClass = function(a) {
   this.hasClass(a) || (this.className += " " + a, this.className = this.className.trim());
   return this;
@@ -2063,6 +2326,21 @@ HTMLElement.prototype.getClosestChildByTagName = function(a) {
   }
   for (b = 0; b < this.children.length; b++) {
     var c = this.children.item(b).getClosestChildByTagName(a);
+    if (null !== c) {
+      return c;
+    }
+  }
+  return null;
+};
+HTMLElement.prototype.getClosestChildByClassName = function(a) {
+  var b = Object.values(this.children).find(function(b) {
+    return b.hasClass(a);
+  }, this);
+  if (null != b) {
+    return b;
+  }
+  for (b = 0; b < this.children.length; b++) {
+    var c = this.children.item(b).getClosestChildByClassName(a);
     if (null !== c) {
       return c;
     }
@@ -2135,6 +2413,11 @@ Window.prototype.isMobileBrowser = function() {
 Window.prototype.autoTabIndex = function() {
   return DI.getInstance().getTabIndexProvider().getAndIncrement();
 };
+Window.prototype.createByTemplate = function(a, b) {
+  var c = this.document.createElement("div");
+  c.innerHTML = isMobileBrowser() ? b : a;
+  return c.cloneNode(!0);
+};
 function newOption(a, b) {
   return {value:a, text:b};
 }
@@ -2142,14 +2425,17 @@ function isNumber(a) {
   return a && !isNaN(a);
 }
 ;
-// Input 27
+// Input 32
 var template_regular = '<div id="template">    <div class="row">        <div class="col-6 col-phone-12">            <div class="row">                <div class="col-12 col-phone-12">                    <div class="pa.name"></div>                </div>                <div class="col-12 col-phone-12">                    <div class="pa.social"></div>                </div>            </div>        </div>        <div class="col-6 col-phone-12 line-4 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-6 col-phone-12">            <div class="pa.address"></div>        </div>        <div class="col-6 col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-12 col-phone-12">            <div class="row">                <div class="col-4 col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_regular_mobile = '<div id="template">    <div class="row">        <div class="col-phone-12">            <div class="pa.name"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.social"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.address"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="row">                <div class="col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.notes"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.format"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.placement"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.price"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.name"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.social"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.address"></div>            </div>        </div>    </div></div>', 
 template_plan = '<div id="template">    <div class="row">        <div class="col-6 line-2">            <div class="pa.plan.measures"></div>        </div>        <div class="col-3">            <div class="pa.plan.fee"></div>        </div>        <div class="col-3">            <div class="pa.plan.projectFee"></div>        </div>    </div>    <div class="row">        <div class="col-6 line-6">            <div class="pa.plan.description"></div>        </div>        <div class="col-6">            <div class="row">                <div class="col-6">                    <div class="pa.plan.thirdPartyCharges"></div>                </div>                <div class="col-6">                    <div class="pa.plan.thirdPartyTotalCosts"></div>                </div>                <div class="col-6">                    <div class="pa.plan.capOnDepenses"></div>                </div>                <div class="col-6 line-2">                    <div class="pa.plan.totalCosts"></div>                </div>            </div>        </div>    </div>    <div class="row">        <div class="col-2">            <div id="pa.plan.visual"></div>        </div>        <div class="col-2">            <div id="pa.plan.form"></div>        </div>        <div class="col-2">            <div id="pa.plan.online"></div>        </div>        <div class="col-2">            <div id="pa.plan.season"></div>        </div>        <div class="col-2">            <div id="pa.plan.region"></div>        </div>        <div class="col-2">            <div id="pa.plan.place"></div>        </div>    </div></div>', 
 template_artikel = '<div id="template">    <div class="row">        <div class="col-9 col-phone-9">            <div id="pa.topic"></div>        </div>        <div class="col-3 col-phone-3">            <div id="pa.pagina"></div>        </div>    </div>    <div class="row mobile-row">        <div class="col-9 col-phone-9">            <div class="row">                <div class="col-6 col-phone-6">                    <div id="pa.input-from"></div>                </div>                <div class="col-6 col-phone-6">                    <div id="pa.author"></div>                </div>            </div>        </div>        <div class="col-3 col-phone-3">            <div id="pa.layout"></div>        </div>    </div>    <div class="row mobile-row">        <div class="col-9 col-phone-9">            <div id="pa.text"></div>        </div>        <div class="col-3 col-phone-3">            <div id="pa.total"></div>        </div>    </div>    <div class="col-12 col-phone-12">        <div class="row">            <div class="col-2 col-phone-4">                <div id="pa.visual"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.form"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.tags"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.season"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.region"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.location"></div>            </div>        </div>    </div></div>', 
-template_plan_mobile = '<div id="template">    <div class="row">        <div class="col-phone-12 line-phone-2">            <div class="pa.plan.measures"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12 line-phone-4">            <div class="pa.plan.description"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.fee"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.projectFee"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.thirdPartyCharges"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.thirdPartyTotalCosts"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.capOnDepenses"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.totalCosts"></div>        </div>    </div>    <div class="row">        <div class=" col-phone-4">            <div id="pa.plan.visual"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.form"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.online"></div>        </div>    </div>    <div class="row">        <div class=" col-phone-4">            <div id="pa.plan.season"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.region"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.place"></div>        </div>    </div></div>';
-// Input 28
+template_plan_mobile = '<div id="template">    <div class="row">        <div class="col-phone-12 line-phone-2">            <div class="pa.plan.measures"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12 line-phone-4">            <div class="pa.plan.description"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.fee"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.projectFee"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.thirdPartyCharges"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.thirdPartyTotalCosts"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.capOnDepenses"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.totalCosts"></div>        </div>    </div>    <div class="row">        <div class=" col-phone-4">            <div id="pa.plan.visual"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.form"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.online"></div>        </div>    </div>    <div class="row">        <div class=" col-phone-4">            <div id="pa.plan.season"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.region"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.place"></div>        </div>    </div></div>', 
+template_settings_module = '<div class="row module-container">    <div class="col-2 module-icon"><img src="/assets/ic_pantarhei.png" class="panta-js-icon" width="16px" height="16px"/></div>    <div class="col-8 module-title"></div>    <div class="col-2 module-enable">       <label class="panta-checkbox-container">           <input class="panta-js-checkbox" type="checkbox" checked="checked">           <span class="panta-checkbox-checkmark"></span>       </label>    </div></div>', template_settings_editable = 
+'<div class="row module-editable-container">    <div class="col-2 module-editable-color"><button class="panta-btn panta-btn-dot panta-js-button"></button> </div>    <div class="col-8 module-editable-name"></div>    <div class="col-2 module-editable-show">       <label class="panta-checkbox-container">           <input class="panta-js-checkbox" type="checkbox" checked="checked">           <span class="panta-checkbox-checkmark"></span>       </label>    </div></div>', template_settings_editable_option = 
+'<div class="row module-editable-option-container">    <div class="col-10 module-editable-option-name">       <input type="text" class="panta-js-name"/>    </div>    <div class="col-2 module-editable-option-actions">       <button class="panta-btn panta-btn-icon"><img src="/assets/ic_trash.svg" width="16px" height="16px"/></button>    </div></div>';
+// Input 33
 var JsonSerialization = function() {
 };
 JsonSerialization.prototype.serialize = function(a) {

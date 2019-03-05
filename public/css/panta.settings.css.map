@@ -1,7 +1,7 @@
 {
 "version": 3,
-"mappings": "AAAA,UAAW;EACT,gBAAgB,EAAE,WAAW",
-"sources": ["panta.settings.scss"],
+"mappings": "AAEA,UAAW;EACT,gBAAgB,EAAE,WAAW;;AAG/B,WAAY;EACV,MAAM,EAAE,iBAAuB;EAC/B,gBAAgB,ECNP,mBAAkB;EDO3B,OAAO,EAAE,KAAK;EACd,MAAM,EAAE,KAAK;EACb,aAAa,ECNC,GAAG;EDOjB,MAAM,EAAE,OAAO;EACf,mBAAU;IACR,gBAAgB,ECXD,mBAAkB",
+"sources": ["panta.settings.scss","variables.scss"],
 "names": [],
 "file": "panta.settings.css"
 }

@@ -1,0 +1,7 @@
+{
+"version": 3,
+"mappings": "AAEA,mBAAoB;EAClB,gBAAgB,ECKJ,OAAO;;ADFrB,oBAAqB;EACnB,gBAAgB,ECEF,OAAO;;ADCvB,qBAAsB;EACpB,gBAAgB,ECDD,OAAO;;ADIxB,qBAAsB;EACpB,gBAAgB,ECJD,OAAO;;ADOxB,qBAAsB;EACpB,gBAAgB,ECPD,OAAO;;ADUxB,mBAAoB;EAClB,gBAAgB,ECVH,OAAO;;ADatB,kBAAmB;EACjB,gBAAgB,ECbJ,OAAO;;ADgBrB,mBAAoB;EAClB,gBAAgB,EChBH,OAAO;;ADmBtB,qBAAsB;EACpB,gBAAgB,ECnBD,OAAO",
+"sources": ["panta.colors.scss","variables.scss"],
+"names": [],
+"file": "panta.colors.css"
+}

@@ -33,4 +33,11 @@ class PluginModuleConfig {
         this._config = config;
     }
 
+    static create(json) {
+        return new PluginModuleConfig(
+            JsonSerialization.getProperty(json, "id"),
+            JsonSerialization.getProperty(json, "name"),
+            JsonSerialization.getProperty(json, "config")
+        )
+    }
 }

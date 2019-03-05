@@ -79,9 +79,31 @@ class PluginController {
      */
     getPluginConfiguration() {
         // Endpoint: https://trello.com/1/boards/<ID>/pluginData
-        return this._trelloApi.get('board', 'shared', PluginController.CONFIGURATION_NAME, null)
-            .then(function (data) {
+        let that = this;
+        return this._trelloApi.get(
+            'board',
+            'shared',
+            PluginController.CONFIGURATION_NAME,
+            null
+        ).then(function (data) {
+            console.log("dlkjf", data);
+            if (data) {
                 return PluginConfiguration.create(data);
+            } else {
+                return new PluginConfiguration(
+                    "1.0.0",
+                    "Panta.Card Power-Up",
+                    null,
+                    that.getAvailableModules()
+                );
+            }
+        });
+    }
+
+    findModuleById(id) {
+        return Object.values(this._repository.all())
+            .find(function (item) {
+                return item.id === id;
             });
     }
 

@@ -1,4 +1,14 @@
 html, body {
   background-color: transparent; }
 
+.panta-item {
+  border: 1px solid #798d99;
+  background-color: rgba(0, 0, 0, 0.03);
+  padding: 0.5em;
+  margin: 0.1em;
+  border-radius: 3px;
+  cursor: pointer; }
+  .panta-item.hovered {
+    background-color: rgba(0, 0, 0, 0.05); }
+
 /*# sourceMappingURL=panta.settings.css.map */

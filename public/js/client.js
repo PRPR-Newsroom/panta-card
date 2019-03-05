@@ -123,7 +123,9 @@ TrelloPowerUp.initialize({
         let pc = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION).init().getPluginController();
         return pc.getPluginConfiguration()
             .then(function (config) {
-                if (config) {
+                console.log("loading", config);
+                if (config && config.hasActiveModules()) {
+                    console.log("hasActiveModules");
                     return {
                         title: config.card.title,
                         icon: config.card.icon,
@@ -134,6 +136,7 @@ TrelloPowerUp.initialize({
                         }
                     };
                 } else {
+                    console.log("no module(s) yet activated");
                     return {
                         title: 'Panta Plugin',
                         icon: "./assets/ic_artikel.png",
