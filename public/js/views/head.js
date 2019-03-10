@@ -25,19 +25,3 @@ if (!window.clientManager) {
 } else {
     cm = window.clientManager;
 }
-
-// specials
-function enableReset(t) {
-    let btDelete = document.getElementById("bt_delete");
-    if (btDelete) {
-        btDelete.addEventListener('click', function (event) {
-            event.preventDefault();
-            return t.remove('card', 'shared', ArtikelController.SHARED_NAME)
-                .then(function () {
-                    t.closeModal();
-                });
-        });
-    }
-}
-
-enableReset(t);

@@ -4,7 +4,7 @@ t.render(function () {
     // noinspection JSUnresolvedFunction
     return t.get('card', 'shared', ArtikelController.SHARED_NAME)
         .then(function (jsonobj) {
-            cm.getArticleController().render(Artikel.create(jsonobj));
+            cm.getArticleController().render(Artikel.create(jsonobj), null);
         })
         .then(function() {
             return t.cards('id', 'closed');
@@ -20,12 +20,11 @@ t.render(function () {
         })
         .then(function() {
             if (cm.getPluginController().upgrading) {
-                cm.getArticleController().blockUi();
+                return !cm.getArticleController().blockUi();
             } else {
-                cm.getArticleController().update();
+                return cm.getArticleController().update();
             }
         })
-
         .then(function () {
             t.sizeTo('#panta\\.artikel').done();
         })

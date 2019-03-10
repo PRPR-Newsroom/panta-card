@@ -324,3 +324,24 @@ let template_settings_editable_option = '<div class="row module-editable-option-
     '       <button class="panta-btn panta-btn-icon"><img src="/assets/ic_trash.svg" width="16px" height="16px"/></button>' +
     '    </div>'+
     '</div>';
+
+let template_beteiligt = '<form id="panta.module">'+
+    '    <!-- because we can only have one card-back-section per power-up we implement the panta.Beteiligt'+
+    '    on this page -->'+
+    '    <div class="row min"><div class="col-12"> </div></div>'+
+    '    <div class="row min">'+
+    '        <div class="col-12">'+
+    '            <h3 class="js-panta-module-title"></h3>'+
+    '        </div>'+
+    '    </div>'+
+    '    <div class="row min navigation-bar">'+
+    '        <div id="pa.involved.onsite" class="col-2 col-phone-4 tab" data-label="vor.Ort" data-layout="regular"><span>Placeholder</span></div>'+
+    '        <div id="pa.involved.text" class="col-2 col-phone-4 tab" data-label="Journalist" data-layout="regular"><span>Placeholder</span></div>'+
+    '        <div id="pa.involved.photo" class="col-phone-4 col-2 tab" data-label="Visual" data-layout="regular"><span>Placeholder</span></div>'+
+    '        <div id="pa.involved.video" class="col-phone-4 col-2 tab" data-label="Event" data-layout="regular"><span>Placeholder</span></div>'+
+    '        <div id="pa.involved.illu" class="col-phone-4 col-2 tab" data-label="MC/Host" data-layout="regular"><span>Placeholder</span></div>'+
+    '        <div id="pa.involved.ad" class="col-phone-4 col-2 tab" data-label="weitere" data-layout="regular"><span>Placeholder</span></div>'+
+    '    </div>'+
+    ''+
+    '    <span id="pa.tab.content"></span>'+
+    '</form>';

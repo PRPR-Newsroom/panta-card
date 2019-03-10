@@ -86,10 +86,35 @@ class PluginConfiguration {
         this._modules = modules || [];
     }
 
-    hasActiveModules() {
-        return Object.values(this._modules).find(function(value) {
+    /**
+     * @returns {any[]}
+     */
+    getActiveModules() {
+        return Object.values(this._modules).filter(function(value) {
             return value && value.config && value.config.enabled;
         });
+    }
+
+    /**
+     * Get the module that matches the id. If onlyEnabled is `true` it will only search in active
+     * modules
+     * @param id
+     * @param onlyEnabled
+     * @return {any}
+     */
+    getModule(id, onlyEnabled) {
+        return Object.values(this._modules).filter(function(value) {
+            return value && value.config && value.config.enabled === onlyEnabled;
+        }).find(function(module) {
+            return module.id === id;
+        });
+    }
+
+    /**
+     * @returns {boolean}
+     */
+    hasActiveModules() {
+        return this.getActiveModules().length > 0;
     }
 
 }

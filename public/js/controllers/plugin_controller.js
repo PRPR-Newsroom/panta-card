@@ -86,7 +86,6 @@ class PluginController {
             PluginController.CONFIGURATION_NAME,
             null
         ).then(function (data) {
-            console.log("dlkjf", data);
             if (data) {
                 return PluginConfiguration.create(data);
             } else {
@@ -108,7 +107,9 @@ class PluginController {
     }
 
     getAvailableModules() {
-        return this._repository.all();
+        return Object.values(this._repository.all()).sort(function(lhs, rhs) {
+            return lhs.config.sort - rhs.config.sort;
+        });
     }
 
     /**

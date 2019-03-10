@@ -214,9 +214,22 @@ class ArtikelBinding {
      * @private
      */
     _switchContent(templ) {
-        let content = this.document.getElementById("pa.artikel.content");
+        let content = this._initLayout();
         content.removeChildren();
         content.appendChild(templ);
+    }
+
+    _initLayout() {
+        let container = this.document.getElementById("pa.artikel.content") || this.document.createElement("span");
+        if (!container.getAttribute("id")) {
+            let form = this.document.createElement("form");
+            form.setAttribute("autocomplete", "off");
+            form.setAttribute("id", "panta.form");
+            container.setAttribute("id", "pa.artikel.content");
+            form.appendChild(container);
+            this.document.getElementById("panta.content").appendChild(form);
+        }
+        return container;
     }
 
 }

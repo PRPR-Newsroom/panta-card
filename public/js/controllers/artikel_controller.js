@@ -2,7 +2,7 @@
  * Controller of artikels that let you manage multiple artikels
  *
  */
-class ArtikelController {
+class ArtikelController extends Controller {
 
     /**
      * The app version
@@ -54,6 +54,7 @@ class ArtikelController {
      * @param telephone
      */
     constructor(windowManager, trelloApi, repository, telephone) {
+        super(repository);
         /**
          * @type {HTMLDocument}
          */
@@ -79,12 +80,6 @@ class ArtikelController {
          * @private
          */
         this._beteiligtBinding = null;
-
-        /**
-         * @type {ArtikelRepository}
-         * @private
-         */
-        this._repository = repository;
 
         /**
          * The telephone to the client manager
@@ -113,18 +108,22 @@ class ArtikelController {
         }
     }
 
-    /**
-     * Insert the passed artikel into the repository and associates it with the given card
-     * @param {Artikel} artikel
-     * @param {{id: number}} card
-     */
-    insert(artikel, card) {
-        if (artikel && this._repository.isNew(artikel)) {
-            this._repository.add(artikel, card);
-        } else if (artikel) {
-            this._repository.replace(artikel, card);
-        }
+    create(json) {
+        return Artikel.create(json);
     }
+
+// /**
+    //  * Insert the passed artikel into the repository and associates it with the given card
+    //  * @param {Artikel} artikel
+    //  * @param {{id: number}} card
+    //  */
+    // insert(artikel, card) {
+    //     if (artikel && this._repository.isNew(artikel)) {
+    //         this._repository.add(artikel, card);
+    //     } else if (artikel) {
+    //         this._repository.replace(artikel, card);
+    //     }
+    // }
 
     /**
      * Get the artikel for the passed trello card
@@ -221,12 +220,17 @@ class ArtikelController {
      * Called when the artikel has changed and the controller should re-compute dynamic properties (totals)
      */
     update() {
-        if (!this._window.clientManager.isArticleModuleEnabled()) {
-            throw "Module is not enabled";
-        }
-        // calc total
-        this._entity.total = this.getTotalPageCount();
-        this._artikelBinding.update(this._entity);
+        let that = this;
+        this._window.clientManager.isArticleModuleEnabled()
+            .then(function (enabled) {
+                if (!enabled) {
+                    throw "Module is not enabled";
+                }
+                // calc total
+                that._entity.total = that.getTotalPageCount();
+                that._artikelBinding.update(that._entity);
+                return true;
+            });
     }
 
     /**
@@ -234,6 +238,7 @@ class ArtikelController {
      */
     blockUi() {
         this._artikelBinding.blockUi();
+        return Promise.resolve(true);
     }
 
     canUnblock() {
@@ -260,9 +265,10 @@ class ArtikelController {
 
     /**
      * Render the passed artikel onto the document
-     * @param (Artikel) artikel
+     * @param {Artikel} artikel
+     * @param configuration optional
      */
-    render(artikel) {
+    render(artikel, configuration) {
         this._entity = artikel ? artikel : Artikel.create();
         this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._entity) : new ArtikelBinding(this.document, this._entity, this.onEvent, this).bind();
     }

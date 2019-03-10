@@ -156,9 +156,22 @@ class ModulePlanBinding extends Binding {
      * @private
      */
     _switchContent(templ) {
-        let content = this.document.getElementById("pa.plan.content");
+        let content = this._initContent();
         content.removeChildren();
         content.appendChild(templ);
+    }
+
+    _initContent() {
+        let container = this.document.getElementById("pa.plan.content") || this.document.createElement("span");
+        if (!container.getAttribute("id")) {
+            let form = this.document.createElement("form");
+            form.setAttribute("autocomplete", "off");
+            form.setAttribute("id", "panta.form.plan");
+            container.setAttribute("id", "pa.plan.content");
+            form.appendChild(container);
+            this.document.getElementById("panta.content").appendChild(form);
+        }
+        return container;
     }
 
 }

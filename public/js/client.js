@@ -51,71 +51,30 @@ TrelloPowerUp.initialize({
                     });
             })
             .then(function (card) {
-                let badges = [];
-
-                if (cm.isArticleModuleEnabled()) {
-                    let artikel = cm.getArticleController().getByCard(card);
-                    if (cm.getArticleController().hasArtikelContent(artikel)) {
-                        badges.push({
-                            text: "",
-                            icon: './assets/ic_artikel.png'
-                        });
-
-                        if (artikel.region) {
-                            badges.push({
-                                text: 'region: ' + cm.getArticleController().getRegionMapping(artikel.region),
-                                color: 'sky'
-                            });
-                        }
-                        if (artikel.tags) {
-                            badges.push({
-                                text: 'online: ' + cm.getArticleController().getTagMapping(artikel.tags),
-                                color: 'blue'
-                            });
-                        }
-                    }
-                }
-
-                if (cm.isBeteiligtModuleEnabled()) {
-                    let config = cm.getModuleController().getByCard(card);
-                    if (config instanceof ModuleConfig) {
-                        let sections = config.getContentCount();
-                        if (sections > 0) {
-                            badges.push({
-                                text: sections,
-                                icon: './assets/ic_beteiligt.png'
-                            });
-                        }
-                    }
-                }
-
-                if (cm.isPlanModuleEnabled()) {
-                    let entity = cm.getPlanController().getByCard(card);
-                    if (entity instanceof Plan) {
-                        if (cm.getPlanController().hasContent(entity)) {
-                            badges.push({
-                                text: "",
-                                icon: './assets/ic_plan.png'
-                            });
-
-                            if (entity.region) {
-                                badges.push({
-                                    text: 'region: ' + cm.getPlanController().getRegionMapping(entity.region),
-                                    color: 'sky'
-                                });
-                            }
-                            if (entity.online) {
-                                badges.push({
-                                    text: 'online: ' + cm.getPlanController().getOnlineMapping(entity.online),
-                                    color: 'blue'
-                                });
-                            }
-                        }
-                    }
-                }
-
-                return badges;
+                // get all module condition promises
+                return Promise.all([
+                    cm.getArticleModuleContext(card),
+                    cm.getBeteiligtModuleContext(card),
+                    cm.getPlanModuleContext(card)
+                ]);
             })
+            .map(function (val) {
+                // get the badges if the condition is met
+                return val["condition"].then(function (enabled) {
+                    if (enabled) {
+                        return val["on"]();
+                    } else {
+                        return [];
+                    }
+                })
+            })
+            .reduce(function (prev, cur) {
+                // create a flattened list from a nested list
+                return prev.concat(cur);
+            }, [])
+            .then(function (values) {
+                return values;
+            });
     },
     // https://developers.trello.com/v1.0/reference#card-back-section
     'card-back-section': function (t, opts) {
@@ -123,7 +82,6 @@ TrelloPowerUp.initialize({
         let pc = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION).init().getPluginController();
         return pc.getPluginConfiguration()
             .then(function (config) {
-                console.log("loading", config);
                 if (config && config.hasActiveModules()) {
                     console.log("hasActiveModules");
                     return {
@@ -136,7 +94,6 @@ TrelloPowerUp.initialize({
                         }
                     };
                 } else {
-                    console.log("no module(s) yet activated");
                     return {
                         title: 'Panta Plugin',
                         icon: "./assets/ic_artikel.png",
@@ -150,12 +107,14 @@ TrelloPowerUp.initialize({
     },
     // https://developers.trello.com/v1.0/reference#list-sorters
     'list-sorters': function (t) {
-        let cm = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION);
-        cm.init();
+        let cm = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION).init();
         return t.list('id', 'name')
             .then(function (list) {
+                return cm.isArticleModuleEnabled();
+            })
+            .then(function (enabled) {
                 let sorters = [];
-                if (cm.isArticleModuleEnabled()) {
+                if (enabled) {
                     sorters.push({
                         text: "Pagina (1 -> 99)",
                         callback: function (t, opts) {

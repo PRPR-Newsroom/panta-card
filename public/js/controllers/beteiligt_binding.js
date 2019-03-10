@@ -97,7 +97,7 @@ class BeteiligtBinding {
      */
     _buildValueHolder(involvedIn, tabId, config, renderer) {
         let that = this;
-        let tab = that.document.getElementById(tabId);
+        let tab = this._initTab(tabId);
         return {
             'involved-in': involvedIn,
             'data': null,
@@ -111,6 +111,15 @@ class BeteiligtBinding {
             'label': config.label || tab.getAttribute("data-label"),
             'binding': that
         };
+    }
+
+    _initTab(tabId) {
+        let form = this.document.getElementById("panta.module");
+        if (!form) {
+            form = createByTemplate(template_beteiligt, template_beteiligt);
+            this.document.getElementById("panta.content").appendChild(form);
+        }
+        return this.document.getElementById(tabId);
     }
 
     /**

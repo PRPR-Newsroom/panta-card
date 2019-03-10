@@ -12,11 +12,13 @@ class PluginRepository extends Repository {
         if (!PluginRepository.instance) {
             PluginRepository.instance = new PluginRepository();
             PluginRepository.instance.add(new PluginModuleConfig("module.artikel", "Artikel", {
+                "sort": 1,
                 "enabled": false,
                 "icon": "./assets/ic_artikel.png",
-                "view": "./artikel.html",
+                "view": "./module.html",
                 "editables": [{
                     "id": "visual",
+                    "type": "select",
                     "label": "Visual",
                     "color": "blue",
                     "show_on_front": false,
@@ -29,6 +31,7 @@ class PluginRepository extends Repository {
                     ]
                 }, {
                     "id": "form",
+                    "type": "select",
                     "label": "Form",
                     "color": "green",
                     "show_on_front": false,
@@ -39,6 +42,7 @@ class PluginRepository extends Repository {
                     ]
                 }, {
                     "id": "online",
+                    "type": "select",
                     "label": "Online",
                     "color": "yellow",
                     "show_on_front": false,
@@ -54,6 +58,7 @@ class PluginRepository extends Repository {
                     ]
                 }, {
                     "id": "season",
+                    "type": "select",
                     "label": "Saison",
                     "color": "sky",
                     "show_on_front": false,
@@ -63,6 +68,7 @@ class PluginRepository extends Repository {
                     ]
                 }, {
                     "id": "region",
+                    "type": "select",
                     "label": "Region",
                     "color": "lime",
                     "show_on_front": false,
@@ -72,6 +78,7 @@ class PluginRepository extends Repository {
                     ]
                 }, {
                     "id": "place",
+                    "type": "select",
                     "label": "Ort",
                     "color": "orange",
                     "show_on_front": false,
@@ -87,9 +94,15 @@ class PluginRepository extends Repository {
                 }]
             }), {"id": 1});
             PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", "Beteiligt", {
+                "sort": 3,
                 "enabled": false,
                 "icon": "./assets/ic_beteiligt.png",
-                "view": "./artikel.html",
+                "view": "./module.html",
+                "editables": [{
+                    "id": "title",
+                    "type": "text",
+                    "value": "Beteiligt"
+                }],
                 "layouts": {
                     "onsite": {
                         "name": "onsite",
@@ -130,9 +143,10 @@ class PluginRepository extends Repository {
                 },
             }), {"id": 2});
             PluginRepository.instance.add(new PluginModuleConfig("module.plan", "Plan", {
+                "sort": 2,
                 "enabled": false,
                 "icon": "./assets/ic_plan.png",
-                "view": "./plan.html",
+                "view": "./module.html",
             }), {"id": 3});
         }
         return PluginRepository.instance;

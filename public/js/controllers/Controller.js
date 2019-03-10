@@ -16,9 +16,10 @@ class Controller {
     /**
      *
      * @param entity
+     * @param configuration an option configuration object
      * @abstract
      */
-    render(entity) {}
+    render(entity, configuration) {}
 
     /**
      * @param {} entity
@@ -31,6 +32,14 @@ class Controller {
             this._repository.replace(entity, card);
         }
     }
+
+    /**
+     * Create an entity from the json
+     * @param json
+     * @return {}
+     * @abstract
+     */
+    create(json) {}
 
     /**
      * Called when an event has occurred

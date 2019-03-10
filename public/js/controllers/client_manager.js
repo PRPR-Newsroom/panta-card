@@ -112,11 +112,11 @@ class ClientManager {
     _createMessageChannel() {
         let that = this;
         let mc = new MessageChannel();
-        mc.port1.onmessage = function(ev) {
+        mc.port1.onmessage = function (ev) {
             console.log("Received data from sub-module: " + JSON.stringify(ev.data));
             let req = ev.data;
             // handle GET requests
-            Object.values(req.get || []).forEach(function(item) {
+            Object.values(req.get || []).forEach(function (item) {
                 switch (item) {
                     case "fee:current":
                         that._getCurrentFee();
@@ -136,8 +136,8 @@ class ClientManager {
                 }
             }, that);
             // handle GET responses
-            Object.values(req.result||[]).forEach(function(item) {
-                Object.entries(item).forEach(function(item) {
+            Object.values(req.result || []).forEach(function (item) {
+                Object.entries(item).forEach(function (item) {
                     let property = item[0];
                     let value = item[1];
                     this._sendResponse(ModulePlanController.SHARED_NAME, property, value);
@@ -201,26 +201,71 @@ class ClientManager {
 
     /**
      * Check if the article module is enabled
-     * @return {boolean}
+     * @return {PromiseLike<T> | Promise<T>}
      */
     isArticleModuleEnabled() {
-        return this._options.hasOwnProperty('module.artikel.enabled') && this._options['module.artikel.enabled'] === true;
+        return this._isModuleEnabled("module.artikel");
     }
 
     /**
      * Check if the "Beteiligt" module is enabled
-     * @return {boolean}
+     * @return {PromiseLike<T> | Promise<T>}
      */
     isBeteiligtModuleEnabled() {
-        return this._options.hasOwnProperty('module.beteiligt.enabled') && this._options['module.beteiligt.enabled'] === true;
+        return this._isModuleEnabled("module.beteiligt");
     }
 
     /**
      * Return true if the "Plan" module is enabled
-     * @return {boolean}
+     * @return {PromiseLike<T> | Promise<T>}
      */
     isPlanModuleEnabled() {
-        return this._options.hasOwnProperty('module.plan.enabled') && this._options['module.plan.enabled'] === true;
+        return this._isModuleEnabled("module.plan");
+    }
+
+    /**
+     * Get the module configuration by its id
+     * @param id
+     * @return {PromiseLike<T> | Promise<T>}
+     */
+    getModuleConfiguration(id) {
+        return this.getPluginController().getPluginConfiguration()
+            .then(function (configuration) {
+                return configuration.getModule(id, true);
+            });
+    }
+
+    /**
+     * Get the controller by its id
+     * @param id
+     * @return {Controller}
+     */
+    getController(id) {
+        switch (id) {
+            case "module.artikel":
+                return this.getArticleController();
+            case "module.beteiligt":
+                return this.getModuleController();
+            case "module.plan":
+                return this.getPlanController();
+            default:
+                throw "Invalid ID: " + id;
+        }
+    }
+
+    /**
+     *
+     * @param id
+     * @return {PromiseLike<T> | Promise<T>}
+     * @private
+     */
+    _isModuleEnabled(id) {
+        return this._pluginController.getPluginConfiguration()
+            .then(function (configuration) {
+                return configuration.getActiveModules().find(function (module) {
+                    return module.id === id;
+                });
+            });
     }
 
     /**
@@ -270,5 +315,118 @@ class ClientManager {
             .then(function () {
                 console.log("All board data cleared");
             });
+    }
+
+    /**
+     * Get the plan module badges
+     * @param card
+     * @return {{condition: PromiseLike<T>|Promise<T>, on: on, card: card, configuration: PromiseLike<T>|Promise<T>}}
+     */
+    getPlanModuleContext(card) {
+        let that = this;
+        return {
+            "id": "module.plan",
+            "shared": ModulePlanController.SHARED_NAME,
+            "card": card,
+            "configuration": that.getModuleConfiguration("module.plan"),
+            "condition": that.isPlanModuleEnabled(),
+            "on": function () {
+                let badges = [];
+                let entity = that.getPlanController().getByCard(card);
+                if (entity instanceof Plan) {
+                    if (that.getPlanController().hasContent(entity)) {
+                        badges.push({
+                            text: "",
+                            icon: './assets/ic_plan.png'
+                        });
+
+                        if (entity.region) {
+                            badges.push({
+                                text: 'region: ' + that.getPlanController().getRegionMapping(entity.region),
+                                color: 'sky'
+                            });
+                        }
+                        if (entity.online) {
+                            badges.push({
+                                text: 'online: ' + that.getPlanController().getOnlineMapping(entity.online),
+                                color: 'blue'
+                            });
+                        }
+                    }
+                }
+                return badges;
+            }
+        };
+    }
+
+    /**
+     * Get the beteiligt module badges
+     * @param card
+     * @return {{condition: PromiseLike<T>|Promise<T>, on: on, card: card}}
+     */
+    getBeteiligtModuleContext(card) {
+        let that = this;
+        return {
+            "id": "module.beteiligt",
+            "shared": ModuleController.SHARED_NAME,
+            "card": card,
+            "configuration": that.getModuleConfiguration("module.beteiligt"),
+            "condition": that.isBeteiligtModuleEnabled(),
+            "on": function () {
+                let badges = [];
+                let config = that.getModuleController().getByCard(card);
+                if (config instanceof ModuleConfig) {
+                    let sections = config.getContentCount();
+                    if (sections > 0) {
+                        badges.push({
+                            text: sections,
+                            icon: './assets/ic_beteiligt.png'
+                        });
+                    }
+                }
+                return badges;
+
+            }
+        };
+    }
+
+    /**
+     * Create a module condition
+     * @param card
+     * @return {{condition: PromiseLike<T>|Promise<T>, on: on, card: card}}
+     */
+    getArticleModuleContext(card) {
+        let that = this;
+        return {
+            "id": "module.artikel",
+            "shared": ArtikelController.SHARED_NAME,
+            "card": card,
+            "configuration": that.getModuleConfiguration("module.artikel"),
+            "condition": that.isArticleModuleEnabled(),
+            "on": function () {
+                let badges = [];
+                let artikel = that.getArticleController().getByCard(card);
+                if (that.getArticleController().hasArtikelContent(artikel)) {
+                    badges.push({
+                        text: "",
+                        icon: './assets/ic_artikel.png'
+                    });
+
+                    if (artikel.region) {
+                        badges.push({
+                            text: 'region: ' + that.getArticleController().getRegionMapping(artikel.region),
+                            color: 'sky'
+                        });
+                    }
+                    if (artikel.tags) {
+                        badges.push({
+                            text: 'online: ' + that.getArticleController().getTagMapping(artikel.tags),
+                            color: 'blue'
+                        });
+                    }
+                }
+                return badges;
+            }
+        };
     }
 }

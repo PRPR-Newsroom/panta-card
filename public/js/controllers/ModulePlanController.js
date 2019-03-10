@@ -84,7 +84,7 @@ class ModulePlanController extends Controller {
         this.readPropertyBag();
     }
 
-    render(entity) {
+    render(entity, configuration) {
         /**
          * @type Plan
          */
@@ -215,4 +215,11 @@ class ModulePlanController extends Controller {
         }
     }
 
+    clear() {
+        return super.clear();
+    }
+
+    create(json) {
+        return Plan.create(json);
+    }
 }
