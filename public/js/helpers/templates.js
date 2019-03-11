@@ -331,7 +331,7 @@ let template_beteiligt = '<form id="panta.module">'+
     '    <div class="row min"><div class="col-12"> </div></div>'+
     '    <div class="row min">'+
     '        <div class="col-12">'+
-    '            <h3 class="js-panta-module-title"></h3>'+
+    '            <h3 class="js-panta-module js-panta-editable-title"></h3>'+
     '        </div>'+
     '    </div>'+
     '    <div class="row min navigation-bar">'+

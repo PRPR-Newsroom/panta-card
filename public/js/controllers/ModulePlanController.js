@@ -22,8 +22,7 @@ class ModulePlanController extends Controller {
     }
 
     constructor(windowManager, trelloApi, telephone) {
-        super(new ModulePlanRepository());
-        this._window = windowManager;
+        super(windowManager, new ModulePlanRepository());
         this._trello = trelloApi;
         /**
          * The wire to the client manager

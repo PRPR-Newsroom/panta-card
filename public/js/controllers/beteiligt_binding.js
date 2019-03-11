@@ -1,4 +1,4 @@
-class BeteiligtBinding {
+class BeteiligtBinding extends Binding {
 
     /**
      * Create the BeteiligtBinding that binds to the passed root document. The config is the entity that is managed
@@ -11,24 +11,7 @@ class BeteiligtBinding {
      * @param context the context that is passed in your change handler
      */
     constructor(document, config, action, context) {
-        /**
-         * @type {HTMLDocument}
-         */
-        this.document = document;
-        /**
-         * @type {ModuleConfig}
-         */
-        this._editable = config;
-
-        /**
-         * The action to be called when data has changed
-         */
-        this._action = action;
-
-        /**
-         * The context that is passed to the data change action handler
-         */
-        this._context = context;
+        super(document, config, action, context);
 
         /**
          * @type {PModuleConfig}
@@ -113,6 +96,14 @@ class BeteiligtBinding {
         };
     }
 
+    detach() {
+        let form = this.document.getElementById("panta.module");
+        if (form) {
+            form.removeChildren();
+            form.removeSelf();
+        }
+    }
+
     _initTab(tabId) {
         let form = this.document.getElementById("panta.module");
         if (!form) {
@@ -137,7 +128,7 @@ class BeteiligtBinding {
             module.update(config);
         });
         // update the entity as well otherwise on change callbacks will re-store old entity states
-        this._editable = config;
+        this._entity = config;
         return this;
     }
 
@@ -148,28 +139,28 @@ class BeteiligtBinding {
      */
     bind(configuration) {
         this.initLayouts(configuration);
-        this._onsite = this._onsite !== null ? this._onsite.update(this._editable) : (this._onsite = new PModuleConfig(this.document, 'vor.Ort', this._involvements.onsite)
-            .bind(this._editable, 'onsite')
+        this._onsite = this._onsite !== null ? this._onsite.update(this._entity) : (this._onsite = new PModuleConfig(this.document, 'vor.Ort', this._involvements.onsite)
+            .bind(this._entity, 'onsite')
             .render());
 
-        this._text = this._text !== null ? this._text.update(this._editable) : (this._text = new PModuleConfig(this.document, 'Text', this._involvements.text)
-            .bind(this._editable, 'text')
+        this._text = this._text !== null ? this._text.update(this._entity) : (this._text = new PModuleConfig(this.document, 'Text', this._involvements.text)
+            .bind(this._entity, 'text')
             .render());
 
-        this._photo = this._photo !== null ? this._photo.update(this._editable) : (this._photo = new PModuleConfig(this.document, 'Foto', this._involvements.photo)
-            .bind(this._editable, 'photo')
+        this._photo = this._photo !== null ? this._photo.update(this._entity) : (this._photo = new PModuleConfig(this.document, 'Foto', this._involvements.photo)
+            .bind(this._entity, 'photo')
             .render());
 
-        this._video = this._video !== null ? this._video.update(this._editable) : (this._video = new PModuleConfig(this.document, 'Video', this._involvements.video)
-            .bind(this._editable, 'video')
+        this._video = this._video !== null ? this._video.update(this._entity) : (this._video = new PModuleConfig(this.document, 'Video', this._involvements.video)
+            .bind(this._entity, 'video')
             .render());
 
-        this._illu = this._illu !== null ? this._illu.update(this._editable) : (this._illu = new PModuleConfig(this.document, 'Illu.Grafik', this._involvements.illu)
-            .bind(this._editable, 'illu')
+        this._illu = this._illu !== null ? this._illu.update(this._entity) : (this._illu = new PModuleConfig(this.document, 'Illu.Grafik', this._involvements.illu)
+            .bind(this._entity, 'illu')
             .render());
 
-        this._ad = this._ad !== null ? this._ad.update(this._editable) : (this._ad = new PModuleConfig(this.document, 'Inserat', this._involvements.ad)
-            .bind(this._editable, 'ad')
+        this._ad = this._ad !== null ? this._ad.update(this._entity) : (this._ad = new PModuleConfig(this.document, 'Inserat', this._involvements.ad)
+            .bind(this._entity, 'ad')
             .render());
         // activate the first tab when rendering this layout. when the layout was already rendered then it will not call bind() but update
         this._onsite.activate();
@@ -235,7 +226,7 @@ class BeteiligtBinding {
         let templ = virtual.cloneNode(true);
         this._switchContent(forms, templ);
 
-        let params = {'context': this._context, 'valueHolder': valueHolder, 'config': this._editable};
+        let params = {'context': this._context, 'valueHolder': valueHolder, 'config': this._entity};
         forms.setField("name", this.document.newSingleLineInput(valueHolder, ".pa.name", "name", "Name", params, this._action, "eintippen…", "text", false));
         forms.setField("social", this.document.newSingleLineInput(valueHolder, ".pa.social", "social", "Telefon.Mail.Webseite", params, this._action, "notieren…"));
         forms.setField("address", this.document.newMultiLineInput(valueHolder, ".pa.address", "address", "Adresse", params, this._action, 2, "festhalten…"));
@@ -261,7 +252,7 @@ class BeteiligtBinding {
 
         this._switchContent(forms, templ);
 
-        let params = {'context': this._context, 'valueHolder': valueHolder, 'config': this._editable};
+        let params = {'context': this._context, 'valueHolder': valueHolder, 'config': this._entity};
         this.document.newSingleLineInput(valueHolder, ".pa.name", 'name', "Kontakt", params, this._action, "eintippen…", "text", false);
         this.document.newSingleLineInput(valueHolder, ".pa.social", 'social', "Telefon.Mail.Webseite", params, this._action, "notieren…");
         this.document.newMultiLineInput(valueHolder, ".pa.address", 'address', "Adresse", params, this._action, 2, "eingeben…");

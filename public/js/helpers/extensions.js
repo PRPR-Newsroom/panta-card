@@ -90,6 +90,13 @@ HTMLElement.prototype.removeChildren = function () {
 };
 
 /**
+ * Remove this element itself from the DOM
+ */
+HTMLElement.prototype.removeSelf = function() {
+    this.parentElement.removeChild(this);
+};
+
+/**
  * (Re-)Set an event listener on this HTML element
  * @param event
  * @param callback

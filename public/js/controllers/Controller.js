@@ -3,14 +3,47 @@
  */
 class Controller {
 
-    constructor(repository) {
+    constructor(windowManager, repository) {
         /**
          * @type {Repository}
          * @public
          */
         this._repository = repository;
+
+        /**
+         * @type {Binding}
+         * @private
+         */
+        this._binding = null;
+
+        /**
+         * @type {Window}
+         */
+        this._window = windowManager;
     }
 
+    /**
+     * Check if it can unblock the UI and will do so if there's no block task
+     */
+    canUnblock() {
+        if (!this._window.clientManager.getPluginController().upgrading) {
+            this._binding.unblock();
+        }
+    }
+
+    /**
+     * Block the UI because there's for example an upgrade going on
+     * @return {Promise<boolean>}
+     */
+    blockUi() {
+        this._binding.blockUi();
+        return Promise.resolve(true);
+    }
+
+    /**
+     * Called when the controller should update its content
+     * @abstract
+     */
     update() {}
 
     /**
@@ -20,6 +53,16 @@ class Controller {
      * @abstract
      */
     render(entity, configuration) {}
+
+    /**
+     * Detach the ui
+     */
+    detach() {
+        if (this._binding) {
+            // the binding may be null
+            this._binding.detach();
+        }
+    }
 
     /**
      * @param {} entity

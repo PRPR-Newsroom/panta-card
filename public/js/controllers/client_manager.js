@@ -8,6 +8,10 @@ class ClientManager {
         return 1;
     }
 
+    static assertClientManager(windowManager, trello, options) {
+        ClientManager.getOrCreateClientManager(windowManager, trello, options).init();
+    }
+
     /**
      * Create the ClientManager instance bound to this windowManager
      * @param {Window} windowManager the window manager to be bound to

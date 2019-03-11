@@ -58,12 +58,11 @@ class ModuleController extends Controller {
      * @param telephone
      */
     constructor(windowManager, trelloApi, telephone) {
-        super(new BeteiligtRepository());
+        super(windowManager, new BeteiligtRepository());
         /**
          * @type {HTMLDocument}
          */
         this.document = windowManager.document;
-        this._window = windowManager;
 
         this.trelloApi = trelloApi;
 
@@ -180,6 +179,8 @@ class ModuleController extends Controller {
 
     /**
      * Hide the whole module
+     *
+     * @obsolete this is probably not used anymore because the modules are loaded by configuration anyways
      */
     hide() {
         this.document.getElementById("panta.module").addClass("hidden");

@@ -5,6 +5,7 @@ java -jar /home/m3ns1/dev/google-compiler/closure-compiler-v20180805.jar \
     --language_in=ECMASCRIPT6 \
     --formatting=PRETTY_PRINT \
     --formatting=print_input_delimiter \
+    'public/js/view/**.js' \
     'public/js/services/**.js' \
     'public/js/components/**.js' \
     'public/js/controllers/**.js' \

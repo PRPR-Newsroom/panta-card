@@ -1,7 +1,7 @@
 /**
  * This artikel binding class binds an artikel with the view/layout
  */
-class ArtikelBinding {
+class ArtikelBinding extends Binding {
 
     /**
      * Get the german name for that region
@@ -47,29 +47,7 @@ class ArtikelBinding {
     }
 
     constructor(document, entity, action, context) {
-
-        /**
-         * @type {HTMLDocument}
-         */
-        this.document = document;
-
-        /**
-         * @type {function(source, ctx)}
-         */
-        this._action = action;
-
-        /**
-         * @type {ArtikelController}
-         */
-        this._context = context;
-
-        /**
-         * @type {Artikel}
-         * @private
-         */
-        this._entity = entity;
-
-        this._autoUpdater = null;
+        super(document, entity, action, context);
     }
 
 
@@ -176,34 +154,11 @@ class ArtikelBinding {
         ]);
     }
 
-    /**
-     * Block the UI by adding an overlay. If there's already an overlay it will do nothing
-     */
-    blockUi() {
-        if (this.document.getElementsByClassName('overlay').length > 0) {
-            return;
-        }
-        let that = this;
-        let overlay = this.document.createElement("div");
-        overlay.addClass("overlay");
-
-        overlay.appendChild(this.document.createTextNode("Plugin Daten werden aktualisiert..."));
-
-        this.document.getElementsByTagName("body").item(0).appendChild(overlay);
-        this._autoUpdater = this._autoUpdater || setInterval(function() {
-            that._context.canUnblock();
-        }, 500);
-    }
-
-    /**
-     * Unblock the UI by remoing all overlays
-     */
-    unblock() {
-        this.document.getElementsByClassName("overlay").forEach(function(item) {
-            item.parentNode.removeChild(item);
-        });
-        if (this._autoUpdater) {
-            clearInterval(this._autoUpdater);
+    detach() {
+        let container = this.document.getElementById("pa.artikel.content");
+        if (container) {
+            container.removeChildren();
+            container.removeSelf();
         }
     }
 

@@ -54,13 +54,11 @@ class ArtikelController extends Controller {
      * @param telephone
      */
     constructor(windowManager, trelloApi, repository, telephone) {
-        super(repository);
+        super(windowManager, repository);
         /**
          * @type {HTMLDocument}
          */
         this.document = windowManager.document;
-
-        this._window = windowManager;
 
         this.trelloApi = trelloApi;
         /**
@@ -68,18 +66,6 @@ class ArtikelController extends Controller {
          * @private
          */
         this._entity = null;
-
-        /**
-         * @type {ArtikelBinding}
-         * @private
-         */
-        this._artikelBinding = null;
-
-        /**
-         * @type {BeteiligtBinding}
-         * @private
-         */
-        this._beteiligtBinding = null;
 
         /**
          * The telephone to the client manager
@@ -228,23 +214,9 @@ class ArtikelController extends Controller {
                 }
                 // calc total
                 that._entity.total = that.getTotalPageCount();
-                that._artikelBinding.update(that._entity);
+                that._binding.update(that._entity);
                 return true;
             });
-    }
-
-    /**
-     * Block the UI because there's for example an upgrade going on
-     */
-    blockUi() {
-        this._artikelBinding.blockUi();
-        return Promise.resolve(true);
-    }
-
-    canUnblock() {
-        if (!this._window.clientManager.getPluginController().upgrading) {
-            this._artikelBinding.unblock();
-        }
     }
 
     /**
@@ -270,7 +242,7 @@ class ArtikelController extends Controller {
      */
     render(artikel, configuration) {
         this._entity = artikel ? artikel : Artikel.create();
-        this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._entity) : new ArtikelBinding(this.document, this._entity, this.onEvent, this).bind();
+        this._binding = this._binding ? this._binding.update(this._entity) : new ArtikelBinding(this.document, this._entity, this.onEvent, this).bind();
     }
 
     /**

@@ -6,7 +6,7 @@ class ModulePlanBinding extends Binding {
      * your change handler because it gets passed there too.
      *
      * @param document the underlying root document
-     * @param config the entity
+     * @param entity the entity
      * @param action the onChange handler
      * @param context the context that is passed in your change handler
      */
@@ -149,6 +149,14 @@ class ModulePlanBinding extends Binding {
 
     }
 
+    detach() {
+        let container = this.document.getElementById("pa.plan.content");
+        if (container) {
+            container.removeChildren();
+            container.removeSelf();
+        }
+    }
+
     /**
      * Switch content by removing any previous content first, resetting UI states and then set the new tab content
      * @param forms
@@ -173,5 +181,4 @@ class ModulePlanBinding extends Binding {
         }
         return container;
     }
-
 }
