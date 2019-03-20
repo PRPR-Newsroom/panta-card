@@ -941,9 +941,10 @@ $jscomp.global.Object.defineProperties(ModuleSettingsItem.prototype, {module:{co
   return this._document;
 }}});
 // Input 10
-var ModuleEditableTextItem = function(a) {
+var ModuleEditableTextItem = function(a, b) {
   AbstractItem.call(this);
   this._value = a;
+  this._deletable = b;
 };
 $jscomp.inherits(ModuleEditableTextItem, AbstractItem);
 ModuleEditableTextItem.prototype.setOnTextChangeListener = function(a) {
@@ -962,9 +963,9 @@ ModuleEditableTextItem.prototype.render = function() {
     }), b.value = a.value);
   });
   b.getElementsByClassName("panta-js-delete").forEach(function(b) {
-    b instanceof HTMLElement && b.setEventListener("click", function(b) {
+    b instanceof HTMLElement && (a._deletable ? (b.removeClass("hidden"), b.setEventListener("click", function(b) {
       a._onDeleteListener(a.value);
-    });
+    })) : b.addClass("hidden"));
   });
   return b;
 };
@@ -1214,89 +1215,131 @@ ModuleSettingsController.prototype.edit = function() {
     });
     a.document.getElementsByClassName("settings-content").forEach(function(d) {
       var e = a.document.createElement("p");
-      e.innerHTML = "<strong>Name</strong>";
-      var f = a.document.createElement("p");
-      f.innerHTML = "<strong>Stichworte:</strong>";
-      var g = a.document.createElement("p");
-      g.innerHTML = "Die Stichworte werden f\u00fcr das ganze Board definiert. Wenn ein Stichwort bereits in einer Trello Card verwendet und hier das Stichwort entfernt wird, dann ist dieses Stichwort in dieser Trello Card ebenfalls nicht mehr vorhanden. Falls jedoch ein bestehendes Stichwort nur umbenannt wird, dann wird das dazugeh\u00f6rige Trello Card Stichwort ebenfalls den neuen Namen tragen.";
-      d.appendChild(g);
+      e.innerHTML = c.desc;
       d.appendChild(e);
-      e = new ModuleEditableTextItem(c.label);
-      e.setOnTextChangeListener(function(d, e) {
-        c.label = e;
-        a.pluginController.setPluginModuleConfig(b).then(function() {
-          console.log("Label updated");
-        });
-      });
-      d.appendChild(e.render());
-      d.appendChild(f);
-      c.values.map(function(d) {
-        d = new ModuleEditableTextItem(d);
-        d.setOnDeleteListener(function(d) {
-          confirm("Feld l\u00f6schen", "M\u00f6chten Sie das Feld endg\u00fcltig l\u00f6schen?") && (d = c.values.indexOf(d), -1 !== d && c.values.splice(d, 1), a.pluginController.setPluginModuleConfig(b).then(function() {
-            console.log("Field deleted");
-          }));
-        });
-        d.setOnTextChangeListener(function(d, e) {
-          d = c.values.indexOf(d);
-          -1 !== d ? c.values.splice(d, 1, e) : c.values.push(e);
-          a.pluginController.setPluginModuleConfig(b).then(function() {
-            console.log("Values updated");
+      a.renderEditableLabel(b, d, c, "Beschriftung");
+      a.renderEditable(b, c, d);
+      a.nl(d);
+      switch(c.type) {
+        case "select":
+          e = a.document.createElement("div");
+          var f = a.document.createElement("button");
+          f.addClass("panta-btn");
+          f.innerHTML = "Neues Stichwort";
+          f.setEventListener("click", function(d) {
+            c.values.push("");
+            a.pluginController.setPluginModuleConfig(b).then(function() {
+              console.log("New item added");
+            });
           });
-          return e;
-        });
-        return d.render();
-      }).reduce(function(a, b) {
-        a.appendChild(b);
-        return a;
-      }, d);
-      d.appendChild(a.document.createElement("br"));
-      f = a.document.createElement("div");
-      e = a.document.createElement("button");
-      e.addClass("panta-btn");
-      e.innerHTML = "Neues Stichwort";
-      e.setEventListener("click", function(d) {
-        c.values.push("");
-        a.pluginController.setPluginModuleConfig(b).then(function() {
-          console.log("New item added");
-        });
-      });
-      f.appendChild(e);
-      d.appendChild(f);
+          e.appendChild(f);
+          d.appendChild(e);
+      }
     });
     a.hideVersion();
     return !0;
   });
+};
+ModuleSettingsController.prototype.nl = function(a) {
+  a.appendChild(this.document.createElement("br"));
 };
 ModuleSettingsController.prototype.view = function(a) {
   var b = this;
   return this.pluginController.findPluginModuleConfigByModuleId(this.module).then(function(a) {
     b.document.getElementsByClassName("settings-content").forEach(function(c) {
       var d = b.document.createElement("p");
-      d.innerHTML = "<strong>Auswahllisten:</strong>";
-      var f = b.document.createElement("p");
-      f.innerHTML = "Die Auswahllisten werden f\u00fcr das ganze Trello Board definiert. F\u00fcr jede Auswahlliste kann eine Farbe angegeben, eine Bezeichnung vergeben werden. Zudem kann angegeben werden, ob die Auswahlliste auf der Trello Card Vorderseite angezeigt werden soll. Falls diese Option aktiviert ist, dann wird der Wert der Auswahlliste in der ausgew\u00e4hlten Farbe angezeigt.";
-      c.appendChild(f);
+      d.innerHTML = a.config.desc;
       c.appendChild(d);
-      a.config.editables.map(function(c) {
-        return (new ModuleEditableItem(a, c, b.trello)).setOnEnterListener(function(a, c) {
-          b.trello.popup({title:c.label, url:"settings.html", height:184, args:{module:a.id, editable:c.id}});
-        }).setOnActivationListener(function(a, c, d) {
-          c.show_on_front = d;
-          b.pluginController.setPluginModuleConfig(a).then(function(a) {
-            console.log("PluginConfiguration updated", a);
-          });
-        }).setOnColorPickerClick(function(a, c) {
-          b.trello.popup({title:"Farbe w\u00e4hlen", url:"color-picker.html", height:184, args:{module:a.id, editable:c.id, color:c.color}});
-        }).render();
-      }).reduce(function(a, b) {
-        a.appendChild(b);
-        return a;
-      }, c);
+      b.renderFieldGroup(a, "text", c, "Eingabefelder");
+      b.nl(c);
+      b.renderFieldGroup(a, "select", c, "Auswahllisten");
     });
     b.hideVersion();
     return !0;
   });
+};
+ModuleSettingsController.prototype.renderEditable = function(a, b, c) {
+  switch(b.type) {
+    case "select":
+      this.renderEditableSelect(a, b, c, "Stichworte");
+      break;
+    case "text":
+      this.renderEditableText(a, b, c, "Platzhalter");
+  }
+};
+ModuleSettingsController.prototype.renderEditableText = function(a, b, c, d) {
+  var e = this, f = this.document.createElement("p");
+  f.innerHTML = "<strong>" + d + "</strong>";
+  c.appendChild(f);
+  d = new ModuleEditableTextItem(b.placeholder, !1);
+  c.appendChild(d.setOnTextChangeListener(function(c, d) {
+    if (b.placeholder !== d) {
+      return b.placeholder = d, e.pluginController.setPluginModuleConfig(a).then(function() {
+        console.log("Values updated");
+      }), d;
+    }
+  }).render());
+};
+ModuleSettingsController.prototype.renderEditableSelect = function(a, b, c, d) {
+  var e = this, f = this.document.createElement("p");
+  f.innerHTML = "<strong>" + d + "</strong>";
+  c.appendChild(f);
+  b.values.map(function(c) {
+    c = new ModuleEditableTextItem(c, !0);
+    c.setOnDeleteListener(function(c) {
+      confirm("Feld l\u00f6schen", "M\u00f6chten Sie das Feld endg\u00fcltig l\u00f6schen?") && (c = b.values.indexOf(c), -1 !== c && b.values.splice(c, 1), e.pluginController.setPluginModuleConfig(a).then(function() {
+        console.log("Field deleted");
+      }));
+    });
+    c.setOnTextChangeListener(function(c, d) {
+      c = b.values.indexOf(c);
+      -1 !== c ? b.values.splice(c, 1, d) : b.values.push(d);
+      e.pluginController.setPluginModuleConfig(a).then(function() {
+        console.log("Values updated");
+      });
+      return d;
+    });
+    return c.render();
+  }).reduce(function(a, b) {
+    a.appendChild(b);
+    return a;
+  }, c);
+};
+ModuleSettingsController.prototype.renderEditableLabel = function(a, b, c, d) {
+  var e = this, f = e.document.createElement("p");
+  f.innerHTML = "<strong>" + d + "</strong>";
+  b.appendChild(f);
+  d = new ModuleEditableTextItem(c.label, !1);
+  d.setOnTextChangeListener(function(b, d) {
+    c.label = d;
+    e.pluginController.setPluginModuleConfig(a).then(function() {
+      console.log("Label updated");
+    });
+  });
+  b.appendChild(d.render());
+};
+ModuleSettingsController.prototype.renderFieldGroup = function(a, b, c, d) {
+  var e = this, f = e.document.createElement("p"), g = a.config.editables.filter(function(a) {
+    return a.type === b;
+  });
+  f.addClass(0 < g.length ? "show" : "hidden");
+  f.innerHTML = "<strong>" + d + ":</strong>";
+  c.appendChild(f);
+  g.map(function(b) {
+    return (new ModuleEditableItem(a, b, e.trello)).setOnEnterListener(function(a, b) {
+      e.trello.popup({title:b.label, url:"settings.html", height:184, args:{module:a.id, editable:b.id}});
+    }).setOnActivationListener(function(a, b, c) {
+      b.show_on_front = c;
+      e.pluginController.setPluginModuleConfig(a).then(function(a) {
+        console.log("PluginConfiguration updated", a);
+      });
+    }).setOnColorPickerClick(function(a, b) {
+      e.trello.popup({title:"Farbe w\u00e4hlen", url:"color-picker.html", height:184, args:{module:a.id, editable:b.id, color:b.color}});
+    }).render();
+  }).reduce(function(a, b) {
+    a.appendChild(b);
+    return a;
+  }, c);
 };
 ModuleSettingsController.prototype.hideVersion = function() {
   this.document.getElementsByClassName("plugin-version-container").forEach(function(a) {
@@ -1707,8 +1750,14 @@ ArtikelController.prototype._getPropertyByName = function(a, b, c) {
       return a.region || c;
     case "place":
       return a.location || c;
+    case "field.a":
+      return a.from || c;
+    case "field.b":
+      return a.author || c;
+    case "field.c":
+      return a.text || c;
     default:
-      return c;
+      return a.hasOwnProperty(b), a[b];
   }
 };
 ArtikelController.prototype.fetchAll = function() {
@@ -1832,10 +1881,13 @@ ArtikelBinding.prototype.onLayout = function(a, b) {
   this._switchContent(c);
   this._topic = this.document.newMultiLineInput(a, "pa.topic", "topic", "Thema", b, this._action, 2, "Lauftext");
   this._layout = this.document.newSingleLineInput(a, "pa.layout", "layout", "Seiten Layout", b, this._action, "Zahl", "number", !1);
-  this._from = this.document.newSingleLineInput(a, "pa.input-from", "from", "Input von", b, this._action, "Name");
-  this._author = this.document.newSingleLineInput(a, "pa.author", "author", "Textautor*in", b, this._action, "Name");
+  c = this.getConfigurationFor("field.a");
+  this._from = this.document.newSingleLineInput(a, "pa.input-from", "from", c.label, b, this._action, c.editable.placeholder);
+  c = this.getConfigurationFor("field.b");
+  this._author = this.document.newSingleLineInput(a, "pa.author", "author", c.label, b, this._action, c.editable.placeholder);
   this._total = this.document.newSingleLineInput(a, "pa.total", "total", "Seiten Total", b, this._action, "Summe", "number", !0).addClass("bold");
-  this._text = this.document.newMultiLineInput(a, "pa.text", "text", "Textbox", b, this._action, 2, "Lauftext");
+  c = this.getConfigurationFor("field.c");
+  this._text = this.document.newMultiLineInput(a, "pa.text", "text", c.label, b, this._action, 2, c.editable.placeholder);
   this._pagina = this.document.newSingleLineInput(a, "pa.pagina", "pagina", "Pagina", b, this._action, "Zahl", "number", !1).addClass("pagina").addClass("bold");
   this._tags = this.doLayout("pa.tags", "tags", a, b, "online");
   this._visual = this.doLayout("pa.visual", "visual", a, b);
@@ -1882,17 +1934,12 @@ ArtikelBinding.prototype._updateConfiguration = function(a) {
   this.updateLayout(this._region, "region");
   this.updateLayout(this._season, "season");
   this.updateLayout(this._form, "form");
-  this.updateLayout(this._location, "location");
+  this.updateLayout(this._location, "place");
 };
 ArtikelBinding.prototype.getConfigurationFor = function(a) {
   var b = this._configuration.config.editables.filter(function(b) {
     return b.id === a;
-  }), c = b.map(function(a) {
-    return a.label;
-  }).reduce(function(a, b) {
-    return b;
-  }, null);
-  b = b.map(function(a) {
+  }), c = b[0].label, d = b.map(function(a) {
     return a.values;
   }).flat().map(function(a, b) {
     return newOption(b, a);
@@ -1900,7 +1947,7 @@ ArtikelBinding.prototype.getConfigurationFor = function(a) {
     a.push(b);
     return a;
   }, []);
-  return {label:c, options:b};
+  return {label:c, options:d, editable:b[0]};
 };
 // Input 21
 var ModulePlanBinding = function(a, b, c, d) {
@@ -1978,10 +2025,12 @@ var PluginRepository = function() {
 };
 $jscomp.inherits(PluginRepository, Repository);
 $jscomp.global.Object.defineProperties(PluginRepository, {INSTANCE:{configurable:!0, enumerable:!0, get:function() {
-  PluginRepository.instance || (PluginRepository.instance = new PluginRepository, PluginRepository.instance.add(new PluginModuleConfig("module.artikel", "Artikel", {sort:1, enabled:!1, icon:"./assets/ic_artikel.png", view:"./module.html", editables:[{id:"visual", type:"select", label:"Visual", color:"blue", show_on_front:!1, values:["Bild", "Icon", "Grafik", "Video", "Illu"]}, {id:"form", type:"select", label:"Form", color:"green", show_on_front:!1, values:["News", "Artikel", "Report"]}, {id:"online", 
-  type:"select", label:"Online", color:"yellow", show_on_front:!1, values:"... Mo Di Mi Do Fr Sa So".split(" ")}, {id:"season", type:"select", label:"Saison", color:"sky", show_on_front:!1, values:["Sommer", "Herbst"]}, {id:"region", type:"select", label:"Region", color:"lime", show_on_front:!1, values:["Nord", "S\u00fcd"]}, {id:"place", type:"select", label:"Ort", color:"orange", show_on_front:!1, values:"CDS STO TAM WID Buech Rustico Schlatt".split(" ")}]}), {id:1}), PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", 
-  "Beteiligt", {sort:3, enabled:!1, icon:"./assets/ic_beteiligt.png", view:"./module.html", editables:[{id:"title", type:"text", value:"Beteiligt"}], layouts:{onsite:{name:"onsite", container:"pa.involved.onsite", layout:"regular", label:"vor.Ort"}, text:{name:"text", container:"pa.involved.text", layout:"regular", label:"Journalist"}, photo:{name:"photo", container:"pa.involved.photo", layout:"regular", label:"Visual"}, video:{name:"video", container:"pa.involved.video", layout:"regular", label:"Event"}, 
-  illu:{name:"illu", container:"pa.involved.illu", layout:"regular", label:"MC/Host"}, ad:{name:"ad", container:"pa.involved.ad", layout:"regular", label:"weitere"}}}), {id:2}), PluginRepository.instance.add(new PluginModuleConfig("module.plan", "Plan", {sort:2, enabled:!1, icon:"./assets/ic_plan.png", view:"./module.html"}), {id:3}));
+  PluginRepository.instance || (PluginRepository.instance = new PluginRepository, PluginRepository.instance.add(new PluginModuleConfig("module.artikel", "Artikel", {sort:1, enabled:!1, icon:"./assets/ic_artikel.png", view:"./module.html", desc:"Die Eingabefelder und Auswahllisten werden f\u00fcr das ganze Trello Board konfiguriert. F\u00fcr jedes Feld kann eine Farbe definiert werden. Wenn das Feld mit dem \u00abGutzeichen\u00bb aktiviert wird, dann erscheint es in dieser Farbe auf der Trello Card Vorderseite, ansonsten wird es nur f\u00fcr die Trello Card R\u00fcckseite verwendet.", 
+  editables:[{id:"visual", type:"select", label:"Visual", color:"blue", show_on_front:!1, values:["Bild", "Icon", "Grafik", "Video", "Illu"]}, {id:"form", type:"select", label:"Form", color:"green", show_on_front:!1, values:["News", "Artikel", "Report"]}, {id:"online", type:"select", label:"Online", color:"yellow", show_on_front:!1, values:"... Mo Di Mi Do Fr Sa So".split(" ")}, {id:"season", type:"select", label:"Saison", color:"sky", show_on_front:!1, values:["Sommer", "Herbst"]}, {id:"region", 
+  type:"select", label:"Region", color:"lime", show_on_front:!1, values:["Nord", "S\u00fcd"]}, {id:"place", type:"select", label:"Ort", color:"orange", show_on_front:!1, values:"CDS STO TAM WID Buech Rustico Schlatt".split(" ")}, {id:"field.a", desc:"Das Artikelfeld \u00abA\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", type:"text", label:"Input von", placeholder:"Name", show_on_front:!1, color:"shades"}, {id:"field.b", desc:"Das Artikelfeld \u00abB\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
+  type:"text", label:"Textautor*in", placeholder:"Name", show_on_front:!1, color:"shades"}, {id:"field.c", desc:"Das Artikelfeld \u00abC\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", type:"text", label:"Textbox", placeholder:"Lauftext", show_on_front:!1, color:"shades"}]}), {id:1}), PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", "Beteiligt", {sort:3, enabled:!1, icon:"./assets/ic_beteiligt.png", view:"./module.html", 
+  desc:"Folgende Felder k\u00f6nnen individuell konfiguriert werden.", editables:[{id:"title", desc:"Diese Beschriftung wird oberhalb des Moduls als \u00dcberschrift verwendet.", type:"text", placeholder:"", label:"Beteiligt"}], layouts:{onsite:{name:"onsite", container:"pa.involved.onsite", layout:"regular", label:"vor.Ort"}, text:{name:"text", container:"pa.involved.text", layout:"regular", label:"Journalist"}, photo:{name:"photo", container:"pa.involved.photo", layout:"regular", label:"Visual"}, 
+  video:{name:"video", container:"pa.involved.video", layout:"regular", label:"Event"}, illu:{name:"illu", container:"pa.involved.illu", layout:"regular", label:"MC/Host"}, ad:{name:"ad", container:"pa.involved.ad", layout:"regular", label:"weitere"}}}), {id:2}), PluginRepository.instance.add(new PluginModuleConfig("module.plan", "Plan", {sort:2, enabled:!1, icon:"./assets/ic_plan.png", view:"./module.html", desc:"Folgende Felder k\u00f6nnen individuell konfiguriert werden.", editables:[]}), {id:3}));
   return PluginRepository.instance;
 }}});
 PluginRepository.instance = null;

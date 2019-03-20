@@ -16,6 +16,11 @@ class PluginRepository extends Repository {
                 "enabled": false,
                 "icon": "./assets/ic_artikel.png",
                 "view": "./module.html",
+
+                "desc": "Die Eingabefelder und Auswahllisten werden für das ganze Trello Board konfiguriert. Für jedes Feld kann eine Farbe definiert werden. Wenn das Feld " +
+                "mit dem «Gutzeichen» aktiviert wird, dann erscheint es in dieser Farbe auf der Trello Card Vorderseite, ansonsten wird es nur für die Trello Card Rückseite " +
+                "verwendet.",
+
                 "editables": [{
                     "id": "visual",
                     "type": "select",
@@ -91,6 +96,30 @@ class PluginRepository extends Repository {
                         "Rustico",
                         "Schlatt",
                     ]
+                }, {
+                    "id": "field.a",
+                    "desc": "Das Artikelfeld «A» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+                    "type": "text",
+                    "label": "Input von",
+                    "placeholder": "Name",
+                    "show_on_front": false,
+                    "color": "shades"
+                }, {
+                    "id": "field.b",
+                    "desc": "Das Artikelfeld «B» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+                    "type": "text",
+                    "label": "Textautor*in",
+                    "placeholder": "Name",
+                    "show_on_front": false,
+                    "color": "shades"
+                }, {
+                    "id": "field.c",
+                    "desc": "Das Artikelfeld «C» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+                    "type": "text",
+                    "label": "Textbox",
+                    "placeholder": "Lauftext",
+                    "show_on_front": false,
+                    "color": "shades"
                 }]
             }), {"id": 1});
             PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", "Beteiligt", {
@@ -98,10 +127,15 @@ class PluginRepository extends Repository {
                 "enabled": false,
                 "icon": "./assets/ic_beteiligt.png",
                 "view": "./module.html",
+
+                "desc": "Folgende Felder können individuell konfiguriert werden.",
+
                 "editables": [{
                     "id": "title",
+                    "desc": "Diese Beschriftung wird oberhalb des Moduls als Überschrift verwendet.",
                     "type": "text",
-                    "value": "Beteiligt"
+                    "placeholder": "",
+                    "label": "Beteiligt"
                 }],
                 "layouts": {
                     "onsite": {
@@ -147,6 +181,10 @@ class PluginRepository extends Repository {
                 "enabled": false,
                 "icon": "./assets/ic_plan.png",
                 "view": "./module.html",
+                "desc": "Folgende Felder können individuell konfiguriert werden.",
+                "editables": [
+
+                ]
             }), {"id": 3});
         }
         return PluginRepository.instance;

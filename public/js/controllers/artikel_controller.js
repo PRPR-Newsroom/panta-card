@@ -157,7 +157,7 @@ class ArtikelController extends Controller {
 
     /**
      * Get a property value by its name
-     * @param entity
+     * @param {Artikel} entity
      * @param name
      * @param defaultValue
      * @return {*}
@@ -177,8 +177,18 @@ class ArtikelController extends Controller {
                 return entity.region || defaultValue;
             case "place":
                 return entity.location || defaultValue;
+            case "field.a":
+                return entity.from || defaultValue;
+            case "field.b":
+                return entity.author || defaultValue;
+            case "field.c":
+                return entity.text || defaultValue;
             default:
-                return defaultValue;
+                if (entity.hasOwnProperty(name)) {
+                    return entity[name];
+                } else {
+                    return entity[name];
+                }
         }
     }
 

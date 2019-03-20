@@ -88,11 +88,21 @@ class ArtikelBinding extends Binding {
         this._topic = this.document.newMultiLineInput(valueHolder, "pa.topic", 'topic', 'Thema', params, this._action, 2, "Lauftext");
         // this is a beschiss because the order of the elements matter to correctly compute height
         this._layout = this.document.newSingleLineInput(valueHolder, 'pa.layout', 'layout', 'Seiten Layout', params, this._action, 'Zahl', 'number', false);
-        this._from = this.document.newSingleLineInput(valueHolder, 'pa.input-from', 'from', 'Input von', params, this._action, "Name");
-        this._author = this.document.newSingleLineInput(valueHolder, 'pa.author', 'author', 'Textautor*in', params, this._action, 'Name');
+
+        // from is a dynamic field (field.a)
+        let aconfig = this.getConfigurationFor("field.a");
+        this._from = this.document.newSingleLineInput(valueHolder, 'pa.input-from', 'from', aconfig.label, params, this._action, aconfig.editable.placeholder);
+
+        // author is a dynamic field: (field.b)
+        let bconfig = this.getConfigurationFor("field.b");
+        this._author = this.document.newSingleLineInput(valueHolder, 'pa.author', 'author', bconfig.label, params, this._action, bconfig.editable.placeholder);
+
         this._total = this.document.newSingleLineInput(valueHolder, 'pa.total', 'total', 'Seiten Total', params, this._action, 'Summe', 'number', true)
             .addClass('bold');
-        this._text = this.document.newMultiLineInput(valueHolder, 'pa.text', 'text', 'Textbox', params, this._action, 2, 'Lauftext');
+
+        // text is a dynamic field: (field.c)
+        let cconfig = this.getConfigurationFor("field.c");
+        this._text = this.document.newMultiLineInput(valueHolder, 'pa.text', 'text', cconfig.label, params, this._action, 2, cconfig.editable.placeholder);
 
         /**
          * @type {HTMLElement|PInput}
@@ -205,7 +215,7 @@ class ArtikelBinding extends Binding {
         this.updateLayout(this._region, "region");
         this.updateLayout(this._season, "season");
         this.updateLayout(this._form, "form");
-        this.updateLayout(this._location, "location");
+        this.updateLayout(this._location, "place");
     }
 
     getConfigurationFor(id) {
@@ -214,16 +224,9 @@ class ArtikelBinding extends Binding {
                 return editable.id === id;
             });
 
-        let label = editable
-            .map(function(editable) {
-                return editable.label;
-            })
-            .reduce(function(prev, cur) {
-                prev = cur;
-                return prev;
-            }, null);
+        let label = editable[0].label;
 
-        let onlines = editable
+        let options = editable
             .map(function (editable) {
                 return editable.values;
             })
@@ -238,7 +241,8 @@ class ArtikelBinding extends Binding {
 
         return {
             "label": label,
-            "options": onlines
+            "options": options,
+            "editable": editable[0]
         };
     }
 

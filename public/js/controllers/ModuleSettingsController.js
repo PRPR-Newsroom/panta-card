@@ -65,88 +65,44 @@ class ModuleSettingsController {
                     return item.id === that.editable;
                 });
                 that.document.getElementsByClassName("settings-content").forEach(function (element) {
-                    let name = that.document.createElement("p");
-                    name.innerHTML = "<strong>Name</strong>";
 
-                    let header = that.document.createElement("p");
-                    header.innerHTML = "<strong>Stichworte:</strong>";
                     let hint = that.document.createElement("p");
-                    hint.innerHTML = "Die Stichworte werden für das ganze Board definiert. Wenn ein Stichwort bereits in einer Trello Card " +
-                        "verwendet und hier das Stichwort entfernt wird, dann ist dieses Stichwort in dieser Trello Card " +
-                        "ebenfalls nicht mehr vorhanden. Falls jedoch ein bestehendes Stichwort " +
-                        "nur umbenannt wird, dann wird das dazugehörige Trello Card Stichwort ebenfalls " +
-                        "den neuen Namen tragen.";
+                    hint.innerHTML = editable.desc;
 
                     element.appendChild(hint);
-                    element.appendChild(name);
 
-                    let editableName = new ModuleEditableTextItem(editable.label);
-                    editableName.setOnTextChangeListener(function(previous, updated) {
-                        editable.label = updated;
-                        that.pluginController.setPluginModuleConfig(mc)
-                            .then(function() {
-                                console.log("Label updated");
-                            });
-                    });
-                    element.appendChild(editableName.render());
+                    that.renderEditableLabel(mc, element, editable, "Beschriftung");
 
-                    element.appendChild(header);
+                    that.renderEditable(mc, editable, element);
 
-                    editable.values
-                        .map(function (item) {
-                            let meti = new ModuleEditableTextItem(item);
-                            meti.setOnDeleteListener(function(value) {
-                                if (confirm("Feld löschen", "Möchten Sie das Feld endgültig löschen?")) {
-                                    let index = editable.values.indexOf(value);
-                                    if (index !== -1) {
-                                        editable.values.splice(index, 1);
-                                    }
-                                    that.pluginController.setPluginModuleConfig(mc)
-                                        .then(function() {
-                                            console.log("Field deleted");
-                                        });
-                                }
-                            });
-                            meti.setOnTextChangeListener(function(previous, updated) {
-                                let index = editable.values.indexOf(previous);
-                                if (index !== -1) {
-                                    editable.values.splice(index, 1, updated);
-                                } else {
-                                    editable.values.push(updated);
-                                }
+                    that.nl(element);
+
+                    switch (editable.type) {
+                        case "select":
+                            let footer = that.document.createElement("div");
+                            let addAction = that.document.createElement("button");
+                            addAction
+                                .addClass("panta-btn");
+                            addAction.innerHTML = "Neues Stichwort";
+                            addAction.setEventListener('click', function (e) {
+                                editable.values.push("");
                                 that.pluginController.setPluginModuleConfig(mc)
-                                    .then(function() {
-                                        console.log("Values updated");
+                                    .then(function () {
+                                        console.log("New item added");
                                     });
-                                return updated;
                             });
-                            return meti.render();
-                        })
-                        .reduce(function (prev, curr) {
-                            prev.appendChild(curr);
-                            return prev;
-                        }, element);
-
-                    element.appendChild(that.document.createElement("br"));
-
-                    let footer = that.document.createElement("div");
-                    let addAction = that.document.createElement("button");
-                    addAction
-                        .addClass("panta-btn");
-                    addAction.innerHTML = "Neues Stichwort";
-                    addAction.setEventListener('click', function(e) {
-                        editable.values.push("");
-                        that.pluginController.setPluginModuleConfig(mc)
-                            .then(function() {
-                                console.log("New item added");
-                            });
-                    });
-                    footer.appendChild(addAction);
-                    element.appendChild(footer);
+                            footer.appendChild(addAction);
+                            element.appendChild(footer);
+                            break;
+                    }
                 });
                 that.hideVersion();
                 return true;
             });
+    }
+
+    nl(element) {
+        element.appendChild(this.document.createElement("br"));
     }
 
     /**
@@ -160,62 +116,171 @@ class ModuleSettingsController {
             .then(function (mc) {
                 // show all editables
                 that.document.getElementsByClassName("settings-content").forEach(function (element) {
-                    let header = that.document.createElement("p");
-                    header.innerHTML = "<strong>Auswahllisten:</strong>";
 
                     let hint = that.document.createElement("p");
-                    hint.innerHTML = "Die Auswahllisten werden für das ganze Trello Board definiert. Für jede " +
-                        "Auswahlliste kann eine Farbe angegeben, eine Bezeichnung vergeben werden. Zudem kann " +
-                        "angegeben werden, ob die Auswahlliste auf der Trello Card Vorderseite angezeigt " +
-                        "werden soll. Falls diese Option aktiviert ist, dann wird der Wert der Auswahlliste " +
-                        "in der ausgewählten Farbe angezeigt.";
+                    hint.innerHTML = mc.config.desc;
 
                     element.appendChild(hint);
-                    element.appendChild(header);
 
-                    mc.config.editables
-                        .map(function (editable) {
-                            return new ModuleEditableItem(mc, editable, that.trello)
-                                .setOnEnterListener(function (module, editable) {
-                                    that.trello.popup({
-                                        title: editable.label,
-                                        url: "settings.html",
-                                        height: 184,
-                                        args: {
-                                            "module": module.id,
-                                            "editable": editable.id,
-                                        },
-                                    });
-                                })
-                                .setOnActivationListener(function (module, editable, showOnFront) {
-                                    editable.show_on_front = showOnFront;
-                                    that.pluginController.setPluginModuleConfig(module)
-                                        .then(function(pc) {
-                                            console.log("PluginConfiguration updated", pc);
-                                        });
-                                })
-                                .setOnColorPickerClick(function (module, editable) {
-                                    that.trello.popup({
-                                        title: "Farbe wählen",
-                                        url: "color-picker.html",
-                                        height: 184,
-                                        args: {
-                                            "module": module.id,
-                                            "editable": editable.id,
-                                            "color": editable.color
-                                        }
-                                    });
-                                })
-                                .render();
-                        })
-                        .reduce(function (prev, curr) {
-                            prev.appendChild(curr);
-                            return prev;
-                        }, element);
+                    that.renderFieldGroup(mc, "text", element, "Eingabefelder");
+                    that.nl(element);
+                    that.renderFieldGroup(mc, "select", element, "Auswahllisten");
+
                 });
                 that.hideVersion();
                 return true;
             });
+    }
+
+    renderEditable(mc, editable, element) {
+        switch (editable.type) {
+            case "select":
+                this.renderEditableSelect(mc, editable, element, "Stichworte");
+                break;
+            case "text":
+                this.renderEditableText(mc, editable, element, "Platzhalter");
+                break;
+        }
+    }
+
+    renderEditableText(mc, editable, element, label) {
+        let that = this;
+        let group = this.document.createElement("p");
+        group.innerHTML = "<strong>" + label + "</strong>";
+        element.appendChild(group);
+
+        let meti = new ModuleEditableTextItem(editable.placeholder, false);
+        element.appendChild(meti.setOnTextChangeListener(function (previous, updated) {
+            if (editable.placeholder !== updated) {
+                editable.placeholder = updated;
+                that.pluginController.setPluginModuleConfig(mc)
+                    .then(function () {
+                        console.log("Values updated");
+                    });
+                return updated;
+            }
+        }).render());
+    }
+
+    renderEditableSelect(mc, editable, element, label) {
+        let that = this;
+        let group = this.document.createElement("p");
+        group.innerHTML = "<strong>" + label + "</strong>";
+        element.appendChild(group);
+
+        editable.values
+            .map(function (item) {
+                let meti = new ModuleEditableTextItem(item, true);
+                meti.setOnDeleteListener(function (value) {
+                    if (confirm("Feld löschen", "Möchten Sie das Feld endgültig löschen?")) {
+                        let index = editable.values.indexOf(value);
+                        if (index !== -1) {
+                            editable.values.splice(index, 1);
+                        }
+                        that.pluginController.setPluginModuleConfig(mc)
+                            .then(function () {
+                                console.log("Field deleted");
+                            });
+                    }
+                });
+                meti.setOnTextChangeListener(function (previous, updated) {
+                    let index = editable.values.indexOf(previous);
+                    if (index !== -1) {
+                        editable.values.splice(index, 1, updated);
+                    } else {
+                        editable.values.push(updated);
+                    }
+                    that.pluginController.setPluginModuleConfig(mc)
+                        .then(function () {
+                            console.log("Values updated");
+                        });
+                    return updated;
+                });
+                return meti.render();
+            })
+            .reduce(function (prev, curr) {
+                prev.appendChild(curr);
+                return prev;
+            }, element);
+    }
+
+    /**
+     * @param {PluginModuleConfig} mc
+     * @param element
+     * @param editable
+     * @param label
+     */
+    renderEditableLabel(mc, element, editable, label) {
+        let that = this;
+        let name = that.document.createElement("p");
+        name.innerHTML = "<strong>" + label + "</strong>";
+        element.appendChild(name);
+        let editableName = new ModuleEditableTextItem(editable.label, false);
+        editableName.setOnTextChangeListener(function (previous, updated) {
+            editable.label = updated;
+            that.pluginController.setPluginModuleConfig(mc)
+                .then(function () {
+                    console.log("Label updated");
+                });
+        });
+        element.appendChild(editableName.render());
+    }
+
+    /**
+     * @param {PluginModuleConfig} mc
+     * @param type the type of the fields
+     * @param element
+     * @param section the name of that section/group
+     */
+    renderFieldGroup(mc, type, element, section) {
+        let that = this;
+        let group = that.document.createElement("p");
+        let typed = mc.config.editables
+            .filter(function (editable) {
+                return editable.type === type;
+            });
+        group.addClass(typed.length > 0 ? 'show' : 'hidden');
+        group.innerHTML = "<strong>" + section + ":</strong>";
+        element.appendChild(group);
+
+        typed.map(function (editable) {
+                return new ModuleEditableItem(mc, editable, that.trello)
+                    .setOnEnterListener(function (module, editable) {
+                        that.trello.popup({
+                            title: editable.label,
+                            url: "settings.html",
+                            height: 184,
+                            args: {
+                                "module": module.id,
+                                "editable": editable.id,
+                            },
+                        });
+                    })
+                    .setOnActivationListener(function (module, editable, showOnFront) {
+                        editable.show_on_front = showOnFront;
+                        that.pluginController.setPluginModuleConfig(module)
+                            .then(function (pc) {
+                                console.log("PluginConfiguration updated", pc);
+                            });
+                    })
+                    .setOnColorPickerClick(function (module, editable) {
+                        that.trello.popup({
+                            title: "Farbe wählen",
+                            url: "color-picker.html",
+                            height: 184,
+                            args: {
+                                "module": module.id,
+                                "editable": editable.id,
+                                "color": editable.color
+                            }
+                        });
+                    })
+                    .render();
+            })
+            .reduce(function (prev, curr) {
+                prev.appendChild(curr);
+                return prev;
+            }, element);
     }
 
     /**

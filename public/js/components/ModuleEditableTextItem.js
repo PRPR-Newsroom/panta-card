@@ -8,9 +8,10 @@ class ModuleEditableTextItem extends AbstractItem {
         this._value = value;
     }
 
-    constructor(value) {
+    constructor(value, deletable) {
         super();
         this._value = value;
+        this._deletable = deletable;
     }
 
     setOnTextChangeListener(handler) {
@@ -38,9 +39,14 @@ class ModuleEditableTextItem extends AbstractItem {
         });
         template.getElementsByClassName("panta-js-delete").forEach(function(item) {
             if (item instanceof HTMLElement) {
-                item.setEventListener('click', function(e) {
-                    that._onDeleteListener(that.value);
-                })
+                if (that._deletable) {
+                    item.removeClass("hidden");
+                    item.setEventListener('click', function(e) {
+                        that._onDeleteListener(that.value);
+                    })
+                } else {
+                    item.addClass("hidden");
+                }
             }
         });
 
