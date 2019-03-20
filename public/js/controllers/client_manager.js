@@ -352,7 +352,7 @@ class ClientManager {
                         }
                         if (entity.online) {
                             badges.push({
-                                text: 'online: ' + that.getPlanController().getOnlineMapping(entity.online),
+                                text: 'online: ' + entity.online,
                                 color: 'blue'
                             });
                         }
@@ -415,21 +415,22 @@ class ClientManager {
                         text: "",
                         icon: './assets/ic_artikel.png'
                     });
-
-                    if (artikel.region) {
-                        badges.push({
-                            text: 'region: ' + that.getArticleController().getRegionMapping(artikel.region),
-                            color: 'sky'
-                        });
-                    }
-                    if (artikel.tags) {
-                        badges.push({
-                            text: 'online: ' + that.getArticleController().getTagMapping(artikel.tags),
-                            color: 'blue'
-                        });
-                    }
                 }
-                return badges;
+                return that.getModuleConfiguration("module.artikel")
+                    .then(function(pmc) {
+                        return pmc.config.editables;
+                    })
+                    .filter(function(editable) {
+                        let val = that.getArticleController().getMapping(editable, artikel, null);
+                        return val && editable.show_on_front === true;
+                    })
+                    .map(function(editable) {
+
+                        return {
+                            "text": editable.label + ": " + that.getArticleController().getMapping(editable, artikel, ""),
+                            "color": editable.color
+                        };
+                    });
             }
         };
     }

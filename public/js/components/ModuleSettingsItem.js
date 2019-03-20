@@ -10,6 +10,9 @@ class ModuleSettingsItem extends AbstractItem{
         return this._module;
     }
 
+    /**
+     * @param {PluginModuleConfig} value
+     */
     set module(value) {
         this._module = value;
     }

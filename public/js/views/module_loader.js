@@ -28,8 +28,7 @@ t.render(function () {
                 .then(function (json) {
                     return context["configuration"]
                         .then(function (configuration) {
-                            let layouts = configuration && configuration.config ? configuration.config.layouts : null;
-                            controller.render(controller.create(json), layouts);
+                            controller.render(controller.create(json), configuration);
                             return true;
                         })
                 })

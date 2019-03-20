@@ -7,10 +7,14 @@ t.render(function () {
 
     return pluginController.getPluginConfiguration()
         .then(function (data) {
-            let moduleSettingsController = ModuleSettingsController.create(t, pluginController, t.arg("module"), t.arg("editable"), document);
+            let controller = new ColorPickerController(window, pluginController, t);
 
-            return moduleSettingsController.render.call(moduleSettingsController, data)
-                .then(function() {
+            return controller.render.call(controller, {
+                "module": t.arg("module"),
+                "editable": t.arg("editable"),
+                "color": t.arg("color")
+            })
+                .then(function () {
                     return t.sizeTo("#content").done();
                 });
         });

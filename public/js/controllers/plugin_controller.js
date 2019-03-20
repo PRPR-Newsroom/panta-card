@@ -99,15 +99,43 @@ class PluginController {
         });
     }
 
-    findModuleById(id) {
-        return Object.values(this._repository.all())
-            .find(function (item) {
-                return item.id === id;
-            });
+    /**
+     * @param {PluginModuleConfig} pmc
+     * @return {PromiseLike<T> | Promise<T>}
+     */
+    setPluginModuleConfig(pmc) {
+        let that = this;
+        return this.getPluginConfiguration()
+            .then(function (pc) {
+                let item = pc.modules.find(function (item) {
+                    return item.id === pmc.id;
+                });
+                item.config = pmc.config;
+                that._trelloApi.set('board', 'shared', PluginController.CONFIGURATION_NAME, pc);
+                return pc;
+            })
+    }
+
+    /**
+     * @param id
+     * @return {PluginModuleConfig}
+     */
+    findPluginModuleConfigByModuleId(id) {
+        return this.getPluginConfiguration()
+            .then(function (pc) {
+                return pc.modules;
+            })
+            .filter(function (module) {
+                return module.id === id;
+            })
+            .reduce(function (prev, cur) {
+                prev = cur;
+                return prev;
+            }, null);
     }
 
     getAvailableModules() {
-        return Object.values(this._repository.all()).sort(function(lhs, rhs) {
+        return Object.values(PluginRepository.INSTANCE.all()).sort(function (lhs, rhs) {
             return lhs.config.sort - rhs.config.sort;
         });
     }

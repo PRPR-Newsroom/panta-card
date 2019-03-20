@@ -63,7 +63,6 @@ class ModulePlanController extends Controller {
                 that._entity.capOnDepenses = that.getCapOnDepenses();
             }
             if (needUpdate) {
-                console.log("Update needed");
                 that._binding.update(that._entity);
             }
         };
@@ -88,7 +87,7 @@ class ModulePlanController extends Controller {
          * @type Plan
          */
         this._entity = entity;
-        this._binding = this._binding ? this._binding.update(entity) : new ModulePlanBinding(this._window.document, entity, this.onEvent, this).bind();
+        this._binding = this._binding ? this._binding.update(entity, configuration) : new ModulePlanBinding(this._window.document, entity, this.onEvent, this).bind();
         return super.render(entity);
     }
 
@@ -188,10 +187,6 @@ class ModulePlanController extends Controller {
 
     getRegionMapping(region) {
         return ArtikelBinding.getRegionMapping(region);
-    }
-
-    getOnlineMapping(online) {
-        return ArtikelBinding.getTagMapping(online);
     }
 
     persist(entity, cardId) {

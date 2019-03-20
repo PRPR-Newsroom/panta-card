@@ -1,9 +1,9 @@
 /* Customize the label (the container) */
 .panta-checkbox-container {
+  width: 100%;
+  height: 100%;
   display: block;
   position: relative;
-  padding-left: 35px;
-  margin-bottom: 12px;
   cursor: pointer;
   font-size: 22px;
   -webkit-user-select: none;
@@ -24,9 +24,12 @@
   position: absolute;
   top: 0;
   left: 0;
-  height: 25px;
-  width: 25px;
+  height: 100%;
+  width: 100%;
   background-color: transparent; }
+  .panta-checkbox-checkmark.elevate {
+    border-radius: 100%;
+    border: 1px solid #798d99; }
 
 /* On mouse-over, add a grey background color */
 .panta-checkbox-container:hover input ~ .panta-checkbox-checkmark:after {
@@ -48,13 +51,20 @@
 .panta-checkbox-container input:checked ~ .panta-checkbox-checkmark:after {
   display: block; }
 
+.panta-checkbox-container .elevate.panta-checkbox-checkmark:after {
+  border: solid #fdebd7;
+  border-width: 0 2px 2px 0; }
+.panta-checkbox-container .panta-checkbox-checkmark:after {
+  border: solid transparent;
+  border-width: 0 2px 2px 0; }
+
 /* Style the checkmark/indicator */
 .panta-checkbox-container .panta-checkbox-checkmark:after {
-  left: 9px;
-  top: 2px;
-  width: 5px;
-  height: 10px;
-  border: solid #fdebd7;
+  width: 25%;
+  height: 50%;
+  left: 30%;
+  top: 10%;
+  display: block;
   border-width: 0 2px 2px 0;
   -webkit-transform: rotate(45deg);
   -ms-transform: rotate(45deg);

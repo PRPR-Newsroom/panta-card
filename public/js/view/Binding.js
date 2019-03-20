@@ -29,12 +29,13 @@ class Binding {
 
     /**
      *
-     * @param config
+     * @param entity
+     * @param configuration
      *
      * @returns {Binding}
      * @abstract
      */
-    update(config) {
+    update(entity, configuration) {
 
     }
 

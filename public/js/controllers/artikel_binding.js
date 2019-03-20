@@ -26,37 +26,32 @@ class ArtikelBinding extends Binding {
      * @returns {*}
      */
     static getTagMapping(tag) {
-        switch (tag) {
-            case "monday":
-                return "Mo.";
-            case "tuesday":
-                return "Di.";
-            case "wednesday":
-                return "Mi.";
-            case "thursday":
-                return "Do.";
-            case "friday":
-                return "Fr.";
-            case "saturday":
-                return "Sa.";
-            case "sunday":
-                return "So.";
-            default:
-                return tag;
-        }
+        return tag;
     }
 
-    constructor(document, entity, action, context) {
+    constructor(document, entity, action, context, configuration) {
         super(document, entity, action, context);
+        /**
+         * @type {PluginModuleConfig}
+         */
+        this._configuration = configuration;
     }
 
 
     /**
      * This is called when a property has changed and thus the form needs an update. All fields of the panta.Artikel are updated
      * @param artikel
+     * @param configuration
      * @returns {ArtikelBinding}
      */
-    update(artikel) {
+    update(artikel, configuration) {
+        if (configuration) {
+            console.log("Update configuration", configuration);
+            this._updateConfiguration(configuration);
+        } else {
+            console.log("No new configuration");
+        }
+
         this._topic.update(artikel);
         this._from.update(artikel);
         this._author.update(artikel);
@@ -99,59 +94,49 @@ class ArtikelBinding extends Binding {
             .addClass('bold');
         this._text = this.document.newMultiLineInput(valueHolder, 'pa.text', 'text', 'Textbox', params, this._action, 2, 'Lauftext');
 
+        /**
+         * @type {HTMLElement|PInput}
+         * @private
+         */
         this._pagina = this.document.newSingleLineInput(valueHolder, 'pa.pagina', 'pagina', 'Pagina', params, this._action, 'Zahl', 'number', false)
             .addClass('pagina')
             .addClass('bold');
 
-        this._tags = this.document.newSingleSelect(valueHolder, 'pa.tags', 'tags', 'Online', params, this._action, 'Liste-Tag', newOption('', '…'), [
-            newOption("monday", ArtikelBinding.getTagMapping("monday")),
-            newOption("tuesday", ArtikelBinding.getTagMapping("tuesday")),
-            newOption("wednesday", ArtikelBinding.getTagMapping("wednesday")),
-            newOption("thursday", ArtikelBinding.getTagMapping("thursday")),
-            newOption("friday", ArtikelBinding.getTagMapping("friday")),
-            newOption("saturday", ArtikelBinding.getTagMapping("saturday")),
-            newOption("sunday", ArtikelBinding.getTagMapping("sunday")),
-        ]);
-
-        this._visual = this.document.newSingleSelect(valueHolder, 'pa.visual', 'visual', 'Visual', params, this._action, 'x-Liste', newOption('', '…'), [
-            newOption("picture", "Bild"),
-            newOption("icon", "Icon"),
-            newOption("graphics", "Grafik"),
-            newOption("videos", "Video"),
-            newOption("illustrations", "Illu"),
-        ]);
-
-        this._region = this.document.newSingleSelect(valueHolder, 'pa.region', 'region', 'Region', params, this._action, 'x-Liste', newOption('', '…'), [
-            newOption("north", ArtikelBinding.getRegionMapping("north")),
-            newOption("south", ArtikelBinding.getRegionMapping("south")),
-        ]);
         /**
          * @type {SingleSelectInput}
          * @private
          */
-        this._season = this.document.newSingleSelect(valueHolder, 'pa.season', 'season', 'Saison', params, this._action, 'x-Liste', newOption('', '…'), [
-            newOption("summer", "Sommer"),
-            newOption("fall", "Herbst"),
-        ]);
+        this._tags = this.doLayout("pa.tags", "tags", valueHolder, params, "online");
 
         /**
          * @type {SingleSelectInput}
          * @private
          */
-        this._form = this.document.newSingleSelect(valueHolder, 'pa.form', 'form', 'Form', params, this._action, 'x-Liste', newOption('', '…'), [
-            newOption("news", "News"),
-            newOption("article", "Artikel"),
-            newOption("report", "Report"),
-        ]);
-        this._location = this.document.newSingleSelect(valueHolder, 'pa.location', 'location', 'Ort', params, this._action, 'x-Liste', newOption('', '…'), [
-            newOption("cds", "CDS"),
-            newOption("sto", "STO"),
-            newOption("tam", "TAM"),
-            newOption("wid", "WID"),
-            newOption("buech", "Buech"),
-            newOption("rustico", "Rustico"),
-            newOption("schlatt", "Schlatt"),
-        ]);
+        this._visual = this.doLayout("pa.visual", "visual", valueHolder, params);
+
+        /**
+         * @type {SingleSelectInput}
+         * @private
+         */
+        this._region = this.doLayout("pa.region", "region", valueHolder, params);
+
+        /**
+         * @type {SingleSelectInput}
+         * @private
+         */
+        this._season = this.doLayout("pa.season", "season", valueHolder, params);
+
+        /**
+         * @type {SingleSelectInput}
+         * @private
+         */
+        this._form = this.doLayout("pa.form", "form", valueHolder, params);
+
+        /**
+         * @type {SingleSelectInput}
+         * @private
+         */
+        this._location = this.doLayout("pa.location", "location", valueHolder, params, "place");
     }
 
     detach() {
@@ -185,6 +170,76 @@ class ArtikelBinding extends Binding {
             this.document.getElementById("panta.content").appendChild(form);
         }
         return container;
+    }
+
+    /**
+     * @param target the target HTML element id
+     * @param id the property id
+     * @param valueHolder
+     * @param params
+     * @param configurationId if the property id differs from the configuration id you can pass the configuration id separately
+     * @return {SingleSelectInput|PInput}
+     */
+    doLayout(target, id, valueHolder, params, configurationId) {
+        let configuration = this.getConfigurationFor(configurationId || id);
+        /**
+         * @type {SingleSelectInput|PInput}
+         * @private
+         */
+        return this.document.newSingleSelect(valueHolder, target, id, configuration.label, params, this._action, 'Liste-Tag',
+            newOption('-1', '…'), configuration.options);
+    }
+
+    updateLayout(select, id) {
+        let oc = this.getConfigurationFor(id);
+        select.clear();
+        select.setLabel(oc.label);
+        select.addOptions(oc.options);
+    }
+
+    _updateConfiguration(configuration) {
+        this._configuration = configuration;
+
+        this.updateLayout(this._tags, "online");
+        this.updateLayout(this._visual, "visual");
+        this.updateLayout(this._region, "region");
+        this.updateLayout(this._season, "season");
+        this.updateLayout(this._form, "form");
+        this.updateLayout(this._location, "location");
+    }
+
+    getConfigurationFor(id) {
+        let editable = this._configuration.config.editables
+            .filter(function (editable) {
+                return editable.id === id;
+            });
+
+        let label = editable
+            .map(function(editable) {
+                return editable.label;
+            })
+            .reduce(function(prev, cur) {
+                prev = cur;
+                return prev;
+            }, null);
+
+        let onlines = editable
+            .map(function (editable) {
+                return editable.values;
+            })
+            .flat()
+            .map(function (value, index) {
+                return newOption(index, value);
+            })
+            .reduce(function (prev, cur) {
+                prev.push(cur);
+                return prev;
+            }, []);
+
+        return {
+            "label": label,
+            "options": onlines
+        };
     }
 
 }

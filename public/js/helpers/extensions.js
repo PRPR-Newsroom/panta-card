@@ -259,7 +259,7 @@ HTMLDocument.prototype.newSingleLineInput = function (valueHolder,
  * @param placeholder
  * @param empty an object with 'value' and 'text' that is used when the user did not select anything
  * @param options an array of {value/text} options
- * @returns {SingleSelectInput}
+ * @returns {SingleSelectInput|PInput}
  */
 HTMLDocument.prototype.newSingleSelect = function (valueHolder, targetId, property, label, actionParameters, actionCallback, placeholder = "", empty, options) {
     let ssi = new SingleSelectInput(this, label, null, targetId, placeholder)
@@ -296,6 +296,16 @@ String.prototype.toHTML = function() {
     var txt = document.createElement('textarea');
     txt.innerHTML = this;
     return txt.value;
+};
+
+/**
+ * Convert a string to an escaped HTML version
+ * @return {string}
+ */
+String.prototype.toHtmlEntities = function() {
+    return this.replace(/[\u00A0-\u9999<>\&]/gim, function(i) {
+        return '&#' + i.charCodeAt(0) + ';';
+    });
 };
 
 /**

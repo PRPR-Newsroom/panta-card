@@ -262,12 +262,12 @@ $jscomp.polyfill("Promise", function(a) {
         }
       } : b;
     }
-    var d, f, g = new e(function(a, b) {
+    var d, f, h = new e(function(a, b) {
       d = a;
       f = b;
     });
     this.callWhenSettled_(c(a, d), c(b, f));
-    return g;
+    return h;
   };
   e.prototype.catch = function(a) {
     return this.then(void 0, a);
@@ -306,14 +306,14 @@ $jscomp.polyfill("Promise", function(a) {
     return d.done ? c([]) : new e(function(a, e) {
       function f(b) {
         return function(c) {
-          g[b] = c;
-          h--;
-          0 == h && a(g);
+          h[b] = c;
+          g--;
+          0 == g && a(h);
         };
       }
-      var g = [], h = 0;
+      var h = [], g = 0;
       do {
-        g.push(void 0), h++, c(d.value).callWhenSettled_(f(g.length - 1), e), d = b.next();
+        h.push(void 0), g++, c(d.value).callWhenSettled_(f(h.length - 1), e), d = b.next();
       } while (!d.done);
     });
   };
@@ -417,7 +417,7 @@ var Binding = function(a, b, c, d) {
   this._context = d;
   this._autoUpdater = null;
 };
-Binding.prototype.update = function(a) {
+Binding.prototype.update = function(a, b) {
 };
 Binding.prototype.bind = function() {
 };
@@ -580,16 +580,22 @@ PInput.prototype.render = function() {
   this._input.addClass(this.propertyType);
   this._input.addClass("u-border");
   this.setupEvents();
-  this._labelInput = this._document.createElement("label");
-  this._labelInput.appendChild(this._document.createTextNode(this._label));
-  this._labelInput.setAttribute("for", this._input.getAttribute("name"));
-  this._labelInput.addClass("prop-" + this._type);
+  this._labelInput = this.setLabel();
   0 === this._label.length ? a.setAttribute("class", "field hidden") : a.setAttribute("class", "field");
   a.appendChild(this._labelInput);
   a.appendChild(this._input);
   this._target && this._target.appendChild(a);
   this.doCustomization(this._input, this._labelInput);
   return this;
+};
+PInput.prototype.setLabel = function(a) {
+  this._label = a || this._label;
+  a = this._labelInput || this._document.createElement("label");
+  a.removeChildren();
+  a.appendChild(this._document.createTextNode(this._label));
+  a.setAttribute("for", this._input.getAttribute("name"));
+  a.addClass("prop-" + this._type);
+  return a;
 };
 PInput.prototype._renderType = function() {
   if ("input" === this._type) {
@@ -754,6 +760,15 @@ SingleSelectInput.prototype.setEmpty = function(a, b) {
   this._options.splice(0, 0, {value:a, text:b, empty:!0});
   return this;
 };
+SingleSelectInput.prototype.clear = function() {
+  this._options.splice(0, this._options.length);
+};
+SingleSelectInput.prototype.addOptions = function(a) {
+  var b = this;
+  a.forEach(function(a) {
+    b.addOption(a.value, a.text);
+  });
+};
 SingleSelectInput.prototype.addOption = function(a, b) {
   this._options.push({value:a, text:b, empty:!1});
   return this;
@@ -764,7 +779,7 @@ SingleSelectInput.prototype.doCustomization = function(a, b) {
     e = document.createElement("option");
     e.value = b.value;
     e.text = b.text;
-    b.value === c._value && e.setAttribute("selected", "selected");
+    parseInt(b.value) === parseInt(c._value) && e.setAttribute("selected", "selected");
     a.appendChild(e);
   });
   b.addClass("focused-fix");
@@ -825,6 +840,14 @@ ModuleEditableItem.prototype.setOnEnterListener = function(a) {
   this._onEnterHandler = a;
   return this;
 };
+ModuleEditableItem.prototype.setOnActivationListener = function(a) {
+  this._onActivationHandler = a;
+  return this;
+};
+ModuleEditableItem.prototype.setOnColorPickerClick = function(a) {
+  this._onColorPickerHandler = a;
+  return this;
+};
 ModuleEditableItem.prototype.render = function() {
   var a = this, b = createByTemplate(template_settings_editable, template_settings_editable);
   this.decorate(b);
@@ -834,17 +857,21 @@ ModuleEditableItem.prototype.render = function() {
   b.setEventListener("click", function() {
     a._onEnterHandler(a.module, a.editable);
   });
-  b.getClosestChildByClassName("panta-checkbox-container").setEventListener("click", function(a) {
-    a.preventDefault();
-    a.stopPropagation();
-    a = a.srcElement.getClosestParentByClassName("panta-checkbox-container").getClosestChildByClassName("panta-js-checkbox");
-    a.checked = !a.checked;
+  var c = b.getClosestChildByClassName("panta-checkbox-container");
+  c.getClosestChildByClassName("panta-js-checkbox").checked = !0 === a.editable.show_on_front;
+  c.setEventListener("click", function(b) {
+    b.preventDefault();
+    b.stopPropagation();
+    b = b.srcElement.getClosestParentByClassName("panta-checkbox-container").getClosestChildByClassName("panta-js-checkbox");
+    b.checked = !b.checked;
+    a._onActivationHandler(a.module, a.editable, b.checked);
   });
-  var c = b.getClosestChildByClassName("module-editable-color").getClosestChildByClassName("panta-js-button");
+  c = b.getClosestChildByClassName("module-editable-color").getClosestChildByClassName("panta-js-button");
   c.addClass("panta-bgcolor-" + a.editable.color);
-  c.setEventListener("click", function(a) {
-    a.preventDefault();
-    a.stopPropagation();
+  c.setEventListener("click", function(b) {
+    b.preventDefault();
+    b.stopPropagation();
+    a._onColorPickerHandler(a.module, a.editable);
   });
   return b;
 };
@@ -919,10 +946,25 @@ var ModuleEditableTextItem = function(a) {
   this._value = a;
 };
 $jscomp.inherits(ModuleEditableTextItem, AbstractItem);
+ModuleEditableTextItem.prototype.setOnTextChangeListener = function(a) {
+  this._onTextChangeListener = a;
+  return this;
+};
+ModuleEditableTextItem.prototype.setOnDeleteListener = function(a) {
+  this._onDeleteListener = a;
+  return this;
+};
 ModuleEditableTextItem.prototype.render = function() {
   var a = this, b = createByTemplate(template_settings_editable_option, template_settings_editable_option);
   b.getElementsByClassName("module-editable-option-name").forEach(function(b) {
-    b instanceof HTMLElement && (b.getClosestChildByClassName("panta-js-name").value = a.value);
+    b instanceof HTMLElement && (b = b.getClosestChildByClassName("panta-js-name"), b.setEventListener("change", function(b) {
+      a._value = a._onTextChangeListener(a.value, b.srcElement.value);
+    }), b.value = a.value);
+  });
+  b.getElementsByClassName("panta-js-delete").forEach(function(b) {
+    b instanceof HTMLElement && b.setEventListener("click", function(b) {
+      a._onDeleteListener(a.value);
+    });
   });
   return b;
 };
@@ -1084,7 +1126,7 @@ ClientManager.prototype.getPlanModuleContext = function(a) {
   var b = this;
   return {id:"module.plan", shared:ModulePlanController.SHARED_NAME, card:a, configuration:b.getModuleConfiguration("module.plan"), condition:b.isPlanModuleEnabled(), on:function() {
     var c = [], d = b.getPlanController().getByCard(a);
-    d instanceof Plan && b.getPlanController().hasContent(d) && (c.push({text:"", icon:"./assets/ic_plan.png"}), d.region && c.push({text:"region: " + b.getPlanController().getRegionMapping(d.region), color:"sky"}), d.online && c.push({text:"online: " + b.getPlanController().getOnlineMapping(d.online), color:"blue"}));
+    d instanceof Plan && b.getPlanController().hasContent(d) && (c.push({text:"", icon:"./assets/ic_plan.png"}), d.region && c.push({text:"region: " + b.getPlanController().getRegionMapping(d.region), color:"sky"}), d.online && c.push({text:"online: " + d.online, color:"blue"}));
     return c;
   }};
 };
@@ -1100,8 +1142,14 @@ ClientManager.prototype.getArticleModuleContext = function(a) {
   var b = this;
   return {id:"module.artikel", shared:ArtikelController.SHARED_NAME, card:a, configuration:b.getModuleConfiguration("module.artikel"), condition:b.isArticleModuleEnabled(), on:function() {
     var c = [], d = b.getArticleController().getByCard(a);
-    b.getArticleController().hasArtikelContent(d) && (c.push({text:"", icon:"./assets/ic_artikel.png"}), d.region && c.push({text:"region: " + b.getArticleController().getRegionMapping(d.region), color:"sky"}), d.tags && c.push({text:"online: " + b.getArticleController().getTagMapping(d.tags), color:"blue"}));
-    return c;
+    b.getArticleController().hasArtikelContent(d) && c.push({text:"", icon:"./assets/ic_artikel.png"});
+    return b.getModuleConfiguration("module.artikel").then(function(a) {
+      return a.config.editables;
+    }).filter(function(a) {
+      return b.getArticleController().getMapping(a, d, null) && !0 === a.show_on_front;
+    }).map(function(a) {
+      return {text:a.label + ": " + b.getArticleController().getMapping(a, d, ""), color:a.color};
+    });
   }};
 };
 // Input 12
@@ -1156,54 +1204,99 @@ ModuleSettingsController.create = function(a, b, c, d, e) {
 };
 ModuleSettingsController.prototype.render = function(a) {
   this.clearContent();
-  this.module ? this.module && this.editable ? this.edit() : this.view() : this.index(a);
+  return this.module ? this.module && this.editable ? this.edit() : this.view(a) : this.index(a);
 };
 ModuleSettingsController.prototype.edit = function() {
-  var a = this, b = this.pluginController.findModuleById(this.module).config.editables.find(function(b) {
-    return b.id === a.editable;
+  var a = this;
+  return this.pluginController.findPluginModuleConfigByModuleId(this.module).then(function(b) {
+    var c = b.config.editables.find(function(b) {
+      return b.id === a.editable;
+    });
+    a.document.getElementsByClassName("settings-content").forEach(function(d) {
+      var e = a.document.createElement("p");
+      e.innerHTML = "<strong>Name</strong>";
+      var f = a.document.createElement("p");
+      f.innerHTML = "<strong>Stichworte:</strong>";
+      var g = a.document.createElement("p");
+      g.innerHTML = "Die Stichworte werden f\u00fcr das ganze Board definiert. Wenn ein Stichwort bereits in einer Trello Card verwendet und hier das Stichwort entfernt wird, dann ist dieses Stichwort in dieser Trello Card ebenfalls nicht mehr vorhanden. Falls jedoch ein bestehendes Stichwort nur umbenannt wird, dann wird das dazugeh\u00f6rige Trello Card Stichwort ebenfalls den neuen Namen tragen.";
+      d.appendChild(g);
+      d.appendChild(e);
+      e = new ModuleEditableTextItem(c.label);
+      e.setOnTextChangeListener(function(d, e) {
+        c.label = e;
+        a.pluginController.setPluginModuleConfig(b).then(function() {
+          console.log("Label updated");
+        });
+      });
+      d.appendChild(e.render());
+      d.appendChild(f);
+      c.values.map(function(d) {
+        d = new ModuleEditableTextItem(d);
+        d.setOnDeleteListener(function(d) {
+          confirm("Feld l\u00f6schen", "M\u00f6chten Sie das Feld endg\u00fcltig l\u00f6schen?") && (d = c.values.indexOf(d), -1 !== d && c.values.splice(d, 1), a.pluginController.setPluginModuleConfig(b).then(function() {
+            console.log("Field deleted");
+          }));
+        });
+        d.setOnTextChangeListener(function(d, e) {
+          d = c.values.indexOf(d);
+          -1 !== d ? c.values.splice(d, 1, e) : c.values.push(e);
+          a.pluginController.setPluginModuleConfig(b).then(function() {
+            console.log("Values updated");
+          });
+          return e;
+        });
+        return d.render();
+      }).reduce(function(a, b) {
+        a.appendChild(b);
+        return a;
+      }, d);
+      d.appendChild(a.document.createElement("br"));
+      f = a.document.createElement("div");
+      e = a.document.createElement("button");
+      e.addClass("panta-btn");
+      e.innerHTML = "Neues Stichwort";
+      e.setEventListener("click", function(d) {
+        c.values.push("");
+        a.pluginController.setPluginModuleConfig(b).then(function() {
+          console.log("New item added");
+        });
+      });
+      f.appendChild(e);
+      d.appendChild(f);
+    });
+    a.hideVersion();
+    return !0;
   });
-  a.document.getElementsByClassName("settings-content").forEach(function(c) {
-    var d = a.document.createElement("p");
-    d.innerHTML = "<strong>Stichworte:</strong>";
-    var e = a.document.createElement("p");
-    e.innerHTML = "Die Stichworte werden f\u00fcr das ganze Board definiert. Wenn ein Stichwort bereits in einer Trello Card verwendet und hier das Stichwort entfernt wird, dann ist dieses Stichwort in dieser Trello Card ebenfalls nicht mehr vorhanden. Falls jedoch ein bestehendes Stichwort nur umbenannt wird, dann wird das dazugeh\u00f6rige Trello Card Stichwort ebenfalls den neuen Namen tragen.";
-    c.appendChild(e);
-    c.appendChild(d);
-    b.values.map(function(a) {
-      return (new ModuleEditableTextItem(a)).render();
-    }).reduce(function(a, b) {
-      a.appendChild(b);
-      return a;
-    }, c);
-    c.appendChild(a.document.createElement("br"));
-    d = a.document.createElement("div");
-    d.addClass("panta-item");
-    e = a.document.createElement("a");
-    e.innerHTML = "<strong>Neues Stichwort hinzuf\u00fcgen</strong>";
-    d.appendChild(e);
-    c.appendChild(d);
-  });
-  this.hideVersion();
 };
-ModuleSettingsController.prototype.view = function() {
-  var a = this, b = this.pluginController.findModuleById(this.module);
-  a.document.getElementsByClassName("settings-content").forEach(function(c) {
-    var d = a.document.createElement("p");
-    d.innerHTML = "<strong>Auswahllisten:</strong>";
-    var e = a.document.createElement("p");
-    e.innerHTML = "Die Auswahllisten werden f\u00fcr das ganze Trello Board definiert. F\u00fcr jede Auswahlliste kann eine Farbe angegeben, eine Bezeichnung vergeben werden. Zudem kann angegeben werden, ob die Auswahlliste auf der Trello Card Vorderseite angezeigt werden soll. Falls diese Option aktiviert ist, dann wird der Wert der Auswahlliste in der ausgew\u00e4hlten Farbe angezeigt.";
-    c.appendChild(e);
-    c.appendChild(d);
-    b.config.editables.map(function(c) {
-      return (new ModuleEditableItem(b, c, a.trello)).setOnEnterListener(function(b, c) {
-        a.trello.popup({title:c.label, url:"settings.html", height:184, args:{module:b.id, editable:c.id}});
-      }).render();
-    }).reduce(function(a, b) {
-      a.appendChild(b);
-      return a;
-    }, c);
+ModuleSettingsController.prototype.view = function(a) {
+  var b = this;
+  return this.pluginController.findPluginModuleConfigByModuleId(this.module).then(function(a) {
+    b.document.getElementsByClassName("settings-content").forEach(function(c) {
+      var d = b.document.createElement("p");
+      d.innerHTML = "<strong>Auswahllisten:</strong>";
+      var f = b.document.createElement("p");
+      f.innerHTML = "Die Auswahllisten werden f\u00fcr das ganze Trello Board definiert. F\u00fcr jede Auswahlliste kann eine Farbe angegeben, eine Bezeichnung vergeben werden. Zudem kann angegeben werden, ob die Auswahlliste auf der Trello Card Vorderseite angezeigt werden soll. Falls diese Option aktiviert ist, dann wird der Wert der Auswahlliste in der ausgew\u00e4hlten Farbe angezeigt.";
+      c.appendChild(f);
+      c.appendChild(d);
+      a.config.editables.map(function(c) {
+        return (new ModuleEditableItem(a, c, b.trello)).setOnEnterListener(function(a, c) {
+          b.trello.popup({title:c.label, url:"settings.html", height:184, args:{module:a.id, editable:c.id}});
+        }).setOnActivationListener(function(a, c, d) {
+          c.show_on_front = d;
+          b.pluginController.setPluginModuleConfig(a).then(function(a) {
+            console.log("PluginConfiguration updated", a);
+          });
+        }).setOnColorPickerClick(function(a, c) {
+          b.trello.popup({title:"Farbe w\u00e4hlen", url:"color-picker.html", height:184, args:{module:a.id, editable:c.id, color:c.color}});
+        }).render();
+      }).reduce(function(a, b) {
+        a.appendChild(b);
+        return a;
+      }, c);
+    });
+    b.hideVersion();
+    return !0;
   });
-  this.hideVersion();
 };
 ModuleSettingsController.prototype.hideVersion = function() {
   this.document.getElementsByClassName("plugin-version-container").forEach(function(a) {
@@ -1242,6 +1335,7 @@ ModuleSettingsController.prototype.index = function(a) {
     }, document.createElement("div"));
     c.appendChild(d);
   }));
+  return Promise.resolve(!0);
 };
 ModuleSettingsController.prototype.clearContent = function() {
   this.document.getElementsByClassName("settings-content").forEach(function(a) {
@@ -1249,11 +1343,52 @@ ModuleSettingsController.prototype.clearContent = function() {
   });
 };
 // Input 14
+var ColorPickerController = function(a, b, c) {
+  this._windowManager = a;
+  this._pluginController = b;
+  this._trello = c;
+};
+ColorPickerController.prototype.render = function(a) {
+  var b = this;
+  return this._pluginController.findPluginModuleConfigByModuleId(a.module).then(function(c) {
+    var d = [];
+    b._windowManager.document.getElementsByClassName("panta-js-color-chooser").forEach(function(e) {
+      e.setEventListener("click", function(f) {
+        f.preventDefault();
+        f.stopPropagation();
+        b.updateColor(c, a.editable, b.renderControls(d, e.getAttribute("data-color")).color).then(function() {
+          b._trello.back();
+        });
+      });
+      d.push({color:e.getAttribute("data-color"), control:e.getClosestChildByClassName("panta-js-checkbox")});
+    });
+    var e = b.getEditable(c, a.editable);
+    b.renderControls(d, e.color);
+  });
+};
+ColorPickerController.prototype.updateColor = function(a, b, c) {
+  this.getEditable(a, b).color = c;
+  this._pluginController.setPluginModuleConfig(a).then(function(a) {
+    console.log("PluginConfiguration updated", a);
+  });
+};
+ColorPickerController.prototype.renderControls = function(a, b) {
+  return a.reduce(function(a, d) {
+    d.control.checked = d.color === b;
+    return d.control.checked ? d : a;
+  }, null);
+};
+ColorPickerController.prototype.getEditable = function(a, b) {
+  return a.config.editables.find(function(a) {
+    return a.id === b;
+  });
+};
+// Input 15
 var ModulePlanRepository = function() {
   Repository.call(this);
 };
 $jscomp.inherits(ModulePlanRepository, Repository);
-// Input 15
+// Input 16
 var BeteiligtRepository = function() {
   Repository.call(this);
 };
@@ -1264,7 +1399,7 @@ BeteiligtRepository.prototype.isNew = function(a) {
     return b._repository[c].id === a.id;
   });
 };
-// Input 16
+// Input 17
 var ModuleController = function(a, b, c) {
   Controller.call(this, a, new BeteiligtRepository);
   this.document = a.document;
@@ -1317,7 +1452,7 @@ ModuleController.prototype.getVersionInfo = function() {
 };
 ModuleController.prototype.render = function(a, b) {
   this._entity = a;
-  this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(a) : this._createBinding(a, b);
+  this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(a, b) : this._createBinding(a, b && b.config ? b.config.layouts : null);
 };
 ModuleController.prototype._createBinding = function(a, b) {
   return (new BeteiligtBinding(this.document, a, this.onEvent, this)).bind(b);
@@ -1504,7 +1639,7 @@ $jscomp.global.Object.defineProperties(ModuleController, {VERSION:{configurable:
 }}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Beteiligt.PropertyBag";
 }}});
-// Input 17
+// Input 18
 var ArtikelRepository = function() {
   Repository.call(this);
 };
@@ -1518,7 +1653,7 @@ ArtikelRepository.prototype.isNew = function(a) {
     return b._repository[c].id === a.id;
   });
 };
-// Input 18
+// Input 19
 var ArtikelController = function(a, b, c, d) {
   Controller.call(this, a, c);
   this.document = a.document;
@@ -1550,8 +1685,31 @@ ArtikelController.prototype.hasArtikelContent = function(a) {
 ArtikelController.prototype.getRegionMapping = function(a) {
   return ArtikelBinding.getRegionMapping(a);
 };
-ArtikelController.prototype.getTagMapping = function(a) {
-  return ArtikelBinding.getTagMapping(a);
+ArtikelController.prototype.getMapping = function(a, b, c) {
+  switch(a.type) {
+    case "select":
+      return b = this._getPropertyByName(b, a.id, -1), -1 !== b ? a.values[b] : c;
+    default:
+      return this._getPropertyByName(b, a.id, c);
+  }
+};
+ArtikelController.prototype._getPropertyByName = function(a, b, c) {
+  switch(b) {
+    case "visual":
+      return a.visual || c;
+    case "form":
+      return a.form || c;
+    case "online":
+      return a.tags || c;
+    case "season":
+      return a.season || c;
+    case "region":
+      return a.region || c;
+    case "place":
+      return a.location || c;
+    default:
+      return c;
+  }
 };
 ArtikelController.prototype.fetchAll = function() {
   var a = this;
@@ -1599,7 +1757,7 @@ ArtikelController.prototype.getTotalPageCount = function() {
 };
 ArtikelController.prototype.render = function(a, b) {
   this._entity = a ? a : Artikel.create();
-  this._binding = this._binding ? this._binding.update(this._entity) : (new ArtikelBinding(this.document, this._entity, this.onEvent, this)).bind();
+  this._binding = this._binding ? this._binding.update(this._entity, b) : (new ArtikelBinding(this.document, this._entity, this.onEvent, this, b)).bind();
 };
 ArtikelController.prototype.onEvent = function(a, b) {
   switch(b.hasOwnProperty("event") ? b.event : "change") {
@@ -1626,9 +1784,10 @@ $jscomp.global.Object.defineProperties(ArtikelController, {VERSION:{configurable
 }}, SHARED_META:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Meta";
 }}});
-// Input 19
-var ArtikelBinding = function(a, b, c, d) {
+// Input 20
+var ArtikelBinding = function(a, b, c, d, e) {
   Binding.call(this, a, b, c, d);
+  this._configuration = e;
 };
 $jscomp.inherits(ArtikelBinding, Binding);
 ArtikelBinding.getRegionMapping = function(a) {
@@ -1643,26 +1802,10 @@ ArtikelBinding.getRegionMapping = function(a) {
   }
 };
 ArtikelBinding.getTagMapping = function(a) {
-  switch(a) {
-    case "monday":
-      return "Mo.";
-    case "tuesday":
-      return "Di.";
-    case "wednesday":
-      return "Mi.";
-    case "thursday":
-      return "Do.";
-    case "friday":
-      return "Fr.";
-    case "saturday":
-      return "Sa.";
-    case "sunday":
-      return "So.";
-    default:
-      return a;
-  }
+  return a;
 };
-ArtikelBinding.prototype.update = function(a) {
+ArtikelBinding.prototype.update = function(a, b) {
+  b ? (console.log("Update configuration", b), this._updateConfiguration(b)) : console.log("No new configuration");
   this._topic.update(a);
   this._from.update(a);
   this._author.update(a);
@@ -1694,13 +1837,12 @@ ArtikelBinding.prototype.onLayout = function(a, b) {
   this._total = this.document.newSingleLineInput(a, "pa.total", "total", "Seiten Total", b, this._action, "Summe", "number", !0).addClass("bold");
   this._text = this.document.newMultiLineInput(a, "pa.text", "text", "Textbox", b, this._action, 2, "Lauftext");
   this._pagina = this.document.newSingleLineInput(a, "pa.pagina", "pagina", "Pagina", b, this._action, "Zahl", "number", !1).addClass("pagina").addClass("bold");
-  this._tags = this.document.newSingleSelect(a, "pa.tags", "tags", "Online", b, this._action, "Liste-Tag", newOption("", "\u2026"), [newOption("monday", ArtikelBinding.getTagMapping("monday")), newOption("tuesday", ArtikelBinding.getTagMapping("tuesday")), newOption("wednesday", ArtikelBinding.getTagMapping("wednesday")), newOption("thursday", ArtikelBinding.getTagMapping("thursday")), newOption("friday", ArtikelBinding.getTagMapping("friday")), newOption("saturday", ArtikelBinding.getTagMapping("saturday")), 
-  newOption("sunday", ArtikelBinding.getTagMapping("sunday"))]);
-  this._visual = this.document.newSingleSelect(a, "pa.visual", "visual", "Visual", b, this._action, "x-Liste", newOption("", "\u2026"), [newOption("picture", "Bild"), newOption("icon", "Icon"), newOption("graphics", "Grafik"), newOption("videos", "Video"), newOption("illustrations", "Illu")]);
-  this._region = this.document.newSingleSelect(a, "pa.region", "region", "Region", b, this._action, "x-Liste", newOption("", "\u2026"), [newOption("north", ArtikelBinding.getRegionMapping("north")), newOption("south", ArtikelBinding.getRegionMapping("south"))]);
-  this._season = this.document.newSingleSelect(a, "pa.season", "season", "Saison", b, this._action, "x-Liste", newOption("", "\u2026"), [newOption("summer", "Sommer"), newOption("fall", "Herbst")]);
-  this._form = this.document.newSingleSelect(a, "pa.form", "form", "Form", b, this._action, "x-Liste", newOption("", "\u2026"), [newOption("news", "News"), newOption("article", "Artikel"), newOption("report", "Report")]);
-  this._location = this.document.newSingleSelect(a, "pa.location", "location", "Ort", b, this._action, "x-Liste", newOption("", "\u2026"), [newOption("cds", "CDS"), newOption("sto", "STO"), newOption("tam", "TAM"), newOption("wid", "WID"), newOption("buech", "Buech"), newOption("rustico", "Rustico"), newOption("schlatt", "Schlatt")]);
+  this._tags = this.doLayout("pa.tags", "tags", a, b, "online");
+  this._visual = this.doLayout("pa.visual", "visual", a, b);
+  this._region = this.doLayout("pa.region", "region", a, b);
+  this._season = this.doLayout("pa.season", "season", a, b);
+  this._form = this.doLayout("pa.form", "form", a, b);
+  this._location = this.doLayout("pa.location", "location", a, b, "place");
 };
 ArtikelBinding.prototype.detach = function() {
   var a = this.document.getElementById("pa.artikel.content");
@@ -1723,12 +1865,49 @@ ArtikelBinding.prototype._initLayout = function() {
   }
   return a;
 };
-// Input 20
+ArtikelBinding.prototype.doLayout = function(a, b, c, d, e) {
+  e = this.getConfigurationFor(e || b);
+  return this.document.newSingleSelect(c, a, b, e.label, d, this._action, "Liste-Tag", newOption("-1", "\u2026"), e.options);
+};
+ArtikelBinding.prototype.updateLayout = function(a, b) {
+  b = this.getConfigurationFor(b);
+  a.clear();
+  a.setLabel(b.label);
+  a.addOptions(b.options);
+};
+ArtikelBinding.prototype._updateConfiguration = function(a) {
+  this._configuration = a;
+  this.updateLayout(this._tags, "online");
+  this.updateLayout(this._visual, "visual");
+  this.updateLayout(this._region, "region");
+  this.updateLayout(this._season, "season");
+  this.updateLayout(this._form, "form");
+  this.updateLayout(this._location, "location");
+};
+ArtikelBinding.prototype.getConfigurationFor = function(a) {
+  var b = this._configuration.config.editables.filter(function(b) {
+    return b.id === a;
+  }), c = b.map(function(a) {
+    return a.label;
+  }).reduce(function(a, b) {
+    return b;
+  }, null);
+  b = b.map(function(a) {
+    return a.values;
+  }).flat().map(function(a, b) {
+    return newOption(b, a);
+  }).reduce(function(a, b) {
+    a.push(b);
+    return a;
+  }, []);
+  return {label:c, options:b};
+};
+// Input 21
 var ModulePlanBinding = function(a, b, c, d) {
   Binding.call(this, a, b, c, d);
 };
 $jscomp.inherits(ModulePlanBinding, Binding);
-ModulePlanBinding.prototype.update = function(a) {
+ModulePlanBinding.prototype.update = function(a, b) {
   this._measures.update(a);
   this._description.update(a);
   this._fee.update(a);
@@ -1793,7 +1972,7 @@ ModulePlanBinding.prototype._initContent = function() {
   }
   return a;
 };
-// Input 21
+// Input 22
 var PluginRepository = function() {
   Repository.call(this);
 };
@@ -1806,7 +1985,7 @@ $jscomp.global.Object.defineProperties(PluginRepository, {INSTANCE:{configurable
   return PluginRepository.instance;
 }}});
 PluginRepository.instance = null;
-// Input 22
+// Input 23
 var ModulePlanController = function(a, b, c) {
   Controller.call(this, a, new ModulePlanRepository);
   this._trello = b;
@@ -1836,7 +2015,7 @@ var ModulePlanController = function(a, b, c) {
       return a;
     }, !1);
     d._entity.capOnDepenses !== d.getCapOnDepenses() && (d._entity.capOnDepenses = d.getCapOnDepenses());
-    a && (console.log("Update needed"), d._binding.update(d._entity));
+    a && d._binding.update(d._entity);
   };
   this._binding = null;
   this._propertyBag = {};
@@ -1849,7 +2028,7 @@ ModulePlanController.getInstance = function(a, b, c) {
 };
 ModulePlanController.prototype.render = function(a, b) {
   this._entity = a;
-  this._binding = this._binding ? this._binding.update(a) : (new ModulePlanBinding(this._window.document, a, this.onEvent, this)).bind();
+  this._binding = this._binding ? this._binding.update(a, b) : (new ModulePlanBinding(this._window.document, a, this.onEvent, this)).bind();
   return Controller.prototype.render.call(this, a);
 };
 ModulePlanController.prototype.update = function() {
@@ -1893,9 +2072,6 @@ ModulePlanController.prototype.hasContent = function(a) {
 ModulePlanController.prototype.getRegionMapping = function(a) {
   return ArtikelBinding.getRegionMapping(a);
 };
-ModulePlanController.prototype.getOnlineMapping = function(a) {
-  return ArtikelBinding.getTagMapping(a);
-};
 ModulePlanController.prototype.persist = function(a, b) {
   return this._trello.set(b || "card", "shared", ModulePlanController.SHARED_NAME, a);
 };
@@ -1923,7 +2099,7 @@ $jscomp.global.Object.defineProperties(ModulePlanController, {SHARED_NAME:{confi
 }}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Plan.PropertyBag";
 }}});
-// Input 23
+// Input 24
 var PluginController = function(a, b) {
   this._window = b;
   this._trelloApi = a;
@@ -1947,13 +2123,27 @@ PluginController.prototype.getPluginConfiguration = function() {
     return b ? PluginConfiguration.create(b) : new PluginConfiguration("1.0.0", "Panta.Card Power-Up", null, a.getAvailableModules());
   });
 };
-PluginController.prototype.findModuleById = function(a) {
-  return Object.values(this._repository.all()).find(function(b) {
-    return b.id === a;
+PluginController.prototype.setPluginModuleConfig = function(a) {
+  var b = this;
+  return this.getPluginConfiguration().then(function(c) {
+    c.modules.find(function(b) {
+      return b.id === a.id;
+    }).config = a.config;
+    b._trelloApi.set("board", "shared", PluginController.CONFIGURATION_NAME, c);
+    return c;
   });
 };
+PluginController.prototype.findPluginModuleConfigByModuleId = function(a) {
+  return this.getPluginConfiguration().then(function(a) {
+    return a.modules;
+  }).filter(function(b) {
+    return b.id === a;
+  }).reduce(function(a, c) {
+    return c;
+  }, null);
+};
 PluginController.prototype.getAvailableModules = function() {
-  return Object.values(this._repository.all()).sort(function(a, b) {
+  return Object.values(PluginRepository.INSTANCE.all()).sort(function(a, b) {
     return a.config.sort - b.config.sort;
   });
 };
@@ -2012,7 +2202,7 @@ $jscomp.global.Object.defineProperties(PluginController, {VERSION:{configurable:
 }}, CONFIGURATION_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.App.Configuration";
 }}});
-// Input 24
+// Input 25
 var BeteiligtBinding = function(a, b, c, d) {
   Binding.call(this, a, b, c, d);
   this._activated = this._ad = this._illu = this._video = this._photo = this._text = this._onsite = null;
@@ -2042,7 +2232,7 @@ BeteiligtBinding.prototype._initTab = function(a) {
   b || (b = createByTemplate(template_beteiligt, template_beteiligt), this.document.getElementById("panta.content").appendChild(b));
   return this.document.getElementById(a);
 };
-BeteiligtBinding.prototype.update = function(a) {
+BeteiligtBinding.prototype.update = function(a, b) {
   this._activated.activate();
   Object.values(this).filter(function(a) {
     return a instanceof PModuleConfig;
@@ -2140,7 +2330,7 @@ BeteiligtBinding.prototype.leaveEditing = function() {
 BeteiligtBinding.prototype.rememberFocus = function(a) {
   this._currentTabIndex = a.getTabIndex();
 };
-// Input 25
+// Input 26
 var PluginCardConfig = function(a, b, c) {
   this._title = a;
   this._icon = b;
@@ -2159,7 +2349,7 @@ $jscomp.global.Object.defineProperties(PluginCardConfig.prototype, {title:{confi
 }, set:function(a) {
   this._content = a;
 }}});
-// Input 26
+// Input 27
 var PluginModuleConfig = function(a, b, c) {
   this._id = a;
   this._name = b;
@@ -2181,7 +2371,7 @@ $jscomp.global.Object.defineProperties(PluginModuleConfig.prototype, {config:{co
 }, set:function(a) {
   this._id = a;
 }}});
-// Input 27
+// Input 28
 var Plan = function(a, b, c, d, e, f, g, h, k, l, m, q, n, p, r) {
   this._id = a || uuid();
   this._fee = d;
@@ -2283,7 +2473,7 @@ $jscomp.global.Object.defineProperties(Plan.prototype, {id:{configurable:!0, enu
 $jscomp.global.Object.defineProperties(Plan, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
 }}});
-// Input 28
+// Input 29
 var ModuleConfig = function(a, b) {
   this._id = a || uuid();
   this._sections = b;
@@ -2436,7 +2626,7 @@ $jscomp.global.Object.defineProperties(AdBeteiligt.prototype, {format:{configura
 }, set:function(a) {
   this._total = a;
 }}});
-// Input 29
+// Input 30
 var PluginConfiguration = function(a, b, c, d) {
   this._version = a;
   this._description = b;
@@ -2490,7 +2680,7 @@ $jscomp.global.Object.defineProperties(PluginConfiguration.prototype, {card:{con
 $jscomp.global.Object.defineProperties(PluginConfiguration, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
 }}});
-// Input 30
+// Input 31
 var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, q, n, p) {
   this._id = a || uuid();
   this._topic = b;
@@ -2589,7 +2779,7 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, 
 $jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 3;
 }}});
-// Input 31
+// Input 32
 HTMLElement.prototype.addClass = function(a) {
   this.hasClass(a) || (this.className += " " + a, this.className = this.className.trim());
   return this;
@@ -2726,6 +2916,11 @@ String.prototype.toHTML = function() {
   a.innerHTML = this;
   return a.value;
 };
+String.prototype.toHtmlEntities = function() {
+  return this.replace(/[\u00A0-\u9999<>&]/gim, function(a) {
+    return "&#" + a.charCodeAt(0) + ";";
+  });
+};
 Window.prototype.addCss = function(a) {
   document.getElementsByTagName("head")[0].appendChild(document.createStylesheet(a));
 };
@@ -2750,17 +2945,17 @@ function isNumber(a) {
   return a && !isNaN(a);
 }
 ;
-// Input 32
+// Input 33
 var template_regular = '<div id="template">    <div class="row">        <div class="col-6 col-phone-12">            <div class="row">                <div class="col-12 col-phone-12">                    <div class="pa.name"></div>                </div>                <div class="col-12 col-phone-12">                    <div class="pa.social"></div>                </div>            </div>        </div>        <div class="col-6 col-phone-12 line-4 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-6 col-phone-12">            <div class="pa.address"></div>        </div>        <div class="col-6 col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-12 col-phone-12">            <div class="row">                <div class="col-4 col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_regular_mobile = '<div id="template">    <div class="row">        <div class="col-phone-12">            <div class="pa.name"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.social"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.address"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="row">                <div class="col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.notes"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.format"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.placement"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.price"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.name"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.social"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.address"></div>            </div>        </div>    </div></div>', 
 template_plan = '<div id="template">    <div class="row">        <div class="col-6 line-2">            <div class="pa.plan.measures"></div>        </div>        <div class="col-3">            <div class="pa.plan.fee"></div>        </div>        <div class="col-3">            <div class="pa.plan.projectFee"></div>        </div>    </div>    <div class="row">        <div class="col-6 line-6">            <div class="pa.plan.description"></div>        </div>        <div class="col-6">            <div class="row">                <div class="col-6">                    <div class="pa.plan.thirdPartyCharges"></div>                </div>                <div class="col-6">                    <div class="pa.plan.thirdPartyTotalCosts"></div>                </div>                <div class="col-6">                    <div class="pa.plan.capOnDepenses"></div>                </div>                <div class="col-6 line-2">                    <div class="pa.plan.totalCosts"></div>                </div>            </div>        </div>    </div>    <div class="row">        <div class="col-2">            <div id="pa.plan.visual"></div>        </div>        <div class="col-2">            <div id="pa.plan.form"></div>        </div>        <div class="col-2">            <div id="pa.plan.online"></div>        </div>        <div class="col-2">            <div id="pa.plan.season"></div>        </div>        <div class="col-2">            <div id="pa.plan.region"></div>        </div>        <div class="col-2">            <div id="pa.plan.place"></div>        </div>    </div></div>', 
 template_artikel = '<div id="template">    <div class="row">        <div class="col-9 col-phone-9">            <div id="pa.topic"></div>        </div>        <div class="col-3 col-phone-3">            <div id="pa.pagina"></div>        </div>    </div>    <div class="row mobile-row">        <div class="col-9 col-phone-9">            <div class="row">                <div class="col-6 col-phone-6">                    <div id="pa.input-from"></div>                </div>                <div class="col-6 col-phone-6">                    <div id="pa.author"></div>                </div>            </div>        </div>        <div class="col-3 col-phone-3">            <div id="pa.layout"></div>        </div>    </div>    <div class="row mobile-row">        <div class="col-9 col-phone-9">            <div id="pa.text"></div>        </div>        <div class="col-3 col-phone-3">            <div id="pa.total"></div>        </div>    </div>    <div class="col-12 col-phone-12">        <div class="row">            <div class="col-2 col-phone-4">                <div id="pa.visual"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.form"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.tags"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.season"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.region"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.location"></div>            </div>        </div>    </div></div>', 
 template_plan_mobile = '<div id="template">    <div class="row">        <div class="col-phone-12 line-phone-2">            <div class="pa.plan.measures"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12 line-phone-4">            <div class="pa.plan.description"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.fee"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.projectFee"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.thirdPartyCharges"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.thirdPartyTotalCosts"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.capOnDepenses"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.totalCosts"></div>        </div>    </div>    <div class="row">        <div class=" col-phone-4">            <div id="pa.plan.visual"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.form"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.online"></div>        </div>    </div>    <div class="row">        <div class=" col-phone-4">            <div id="pa.plan.season"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.region"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.place"></div>        </div>    </div></div>', 
-template_settings_module = '<div class="row module-container">    <div class="col-2 module-icon"><img src="/assets/ic_pantarhei.png" class="panta-js-icon" width="16px" height="16px"/></div>    <div class="col-8 module-title"></div>    <div class="col-2 module-enable">       <label class="panta-checkbox-container">           <input class="panta-js-checkbox" type="checkbox" checked="checked">           <span class="panta-checkbox-checkmark"></span>       </label>    </div></div>', template_settings_editable = 
-'<div class="row module-editable-container">    <div class="col-2 module-editable-color"><button class="panta-btn panta-btn-dot panta-js-button"></button> </div>    <div class="col-8 module-editable-name"></div>    <div class="col-2 module-editable-show">       <label class="panta-checkbox-container">           <input class="panta-js-checkbox" type="checkbox" checked="checked">           <span class="panta-checkbox-checkmark"></span>       </label>    </div></div>', template_settings_editable_option = 
-'<div class="row module-editable-option-container">    <div class="col-10 module-editable-option-name">       <input type="text" class="panta-js-name"/>    </div>    <div class="col-2 module-editable-option-actions">       <button class="panta-btn panta-btn-icon"><img src="/assets/ic_trash.svg" width="16px" height="16px"/></button>    </div></div>', template_beteiligt = '<form id="panta.module">    \x3c!-- because we can only have one card-back-section per power-up we implement the panta.Beteiligt    on this page --\x3e    <div class="row min"><div class="col-12">\u00a0</div></div>    <div class="row min">        <div class="col-12">            <h3 class="js-panta-module js-panta-editable-title"></h3>        </div>    </div>    <div class="row min navigation-bar">        <div id="pa.involved.onsite" class="col-2 col-phone-4 tab" data-label="vor.Ort" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.text" class="col-2 col-phone-4 tab" data-label="Journalist" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.photo" class="col-phone-4 col-2 tab" data-label="Visual" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.video" class="col-phone-4 col-2 tab" data-label="Event" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.illu" class="col-phone-4 col-2 tab" data-label="MC/Host" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.ad" class="col-phone-4 col-2 tab" data-label="weitere" data-layout="regular"><span>Placeholder</span></div>    </div>    <span id="pa.tab.content"></span></form>';
-// Input 33
+template_settings_module = '<div class="row module-container">    <div class="col-2">       <div class="panta-module-enabled">           <label class="panta-checkbox-container">              <input class="panta-js-checkbox" type="checkbox" checked="checked">               <span class="panta-checkbox-checkmark elevate"></span>           </label>       </div>    </div>    <div class="col-8 module-title"></div>    <div class="col-2 module-icon"><img src="/assets/ic_pantarhei.png" class="panta-js-icon" width="16px" height="16px"/></div></div>', 
+template_settings_editable = '<div class="row module-editable-container">    <div class="col-2 module-editable-show">       <div class="panta-module-enabled">           <label class="panta-checkbox-container">               <input class="panta-js-checkbox" type="checkbox" checked="checked">               <span class="panta-checkbox-checkmark elevate"></span>           </label>       </div>    </div>    <div class="col-8 module-editable-name"></div>    <div class="col-2 module-editable-color"><button class="panta-btn panta-btn-dot panta-js-button"></button> </div></div>', 
+template_settings_editable_option = '<div class="row module-editable-option-container">    <div class="col-10 module-editable-option-name">       <input type="text" class="panta-js-name"/>    </div>    <div class="col-2 module-editable-option-actions">       <button class="panta-btn panta-btn-icon panta-js-delete"><img src="/assets/ic_trash.svg" width="16px" height="16px"/></button>    </div></div>', template_beteiligt = '<form id="panta.module">    \x3c!-- because we can only have one card-back-section per power-up we implement the panta.Beteiligt    on this page --\x3e    <div class="row min"><div class="col-12">\u00a0</div></div>    <div class="row min">        <div class="col-12">            <h3 class="js-panta-module js-panta-editable-title"></h3>        </div>    </div>    <div class="row min navigation-bar">        <div id="pa.involved.onsite" class="col-2 col-phone-4 tab" data-label="vor.Ort" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.text" class="col-2 col-phone-4 tab" data-label="Journalist" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.photo" class="col-phone-4 col-2 tab" data-label="Visual" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.video" class="col-phone-4 col-2 tab" data-label="Event" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.illu" class="col-phone-4 col-2 tab" data-label="MC/Host" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.ad" class="col-phone-4 col-2 tab" data-label="weitere" data-layout="regular"><span>Placeholder</span></div>    </div>    <span id="pa.tab.content"></span></form>';
+// Input 34
 var JsonSerialization = function() {
 };
 JsonSerialization.prototype.serialize = function(a) {

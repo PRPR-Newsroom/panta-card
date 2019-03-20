@@ -17,9 +17,10 @@ class ModulePlanBinding extends Binding {
     /**
      * Update the form with that entity and set it as the new entity on this instance
      * @param entity
+     * @param configuration
      * @returns {Binding}
      */
-    update(entity) {
+    update(entity, configuration) {
 
         this._measures.update(entity);
         this._description.update(entity);

@@ -139,10 +139,8 @@ class PInput {
 
         this.setupEvents();
 
-        this._labelInput = this._document.createElement("label");
-        this._labelInput.appendChild(this._document.createTextNode(this._label));
-        this._labelInput.setAttribute("for", this._input.getAttribute("name"));
-        this._labelInput.addClass("prop-" + this._type);
+        this._labelInput = this.setLabel();
+
         if (this._label.length === 0) {
             container.setAttribute("class", "field hidden");
         } else {
@@ -158,6 +156,17 @@ class PInput {
         this.doCustomization(this._input, this._labelInput);
 
         return this;
+    }
+
+    setLabel(label) {
+        this._label = label || this._label;
+        let input = this._labelInput || this._document.createElement("label");
+        input.removeChildren();
+        input.appendChild(this._document.createTextNode(this._label));
+        input.setAttribute("for", this._input.getAttribute("name"));
+        input.addClass("prop-" + this._type);
+
+        return input;
     }
 
     /**
@@ -490,6 +499,20 @@ class SingleSelectInput extends PInput {
         return this;
     }
 
+    clear() {
+        this._options.splice(0, this._options.length);
+    }
+
+    /**
+     * @param {[]} options
+     */
+    addOptions(options) {
+        let that = this;
+        options.forEach(function(option) {
+            that.addOption(option.value, option.text);
+        });
+    }
+
     /**
      * Add another option
      * @param value
@@ -513,11 +536,11 @@ class SingleSelectInput extends PInput {
      */
     doCustomization(element, label) {
         let that = this;
-        this._options.forEach(function(item, _) {
+        this._options.forEach(function(item, index) {
             let opt = document.createElement("option");
             opt.value = item.value;
             opt.text = item.text;
-            if (item.value === that._value) {
+            if (parseInt(item.value) === parseInt(that._value)) {
                 opt.setAttribute("selected", "selected");
             }
             element.appendChild(opt);

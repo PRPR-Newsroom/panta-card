@@ -114,21 +114,22 @@ class BeteiligtBinding extends Binding {
     }
 
     /**
-     * Activate the currently active section and update all other sections with the passed config because they may depend
-     * on this new config
-     * @param config
+     * Activate the currently active section and update all other sections with the passed entity because they may depend
+     * on this new entity
+     * @param entity
+     * @param configuration
      * @returns {BeteiligtBinding}
      */
-    update(config) {
+    update(entity, configuration) {
         this._activated.activate();
-        // update all PModuleConfigs with the new config entity
+        // update all PModuleConfigs with the new entity entity
         Object.values(this).filter(function (property) {
             return (property instanceof PModuleConfig)
         }).forEach(function (module) {
-            module.update(config);
+            module.update(entity);
         });
         // update the entity as well otherwise on change callbacks will re-store old entity states
-        this._entity = config;
+        this._entity = entity;
         return this;
     }
 

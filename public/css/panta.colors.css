@@ -7,6 +7,9 @@
 .panta-bgcolor-orange {
   background-color: #E99E40; }
 
+.panta-bgcolor-red {
+  background-color: #eb5a46; }
+
 .panta-bgcolor-yellow {
   background-color: #E6C60D; }
 
@@ -24,5 +27,26 @@
 
 .panta-bgcolor-shades {
   background-color: #676D70; }
+
+.panta-btn.panta-bgcolor-blue:hover {
+  background-color: #014a75; }
+.panta-btn.panta-bgcolor-green:hover {
+  background-color: #478736; }
+.panta-btn.panta-bgcolor-orange:hover {
+  background-color: #dd8619; }
+.panta-btn.panta-bgcolor-red:hover {
+  background-color: #e53219; }
+.panta-btn.panta-bgcolor-yellow:hover {
+  background-color: #b69c0a; }
+.panta-btn.panta-bgcolor-purple:hover {
+  background-color: #924ab0; }
+.panta-btn.panta-bgcolor-pink:hover {
+  background-color: #e04299; }
+.panta-btn.panta-bgcolor-sky:hover {
+  background-color: #008399; }
+.panta-btn.panta-bgcolor-lime:hover {
+  background-color: #2ec468; }
+.panta-btn.panta-bgcolor-shades:hover {
+  background-color: #4f5355; }
 
 /*# sourceMappingURL=panta.colors.css.map */

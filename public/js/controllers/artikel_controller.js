@@ -139,12 +139,47 @@ class ArtikelController extends Controller {
     }
 
     /**
-     * Get the human readable name of that 'tag' (german)
-     * @param tag
-     * @returns {string|*}
+     *
+     * @param {} editable
+     * @param {Artikel} entity
+     * @param defaultValue
+     * @return {*}
      */
-    getTagMapping(tag) {
-        return ArtikelBinding.getTagMapping(tag);
+    getMapping(editable, entity, defaultValue) {
+        switch (editable.type) {
+            case "select":
+                let index = this._getPropertyByName(entity, editable.id, -1);
+                return index !== -1 ? editable.values[index] : defaultValue;
+            default:
+                return this._getPropertyByName(entity, editable.id, defaultValue);
+        }
+    }
+
+    /**
+     * Get a property value by its name
+     * @param entity
+     * @param name
+     * @param defaultValue
+     * @return {*}
+     * @private
+     */
+    _getPropertyByName(entity, name, defaultValue) {
+        switch (name) {
+            case "visual":
+                return entity.visual || defaultValue;
+            case "form":
+                return entity.form || defaultValue;
+            case "online":
+                return entity.tags || defaultValue;
+            case "season":
+                return entity.season || defaultValue;
+            case "region":
+                return entity.region || defaultValue;
+            case "place":
+                return entity.location || defaultValue;
+            default:
+                return defaultValue;
+        }
     }
 
     /**
@@ -242,7 +277,7 @@ class ArtikelController extends Controller {
      */
     render(artikel, configuration) {
         this._entity = artikel ? artikel : Artikel.create();
-        this._binding = this._binding ? this._binding.update(this._entity) : new ArtikelBinding(this.document, this._entity, this.onEvent, this).bind();
+        this._binding = this._binding ? this._binding.update(this._entity, configuration) : new ArtikelBinding(this.document, this._entity, this.onEvent, this, configuration).bind();
     }
 
     /**

@@ -30,6 +30,21 @@ class ModuleEditableItem extends AbstractItem {
         return this;
     }
 
+    /**
+     * Set the activation handler for this editable
+     * @param handler
+     * @return {ModuleEditableItem}
+     */
+    setOnActivationListener(handler) {
+        this._onActivationHandler = handler;
+        return this;
+    }
+
+    setOnColorPickerClick(handler) {
+        this._onColorPickerHandler = handler;
+        return this;
+    }
+
     render() {
         let that = this;
         let template = createByTemplate(template_settings_editable, template_settings_editable);
@@ -44,14 +59,17 @@ class ModuleEditableItem extends AbstractItem {
         template.setEventListener('click', function() {
             that._onEnterHandler(that.module, that.editable);
         });
-        template.getClosestChildByClassName("panta-checkbox-container")
-            .setEventListener('click', function(e) {
+        let container = template.getClosestChildByClassName("panta-checkbox-container");
+        let checkmark = container.getClosestChildByClassName("panta-js-checkbox");
+        checkmark.checked = that.editable.show_on_front === true;
+        container.setEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 let checkbox = e.srcElement
                     .getClosestParentByClassName("panta-checkbox-container")
                     .getClosestChildByClassName("panta-js-checkbox");
                 checkbox.checked = !checkbox.checked;
+                that._onActivationHandler(that.module, that.editable, checkbox.checked);
             });
 
         let btnColor = template
@@ -63,6 +81,7 @@ class ModuleEditableItem extends AbstractItem {
                 e.preventDefault();
                 e.stopPropagation();
                 // open color picker
+                that._onColorPickerHandler(that.module, that.editable);
             });
 
         return template;
