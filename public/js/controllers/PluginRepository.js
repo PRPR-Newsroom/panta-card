@@ -23,6 +23,7 @@ class PluginRepository extends Repository {
 
                 "editables": [{
                     "id": "visual",
+                    "desc": "Definieren Sie die Auswahlliste, die für das ganze Board gelten.",
                     "type": "select",
                     "label": "Visual",
                     "color": "blue",
@@ -36,6 +37,7 @@ class PluginRepository extends Repository {
                     ]
                 }, {
                     "id": "form",
+                    "desc": "Definieren Sie die Auswahlliste, die für das ganze Board gelten.",
                     "type": "select",
                     "label": "Form",
                     "color": "green",
@@ -47,6 +49,7 @@ class PluginRepository extends Repository {
                     ]
                 }, {
                     "id": "online",
+                    "desc": "Definieren Sie die Auswahlliste, die für das ganze Board gelten.",
                     "type": "select",
                     "label": "Online",
                     "color": "yellow",
@@ -63,6 +66,7 @@ class PluginRepository extends Repository {
                     ]
                 }, {
                     "id": "season",
+                    "desc": "Definieren Sie die Auswahlliste, die für das ganze Board gelten.",
                     "type": "select",
                     "label": "Saison",
                     "color": "sky",
@@ -73,6 +77,7 @@ class PluginRepository extends Repository {
                     ]
                 }, {
                     "id": "region",
+                    "desc": "Definieren Sie die Auswahlliste, die für das ganze Board gelten.",
                     "type": "select",
                     "label": "Region",
                     "color": "lime",
@@ -83,6 +88,7 @@ class PluginRepository extends Repository {
                     ]
                 }, {
                     "id": "place",
+                    "desc": "Definieren Sie die Auswahlliste, die für das ganze Board gelten.",
                     "type": "select",
                     "label": "Ort",
                     "color": "orange",
