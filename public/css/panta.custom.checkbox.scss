@@ -68,7 +68,7 @@
 
   .elevate {
     &.panta-checkbox-checkmark:after {
-      border: solid lighten($color-active, 40%);
+      border: solid lighten($color-active, 30%);
       border-width: 0 2px 2px 0;
     }
   }
