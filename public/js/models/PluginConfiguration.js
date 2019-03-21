@@ -67,6 +67,7 @@ class PluginConfiguration {
             "1": JSON.stringify(new PluginModuleConfig("module.artikel", "Artikel", {}))
         };
         return Object.values(modules).map(function(module) {
+
             return PluginModuleConfig.create(module);
         })
 

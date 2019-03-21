@@ -87,7 +87,7 @@ class ModulePlanController extends Controller {
          * @type Plan
          */
         this._entity = entity;
-        this._binding = this._binding ? this._binding.update(entity, configuration) : new ModulePlanBinding(this._window.document, entity, this.onEvent, this).bind();
+        this._binding = this._binding ? this._binding.update(entity, configuration) : new ModulePlanBinding(this._window.document, entity, this.onEvent, this, configuration).bind();
         return super.render(entity);
     }
 

@@ -388,7 +388,7 @@ class ModuleSettingsController {
                                 },
                             };
                             module.config.enabled = enabled;
-                            that.trello.set('board', 'shared', PluginController.CONFIGURATION_NAME, config);
+                            that.pluginController.setPluginModuleConfig(module, config.card);
                         })
                         .render();
                 }).reduce(function (prev, curr) {

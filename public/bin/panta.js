@@ -482,7 +482,7 @@ DI.INSTANCE = null;
 var PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.artikel.desc":"Die Eingabefelder und Auswahllisten werden f\u00fcr das ganze Trello Board konfiguriert. F\u00fcr jedes Feld kann eine Farbe definiert werden. Wenn das Feld mit dem \u00abGutzeichen\u00bb aktiviert wird, dann erscheint es in dieser Farbe auf der Trello Card Vorderseite, ansonsten wird es nur f\u00fcr die Trello Card R\u00fcckseite verwendet.", "module.artikel.editable.desc":"Definieren Sie die Auswahlliste, die f\u00fcr das ganze Board gilt.", 
 "module.artikel.field-a.desc":"Das Artikelfeld \u00abA\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.artikel.field-b.desc":"Das Artikelfeld \u00abB\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.artikel.field-c.desc":"Das Artikelfeld \u00abC\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.artikel.field-d.desc":"Das Artikelfeld \u00abD\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
 "module.beteiligt.desc":"Folgende Felder k\u00f6nnen individuell konfiguriert werden. Mit dem \u00abGutzeichen\u00bb kann das Feld sichtbar gemacht werden.", "module.beteiligt.label.desc":"Diese Beschriftung wird oberhalb des Moduls als \u00dcberschrift verwendet.", "module.beteiligt.layout.onsite":"Das Layout wird f\u00fcr das Tab \u00abvor.Ort\u00bb verwendet", "module.beteiligt.layout.text":"Das Layout wird f\u00fcr das Tab \u00abJournalist\u00bb verwendet", "module.beteiligt.regular.desc":"Standard-Layout", 
-"module.beteiligt.special.desc":"Spezial-Layout", "module.plan.desc":"Folgende Felder k\u00f6nnen individuell konfiguriert werden."};
+"module.beteiligt.special.desc":"Spezial-Layout", "module.plan.desc":"Folgende Felder k\u00f6nnen individuell konfiguriert werden.", "module.plan.editable.desc":"Definieren Sie die Auswahlliste, die f\u00fcr das ganze Board gilt."};
 // Input 4
 var Repository = function() {
   this._repository = {};
@@ -1431,7 +1431,7 @@ ModuleSettingsController.prototype.index = function(a) {
       }).setOnActivationListener(function(c, d) {
         a.card = {icon:c.config.icon, title:c.name, content:{file:c.config.view}};
         c.config.enabled = d;
-        b.trello.set("board", "shared", PluginController.CONFIGURATION_NAME, a);
+        b.pluginController.setPluginModuleConfig(c, a.card);
       }).render();
     }).reduce(function(a, b) {
       a.appendChild(b);
@@ -2020,11 +2020,13 @@ ArtikelBinding.prototype.getConfigurationFor = function(a) {
   return {label:c, options:d, editable:b[0]};
 };
 // Input 22
-var ModulePlanBinding = function(a, b, c, d) {
+var ModulePlanBinding = function(a, b, c, d, e) {
   Binding.call(this, a, b, c, d);
+  this._configuration = e;
 };
 $jscomp.inherits(ModulePlanBinding, Binding);
 ModulePlanBinding.prototype.update = function(a, b) {
+  b ? (console.log("Update configuration", b), this._updateConfiguration(b)) : console.log("No new configuration");
   this._measures.update(a);
   this._description.update(a);
   this._fee.update(a);
@@ -2050,8 +2052,10 @@ ModulePlanBinding.prototype.onLayout = function(a) {
   var b = createByTemplate(template_plan, template_plan_mobile);
   this._switchContent(b);
   b = {context:this._context, valueHolder:a, entity:this._entity};
-  this._measures = this.document.newMultiLineInput(a, ".pa.plan.measures", "measures", "Massnahme", b, this._action, 2, "notieren\u2026").addClass("multiline");
-  this._description = this.document.newMultiLineInput(a, ".pa.plan.description", "description", "Beschreibung", b, this._action, 3, "notieren\u2026").addClass("rows-2");
+  var c = this.getConfigurationFor("field.a");
+  this._measures = this.document.newMultiLineInput(a, ".pa.plan.measures", "measures", c.label, b, this._action, 2, c.editable.placeholder).addClass("multiline");
+  c = this.getConfigurationFor("field.b");
+  this._description = this.document.newMultiLineInput(a, ".pa.plan.description", "description", c.label, b, this._action, 3, c.editable.placeholder).addClass("rows-2");
   this._fee = this.document.newSingleLineInput(a, ".pa.plan.fee", "fee", "Total Honorar Beteiligte", b, this._action, "", "money", !0).addClass("multiline", !0);
   this._charges = this.document.newSingleLineInput(a, ".pa.plan.projectFee", "projectFee", "Total Honorar Projekt", b, this._action, "", "money", !0).addClass("multiline", !0).addClass("bold");
   this._thirdPartyCharges = this.document.newSingleLineInput(a, ".pa.plan.thirdPartyCharges", "thirdPartyCharges", "Total Spesen Beteiligte", b, this._action, "", "money", !0).addClass("multiline", !0);
@@ -2060,17 +2064,48 @@ ModulePlanBinding.prototype.onLayout = function(a) {
   this._totalCosts = this.document.newSingleLineInput(a, ".pa.plan.totalCosts", "totalCosts", "Total Projekt", b, this._action, "Betrag\u2026", "money", !0).addClass("bold").addClass("multiline", !0).addConditionalFormatting(function(a) {
     return {name:"rule-costs-exceeded", active:a.capOnDepenses < a.totalCosts};
   }, !1);
-  this._visual = this._visual = this.document.newSingleSelect(a, "pa.plan.visual", "visual", "Visual", b, this._action, "x-Liste", newOption("", "\u2026"), [newOption("picture", "Bild"), newOption("icon", "Icon"), newOption("graphics", "Grafik"), newOption("videos", "Video"), newOption("illustrations", "Illu")]);
-  this._form = this.document.newSingleSelect(a, "pa.plan.form", "form", "Form", b, this._action, "x-Liste", newOption("", "\u2026"), [newOption("news", "News"), newOption("article", "Artikel"), newOption("report", "Report")]);
-  this._online = this.document.newSingleSelect(a, "pa.plan.online", "online", "Online", b, this._action, "Liste-Tag", newOption("", "\u2026"), [newOption("monday", ArtikelBinding.getTagMapping("monday")), newOption("tuesday", ArtikelBinding.getTagMapping("tuesday")), newOption("wednesday", ArtikelBinding.getTagMapping("wednesday")), newOption("thursday", ArtikelBinding.getTagMapping("thursday")), newOption("friday", ArtikelBinding.getTagMapping("friday")), newOption("saturday", ArtikelBinding.getTagMapping("saturday")), 
-  newOption("sunday", ArtikelBinding.getTagMapping("sunday"))]);
-  this._region = this.document.newSingleSelect(a, "pa.plan.region", "region", "Region", b, this._action, "x-Liste", newOption("", "\u2026"), [newOption("north", ArtikelBinding.getRegionMapping("north")), newOption("south", ArtikelBinding.getRegionMapping("south"))]);
-  this._season = this.document.newSingleSelect(a, "pa.plan.season", "season", "Saison", b, this._action, "x-Liste", newOption("", "\u2026"), [newOption("summer", "Sommer"), newOption("fall", "Herbst")]);
-  this._place = this.document.newSingleSelect(a, "pa.plan.place", "place", "Ort", b, this._action, "x-Liste", newOption("", "\u2026"), [newOption("cds", "CDS"), newOption("sto", "STO"), newOption("tam", "TAM"), newOption("wid", "WID"), newOption("buech", "Buech"), newOption("rustico", "Rustico"), newOption("schlatt", "Schlatt")]);
+  this._visual = this.doLayout("pa.plan.visual", "visual", a, b);
+  this._form = this.doLayout("pa.plan.form", "form", a, b);
+  this._online = this.doLayout("pa.plan.online", "online", a, b);
+  this._region = this.doLayout("pa.plan.region", "region", a, b);
+  this._season = this.doLayout("pa.plan.season", "season", a, b);
+  this._place = this.doLayout("pa.plan.place", "place", a, b);
 };
 ModulePlanBinding.prototype.detach = function() {
   var a = this.document.getElementById("pa.plan.content");
   a && (a.removeChildren(), a.removeSelf());
+};
+ModulePlanBinding.prototype.doLayout = function(a, b, c, d, e) {
+  e = this.getConfigurationFor(e || b);
+  return this.document.newSingleSelect(c, a, b, e.label, d, this._action, "Liste-Tag", newOption("-1", "\u2026"), e.options);
+};
+ModulePlanBinding.prototype.updateLayout = function(a, b) {
+  b = this.getConfigurationFor(b);
+  a.clear();
+  a.setLabel(b.label);
+  a.addOptions(b.options);
+};
+ModulePlanBinding.prototype._updateConfiguration = function(a) {
+  this._configuration = a;
+  this.updateLayout(this._online, "online");
+  this.updateLayout(this._visual, "visual");
+  this.updateLayout(this._region, "region");
+  this.updateLayout(this._season, "season");
+  this.updateLayout(this._form, "form");
+  this.updateLayout(this._place, "place");
+};
+ModulePlanBinding.prototype.getConfigurationFor = function(a) {
+  var b = this._configuration.config.editables.filter(function(b) {
+    return b.id === a;
+  }), c = b[0].label, d = b.map(function(a) {
+    return a.values;
+  }).flat().map(function(a, b) {
+    return newOption(b, a);
+  }).reduce(function(a, b) {
+    a.push(b);
+    return a;
+  }, []);
+  return {label:c, options:d, editable:b[0]};
 };
 ModulePlanBinding.prototype._switchContent = function(a) {
   var b = this._initContent();
@@ -2096,12 +2131,14 @@ var PluginRepository = function() {
 $jscomp.inherits(PluginRepository, Repository);
 $jscomp.global.Object.defineProperties(PluginRepository, {INSTANCE:{configurable:!0, enumerable:!0, get:function() {
   PluginRepository.instance || (PluginRepository.instance = new PluginRepository, PluginRepository.instance.add(new PluginModuleConfig("module.artikel", "Artikel", {sort:1, enabled:!1, icon:"./assets/ic_artikel.png", view:"./module.html", desc:"module.artikel.desc", editables:[{id:"visual", desc:"module.artikel.editable.desc", type:"select", label:"Visual", color:"blue", show_on_front:!1, values:["Bild", "Icon", "Grafik", "Video", "Illu"]}, {id:"form", desc:"module.artikel.editable.desc", type:"select", 
-  label:"Form", color:"green", show_on_front:!1, values:["News", "Artikel", "Report"]}, {id:"online", desc:"module.artikel.editable.desc", type:"select", label:"Online", color:"yellow", show_on_front:!1, values:"... Mo Di Mi Do Fr Sa So".split(" ")}, {id:"season", desc:"module.artikel.editable.desc", type:"select", label:"Saison", color:"sky", show_on_front:!1, values:["Sommer", "Herbst"]}, {id:"region", desc:"module.artikel.editable.desc", type:"select", label:"Region", color:"lime", show_on_front:!1, 
+  label:"Form", color:"green", show_on_front:!1, values:["News", "Artikel", "Report"]}, {id:"online", desc:"module.artikel.editable.desc", type:"select", label:"Online", color:"yellow", show_on_front:!1, values:"Mo Di Mi Do Fr Sa So".split(" ")}, {id:"season", desc:"module.artikel.editable.desc", type:"select", label:"Saison", color:"sky", show_on_front:!1, values:["Sommer", "Herbst"]}, {id:"region", desc:"module.artikel.editable.desc", type:"select", label:"Region", color:"lime", show_on_front:!1, 
   values:["Nord", "S\u00fcd"]}, {id:"place", desc:"module.artikel.editable.desc", type:"select", label:"Ort", color:"orange", show_on_front:!1, values:"CDS STO TAM WID Buech Rustico Schlatt".split(" ")}, {id:"field.a", desc:"module.artikel.field-a.desc", type:"text", label:"Thema", placeholder:"Lauftext", show_on_front:!1, color:"shades"}, {id:"field.b", desc:"module.artikel.field-b.desc", type:"text", label:"Input von", placeholder:"Name", show_on_front:!1, color:"shades"}, {id:"field.c", desc:"module.artikel.field-c.desc", 
   type:"text", label:"Textautor*in", placeholder:"Name", show_on_front:!1, color:"shades"}, {id:"field.d", desc:"module.artikel.field-d.desc", type:"text", label:"Textbox", placeholder:"Lauftext", show_on_front:!1, color:"shades"}]}), {id:1}), PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", "Beteiligt", {sort:3, enabled:!1, icon:"./assets/ic_beteiligt.png", view:"./module.html", desc:"module.beteiligt.desc", editables:[{id:"title", desc:"module.beteiligt.label.desc", type:"label", 
   placeholder:"", label:"Beteiligt"}, {id:"onsite", desc:"module.beteiligt.layout.onsite", type:"layout", label:"vor.Ort", container:"pa.involved.onsite", layout:"regular", show_on_front:!0}, {id:"text", desc:"module.beteiligt.layout.text", type:"layout", label:"Journalist", container:"pa.involved.text", layout:"regular", show_on_front:!0}, {id:"photo", desc:"module.beteiligt.layout.photo", type:"layout", label:"Photo", container:"pa.involved.photo", layout:"regular", show_on_front:!0}, {id:"video", 
   desc:"module.beteiligt.layout.video", type:"layout", label:"Event", container:"pa.involved.video", layout:"regular", show_on_front:!0}, {id:"illu", desc:"module.beteiligt.layout.illu", type:"layout", label:"Illu", container:"pa.involved.illu", layout:"regular", show_on_front:!0}, {id:"ad", desc:"module.beteiligt.layout.ad", type:"layout", label:"weitere", container:"pa.involved.ad", layout:"regular", show_on_front:!0}], layouts:{regular:{desc:"module.beteiligt.regular.desc", label:"Regul\u00e4r"}, 
-  ad:{desc:"module.beteiligt.special.desc", label:"Spezial"}}}), {id:2}), PluginRepository.instance.add(new PluginModuleConfig("module.plan", "Plan", {sort:2, enabled:!1, icon:"./assets/ic_plan.png", view:"./module.html", desc:"module.plan.desc", editables:[]}), {id:3}));
+  ad:{desc:"module.beteiligt.special.desc", label:"Spezial"}}}), {id:2}), PluginRepository.instance.add(new PluginModuleConfig("module.plan", "Plan", {sort:2, enabled:!1, icon:"./assets/ic_plan.png", view:"./module.html", desc:"module.plan.desc", editables:[{id:"visual", desc:"module.plan.editable.desc", type:"select", label:"Visual", color:"blue", show_on_front:!1, values:["Bild", "Icon", "Grafik", "Video", "Illu"]}, {id:"form", desc:"module.plan.editable.desc", type:"select", label:"Form", color:"green", 
+  show_on_front:!1, values:["News", "Artikel", "Report"]}, {id:"online", desc:"module.plan.editable.desc", type:"select", label:"Online", color:"yellow", show_on_front:!1, values:"Mo Di Mi Do Fr Sa So".split(" ")}, {id:"season", desc:"module.plan.editable.desc", type:"select", label:"Saison", color:"sky", show_on_front:!1, values:["Sommer", "Herbst"]}, {id:"region", desc:"module.plan.editable.desc", type:"select", label:"Region", color:"lime", show_on_front:!1, values:["Nord", "S\u00fcd"]}, {id:"place", 
+  desc:"module.plan.editable.desc", type:"select", label:"Ort", color:"orange", show_on_front:!1, values:"CDS STO TAM WID Buech Rustico Schlatt".split(" ")}, {id:"field.a", desc:"module.plan.field-a.desc", type:"text", label:"Massnahmen", placeholder:"notieren\u2026", show_on_front:!1, color:"shades"}, {id:"field.b", desc:"module.plan.field-b.desc", type:"text", label:"Beschreibung", placeholder:"notieren\u2026", show_on_front:!1, color:"shades"}]}), {id:3}));
   return PluginRepository.instance;
 }}});
 PluginRepository.instance = null;
@@ -2148,7 +2185,7 @@ ModulePlanController.getInstance = function(a, b, c) {
 };
 ModulePlanController.prototype.render = function(a, b) {
   this._entity = a;
-  this._binding = this._binding ? this._binding.update(a, b) : (new ModulePlanBinding(this._window.document, a, this.onEvent, this)).bind();
+  this._binding = this._binding ? this._binding.update(a, b) : (new ModulePlanBinding(this._window.document, a, this.onEvent, this, b)).bind();
   return Controller.prototype.render.call(this, a);
 };
 ModulePlanController.prototype.update = function() {
@@ -2240,17 +2277,18 @@ PluginController.prototype.init = function() {
 PluginController.prototype.getPluginConfiguration = function() {
   var a = this;
   return this._trelloApi.get("board", "shared", PluginController.CONFIGURATION_NAME, null).then(function(b) {
-    return b ? PluginConfiguration.create(b) : new PluginConfiguration("1.0.0", "Panta.Card Power-Up", null, a.getAvailableModules());
+    return b ? (b = JSON.parse(LZString.decompress(b)), PluginConfiguration.create(b)) : new PluginConfiguration("1.0.0", "Panta.Card Power-Up", null, a.getAvailableModules());
   });
 };
-PluginController.prototype.setPluginModuleConfig = function(a) {
-  var b = this;
-  return this.getPluginConfiguration().then(function(c) {
-    c.modules.find(function(b) {
-      return b.id === a.id;
-    }).config = a.config;
-    b._trelloApi.set("board", "shared", PluginController.CONFIGURATION_NAME, c);
-    return c;
+PluginController.prototype.setPluginModuleConfig = function(a, b) {
+  var c = this;
+  return this.getPluginConfiguration().then(function(d) {
+    if (d instanceof PluginConfiguration) {
+      return d.card = b || d.card, d.modules.find(function(b) {
+        return b.id === a.id;
+      }).config = a.config, c._trelloApi.set("board", "shared", PluginController.CONFIGURATION_NAME, LZString.compress(JSON.stringify(d))), d;
+    }
+    throw "Invalid plugin configuration";
   });
 };
 PluginController.prototype.findPluginModuleConfigByModuleId = function(a) {

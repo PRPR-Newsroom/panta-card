@@ -87,7 +87,8 @@ class PluginController {
             null
         ).then(function (data) {
             if (data) {
-                return PluginConfiguration.create(data);
+                let json = JSON.parse(LZString.decompress(data));
+                return PluginConfiguration.create(json);
             } else {
                 return new PluginConfiguration(
                     "1.0.0",
@@ -101,18 +102,25 @@ class PluginController {
 
     /**
      * @param {PluginModuleConfig} pmc
+     * @param card (optional) if set it will also store the new card configuration on the plugin configuration
      * @return {PromiseLike<T> | Promise<T>}
      */
-    setPluginModuleConfig(pmc) {
+    setPluginModuleConfig(pmc, card) {
         let that = this;
         return this.getPluginConfiguration()
             .then(function (pc) {
-                let item = pc.modules.find(function (item) {
-                    return item.id === pmc.id;
-                });
-                item.config = pmc.config;
-                that._trelloApi.set('board', 'shared', PluginController.CONFIGURATION_NAME, pc);
-                return pc;
+                if (pc instanceof PluginConfiguration) {
+                    pc.card = card || pc.card;
+                    let item = pc.modules.find(function (item) {
+                        return item.id === pmc.id;
+                    });
+                    item.config = pmc.config;
+
+                    that._trelloApi.set('board', 'shared', PluginController.CONFIGURATION_NAME, LZString.compress(JSON.stringify(pc)));
+                    return pc;
+                } else {
+                    throw "Invalid plugin configuration";
+                }
             })
     }
 

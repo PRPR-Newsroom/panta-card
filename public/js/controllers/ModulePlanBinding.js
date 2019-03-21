@@ -1,3 +1,5 @@
+// TODO duplicate code in artikelbinding => base class for plan and article?
+
 class ModulePlanBinding extends Binding {
 
     /**
@@ -9,9 +11,15 @@ class ModulePlanBinding extends Binding {
      * @param entity the entity
      * @param action the onChange handler
      * @param context the context that is passed in your change handler
+     * @param configuration
      */
-    constructor(document, entity, action, context) {
+    constructor(document, entity, action, context, configuration) {
         super(document, entity, action, context);
+
+        /**
+         * @type {PluginModuleConfig}
+         */
+        this._configuration = configuration;
     }
 
     /**
@@ -21,6 +29,12 @@ class ModulePlanBinding extends Binding {
      * @returns {Binding}
      */
     update(entity, configuration) {
+        if (configuration) {
+            console.log("Update configuration", configuration);
+            this._updateConfiguration(configuration);
+        } else {
+            console.log("No new configuration");
+        }
 
         this._measures.update(entity);
         this._description.update(entity);
@@ -63,12 +77,15 @@ class ModulePlanBinding extends Binding {
 
         let params = {'context': this._context, 'valueHolder': valueHolder, 'entity': this._entity};
 
+        let aconfig = this.getConfigurationFor("field.a");
         /**
          * @type {MultiLineInput}
          */
-        this._measures = this.document.newMultiLineInput(valueHolder, '.pa.plan.measures', 'measures', 'Massnahme', params, this._action, 2, 'notieren…')
+        this._measures = this.document.newMultiLineInput(valueHolder, '.pa.plan.measures', 'measures', aconfig.label, params, this._action, 2, aconfig.editable.placeholder)
             .addClass("multiline");
-        this._description = this.document.newMultiLineInput(valueHolder, '.pa.plan.description', 'description', 'Beschreibung', params, this._action, 3, 'notieren…')
+
+        let bconfig = this.getConfigurationFor("field.b");
+        this._description = this.document.newMultiLineInput(valueHolder, '.pa.plan.description', 'description', bconfig.label, params, this._action, 3, bconfig.editable.placeholder)
             .addClass("rows-2");
         this._fee = this.document.newSingleLineInput(valueHolder, '.pa.plan.fee', 'fee', 'Total Honorar Beteiligte', params, this._action, '', 'money', true)
             .addClass('multiline', true);
@@ -96,58 +113,41 @@ class ModulePlanBinding extends Binding {
                 };
             }, false);
 
-        this._visual = this._visual = this.document.newSingleSelect(valueHolder, 'pa.plan.visual', 'visual', 'Visual', params, this._action, 'x-Liste', newOption('', '…'), [
-            newOption("picture", "Bild"),
-            newOption("icon", "Icon"),
-            newOption("graphics", "Grafik"),
-            newOption("videos", "Video"),
-            newOption("illustrations", "Illu"),
-        ]);
+        /**
+         * @type {SingleSelectInput}
+         * @private
+         */
+        this._visual = this.doLayout("pa.plan.visual", "visual", valueHolder, params);
 
         /**
          * @type {SingleSelectInput}
          * @private
          */
-        this._form = this.document.newSingleSelect(valueHolder, 'pa.plan.form', 'form', 'Form', params, this._action, 'x-Liste', newOption('', '…'), [
-            newOption("news", "News"),
-            newOption("article", "Artikel"),
-            newOption("report", "Report"),
-        ]);
+        this._form = this.doLayout("pa.plan.form", "form", valueHolder, params);
 
-        this._online = this.document.newSingleSelect(valueHolder, 'pa.plan.online', 'online', 'Online', params, this._action, 'Liste-Tag', newOption('', '…'), [
-            newOption("monday", ArtikelBinding.getTagMapping("monday")),
-            newOption("tuesday", ArtikelBinding.getTagMapping("tuesday")),
-            newOption("wednesday", ArtikelBinding.getTagMapping("wednesday")),
-            newOption("thursday", ArtikelBinding.getTagMapping("thursday")),
-            newOption("friday", ArtikelBinding.getTagMapping("friday")),
-            newOption("saturday", ArtikelBinding.getTagMapping("saturday")),
-            newOption("sunday", ArtikelBinding.getTagMapping("sunday")),
-        ]);
-
-        this._region = this.document.newSingleSelect(valueHolder, 'pa.plan.region', 'region', 'Region', params, this._action, 'x-Liste', newOption('', '…'), [
-            newOption("north", ArtikelBinding.getRegionMapping("north")),
-            newOption("south", ArtikelBinding.getRegionMapping("south")),
-        ]);
         /**
          * @type {SingleSelectInput}
          * @private
          */
-        this._season = this.document.newSingleSelect(valueHolder, 'pa.plan.season', 'season', 'Saison', params, this._action, 'x-Liste', newOption('', '…'), [
-            newOption("summer", "Sommer"),
-            newOption("fall", "Herbst"),
-        ]);
+        this._online = this.doLayout("pa.plan.online", "online", valueHolder, params);
 
+        /**
+         * @type {SingleSelectInput}
+         * @private
+         */
+        this._region = this.doLayout("pa.plan.region", "region", valueHolder, params);
 
-        this._place = this.document.newSingleSelect(valueHolder, 'pa.plan.place', 'place', 'Ort', params, this._action, 'x-Liste', newOption('', '…'), [
-            newOption("cds", "CDS"),
-            newOption("sto", "STO"),
-            newOption("tam", "TAM"),
-            newOption("wid", "WID"),
-            newOption("buech", "Buech"),
-            newOption("rustico", "Rustico"),
-            newOption("schlatt", "Schlatt"),
-        ]);
+        /**
+         * @type {SingleSelectInput}
+         * @private
+         */
+        this._season = this.doLayout("pa.plan.season", "season", valueHolder, params);
 
+        /**
+         * @type {SingleSelectInput}
+         * @private
+         */
+        this._place = this.doLayout("pa.plan.place", "place", valueHolder, params);
     }
 
     detach() {
@@ -156,6 +156,76 @@ class ModulePlanBinding extends Binding {
             container.removeChildren();
             container.removeSelf();
         }
+    }
+
+    /**
+     * TODO duplicate code (s. ArtikelBinding)
+     * @param target the target HTML element id
+     * @param id the property id
+     * @param valueHolder
+     * @param params
+     * @param configurationId if the property id differs from the configuration id you can pass the configuration id separately
+     * @return {SingleSelectInput|PInput}
+     */
+    doLayout(target, id, valueHolder, params, configurationId) {
+        let configuration = this.getConfigurationFor(configurationId || id);
+        /**
+         * @type {SingleSelectInput|PInput}
+         * @private
+         */
+        return this.document.newSingleSelect(valueHolder, target, id, configuration.label, params, this._action, 'Liste-Tag',
+            newOption('-1', '…'), configuration.options);
+    }
+
+    updateLayout(select, id) {
+        let oc = this.getConfigurationFor(id);
+        select.clear();
+        select.setLabel(oc.label);
+        select.addOptions(oc.options);
+    }
+
+    _updateConfiguration(configuration) {
+        this._configuration = configuration;
+
+        this.updateLayout(this._online, "online");
+        this.updateLayout(this._visual, "visual");
+        this.updateLayout(this._region, "region");
+        this.updateLayout(this._season, "season");
+        this.updateLayout(this._form, "form");
+        this.updateLayout(this._place, "place");
+    }
+
+    /**
+     * TODO dup code
+     * @param id
+     * @return {{label, options: number | Array | T, editable: *}}
+     */
+    getConfigurationFor(id) {
+        let editable = this._configuration.config.editables
+            .filter(function (editable) {
+                return editable.id === id;
+            });
+
+        let label = editable[0].label;
+
+        let options = editable
+            .map(function (editable) {
+                return editable.values;
+            })
+            .flat()
+            .map(function (value, index) {
+                return newOption(index, value);
+            })
+            .reduce(function (prev, cur) {
+                prev.push(cur);
+                return prev;
+            }, []);
+
+        return {
+            "label": label,
+            "options": options,
+            "editable": editable[0]
+        };
     }
 
     /**

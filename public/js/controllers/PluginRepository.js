@@ -53,7 +53,6 @@ class PluginRepository extends Repository {
                     "color": "yellow",
                     "show_on_front": false,
                     "values": [
-                        "...",
                         "Mo",
                         "Di",
                         "Mi",
@@ -214,9 +213,103 @@ class PluginRepository extends Repository {
                 "icon": "./assets/ic_plan.png",
                 "view": "./module.html",
                 "desc": "module.plan.desc",
-                "editables": [
-
-                ]
+                "editables": [{
+                    "id": "visual",
+                    "desc": "module.plan.editable.desc",
+                    "type": "select",
+                    "label": "Visual",
+                    "color": "blue",
+                    "show_on_front": false,
+                    "values": [
+                        "Bild",
+                        "Icon",
+                        "Grafik",
+                        "Video",
+                        "Illu",
+                    ]
+                }, {
+                    "id": "form",
+                    "desc": "module.plan.editable.desc",
+                    "type": "select",
+                    "label": "Form",
+                    "color": "green",
+                    "show_on_front": false,
+                    "values": [
+                        "News",
+                        "Artikel",
+                        "Report",
+                    ]
+                }, {
+                    "id": "online",
+                    "desc": "module.plan.editable.desc",
+                    "type": "select",
+                    "label": "Online",
+                    "color": "yellow",
+                    "show_on_front": false,
+                    "values": [
+                        "Mo",
+                        "Di",
+                        "Mi",
+                        "Do",
+                        "Fr",
+                        "Sa",
+                        "So",
+                    ]
+                }, {
+                    "id": "season",
+                    "desc": "module.plan.editable.desc",
+                    "type": "select",
+                    "label": "Saison",
+                    "color": "sky",
+                    "show_on_front": false,
+                    "values": [
+                        "Sommer",
+                        "Herbst",
+                    ]
+                }, {
+                    "id": "region",
+                    "desc": "module.plan.editable.desc",
+                    "type": "select",
+                    "label": "Region",
+                    "color": "lime",
+                    "show_on_front": false,
+                    "values": [
+                        "Nord",
+                        "Süd",
+                    ]
+                }, {
+                    "id": "place",
+                    "desc": "module.plan.editable.desc",
+                    "type": "select",
+                    "label": "Ort",
+                    "color": "orange",
+                    "show_on_front": false,
+                    "values": [
+                        "CDS",
+                        "STO",
+                        "TAM",
+                        "WID",
+                        "Buech",
+                        "Rustico",
+                        "Schlatt",
+                    ]
+                }, {
+                    "id": "field.a",
+                    "desc": "module.plan.field-a.desc",
+                    "type": "text",
+                    "label": "Massnahmen",
+                    "placeholder": "notieren…",
+                    "show_on_front": false,
+                    "color": "shades"
+                }, {
+                    "id": "field.b",
+                    "desc": "module.plan.field-b.desc",
+                    "type": "text",
+                    "label": "Beschreibung",
+                    "placeholder": "notieren…",
+                    "show_on_front": false,
+                    "color": "shades"
+                }]
             }), {"id": 3});
         }
         return PluginRepository.instance;

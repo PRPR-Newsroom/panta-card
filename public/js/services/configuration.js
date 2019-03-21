@@ -24,5 +24,7 @@ const TEXTS = {
     'module.beteiligt.special.desc': "Spezial-Layout",
 
     'module.plan.desc': "Folgende Felder können individuell konfiguriert werden.",
+    'module.plan.editable.desc': "Definieren Sie die Auswahlliste, die für das ganze Board gilt.",
+
 
 };
