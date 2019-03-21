@@ -369,3 +369,12 @@ function newOption(value, text) {
 function isNumber(number) {
     return number && !isNaN(number)
 }
+
+/**
+ * Translate a text by its id
+ * @param id
+ * @private
+ */
+function __(id) {
+    return TEXTS[id];
+}

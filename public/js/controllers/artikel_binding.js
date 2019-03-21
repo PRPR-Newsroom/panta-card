@@ -85,24 +85,25 @@ class ArtikelBinding extends Binding {
         let templ = virtual.cloneNode(true);
         this._switchContent(templ);
 
-        this._topic = this.document.newMultiLineInput(valueHolder, "pa.topic", 'topic', 'Thema', params, this._action, 2, "Lauftext");
+        let aconfig = this.getConfigurationFor("field.a");
+        this._topic = this.document.newMultiLineInput(valueHolder, "pa.topic", 'topic', aconfig.label, params, this._action, 2, aconfig.editable.placeholder);
         // this is a beschiss because the order of the elements matter to correctly compute height
         this._layout = this.document.newSingleLineInput(valueHolder, 'pa.layout', 'layout', 'Seiten Layout', params, this._action, 'Zahl', 'number', false);
 
         // from is a dynamic field (field.a)
-        let aconfig = this.getConfigurationFor("field.a");
-        this._from = this.document.newSingleLineInput(valueHolder, 'pa.input-from', 'from', aconfig.label, params, this._action, aconfig.editable.placeholder);
+        let bconfig = this.getConfigurationFor("field.b");
+        this._from = this.document.newSingleLineInput(valueHolder, 'pa.input-from', 'from', bconfig.label, params, this._action, bconfig.editable.placeholder);
 
         // author is a dynamic field: (field.b)
-        let bconfig = this.getConfigurationFor("field.b");
-        this._author = this.document.newSingleLineInput(valueHolder, 'pa.author', 'author', bconfig.label, params, this._action, bconfig.editable.placeholder);
+        let cconfig = this.getConfigurationFor("field.c");
+        this._author = this.document.newSingleLineInput(valueHolder, 'pa.author', 'author', cconfig.label, params, this._action, cconfig.editable.placeholder);
 
         this._total = this.document.newSingleLineInput(valueHolder, 'pa.total', 'total', 'Seiten Total', params, this._action, 'Summe', 'number', true)
             .addClass('bold');
 
         // text is a dynamic field: (field.c)
-        let cconfig = this.getConfigurationFor("field.c");
-        this._text = this.document.newMultiLineInput(valueHolder, 'pa.text', 'text', cconfig.label, params, this._action, 2, cconfig.editable.placeholder);
+        let dconfig = this.getConfigurationFor("field.d");
+        this._text = this.document.newMultiLineInput(valueHolder, 'pa.text', 'text', dconfig.label, params, this._action, 2, dconfig.editable.placeholder);
 
         /**
          * @type {HTMLElement|PInput}

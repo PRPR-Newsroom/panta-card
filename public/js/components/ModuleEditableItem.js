@@ -75,14 +75,26 @@ class ModuleEditableItem extends AbstractItem {
         let btnColor = template
             .getClosestChildByClassName("module-editable-color")
             .getClosestChildByClassName("panta-js-button");
-        btnColor.addClass("panta-bgcolor-" + that.editable.color);
-        btnColor
-            .setEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                // open color picker
-                that._onColorPickerHandler(that.module, that.editable);
-            });
+
+        switch (that.editable.type) {
+            case "label":
+            case "layout":
+                btnColor.addClass("hidden");
+                break;
+            default:
+                btnColor
+                    .addClass("panta-bgcolor-" + that.editable.color)
+                    .removeClass("hidden")
+                    .setEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // open color picker
+                        that._onColorPickerHandler(that.module, that.editable);
+                    });
+                break;
+        }
+
+
 
         return template;
     }

@@ -9,8 +9,9 @@ class BeteiligtBinding extends Binding {
      * @param config the entity
      * @param action the onChange handler
      * @param context the context that is passed in your change handler
+     * @param {PluginModuleConfig} configuration
      */
-    constructor(document, config, action, context) {
+    constructor(document, config, action, context, configuration) {
         super(document, config, action, context);
 
         /**
@@ -56,14 +57,22 @@ class BeteiligtBinding extends Binding {
         this._activated = null;
 
         this._currentTabIndex = -1;
+
+        /**
+         * @type {PluginModuleConfig}
+         * @private
+         */
+        this._configuration = configuration;
     }
 
-    initLayouts(configuration) {
+    initLayouts() {
         let that = this;
-        this._involvements = Object.values(configuration).reduce(function (prev, curr) {
-            prev[curr.name] = that._buildValueHolder(
-                curr.name,
-                curr.container,
+        let layouts = (this._configuration && this._configuration.config && this._configuration.config.editables ? this._configuration.config.editables : []).filter(function (item) {
+            return item.type === "layout";
+        });
+
+        this._involvements = Object.values(layouts).reduce(function (prev, curr) {
+            prev[curr.id] = that._buildValueHolder(
                 curr,
                 that.onLayout);
             return prev;
@@ -72,17 +81,16 @@ class BeteiligtBinding extends Binding {
 
     /**
      * Creates a new value-holder element
-     * @param involvedIn
-     * @param tabId
+     * @param config
      * @param renderer
      * @returns {{layout: string, renderer: renderer, data: null, tab: HTMLElement, "involved-in": *, binding: BeteiligtBinding, label: string}}
      * @private
      */
-    _buildValueHolder(involvedIn, tabId, config, renderer) {
+    _buildValueHolder(config, renderer) {
         let that = this;
-        let tab = this._initTab(tabId);
+        let tab = this._initTab(config);
         return {
-            'involved-in': involvedIn,
+            'involved-in': config.id,
             'data': null,
             'renderer': function (valueHolder) {
                 renderer.call(that, this, valueHolder);
@@ -92,7 +100,8 @@ class BeteiligtBinding extends Binding {
             'layout': config.layout || tab.getAttribute("data-layout"),
             // TODO data-label is obsolete when switched to module configuration
             'label': config.label || tab.getAttribute("data-label"),
-            'binding': that
+            'binding': that,
+            'show': config.show_on_front
         };
     }
 
@@ -104,13 +113,26 @@ class BeteiligtBinding extends Binding {
         }
     }
 
-    _initTab(tabId) {
+    /**
+     * Initialize the tab for this config
+     *
+     * @param config
+     * @return {HTMLElement}
+     * @private
+     */
+    _initTab(config) {
         let form = this.document.getElementById("panta.module");
         if (!form) {
             form = createByTemplate(template_beteiligt, template_beteiligt);
             this.document.getElementById("panta.content").appendChild(form);
         }
-        return this.document.getElementById(tabId);
+        let tab = this.document.getElementById(config.container);
+        if (config.show_on_front) {
+            tab.removeClass("hidden");
+        } else {
+            tab.addClass("hidden");
+        }
+        return tab;
     }
 
     /**
@@ -121,6 +143,8 @@ class BeteiligtBinding extends Binding {
      * @returns {BeteiligtBinding}
      */
     update(entity, configuration) {
+        this._configuration = configuration;
+
         this._activated.activate();
         // update all PModuleConfigs with the new entity entity
         Object.values(this).filter(function (property) {
@@ -138,8 +162,10 @@ class BeteiligtBinding extends Binding {
      *
      * @returns {BeteiligtBinding}
      */
-    bind(configuration) {
-        this.initLayouts(configuration);
+    bind() {
+        this.initLayouts();
+        this.doLabels();
+
         this._onsite = this._onsite !== null ? this._onsite.update(this._entity) : (this._onsite = new PModuleConfig(this.document, 'vor.Ort', this._involvements.onsite)
             .bind(this._entity, 'onsite')
             .render());
@@ -163,11 +189,16 @@ class BeteiligtBinding extends Binding {
         this._ad = this._ad !== null ? this._ad.update(this._entity) : (this._ad = new PModuleConfig(this.document, 'Inserat', this._involvements.ad)
             .bind(this._entity, 'ad')
             .render());
+
+        // get the first visible tab
+        let first = Object.values(this).filter(function (property) {
+            return property instanceof PModuleConfig && property.valueHolder.show;
+        })[0];
         // activate the first tab when rendering this layout. when the layout was already rendered then it will not call bind() but update
-        this._onsite.activate();
         // we set the activated manually here but is actually also set when rendering the layout which is triggered by activate() on the PModuleConfig but this is not obvious
         // and therefore we set it here manually
-        this._activated = this._onsite;
+        first.activate();
+        this._activated = first;
         return this;
     }
 
@@ -226,19 +257,20 @@ class BeteiligtBinding extends Binding {
         virtual.innerHTML = isMobileBrowser() ? template_regular_mobile : template_regular;
         let templ = virtual.cloneNode(true);
         this._switchContent(forms, templ);
+        if (valueHolder.show) {
+            let params = {'context': this._context, 'valueHolder': valueHolder, 'config': this._entity};
+            forms.setField("name", this.document.newSingleLineInput(valueHolder, ".pa.name", "name", "Name", params, this._action, "eintippen…", "text", false));
+            forms.setField("social", this.document.newSingleLineInput(valueHolder, ".pa.social", "social", "Telefon.Mail.Webseite", params, this._action, "notieren…"));
+            forms.setField("address", this.document.newMultiLineInput(valueHolder, ".pa.address", "address", "Adresse", params, this._action, 2, "festhalten…"));
+            forms.setField("notes", this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Notiz", params, this._action, 6, "formulieren…"));
+            forms.setField("duedate", this.document.newSingleLineInput(valueHolder, ".pa.duedate", "duedate", "Deadline", params, this._action, "bestimmen…", "text", false));
 
-        let params = {'context': this._context, 'valueHolder': valueHolder, 'config': this._entity};
-        forms.setField("name", this.document.newSingleLineInput(valueHolder, ".pa.name", "name", "Name", params, this._action, "eintippen…", "text", false));
-        forms.setField("social", this.document.newSingleLineInput(valueHolder, ".pa.social", "social", "Telefon.Mail.Webseite", params, this._action, "notieren…"));
-        forms.setField("address", this.document.newMultiLineInput(valueHolder, ".pa.address", "address", "Adresse", params, this._action, 2, "festhalten…"));
-        forms.setField("notes", this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Notiz", params, this._action, 6, "formulieren…"));
-        forms.setField("duedate", this.document.newSingleLineInput(valueHolder, ".pa.duedate", "duedate", "Deadline", params, this._action, "bestimmen…", "text", false));
-
-        forms.setField("fee", this.document.newSingleLineInput(valueHolder, ".pa.fee", "fee", "Honorar Massnahme", params, this._action, "Betrag…", "money", false));
-        forms.setField("charges", this.document.newSingleLineInput(valueHolder, ".pa.charges", "charges", "Spesen Massnahme", params, this._action, "Betrag…", "money", false));
-        forms.setField("project", this.document.newSingleLineInput(valueHolder, ".pa.project", "project", "Total Beteiligte", params, this._action, "Betrag…", "money", true)
-            .addClass("bold"));
-        forms.setField("capOnDepenses", this.document.newSingleLineInput(valueHolder, ".pa.cap_on_depenses", "capOnDepenses", "Kostendach Total Projekt", params, this._action, "Betrag…", "money", false));
+            forms.setField("fee", this.document.newSingleLineInput(valueHolder, ".pa.fee", "fee", "Honorar Massnahme", params, this._action, "Betrag…", "money", false));
+            forms.setField("charges", this.document.newSingleLineInput(valueHolder, ".pa.charges", "charges", "Spesen Massnahme", params, this._action, "Betrag…", "money", false));
+            forms.setField("project", this.document.newSingleLineInput(valueHolder, ".pa.project", "project", "Total Beteiligte", params, this._action, "Betrag…", "money", true)
+                .addClass("bold"));
+            forms.setField("capOnDepenses", this.document.newSingleLineInput(valueHolder, ".pa.cap_on_depenses", "capOnDepenses", "Kostendach Total Projekt", params, this._action, "Betrag…", "money", false));
+        }
     }
 
     /**
@@ -263,6 +295,26 @@ class BeteiligtBinding extends Binding {
         this.document.newSingleLineInput(valueHolder, ".pa.price", "price", "Preis CHF", params, this._action, "bestimmen…", "money", false);
         this.document.newSingleLineInput(valueHolder, ".pa.total", "total", "Total CHF", params, this._action, "", "money", true)
             .addClass("bold");
+    }
+
+    /**
+     * Update the tab labels
+     */
+    doLabels() {
+        let that = this;
+        this.document.getElementsByClassName("js-panta-editable-title").forEach(function (title) {
+            let editable = that._configuration.config.editables.find(function (editable) {
+                return editable.id === "title";
+            });
+            if (editable) {
+                title.addClass(editable.show_on_front ? 'show' : 'hidden');
+                title.getElementsByClassName("js-panta-label").forEach(function (element) {
+                    if (element instanceof HTMLElement) {
+                        element.innerText = editable.label;
+                    }
+                });
+            }
+        })
     }
 
     /**

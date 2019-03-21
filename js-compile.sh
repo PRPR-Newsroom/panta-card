@@ -7,6 +7,7 @@ java -jar /home/m3ns1/dev/google-compiler/closure-compiler-v20180805.jar \
     --formatting=print_input_delimiter \
     'public/js/view/**.js' \
     'public/js/services/**.js' \
+    'public/js/contracts/**.js' \
     'public/js/components/**.js' \
     'public/js/controllers/**.js' \
     'public/js/models/**.js' \

@@ -262,12 +262,12 @@ $jscomp.polyfill("Promise", function(a) {
         }
       } : b;
     }
-    var d, f, h = new e(function(a, b) {
+    var d, f, g = new e(function(a, b) {
       d = a;
       f = b;
     });
     this.callWhenSettled_(c(a, d), c(b, f));
-    return h;
+    return g;
   };
   e.prototype.catch = function(a) {
     return this.then(void 0, a);
@@ -306,14 +306,14 @@ $jscomp.polyfill("Promise", function(a) {
     return d.done ? c([]) : new e(function(a, e) {
       function f(b) {
         return function(c) {
-          h[b] = c;
-          g--;
-          0 == g && a(h);
+          g[b] = c;
+          h--;
+          0 == h && a(g);
         };
       }
-      var h = [], g = 0;
+      var g = [], h = 0;
       do {
-        h.push(void 0), g++, c(d.value).callWhenSettled_(f(h.length - 1), e), d = b.next();
+        g.push(void 0), h++, c(d.value).callWhenSettled_(f(g.length - 1), e), d = b.next();
       } while (!d.done);
     });
   };
@@ -359,12 +359,12 @@ $jscomp.polyfill("String.prototype.startsWith", function(a) {
     a += "";
     var e = b.length, f = a.length;
     c = Math.max(0, Math.min(c | 0, b.length));
-    for (var g = 0; g < f && c < e;) {
-      if (b[c++] != a[g++]) {
+    for (var h = 0; h < f && c < e;) {
+      if (b[c++] != a[h++]) {
         return !1;
       }
     }
-    return g >= f;
+    return h >= f;
   };
 }, "es6", "es3");
 $jscomp.owns = function(a, b) {
@@ -479,7 +479,10 @@ DI.prototype.getTabIndexProvider = function() {
 };
 DI.INSTANCE = null;
 // Input 3
-var PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0};
+var PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.artikel.desc":"Die Eingabefelder und Auswahllisten werden f\u00fcr das ganze Trello Board konfiguriert. F\u00fcr jedes Feld kann eine Farbe definiert werden. Wenn das Feld mit dem \u00abGutzeichen\u00bb aktiviert wird, dann erscheint es in dieser Farbe auf der Trello Card Vorderseite, ansonsten wird es nur f\u00fcr die Trello Card R\u00fcckseite verwendet.", "module.artikel.editable.desc":"Definieren Sie die Auswahlliste, die f\u00fcr das ganze Board gilt.", 
+"module.artikel.field-a.desc":"Das Artikelfeld \u00abA\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.artikel.field-b.desc":"Das Artikelfeld \u00abB\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.artikel.field-c.desc":"Das Artikelfeld \u00abC\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.artikel.field-d.desc":"Das Artikelfeld \u00abD\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
+"module.beteiligt.desc":"Folgende Felder k\u00f6nnen individuell konfiguriert werden. Mit dem \u00abGutzeichen\u00bb kann das Feld sichtbar gemacht werden.", "module.beteiligt.label.desc":"Diese Beschriftung wird oberhalb des Moduls als \u00dcberschrift verwendet.", "module.beteiligt.layout.onsite":"Das Layout wird f\u00fcr das Tab \u00abvor.Ort\u00bb verwendet", "module.beteiligt.layout.text":"Das Layout wird f\u00fcr das Tab \u00abJournalist\u00bb verwendet", "module.beteiligt.regular.desc":"Standard-Layout", 
+"module.beteiligt.special.desc":"Spezial-Layout", "module.plan.desc":"Folgende Felder k\u00f6nnen individuell konfiguriert werden."};
 // Input 4
 var Repository = function() {
   this._repository = {};
@@ -518,7 +521,42 @@ AbstractItem.prototype.decorate = function(a) {
   return this;
 };
 // Input 6
-var PInput = function(a, b, c, d, e, f, g) {
+var ModuleEditableSelectItem = function(a) {
+  AbstractItem.call(this);
+  this._options = [];
+  this._value = a;
+};
+$jscomp.inherits(ModuleEditableSelectItem, AbstractItem);
+ModuleEditableSelectItem.prototype.addOption = function(a) {
+  this._options.push(a);
+};
+ModuleEditableSelectItem.prototype.setOnTextChangeListener = function(a) {
+  this._onTextChangeListener = a;
+  return this;
+};
+ModuleEditableSelectItem.prototype.render = function() {
+  var a = this, b = createByTemplate(template_settings_editable_select, template_settings_editable_select);
+  b.getElementsByClassName("module-editable-select-container").forEach(function(b) {
+    if (b instanceof HTMLElement) {
+      var c = b.getClosestChildByClassName("panta-js-select");
+      c.setEventListener("change", function(b) {
+        a._value = a._onTextChangeListener(a.value, b.srcElement.value);
+      });
+      a._options.forEach(function(a) {
+        c.appendChild(a);
+      });
+      c.value = a.value;
+    }
+  });
+  return b;
+};
+$jscomp.global.Object.defineProperties(ModuleEditableSelectItem.prototype, {value:{configurable:!0, enumerable:!0, get:function() {
+  return this._value;
+}, set:function(a) {
+  this._value = a;
+}}});
+// Input 7
+var PInput = function(a, b, c, d, e, f, h) {
   this._document = a;
   this._label = 0 === b.length ? "" : b;
   this._value = c;
@@ -526,7 +564,7 @@ var PInput = function(a, b, c, d, e, f, g) {
   d.startsWith(".", 0) ? this._target = this._document.getElementsByClassName(d.substr(1)).item(0) : this._target = this._document.getElementById(d);
   this._type = f;
   this._placeholder = e;
-  this._readonly = g;
+  this._readonly = h;
   this._input = this._document.createElement(this._type);
   this._property = this._labelInput = null;
   this._propertyType = "text";
@@ -712,8 +750,8 @@ $jscomp.global.Object.defineProperties(PInput.prototype, {propertyType:{configur
 }, set:function(a) {
   this._propertyType = a;
 }}});
-var MultiLineInput = function(a, b, c, d, e, f, g) {
-  PInput.call(this, a, b, c, d, e, "textarea", !!g);
+var MultiLineInput = function(a, b, c, d, e, f, h) {
+  PInput.call(this, a, b, c, d, e, "textarea", !!h);
   this._rows = f;
 };
 $jscomp.inherits(MultiLineInput, PInput);
@@ -785,7 +823,7 @@ SingleSelectInput.prototype.doCustomization = function(a, b) {
   b.addClass("focused-fix");
   return PInput.prototype.doCustomization.call(this, a);
 };
-// Input 7
+// Input 8
 var PModuleConfig = function(a, b, c) {
   this.document = a;
   this.label = b;
@@ -829,7 +867,7 @@ PModuleConfig.prototype.beginEditing = function() {
 PModuleConfig.prototype.endEditing = function() {
   this.valueHolder.tab.removeClass("editing");
 };
-// Input 8
+// Input 9
 var ModuleEditableItem = function(a, b) {
   AbstractItem.call(this);
   this._module = a;
@@ -867,12 +905,18 @@ ModuleEditableItem.prototype.render = function() {
     a._onActivationHandler(a.module, a.editable, b.checked);
   });
   c = b.getClosestChildByClassName("module-editable-color").getClosestChildByClassName("panta-js-button");
-  c.addClass("panta-bgcolor-" + a.editable.color);
-  c.setEventListener("click", function(b) {
-    b.preventDefault();
-    b.stopPropagation();
-    a._onColorPickerHandler(a.module, a.editable);
-  });
+  switch(a.editable.type) {
+    case "label":
+    case "layout":
+      c.addClass("hidden");
+      break;
+    default:
+      c.addClass("panta-bgcolor-" + a.editable.color).removeClass("hidden").setEventListener("click", function(b) {
+        b.preventDefault();
+        b.stopPropagation();
+        a._onColorPickerHandler(a.module, a.editable);
+      });
+  }
   return b;
 };
 $jscomp.global.Object.defineProperties(ModuleEditableItem.prototype, {module:{configurable:!0, enumerable:!0, get:function() {
@@ -884,7 +928,7 @@ $jscomp.global.Object.defineProperties(ModuleEditableItem.prototype, {module:{co
 }, set:function(a) {
   this._editable = a;
 }}});
-// Input 9
+// Input 10
 var ModuleSettingsItem = function(a, b) {
   AbstractItem.call(this);
   this._document = a;
@@ -940,7 +984,7 @@ $jscomp.global.Object.defineProperties(ModuleSettingsItem.prototype, {module:{co
 }}, document:{configurable:!0, enumerable:!0, get:function() {
   return this._document;
 }}});
-// Input 10
+// Input 11
 var ModuleEditableTextItem = function(a, b) {
   AbstractItem.call(this);
   this._value = a;
@@ -974,7 +1018,7 @@ $jscomp.global.Object.defineProperties(ModuleEditableTextItem.prototype, {value:
 }, set:function(a) {
   this._value = a;
 }}});
-// Input 11
+// Input 12
 var ClientManager = function(a, b, c) {
   this._window = a;
   this._trello = b;
@@ -1153,7 +1197,7 @@ ClientManager.prototype.getArticleModuleContext = function(a) {
     });
   }};
 };
-// Input 12
+// Input 13
 var Controller = function(a, b) {
   this._repository = b;
   this._binding = null;
@@ -1192,7 +1236,7 @@ Controller.prototype.persist = function(a, b) {
 };
 Controller.prototype.clear = function() {
 };
-// Input 13
+// Input 14
 var ModuleSettingsController = function(a, b, c, d, e) {
   this.trello = a;
   this.pluginController = b;
@@ -1215,7 +1259,7 @@ ModuleSettingsController.prototype.edit = function() {
     });
     a.document.getElementsByClassName("settings-content").forEach(function(d) {
       var e = a.document.createElement("p");
-      e.innerHTML = c.desc;
+      e.innerHTML = __(c.desc);
       d.appendChild(e);
       a.renderEditableLabel(b, d, c, "Beschriftung");
       a.renderEditable(b, c, d);
@@ -1240,19 +1284,17 @@ ModuleSettingsController.prototype.edit = function() {
     return !0;
   });
 };
-ModuleSettingsController.prototype.nl = function(a) {
-  a.appendChild(this.document.createElement("br"));
-};
 ModuleSettingsController.prototype.view = function(a) {
   var b = this;
   return this.pluginController.findPluginModuleConfigByModuleId(this.module).then(function(a) {
     b.document.getElementsByClassName("settings-content").forEach(function(c) {
       var d = b.document.createElement("p");
-      d.innerHTML = a.config.desc;
+      d.innerHTML = __(a.config.desc);
       c.appendChild(d);
+      b.renderFieldGroup(a, "label", c, "Beschriftungen");
       b.renderFieldGroup(a, "text", c, "Eingabefelder");
-      b.nl(c);
       b.renderFieldGroup(a, "select", c, "Auswahllisten");
+      b.renderFieldGroup(a, "layout", c, "Layouts");
     });
     b.hideVersion();
     return !0;
@@ -1265,7 +1307,30 @@ ModuleSettingsController.prototype.renderEditable = function(a, b, c) {
       break;
     case "text":
       this.renderEditableText(a, b, c, "Platzhalter");
+      break;
+    case "layout":
+      this.renderEditableLayout(a, b, c, "Layout");
   }
+};
+ModuleSettingsController.prototype.renderEditableLayout = function(a, b, c, d) {
+  var e = this, f = this.document.createElement("p");
+  f.innerHTML = "<strong>" + d + "</strong>";
+  c.appendChild(f);
+  d = Object.keys(a.config.layouts).reduce(function(c, d) {
+    var f = a.config.layouts[d], g = e.document.createElement("option");
+    g.setAttribute("value", d);
+    b.layout === d ? g.setAttribute("selected", "selected") : g.removeAttribute("selected");
+    g.innerText = f.label;
+    c.addOption(g);
+    return c;
+  }, new ModuleEditableSelectItem(b.layout));
+  d.setOnTextChangeListener(function(c, d) {
+    b.layout = d;
+    e.pluginController.setPluginModuleConfig(a).then(function() {
+      console.log("Updated");
+    });
+  });
+  c.appendChild(d.render());
 };
 ModuleSettingsController.prototype.renderEditableText = function(a, b, c, d) {
   var e = this, f = this.document.createElement("p");
@@ -1319,13 +1384,13 @@ ModuleSettingsController.prototype.renderEditableLabel = function(a, b, c, d) {
   b.appendChild(d.render());
 };
 ModuleSettingsController.prototype.renderFieldGroup = function(a, b, c, d) {
-  var e = this, f = e.document.createElement("p"), g = a.config.editables.filter(function(a) {
+  var e = this, f = e.document.createElement("p"), h = a.config.editables.filter(function(a) {
     return a.type === b;
   });
-  f.addClass(0 < g.length ? "show" : "hidden");
+  f.addClass(0 < h.length ? "show" : "hidden");
   f.innerHTML = "<strong>" + d + ":</strong>";
   c.appendChild(f);
-  g.map(function(b) {
+  h.map(function(b) {
     return (new ModuleEditableItem(a, b, e.trello)).setOnEnterListener(function(a, b) {
       e.trello.popup({title:b.label, url:"settings.html", height:184, args:{module:a.id, editable:b.id}});
     }).setOnActivationListener(function(a, b, c) {
@@ -1340,11 +1405,7 @@ ModuleSettingsController.prototype.renderFieldGroup = function(a, b, c, d) {
     a.appendChild(b);
     return a;
   }, c);
-};
-ModuleSettingsController.prototype.hideVersion = function() {
-  this.document.getElementsByClassName("plugin-version-container").forEach(function(a) {
-    a.addClass("hidden");
-  });
+  0 < h.length && e.nl(c);
 };
 ModuleSettingsController.prototype.index = function(a) {
   var b = this;
@@ -1385,7 +1446,15 @@ ModuleSettingsController.prototype.clearContent = function() {
     a.removeChildren();
   });
 };
-// Input 14
+ModuleSettingsController.prototype.nl = function(a) {
+  a.appendChild(this.document.createElement("br"));
+};
+ModuleSettingsController.prototype.hideVersion = function() {
+  this.document.getElementsByClassName("plugin-version-container").forEach(function(a) {
+    a.addClass("hidden");
+  });
+};
+// Input 15
 var ColorPickerController = function(a, b, c) {
   this._windowManager = a;
   this._pluginController = b;
@@ -1426,12 +1495,12 @@ ColorPickerController.prototype.getEditable = function(a, b) {
     return a.id === b;
   });
 };
-// Input 15
+// Input 16
 var ModulePlanRepository = function() {
   Repository.call(this);
 };
 $jscomp.inherits(ModulePlanRepository, Repository);
-// Input 16
+// Input 17
 var BeteiligtRepository = function() {
   Repository.call(this);
 };
@@ -1442,7 +1511,7 @@ BeteiligtRepository.prototype.isNew = function(a) {
     return b._repository[c].id === a.id;
   });
 };
-// Input 17
+// Input 18
 var ModuleController = function(a, b, c) {
   Controller.call(this, a, new BeteiligtRepository);
   this.document = a.document;
@@ -1495,10 +1564,10 @@ ModuleController.prototype.getVersionInfo = function() {
 };
 ModuleController.prototype.render = function(a, b) {
   this._entity = a;
-  this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(a, b) : this._createBinding(a, b && b.config ? b.config.layouts : null);
+  this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(a, b) : this._createBinding(a, b);
 };
 ModuleController.prototype._createBinding = function(a, b) {
-  return (new BeteiligtBinding(this.document, a, this.onEvent, this)).bind(b);
+  return (new BeteiligtBinding(this.document, a, this.onEvent, this, b)).bind();
 };
 ModuleController.prototype.hide = function() {
   this.document.getElementById("panta.module").addClass("hidden");
@@ -1682,7 +1751,7 @@ $jscomp.global.Object.defineProperties(ModuleController, {VERSION:{configurable:
 }}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Beteiligt.PropertyBag";
 }}});
-// Input 18
+// Input 19
 var ArtikelRepository = function() {
   Repository.call(this);
 };
@@ -1696,7 +1765,7 @@ ArtikelRepository.prototype.isNew = function(a) {
     return b._repository[c].id === a.id;
   });
 };
-// Input 19
+// Input 20
 var ArtikelController = function(a, b, c, d) {
   Controller.call(this, a, c);
   this.document = a.document;
@@ -1833,7 +1902,7 @@ $jscomp.global.Object.defineProperties(ArtikelController, {VERSION:{configurable
 }}, SHARED_META:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Meta";
 }}});
-// Input 20
+// Input 21
 var ArtikelBinding = function(a, b, c, d, e) {
   Binding.call(this, a, b, c, d);
   this._configuration = e;
@@ -1879,14 +1948,15 @@ ArtikelBinding.prototype.onLayout = function(a, b) {
   c.innerHTML = template_artikel;
   c = c.cloneNode(!0);
   this._switchContent(c);
-  this._topic = this.document.newMultiLineInput(a, "pa.topic", "topic", "Thema", b, this._action, 2, "Lauftext");
-  this._layout = this.document.newSingleLineInput(a, "pa.layout", "layout", "Seiten Layout", b, this._action, "Zahl", "number", !1);
   c = this.getConfigurationFor("field.a");
-  this._from = this.document.newSingleLineInput(a, "pa.input-from", "from", c.label, b, this._action, c.editable.placeholder);
+  this._topic = this.document.newMultiLineInput(a, "pa.topic", "topic", c.label, b, this._action, 2, c.editable.placeholder);
+  this._layout = this.document.newSingleLineInput(a, "pa.layout", "layout", "Seiten Layout", b, this._action, "Zahl", "number", !1);
   c = this.getConfigurationFor("field.b");
+  this._from = this.document.newSingleLineInput(a, "pa.input-from", "from", c.label, b, this._action, c.editable.placeholder);
+  c = this.getConfigurationFor("field.c");
   this._author = this.document.newSingleLineInput(a, "pa.author", "author", c.label, b, this._action, c.editable.placeholder);
   this._total = this.document.newSingleLineInput(a, "pa.total", "total", "Seiten Total", b, this._action, "Summe", "number", !0).addClass("bold");
-  c = this.getConfigurationFor("field.c");
+  c = this.getConfigurationFor("field.d");
   this._text = this.document.newMultiLineInput(a, "pa.text", "text", c.label, b, this._action, 2, c.editable.placeholder);
   this._pagina = this.document.newSingleLineInput(a, "pa.pagina", "pagina", "Pagina", b, this._action, "Zahl", "number", !1).addClass("pagina").addClass("bold");
   this._tags = this.doLayout("pa.tags", "tags", a, b, "online");
@@ -1949,7 +2019,7 @@ ArtikelBinding.prototype.getConfigurationFor = function(a) {
   }, []);
   return {label:c, options:d, editable:b[0]};
 };
-// Input 21
+// Input 22
 var ModulePlanBinding = function(a, b, c, d) {
   Binding.call(this, a, b, c, d);
 };
@@ -2019,23 +2089,23 @@ ModulePlanBinding.prototype._initContent = function() {
   }
   return a;
 };
-// Input 22
+// Input 23
 var PluginRepository = function() {
   Repository.call(this);
 };
 $jscomp.inherits(PluginRepository, Repository);
 $jscomp.global.Object.defineProperties(PluginRepository, {INSTANCE:{configurable:!0, enumerable:!0, get:function() {
-  PluginRepository.instance || (PluginRepository.instance = new PluginRepository, PluginRepository.instance.add(new PluginModuleConfig("module.artikel", "Artikel", {sort:1, enabled:!1, icon:"./assets/ic_artikel.png", view:"./module.html", desc:"Die Eingabefelder und Auswahllisten werden f\u00fcr das ganze Trello Board konfiguriert. F\u00fcr jedes Feld kann eine Farbe definiert werden. Wenn das Feld mit dem \u00abGutzeichen\u00bb aktiviert wird, dann erscheint es in dieser Farbe auf der Trello Card Vorderseite, ansonsten wird es nur f\u00fcr die Trello Card R\u00fcckseite verwendet.", 
-  editables:[{id:"visual", desc:"Definieren Sie die Auswahlliste, die f\u00fcr das ganze Board gilt.", type:"select", label:"Visual", color:"blue", show_on_front:!1, values:["Bild", "Icon", "Grafik", "Video", "Illu"]}, {id:"form", desc:"Definieren Sie die Auswahlliste, die f\u00fcr das ganze Board gilt.", type:"select", label:"Form", color:"green", show_on_front:!1, values:["News", "Artikel", "Report"]}, {id:"online", desc:"Definieren Sie die Auswahlliste, die f\u00fcr das ganze Board gilt.", type:"select", 
-  label:"Online", color:"yellow", show_on_front:!1, values:"... Mo Di Mi Do Fr Sa So".split(" ")}, {id:"season", desc:"Definieren Sie die Auswahlliste, die f\u00fcr das ganze Board gilt.", type:"select", label:"Saison", color:"sky", show_on_front:!1, values:["Sommer", "Herbst"]}, {id:"region", desc:"Definieren Sie die Auswahlliste, die f\u00fcr das ganze Board gilt.", type:"select", label:"Region", color:"lime", show_on_front:!1, values:["Nord", "S\u00fcd"]}, {id:"place", desc:"Definieren Sie die Auswahlliste, die f\u00fcr das ganze Board gilt.", 
-  type:"select", label:"Ort", color:"orange", show_on_front:!1, values:"CDS STO TAM WID Buech Rustico Schlatt".split(" ")}, {id:"field.a", desc:"Das Artikelfeld \u00abA\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", type:"text", label:"Input von", placeholder:"Name", show_on_front:!1, color:"shades"}, {id:"field.b", desc:"Das Artikelfeld \u00abB\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
-  type:"text", label:"Textautor*in", placeholder:"Name", show_on_front:!1, color:"shades"}, {id:"field.c", desc:"Das Artikelfeld \u00abC\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", type:"text", label:"Textbox", placeholder:"Lauftext", show_on_front:!1, color:"shades"}]}), {id:1}), PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", "Beteiligt", {sort:3, enabled:!1, icon:"./assets/ic_beteiligt.png", view:"./module.html", 
-  desc:"Folgende Felder k\u00f6nnen individuell konfiguriert werden.", editables:[{id:"title", desc:"Diese Beschriftung wird oberhalb des Moduls als \u00dcberschrift verwendet.", type:"text", placeholder:"", label:"Beteiligt"}], layouts:{onsite:{name:"onsite", container:"pa.involved.onsite", layout:"regular", label:"vor.Ort"}, text:{name:"text", container:"pa.involved.text", layout:"regular", label:"Journalist"}, photo:{name:"photo", container:"pa.involved.photo", layout:"regular", label:"Visual"}, 
-  video:{name:"video", container:"pa.involved.video", layout:"regular", label:"Event"}, illu:{name:"illu", container:"pa.involved.illu", layout:"regular", label:"MC/Host"}, ad:{name:"ad", container:"pa.involved.ad", layout:"regular", label:"weitere"}}}), {id:2}), PluginRepository.instance.add(new PluginModuleConfig("module.plan", "Plan", {sort:2, enabled:!1, icon:"./assets/ic_plan.png", view:"./module.html", desc:"Folgende Felder k\u00f6nnen individuell konfiguriert werden.", editables:[]}), {id:3}));
+  PluginRepository.instance || (PluginRepository.instance = new PluginRepository, PluginRepository.instance.add(new PluginModuleConfig("module.artikel", "Artikel", {sort:1, enabled:!1, icon:"./assets/ic_artikel.png", view:"./module.html", desc:"module.artikel.desc", editables:[{id:"visual", desc:"module.artikel.editable.desc", type:"select", label:"Visual", color:"blue", show_on_front:!1, values:["Bild", "Icon", "Grafik", "Video", "Illu"]}, {id:"form", desc:"module.artikel.editable.desc", type:"select", 
+  label:"Form", color:"green", show_on_front:!1, values:["News", "Artikel", "Report"]}, {id:"online", desc:"module.artikel.editable.desc", type:"select", label:"Online", color:"yellow", show_on_front:!1, values:"... Mo Di Mi Do Fr Sa So".split(" ")}, {id:"season", desc:"module.artikel.editable.desc", type:"select", label:"Saison", color:"sky", show_on_front:!1, values:["Sommer", "Herbst"]}, {id:"region", desc:"module.artikel.editable.desc", type:"select", label:"Region", color:"lime", show_on_front:!1, 
+  values:["Nord", "S\u00fcd"]}, {id:"place", desc:"module.artikel.editable.desc", type:"select", label:"Ort", color:"orange", show_on_front:!1, values:"CDS STO TAM WID Buech Rustico Schlatt".split(" ")}, {id:"field.a", desc:"module.artikel.field-a.desc", type:"text", label:"Thema", placeholder:"Lauftext", show_on_front:!1, color:"shades"}, {id:"field.b", desc:"module.artikel.field-b.desc", type:"text", label:"Input von", placeholder:"Name", show_on_front:!1, color:"shades"}, {id:"field.c", desc:"module.artikel.field-c.desc", 
+  type:"text", label:"Textautor*in", placeholder:"Name", show_on_front:!1, color:"shades"}, {id:"field.d", desc:"module.artikel.field-d.desc", type:"text", label:"Textbox", placeholder:"Lauftext", show_on_front:!1, color:"shades"}]}), {id:1}), PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", "Beteiligt", {sort:3, enabled:!1, icon:"./assets/ic_beteiligt.png", view:"./module.html", desc:"module.beteiligt.desc", editables:[{id:"title", desc:"module.beteiligt.label.desc", type:"label", 
+  placeholder:"", label:"Beteiligt"}, {id:"onsite", desc:"module.beteiligt.layout.onsite", type:"layout", label:"vor.Ort", container:"pa.involved.onsite", layout:"regular", show_on_front:!0}, {id:"text", desc:"module.beteiligt.layout.text", type:"layout", label:"Journalist", container:"pa.involved.text", layout:"regular", show_on_front:!0}, {id:"photo", desc:"module.beteiligt.layout.photo", type:"layout", label:"Photo", container:"pa.involved.photo", layout:"regular", show_on_front:!0}, {id:"video", 
+  desc:"module.beteiligt.layout.video", type:"layout", label:"Event", container:"pa.involved.video", layout:"regular", show_on_front:!0}, {id:"illu", desc:"module.beteiligt.layout.illu", type:"layout", label:"Illu", container:"pa.involved.illu", layout:"regular", show_on_front:!0}, {id:"ad", desc:"module.beteiligt.layout.ad", type:"layout", label:"weitere", container:"pa.involved.ad", layout:"regular", show_on_front:!0}], layouts:{regular:{desc:"module.beteiligt.regular.desc", label:"Regul\u00e4r"}, 
+  ad:{desc:"module.beteiligt.special.desc", label:"Spezial"}}}), {id:2}), PluginRepository.instance.add(new PluginModuleConfig("module.plan", "Plan", {sort:2, enabled:!1, icon:"./assets/ic_plan.png", view:"./module.html", desc:"module.plan.desc", editables:[]}), {id:3}));
   return PluginRepository.instance;
 }}});
 PluginRepository.instance = null;
-// Input 23
+// Input 24
 var ModulePlanController = function(a, b, c) {
   Controller.call(this, a, new ModulePlanRepository);
   this._trello = b;
@@ -2149,7 +2219,7 @@ $jscomp.global.Object.defineProperties(ModulePlanController, {SHARED_NAME:{confi
 }}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Plan.PropertyBag";
 }}});
-// Input 24
+// Input 25
 var PluginController = function(a, b) {
   this._window = b;
   this._trelloApi = a;
@@ -2227,17 +2297,17 @@ PluginController.prototype._upgradeAllArticleToModuleConfig = function(a, b) {
 };
 PluginController.prototype._upgradeArticleToModuleConfig = function(a, b, c, d) {
   if (d < c.length) {
-    var e = this, f = c[d], g = f[0], h = f[1];
-    1 === h.version ? (f = Object.entries(h.involved).reduce(function(a, b) {
+    var e = this, f = c[d], h = f[0], g = f[1];
+    1 === g.version ? (f = Object.entries(g.involved).reduce(function(a, b) {
       a.sections[b[0]] = b[1];
       return a;
-    }, ModuleConfig.create()), b.persist.call(b, f, g).then(function() {
-      h.version = Artikel.VERSION;
-      "function" === typeof h.clearInvolved && h.clearInvolved();
-      return a.persist.call(a, h, g);
+    }, ModuleConfig.create()), b.persist.call(b, f, h).then(function() {
+      g.version = Artikel.VERSION;
+      "function" === typeof g.clearInvolved && g.clearInvolved();
+      return a.persist.call(a, g, h);
     }).then(function() {
-      e._upgradeArticleToModuleConfig.call(e, a, b, c, d + 1, g);
-    })) : (console.log("Skipping article because its at version %d", h.version), this._upgradeArticleToModuleConfig.call(this, a, b, c, d + 1, g));
+      e._upgradeArticleToModuleConfig.call(e, a, b, c, d + 1, h);
+    })) : (console.log("Skipping article because its at version %d", g.version), this._upgradeArticleToModuleConfig.call(this, a, b, c, d + 1, h));
   } else {
     console.log("All articles updated");
   }
@@ -2252,26 +2322,28 @@ $jscomp.global.Object.defineProperties(PluginController, {VERSION:{configurable:
 }}, CONFIGURATION_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.App.Configuration";
 }}});
-// Input 25
-var BeteiligtBinding = function(a, b, c, d) {
+// Input 26
+var BeteiligtBinding = function(a, b, c, d, e) {
   Binding.call(this, a, b, c, d);
   this._activated = this._ad = this._illu = this._video = this._photo = this._text = this._onsite = null;
   this._currentTabIndex = -1;
+  this._configuration = e;
 };
 $jscomp.inherits(BeteiligtBinding, Binding);
-BeteiligtBinding.prototype.initLayouts = function(a) {
-  var b = this;
-  this._involvements = Object.values(a).reduce(function(a, d) {
-    a[d.name] = b._buildValueHolder(d.name, d.container, d, b.onLayout);
-    return a;
+BeteiligtBinding.prototype.initLayouts = function() {
+  var a = this, b = (this._configuration && this._configuration.config && this._configuration.config.editables ? this._configuration.config.editables : []).filter(function(a) {
+    return "layout" === a.type;
+  });
+  this._involvements = Object.values(b).reduce(function(b, d) {
+    b[d.id] = a._buildValueHolder(d, a.onLayout);
+    return b;
   }, {});
 };
-BeteiligtBinding.prototype._buildValueHolder = function(a, b, c, d) {
-  var e = this;
-  b = this._initTab(b);
-  return {"involved-in":a, data:null, renderer:function(a) {
-    d.call(e, this, a);
-  }, tab:b, layout:c.layout || b.getAttribute("data-layout"), label:c.label || b.getAttribute("data-label"), binding:e};
+BeteiligtBinding.prototype._buildValueHolder = function(a, b) {
+  var c = this, d = this._initTab(a);
+  return {"involved-in":a.id, data:null, renderer:function(a) {
+    b.call(c, this, a);
+  }, tab:d, layout:a.layout || d.getAttribute("data-layout"), label:a.label || d.getAttribute("data-label"), binding:c, show:a.show_on_front};
 };
 BeteiligtBinding.prototype.detach = function() {
   var a = this.document.getElementById("panta.module");
@@ -2280,9 +2352,12 @@ BeteiligtBinding.prototype.detach = function() {
 BeteiligtBinding.prototype._initTab = function(a) {
   var b = this.document.getElementById("panta.module");
   b || (b = createByTemplate(template_beteiligt, template_beteiligt), this.document.getElementById("panta.content").appendChild(b));
-  return this.document.getElementById(a);
+  b = this.document.getElementById(a.container);
+  a.show_on_front ? b.removeClass("hidden") : b.addClass("hidden");
+  return b;
 };
 BeteiligtBinding.prototype.update = function(a, b) {
+  this._configuration = b;
   this._activated.activate();
   Object.values(this).filter(function(a) {
     return a instanceof PModuleConfig;
@@ -2292,16 +2367,20 @@ BeteiligtBinding.prototype.update = function(a, b) {
   this._entity = a;
   return this;
 };
-BeteiligtBinding.prototype.bind = function(a) {
-  this.initLayouts(a);
+BeteiligtBinding.prototype.bind = function() {
+  this.initLayouts();
+  this.doLabels();
   this._onsite = null !== this._onsite ? this._onsite.update(this._entity) : this._onsite = (new PModuleConfig(this.document, "vor.Ort", this._involvements.onsite)).bind(this._entity, "onsite").render();
   this._text = null !== this._text ? this._text.update(this._entity) : this._text = (new PModuleConfig(this.document, "Text", this._involvements.text)).bind(this._entity, "text").render();
   this._photo = null !== this._photo ? this._photo.update(this._entity) : this._photo = (new PModuleConfig(this.document, "Foto", this._involvements.photo)).bind(this._entity, "photo").render();
   this._video = null !== this._video ? this._video.update(this._entity) : this._video = (new PModuleConfig(this.document, "Video", this._involvements.video)).bind(this._entity, "video").render();
   this._illu = null !== this._illu ? this._illu.update(this._entity) : this._illu = (new PModuleConfig(this.document, "Illu.Grafik", this._involvements.illu)).bind(this._entity, "illu").render();
   this._ad = null !== this._ad ? this._ad.update(this._entity) : this._ad = (new PModuleConfig(this.document, "Inserat", this._involvements.ad)).bind(this._entity, "ad").render();
-  this._onsite.activate();
-  this._activated = this._onsite;
+  var a = Object.values(this).filter(function(a) {
+    return a instanceof PModuleConfig && a.valueHolder.show;
+  })[0];
+  a.activate();
+  this._activated = a;
   return this;
 };
 BeteiligtBinding.prototype.onLayoutUpdate = function(a, b) {
@@ -2333,16 +2412,9 @@ BeteiligtBinding.prototype.onRegularLayout = function(a, b) {
   c.innerHTML = isMobileBrowser() ? template_regular_mobile : template_regular;
   c = c.cloneNode(!0);
   this._switchContent(a, c);
-  c = {context:this._context, valueHolder:b, config:this._entity};
-  a.setField("name", this.document.newSingleLineInput(b, ".pa.name", "name", "Name", c, this._action, "eintippen\u2026", "text", !1));
-  a.setField("social", this.document.newSingleLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", c, this._action, "notieren\u2026"));
-  a.setField("address", this.document.newMultiLineInput(b, ".pa.address", "address", "Adresse", c, this._action, 2, "festhalten\u2026"));
-  a.setField("notes", this.document.newMultiLineInput(b, ".pa.notes", "notes", "Notiz", c, this._action, 6, "formulieren\u2026"));
-  a.setField("duedate", this.document.newSingleLineInput(b, ".pa.duedate", "duedate", "Deadline", c, this._action, "bestimmen\u2026", "text", !1));
-  a.setField("fee", this.document.newSingleLineInput(b, ".pa.fee", "fee", "Honorar Massnahme", c, this._action, "Betrag\u2026", "money", !1));
-  a.setField("charges", this.document.newSingleLineInput(b, ".pa.charges", "charges", "Spesen Massnahme", c, this._action, "Betrag\u2026", "money", !1));
-  a.setField("project", this.document.newSingleLineInput(b, ".pa.project", "project", "Total Beteiligte", c, this._action, "Betrag\u2026", "money", !0).addClass("bold"));
-  a.setField("capOnDepenses", this.document.newSingleLineInput(b, ".pa.cap_on_depenses", "capOnDepenses", "Kostendach Total Projekt", c, this._action, "Betrag\u2026", "money", !1));
+  b.show && (c = {context:this._context, valueHolder:b, config:this._entity}, a.setField("name", this.document.newSingleLineInput(b, ".pa.name", "name", "Name", c, this._action, "eintippen\u2026", "text", !1)), a.setField("social", this.document.newSingleLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", c, this._action, "notieren\u2026")), a.setField("address", this.document.newMultiLineInput(b, ".pa.address", "address", "Adresse", c, this._action, 2, "festhalten\u2026")), a.setField("notes", 
+  this.document.newMultiLineInput(b, ".pa.notes", "notes", "Notiz", c, this._action, 6, "formulieren\u2026")), a.setField("duedate", this.document.newSingleLineInput(b, ".pa.duedate", "duedate", "Deadline", c, this._action, "bestimmen\u2026", "text", !1)), a.setField("fee", this.document.newSingleLineInput(b, ".pa.fee", "fee", "Honorar Massnahme", c, this._action, "Betrag\u2026", "money", !1)), a.setField("charges", this.document.newSingleLineInput(b, ".pa.charges", "charges", "Spesen Massnahme", 
+  c, this._action, "Betrag\u2026", "money", !1)), a.setField("project", this.document.newSingleLineInput(b, ".pa.project", "project", "Total Beteiligte", c, this._action, "Betrag\u2026", "money", !0).addClass("bold")), a.setField("capOnDepenses", this.document.newSingleLineInput(b, ".pa.cap_on_depenses", "capOnDepenses", "Kostendach Total Projekt", c, this._action, "Betrag\u2026", "money", !1)));
 };
 BeteiligtBinding.prototype.onAdLayout = function(a, b) {
   var c = this.document.createElement("div");
@@ -2358,6 +2430,17 @@ BeteiligtBinding.prototype.onAdLayout = function(a, b) {
   this.document.newMultiLineInput(b, ".pa.notes", "notes", "Kunde.Sujet", a, this._action, 2, "Name.Stichwort\u2026");
   this.document.newSingleLineInput(b, ".pa.price", "price", "Preis CHF", a, this._action, "bestimmen\u2026", "money", !1);
   this.document.newSingleLineInput(b, ".pa.total", "total", "Total CHF", a, this._action, "", "money", !0).addClass("bold");
+};
+BeteiligtBinding.prototype.doLabels = function() {
+  var a = this;
+  this.document.getElementsByClassName("js-panta-editable-title").forEach(function(b) {
+    var c = a._configuration.config.editables.find(function(a) {
+      return "title" === a.id;
+    });
+    c && (b.addClass(c.show_on_front ? "show" : "hidden"), b.getElementsByClassName("js-panta-label").forEach(function(a) {
+      a instanceof HTMLElement && (a.innerText = c.label);
+    }));
+  });
 };
 BeteiligtBinding.prototype._switchContent = function(a, b) {
   var c = this.document.getElementById("pa.tab.content");
@@ -2380,7 +2463,7 @@ BeteiligtBinding.prototype.leaveEditing = function() {
 BeteiligtBinding.prototype.rememberFocus = function(a) {
   this._currentTabIndex = a.getTabIndex();
 };
-// Input 26
+// Input 27
 var PluginCardConfig = function(a, b, c) {
   this._title = a;
   this._icon = b;
@@ -2399,7 +2482,7 @@ $jscomp.global.Object.defineProperties(PluginCardConfig.prototype, {title:{confi
 }, set:function(a) {
   this._content = a;
 }}});
-// Input 27
+// Input 28
 var PluginModuleConfig = function(a, b, c) {
   this._id = a;
   this._name = b;
@@ -2421,14 +2504,14 @@ $jscomp.global.Object.defineProperties(PluginModuleConfig.prototype, {config:{co
 }, set:function(a) {
   this._id = a;
 }}});
-// Input 28
-var Plan = function(a, b, c, d, e, f, g, h, k, l, m, q, n, p, r) {
+// Input 29
+var Plan = function(a, b, c, d, e, f, h, g, k, l, m, q, n, p, r) {
   this._id = a || uuid();
   this._fee = d;
   this._projectFee = e;
   this._thirdPartyCharges = f;
-  this._thirdPartyTotalCosts = g;
-  this._capOnDepenses = h;
+  this._thirdPartyTotalCosts = h;
+  this._capOnDepenses = g;
   this._totalCosts = k;
   this._visual = l;
   this._form = m;
@@ -2523,7 +2606,7 @@ $jscomp.global.Object.defineProperties(Plan.prototype, {id:{configurable:!0, enu
 $jscomp.global.Object.defineProperties(Plan, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
 }}});
-// Input 29
+// Input 30
 var ModuleConfig = function(a, b) {
   this._id = a || uuid();
   this._sections = b;
@@ -2601,11 +2684,11 @@ $jscomp.global.Object.defineProperties(CommonBeteiligt.prototype, {id:{configura
 $jscomp.global.Object.defineProperties(CommonBeteiligt, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 2;
 }}});
-var OtherBeteiligt = function(a, b, c, d, e, f, g, h, k, l) {
+var OtherBeteiligt = function(a, b, c, d, e, f, h, g, k, l) {
   CommonBeteiligt.call(this, a, b, c, d, e);
   this._duedate = f;
-  this._fee = g;
-  this._charges = h;
+  this._fee = h;
+  this._charges = g;
   this._project = k;
   this._capOnDepenses = l;
   this.type = "other";
@@ -2641,11 +2724,11 @@ $jscomp.global.Object.defineProperties(OtherBeteiligt.prototype, {duedate:{confi
 }, set:function(a) {
   this._capOnDepenses = a;
 }}});
-var AdBeteiligt = function(a, b, c, d, e, f, g, h) {
+var AdBeteiligt = function(a, b, c, d, e, f, h, g) {
   CommonBeteiligt.call(this, a, b, c, d, e);
   this._format = f;
-  this._placement = g;
-  this._price = h;
+  this._placement = h;
+  this._price = g;
   this._total = 0;
   this.type = "ad";
 };
@@ -2676,7 +2759,7 @@ $jscomp.global.Object.defineProperties(AdBeteiligt.prototype, {format:{configura
 }, set:function(a) {
   this._total = a;
 }}});
-// Input 30
+// Input 31
 var PluginConfiguration = function(a, b, c, d) {
   this._version = a;
   this._description = b;
@@ -2730,17 +2813,17 @@ $jscomp.global.Object.defineProperties(PluginConfiguration.prototype, {card:{con
 $jscomp.global.Object.defineProperties(PluginConfiguration, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
 }}});
-// Input 31
-var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, q, n, p) {
+// Input 32
+var Artikel = function(a, b, c, d, e, f, h, g, k, l, m, q, n, p) {
   this._id = a || uuid();
   this._topic = b;
   this._pagina = c;
   this._from = d;
   this._layout = e;
   this._total = f;
-  this._tags = g;
+  this._tags = h;
   this._form = n;
-  this._visual = h;
+  this._visual = g;
   this._region = k;
   this._season = l;
   this._location = p;
@@ -2829,7 +2912,7 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, 
 $jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 3;
 }}});
-// Input 32
+// Input 33
 HTMLElement.prototype.addClass = function(a) {
   this.hasClass(a) || (this.className += " " + a, this.className = this.className.trim());
   return this;
@@ -2928,26 +3011,26 @@ function uuid() {
     return ("x" === b ? c : c & 3 | 8).toString(16);
   });
 }
-HTMLDocument.prototype.newMultiLineInput = function(a, b, c, d, e, f, g, h) {
-  return (new MultiLineInput(this, d, null, b, void 0 === h ? "" : h, void 0 === g ? 2 : g, !1)).bind(a.data, c).onFocus(f, e).onEnterEditing(f, e).onChange(f, e).render();
+HTMLDocument.prototype.newMultiLineInput = function(a, b, c, d, e, f, h, g) {
+  return (new MultiLineInput(this, d, null, b, void 0 === g ? "" : g, void 0 === h ? 2 : h, !1)).bind(a.data, c).onFocus(f, e).onEnterEditing(f, e).onChange(f, e).render();
 };
-HTMLDocument.prototype.newSingleLineInput = function(a, b, c, d, e, f, g, h, k) {
-  h = void 0 === h ? "text" : h;
+HTMLDocument.prototype.newSingleLineInput = function(a, b, c, d, e, f, h, g, k) {
+  g = void 0 === g ? "text" : g;
   k = void 0 === k ? !1 : k;
-  b = new SingleLineInput(this, d, null, b, void 0 === g ? "" : g, k);
-  b.propertyType = h || "text";
+  b = new SingleLineInput(this, d, null, b, void 0 === h ? "" : h, k);
+  b.propertyType = g || "text";
   null !== c && b.bind(a.data, c);
   a = function() {
   };
   b.onFocus(f, e).onEnterEditing(f, e).onChange(k ? a : f, e).render();
   return b;
 };
-HTMLDocument.prototype.newSingleSelect = function(a, b, c, d, e, f, g, h, k) {
-  var l = (new SingleSelectInput(this, d, null, b, void 0 === g ? "" : g)).bind(a.data, c).onFocus(f, e).onEnterEditing(f, e).onChange(f, e);
+HTMLDocument.prototype.newSingleSelect = function(a, b, c, d, e, f, h, g, k) {
+  var l = (new SingleSelectInput(this, d, null, b, void 0 === h ? "" : h)).bind(a.data, c).onFocus(f, e).onEnterEditing(f, e).onChange(f, e);
   k.forEach(function(a, b) {
     l.addOption(a.value, a.text);
   });
-  l.setEmpty(h.value, h.text);
+  l.setEmpty(g.value, g.text);
   return l.render();
 };
 HTMLDocument.prototype.createStylesheet = function(a) {
@@ -2994,8 +3077,11 @@ function newOption(a, b) {
 function isNumber(a) {
   return a && !isNaN(a);
 }
+function __(a) {
+  return TEXTS[a];
+}
 ;
-// Input 33
+// Input 34
 var template_regular = '<div id="template">    <div class="row">        <div class="col-6 col-phone-12">            <div class="row">                <div class="col-12 col-phone-12">                    <div class="pa.name"></div>                </div>                <div class="col-12 col-phone-12">                    <div class="pa.social"></div>                </div>            </div>        </div>        <div class="col-6 col-phone-12 line-4 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-6 col-phone-12">            <div class="pa.address"></div>        </div>        <div class="col-6 col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-12 col-phone-12">            <div class="row">                <div class="col-4 col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_regular_mobile = '<div id="template">    <div class="row">        <div class="col-phone-12">            <div class="pa.name"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.social"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.address"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="row">                <div class="col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.notes"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.format"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.placement"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.price"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.name"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.social"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.address"></div>            </div>        </div>    </div></div>', 
@@ -3004,8 +3090,9 @@ template_artikel = '<div id="template">    <div class="row">        <div class="
 template_plan_mobile = '<div id="template">    <div class="row">        <div class="col-phone-12 line-phone-2">            <div class="pa.plan.measures"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12 line-phone-4">            <div class="pa.plan.description"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.fee"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.projectFee"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.thirdPartyCharges"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.thirdPartyTotalCosts"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.capOnDepenses"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.totalCosts"></div>        </div>    </div>    <div class="row">        <div class=" col-phone-4">            <div id="pa.plan.visual"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.form"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.online"></div>        </div>    </div>    <div class="row">        <div class=" col-phone-4">            <div id="pa.plan.season"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.region"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.place"></div>        </div>    </div></div>', 
 template_settings_module = '<div class="row module-container">    <div class="col-2">       <div class="panta-module-enabled">           <label class="panta-checkbox-container">              <input class="panta-js-checkbox" type="checkbox" checked="checked">               <span class="panta-checkbox-checkmark elevate"></span>           </label>       </div>    </div>    <div class="col-8 module-title"></div>    <div class="col-2 module-icon"><img src="/assets/ic_pantarhei.png" class="panta-js-icon" width="16px" height="16px"/></div></div>', 
 template_settings_editable = '<div class="row module-editable-container">    <div class="col-2 module-editable-show">       <div class="panta-module-enabled">           <label class="panta-checkbox-container">               <input class="panta-js-checkbox" type="checkbox" checked="checked">               <span class="panta-checkbox-checkmark elevate"></span>           </label>       </div>    </div>    <div class="col-8 module-editable-name"></div>    <div class="col-2 module-editable-color"><button class="panta-btn panta-btn-dot panta-js-button"></button> </div></div>', 
-template_settings_editable_option = '<div class="row module-editable-option-container">    <div class="col-10 module-editable-option-name">       <input type="text" class="panta-js-name"/>    </div>    <div class="col-2 module-editable-option-actions">       <button class="panta-btn panta-btn-icon panta-js-delete"><img src="/assets/ic_trash.svg" width="16px" height="16px"/></button>    </div></div>', template_beteiligt = '<form id="panta.module">    \x3c!-- because we can only have one card-back-section per power-up we implement the panta.Beteiligt    on this page --\x3e    <div class="row min"><div class="col-12">\u00a0</div></div>    <div class="row min">        <div class="col-12">            <h3 class="js-panta-module js-panta-editable-title"></h3>        </div>    </div>    <div class="row min navigation-bar">        <div id="pa.involved.onsite" class="col-2 col-phone-4 tab" data-label="vor.Ort" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.text" class="col-2 col-phone-4 tab" data-label="Journalist" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.photo" class="col-phone-4 col-2 tab" data-label="Visual" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.video" class="col-phone-4 col-2 tab" data-label="Event" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.illu" class="col-phone-4 col-2 tab" data-label="MC/Host" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.ad" class="col-phone-4 col-2 tab" data-label="weitere" data-layout="regular"><span>Placeholder</span></div>    </div>    <span id="pa.tab.content"></span></form>';
-// Input 34
+template_settings_editable_select = '<div class="row module-editable-select-container">   <select class="panta-js-select"></select></div>', template_settings_editable_option = '<div class="row module-editable-option-container">    <div class="col-10 module-editable-option-name">       <input type="text" class="panta-js-name"/>    </div>    <div class="col-2 module-editable-option-actions">       <button class="panta-btn panta-btn-icon panta-js-delete"><img src="/assets/ic_trash.svg" width="16px" height="16px"/></button>    </div></div>', 
+template_beteiligt = '<form id="panta.module">    <div class="js-panta-editable-title">        <div class="row min"><div class="col-12">\u00a0</div></div>        <div class="row min">           <div class="col-12">                <h3 class="js-panta-module js-panta-label"></h3>           </div>        </div>    </div>    <div class="row min navigation-bar">        <div id="pa.involved.onsite" class="col-2 col-phone-4 tab" data-label="vor.Ort" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.text" class="col-2 col-phone-4 tab" data-label="Journalist" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.photo" class="col-phone-4 col-2 tab" data-label="Visual" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.video" class="col-phone-4 col-2 tab" data-label="Event" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.illu" class="col-phone-4 col-2 tab" data-label="MC/Host" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.ad" class="col-phone-4 col-2 tab" data-label="weitere" data-layout="regular"><span>Placeholder</span></div>    </div>    <span id="pa.tab.content"></span></form>';
+// Input 35
 var JsonSerialization = function() {
 };
 JsonSerialization.prototype.serialize = function(a) {

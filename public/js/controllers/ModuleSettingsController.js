@@ -67,7 +67,7 @@ class ModuleSettingsController {
                 that.document.getElementsByClassName("settings-content").forEach(function (element) {
 
                     let hint = that.document.createElement("p");
-                    hint.innerHTML = editable.desc;
+                    hint.innerHTML = __(editable.desc);
 
                     element.appendChild(hint);
 
@@ -101,10 +101,6 @@ class ModuleSettingsController {
             });
     }
 
-    nl(element) {
-        element.appendChild(this.document.createElement("br"));
-    }
-
     /**
      * @param {PluginConfiguration} config
      * @return {PromiseLike<T>|Promise<T>}
@@ -118,20 +114,25 @@ class ModuleSettingsController {
                 that.document.getElementsByClassName("settings-content").forEach(function (element) {
 
                     let hint = that.document.createElement("p");
-                    hint.innerHTML = mc.config.desc;
+                    hint.innerHTML = __(mc.config.desc);
 
                     element.appendChild(hint);
 
+                    that.renderFieldGroup(mc, "label", element, "Beschriftungen");
                     that.renderFieldGroup(mc, "text", element, "Eingabefelder");
-                    that.nl(element);
                     that.renderFieldGroup(mc, "select", element, "Auswahllisten");
-
+                    that.renderFieldGroup(mc, "layout", element, "Layouts");
                 });
                 that.hideVersion();
                 return true;
             });
     }
 
+    /**
+     * @param {PluginModuleConfig} mc
+     * @param editable
+     * @param element
+     */
     renderEditable(mc, editable, element) {
         switch (editable.type) {
             case "select":
@@ -140,7 +141,50 @@ class ModuleSettingsController {
             case "text":
                 this.renderEditableText(mc, editable, element, "Platzhalter");
                 break;
+            case "layout":
+                this.renderEditableLayout(mc, editable, element, "Layout");
+                break;
         }
+    }
+
+    /**
+     * @param {PluginModuleConfig} mc
+     * @param editable
+     * @param element
+     * @param label
+     */
+    renderEditableLayout(mc, editable, element, label) {
+        let that = this;
+        let group = this.document.createElement("p");
+        group.innerHTML = "<strong>" + label + "</strong>";
+        element.appendChild(group);
+
+        /**
+         * @type {ModuleEditableSelectItem}
+         */
+        let chooser = Object.keys(mc.config.layouts)
+            .reduce(function (prev, id) {
+                let layout = mc.config.layouts[id];
+                let opt = that.document.createElement("option");
+                opt.setAttribute("value", id);
+                if (editable.layout === id) {
+                    opt.setAttribute("selected", "selected");
+                } else {
+                    opt.removeAttribute("selected");
+                }
+                opt.innerText = layout.label;
+                prev.addOption(opt);
+                return prev;
+            }, new ModuleEditableSelectItem(editable.layout));
+
+        chooser.setOnTextChangeListener(function(prev, cur) {
+            editable.layout = cur;
+            that.pluginController.setPluginModuleConfig(mc)
+                .then(function() {
+                    console.log("Updated");
+                });
+        });
+        element.appendChild(chooser.render());
     }
 
     renderEditableText(mc, editable, element, label) {
@@ -281,16 +325,10 @@ class ModuleSettingsController {
                 prev.appendChild(curr);
                 return prev;
             }, element);
-    }
 
-    /**
-     * @private
-     */
-    hideVersion() {
-        this.document.getElementsByClassName("plugin-version-container")
-            .forEach(function (version) {
-                version.addClass("hidden");
-            });
+        if (typed.length > 0) {
+            that.nl(element);
+        }
     }
 
     /**
@@ -363,10 +401,34 @@ class ModuleSettingsController {
         return Promise.resolve(true);
     }
 
+    /**
+     * Clear the content of the settings page completely by removing all child nodes from the
+     * container
+     */
     clearContent() {
         this.document.getElementsByClassName("settings-content").forEach(function (content) {
             content.removeChildren();
         });
+    }
+
+    /**
+     * Add a new line to the element
+     * @param element
+     * @private
+     */
+    nl(element) {
+        element.appendChild(this.document.createElement("br"));
+    }
+
+    /**
+     * Hide the version on the page
+     * @private
+     */
+    hideVersion() {
+        this.document.getElementsByClassName("plugin-version-container")
+            .forEach(function (version) {
+                version.addClass("hidden");
+            });
     }
 
 }

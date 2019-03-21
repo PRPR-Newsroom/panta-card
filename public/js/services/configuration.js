@@ -3,3 +3,26 @@ const PLUGIN_CONFIGURATION = {
     'module.beteiligt.enabled': true, // 2
     'module.plan.enabled': true // 3
 };
+
+const TEXTS = {
+    'module.artikel.desc': "Die Eingabefelder und Auswahllisten werden für das ganze Trello Board konfiguriert. Für jedes Feld kann eine Farbe definiert werden. Wenn das Feld " +
+    "mit dem «Gutzeichen» aktiviert wird, dann erscheint es in dieser Farbe auf der Trello Card Vorderseite, ansonsten wird es nur für die Trello Card Rückseite " +
+    "verwendet.",
+
+    'module.artikel.editable.desc': "Definieren Sie die Auswahlliste, die für das ganze Board gilt.",
+    'module.artikel.field-a.desc': "Das Artikelfeld «A» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+    'module.artikel.field-b.desc': "Das Artikelfeld «B» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+    'module.artikel.field-c.desc': "Das Artikelfeld «C» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+    'module.artikel.field-d.desc': "Das Artikelfeld «D» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+
+    'module.beteiligt.desc': "Folgende Felder können individuell konfiguriert werden. Mit dem «Gutzeichen» kann das Feld sichtbar gemacht werden.",
+    'module.beteiligt.label.desc': "Diese Beschriftung wird oberhalb des Moduls als Überschrift verwendet.",
+
+    'module.beteiligt.layout.onsite': "Das Layout wird für das Tab «vor.Ort» verwendet",
+    'module.beteiligt.layout.text': "Das Layout wird für das Tab «Journalist» verwendet",
+    'module.beteiligt.regular.desc': "Standard-Layout",
+    'module.beteiligt.special.desc': "Spezial-Layout",
+
+    'module.plan.desc': "Folgende Felder können individuell konfiguriert werden.",
+
+};

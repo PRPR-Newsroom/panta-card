@@ -170,11 +170,11 @@ class ModuleController extends Controller {
         this._entity = entity;
         this._beteiligtBinding = this._beteiligtBinding
             ? this._beteiligtBinding.update(entity, configuration)
-            : this._createBinding(entity, configuration && configuration.config ? configuration.config.layouts : null);
+            : this._createBinding(entity, configuration);
     }
 
     _createBinding(entity, configuration) {
-        return new BeteiligtBinding(this.document, entity, this.onEvent, this).bind(configuration)
+        return new BeteiligtBinding(this.document, entity, this.onEvent, this, configuration).bind()
     }
 
     /**

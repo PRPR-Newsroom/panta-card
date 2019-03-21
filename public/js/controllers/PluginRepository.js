@@ -17,13 +17,11 @@ class PluginRepository extends Repository {
                 "icon": "./assets/ic_artikel.png",
                 "view": "./module.html",
 
-                "desc": "Die Eingabefelder und Auswahllisten werden für das ganze Trello Board konfiguriert. Für jedes Feld kann eine Farbe definiert werden. Wenn das Feld " +
-                "mit dem «Gutzeichen» aktiviert wird, dann erscheint es in dieser Farbe auf der Trello Card Vorderseite, ansonsten wird es nur für die Trello Card Rückseite " +
-                "verwendet.",
+                "desc": 'module.artikel.desc',
 
                 "editables": [{
                     "id": "visual",
-                    "desc": "Definieren Sie die Auswahlliste, die für das ganze Board gilt.",
+                    "desc": "module.artikel.editable.desc",
                     "type": "select",
                     "label": "Visual",
                     "color": "blue",
@@ -37,7 +35,7 @@ class PluginRepository extends Repository {
                     ]
                 }, {
                     "id": "form",
-                    "desc": "Definieren Sie die Auswahlliste, die für das ganze Board gilt.",
+                    "desc": "module.artikel.editable.desc",
                     "type": "select",
                     "label": "Form",
                     "color": "green",
@@ -49,7 +47,7 @@ class PluginRepository extends Repository {
                     ]
                 }, {
                     "id": "online",
-                    "desc": "Definieren Sie die Auswahlliste, die für das ganze Board gilt.",
+                    "desc": "module.artikel.editable.desc",
                     "type": "select",
                     "label": "Online",
                     "color": "yellow",
@@ -66,7 +64,7 @@ class PluginRepository extends Repository {
                     ]
                 }, {
                     "id": "season",
-                    "desc": "Definieren Sie die Auswahlliste, die für das ganze Board gilt.",
+                    "desc": "module.artikel.editable.desc",
                     "type": "select",
                     "label": "Saison",
                     "color": "sky",
@@ -77,7 +75,7 @@ class PluginRepository extends Repository {
                     ]
                 }, {
                     "id": "region",
-                    "desc": "Definieren Sie die Auswahlliste, die für das ganze Board gilt.",
+                    "desc": "module.artikel.editable.desc",
                     "type": "select",
                     "label": "Region",
                     "color": "lime",
@@ -88,7 +86,7 @@ class PluginRepository extends Repository {
                     ]
                 }, {
                     "id": "place",
-                    "desc": "Definieren Sie die Auswahlliste, die für das ganze Board gilt.",
+                    "desc": "module.artikel.editable.desc",
                     "type": "select",
                     "label": "Ort",
                     "color": "orange",
@@ -104,23 +102,31 @@ class PluginRepository extends Repository {
                     ]
                 }, {
                     "id": "field.a",
-                    "desc": "Das Artikelfeld «A» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+                    "desc": "module.artikel.field-a.desc",
+                    "type": "text",
+                    "label": "Thema",
+                    "placeholder": "Lauftext",
+                    "show_on_front": false,
+                    "color": "shades"
+                }, {
+                    "id": "field.b",
+                    "desc": "module.artikel.field-b.desc",
                     "type": "text",
                     "label": "Input von",
                     "placeholder": "Name",
                     "show_on_front": false,
                     "color": "shades"
                 }, {
-                    "id": "field.b",
-                    "desc": "Das Artikelfeld «B» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+                    "id": "field.c",
+                    "desc": "module.artikel.field-c.desc",
                     "type": "text",
                     "label": "Textautor*in",
                     "placeholder": "Name",
                     "show_on_front": false,
                     "color": "shades"
                 }, {
-                    "id": "field.c",
-                    "desc": "Das Artikelfeld «C» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+                    "id": "field.d",
+                    "desc": "module.artikel.field-d.desc",
                     "type": "text",
                     "label": "Textbox",
                     "placeholder": "Lauftext",
@@ -134,51 +140,71 @@ class PluginRepository extends Repository {
                 "icon": "./assets/ic_beteiligt.png",
                 "view": "./module.html",
 
-                "desc": "Folgende Felder können individuell konfiguriert werden.",
+                "desc": "module.beteiligt.desc",
 
                 "editables": [{
                     "id": "title",
-                    "desc": "Diese Beschriftung wird oberhalb des Moduls als Überschrift verwendet.",
-                    "type": "text",
+                    "desc": "module.beteiligt.label.desc",
+                    "type": "label",
                     "placeholder": "",
                     "label": "Beteiligt"
+                }, {
+                    "id": "onsite",
+                    "desc": "module.beteiligt.layout.onsite",
+                    "type": "layout",
+                    "label": "vor.Ort",
+                    "container": "pa.involved.onsite",
+                    "layout": "regular",
+                    "show_on_front": true
+                }, {
+                    "id": "text",
+                    "desc": "module.beteiligt.layout.text",
+                    "type": "layout",
+                    "label": "Journalist",
+                    "container": "pa.involved.text",
+                    "layout": "regular",
+                    "show_on_front": true
+                }, {
+                    "id": "photo",
+                    "desc": "module.beteiligt.layout.photo",
+                    "type": "layout",
+                    "label": "Photo",
+                    "container": "pa.involved.photo",
+                    "layout": "regular",
+                    "show_on_front": true
+                }, {
+                    "id": "video",
+                    "desc": "module.beteiligt.layout.video",
+                    "type": "layout",
+                    "label": "Event",
+                    "container": "pa.involved.video",
+                    "layout": "regular",
+                    "show_on_front": true
+                }, {
+                    "id": "illu",
+                    "desc": "module.beteiligt.layout.illu",
+                    "type": "layout",
+                    "label": "Illu",
+                    "container": "pa.involved.illu",
+                    "layout": "regular",
+                    "show_on_front": true
+                }, {
+                    "id": "ad",
+                    "desc": "module.beteiligt.layout.ad",
+                    "type": "layout",
+                    "label": "weitere",
+                    "container": "pa.involved.ad",
+                    "layout": "regular",
+                    "show_on_front": true
                 }],
                 "layouts": {
-                    "onsite": {
-                        "name": "onsite",
-                        "container": "pa.involved.onsite",
-                        "layout": "regular",
-                        "label": "vor.Ort"
-                    },
-                    "text": {
-                        "name": "text",
-                        "container": "pa.involved.text",
-                        "layout": "regular",
-                        "label": "Journalist"
-                    },
-                    "photo": {
-                        "name": "photo",
-                        "container": "pa.involved.photo",
-                        "layout": "regular",
-                        "label": "Visual"
-                    },
-                    "video": {
-                        "name": "video",
-                        "container": "pa.involved.video",
-                        "layout": "regular",
-                        "label": "Event"
-                    },
-                    "illu": {
-                        "name": "illu",
-                        "container": "pa.involved.illu",
-                        "layout": "regular",
-                        "label": "MC/Host"
+                    "regular": {
+                        "desc": "module.beteiligt.regular.desc",
+                        "label": "Regulär"
                     },
                     "ad": {
-                        "name": "ad",
-                        "container": "pa.involved.ad",
-                        "layout": "regular",
-                        "label": "weitere"
+                        "desc": "module.beteiligt.special.desc",
+                        "label": "Spezial"
                     }
                 },
             }), {"id": 2});
@@ -187,7 +213,7 @@ class PluginRepository extends Repository {
                 "enabled": false,
                 "icon": "./assets/ic_plan.png",
                 "view": "./module.html",
-                "desc": "Folgende Felder können individuell konfiguriert werden.",
+                "desc": "module.plan.desc",
                 "editables": [
 
                 ]
