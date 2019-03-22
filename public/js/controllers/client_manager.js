@@ -230,12 +230,12 @@ class ClientManager {
     /**
      * Get the module configuration by its id
      * @param id
-     * @return {PromiseLike<T> | Promise<T>}
+     * @return {PromiseLike<PluginModuleConfig> | Promise<PluginModuleConfig>}
      */
     getModuleConfiguration(id) {
         return this.getPluginController().getPluginConfiguration()
             .then(function (configuration) {
-                return configuration.getModule(id, true);
+                return configuration.getModule(id, false);
             });
     }
 
@@ -322,6 +322,112 @@ class ClientManager {
     }
 
     /**
+     * Get the article module sorter context
+     *
+     * @return {{name: string, configuration: configuration, sorters: sorters}}
+     */
+    getArticleModuleSorters() {
+        let that = this;
+        return {
+            "name": "module.artikel.sorters",
+            "configuration": function() {
+                return that.getModuleConfiguration("module.artikel");
+            },
+            "sorters": function(configuration) {
+                if (configuration.config.enabled) {
+                    return configuration.config.editables
+                        .filter(function(editable) {
+                            return editable.sortable && editable.type === "select";
+                        })
+                        .map(function(sortable) {
+                            return {
+                                text: "Artikel: " + sortable.label + " (Position in Liste)",
+                                callback: function(t,opts) {
+                                    return that.sortOnSelect(that.getControllerWith(that.getArticleController(), opts), opts, "asc", function(article) {
+                                        if (article instanceof Artikel) {
+                                            // TODO either rename all tags to online (upgrade script needed) or extract it to a mapper
+                                            let mapped = sortable.id;
+                                            switch (sortable.id) {
+                                                case "online":
+                                                    mapped = "tags";
+                                                    break;
+                                                case "place":
+                                                    mapped = "location";
+                                                    break;
+                                            }
+                                            return sortable.values.indexOf(article[mapped]);
+                                        } else {
+                                            return Number.MAX_VALUE;
+                                        }
+                                    });
+                                }
+                            }
+                        })
+                        .reduce(function(prev, cur) {
+                            prev.push(cur);
+                            return prev;
+                        }, [{
+                            text: "Artikel: Pagina (1 -> 99)",
+                            callback: function (t, opts) {
+                                return that.sortOnNumber(that.getControllerWith(that.getArticleController(), opts), opts, "asc", function(article) {
+                                    return article.pagina;
+                                });
+                            }
+                        }]);
+
+                } else {
+                    return [];
+                }
+            }
+        }
+    }
+
+    /**
+     * Get the plan module sorters
+     * @return {{name: string, configuration: configuration, sorters: sorters}}
+     */
+    getPlanModuleSorters() {
+        let that = this;
+        return {
+            "name": "module.plan.sorters",
+            "configuration": function() {
+                return that.getModuleConfiguration("module.plan");
+            },
+            "sorters": function(configuration) {
+                if (configuration.config.enabled) {
+                    let sorters = configuration.config.editables
+                        .filter(function(editable) {
+                            return editable.sortable && editable.type === "select";
+                        })
+                        .map(function(sortable) {
+                            return {
+                                text: "Plan: " + sortable.label + " (Position in Liste)",
+                                callback: function(t,opts) {
+                                    return that.sortOnSelect(that.getControllerWith(that.getPlanController(), opts), opts, "asc", function(entity) {
+                                        if (entity instanceof Plan) {
+                                            return sortable.values.indexOf(entity[sortable.id]);
+                                        } else {
+                                            return Number.MAX_VALUE;
+                                        }
+                                    });
+                                }
+                            }
+                        })
+                        .reduce(function(prev, cur) {
+                            prev.push(cur);
+                            return prev;
+                        }, []);
+                    return sorters;
+
+                } else {
+                    console.log("sorters: the module is «Plan» is not enabled");
+                    return [];
+                }
+            }
+        }
+    }
+
+    /**
      * Get the plan module badges
      * @param card
      * @return {{condition: PromiseLike<T>|Promise<T>, on: on, card: card, configuration: PromiseLike<T>|Promise<T>}}
@@ -337,29 +443,33 @@ class ClientManager {
             "on": function () {
                 let badges = [];
                 let entity = that.getPlanController().getByCard(card);
-                if (entity instanceof Plan) {
-                    if (that.getPlanController().hasContent(entity)) {
-                        badges.push({
-                            text: "",
-                            icon: './assets/ic_plan.png'
-                        });
-
-                        if (entity.region) {
-                            badges.push({
-                                text: 'region: ' + that.getPlanController().getRegionMapping(entity.region),
-                                color: 'sky'
-                            });
-                        }
-                        if (entity.online) {
-                            badges.push({
-                                text: 'online: ' + entity.online,
-                                color: 'blue'
-                            });
-                        }
-                    }
+                if (that.getPlanController().hasContent(entity)) {
+                    badges.push({
+                        text: "",
+                        icon: './assets/ic_plan.png'
+                    });
                 }
-                return badges;
+                return that.getModuleConfiguration("module.plan")
+                    .then(function(pmc) {
+                        return pmc.config.editables;
+                    })
+                    .filter(function(editable) {
+                        let val = that.getPlanController().getMapping(editable, entity, null);
+                        return val && editable.show === true;
+                    })
+                    .map(function(editable) {
+
+                        return {
+                            "text": editable.label + ": " + that.getPlanController().getMapping(editable, entity, ""),
+                            "color": editable.color
+                        };
+                    })
+                    .reduce(function(prev, cur) {
+                        prev.push(cur);
+                        return prev;
+                    }, badges);
             }
+
         };
     }
 
@@ -409,29 +519,105 @@ class ClientManager {
             "condition": that.isArticleModuleEnabled(),
             "on": function () {
                 let badges = [];
-                let artikel = that.getArticleController().getByCard(card);
-                if (that.getArticleController().hasArtikelContent(artikel)) {
+                let entity = that.getArticleController().getByCard(card);
+                if (that.getArticleController().hasContent(entity)) {
                     badges.push({
                         text: "",
                         icon: './assets/ic_artikel.png'
                     });
                 }
+
                 return that.getModuleConfiguration("module.artikel")
                     .then(function(pmc) {
                         return pmc.config.editables;
                     })
                     .filter(function(editable) {
-                        let val = that.getArticleController().getMapping(editable, artikel, null);
-                        return val && editable.show_on_front === true;
+                        let val = that.getArticleController().getMapping(editable, entity, null);
+                        return val && editable.show === true;
                     })
                     .map(function(editable) {
 
                         return {
-                            "text": editable.label + ": " + that.getArticleController().getMapping(editable, artikel, ""),
+                            "text": editable.label + ": " + that.getArticleController().getMapping(editable, entity, ""),
                             "color": editable.color
                         };
-                    });
+                    })
+                    .reduce(function(prev, cur) {
+                        prev.push(cur);
+                        return prev;
+                    }, badges);
             }
         };
     }
+
+    /**
+     * Get the controller initialized with all cards in opts
+     *
+     * @param {Controller} controller
+     * @param {{cards: []}} opts
+     * @return {*}
+     */
+    getControllerWith(controller, opts) {
+
+        for (let index in opts.cards) {
+            let card = opts.cards[index];
+            let entity = controller.getByCard(card);
+            if (entity && !card.closed) {
+                controller.insert(entity, card);
+            }
+        }
+        return controller;
+    }
+
+    /**
+     * @param {Controller} controller
+     * @param {{cards: []}} opts
+     * @param sort
+     * @param provider
+     * @return {{sortedIds: any[]}}
+     */
+    sortOnNumber(controller, opts, sort, provider) {
+        let sortedCards = opts.cards.sort(
+            function (lhs_card, rhs_card) {
+                let lhs = controller.getByCard(lhs_card);
+                let rhs = controller.getByCard(rhs_card);
+                let lhsp = lhs ? parseFloat(provider(lhs) || Number.MAX_VALUE.toString()) : Number.MAX_VALUE;
+                let rhsp = rhs ? parseFloat(provider(rhs) || Number.MAX_VALUE.toString()) : Number.MAX_VALUE;
+                if (lhsp > rhsp) {
+                    return sort === "asc" ? 1 : -1;
+                } else if (rhsp > lhsp) {
+                    return sort === "asc" ? -1 : 1;
+                }
+                return 0;
+            });
+
+        return {
+            sortedIds: sortedCards.map(function (c) {
+                return c.id;
+            })
+        };
+    }
+
+    sortOnSelect(controller, opts, sort, provider) {
+        let sortedCards = opts.cards.sort(
+            function (lhs_card, rhs_card) {
+                let lhs = controller.getByCard(lhs_card);
+                let rhs = controller.getByCard(rhs_card);
+                let lhsp = lhs ? provider(lhs) : Number.MAX_VALUE;
+                let rhsp = rhs ? provider(rhs) : Number.MAX_VALUE;
+                if (lhsp > rhsp) {
+                    return sort === "asc" ? 1 : -1;
+                } else if (rhsp > lhsp) {
+                    return sort === "asc" ? -1 : 1;
+                }
+                return 0;
+            });
+
+        return {
+            sortedIds: sortedCards.map(function (c) {
+                return c.id;
+            })
+        };
+    }
+
 }

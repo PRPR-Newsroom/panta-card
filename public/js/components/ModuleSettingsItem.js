@@ -75,7 +75,7 @@ class ModuleSettingsItem extends AbstractItem{
         this.decorate(templ);
 
         templ.getClosestChildByClassName("panta-js-icon")
-            .setAttribute("src", that.module.config.icon);
+            .setAttribute("src", "./assets/" + that.module.config.icon);
         let container = templ.getClosestChildByClassName("panta-checkbox-container");
         let checkmark = container.getClosestChildByClassName("panta-js-checkbox");
         checkmark.checked = that.module.config.enabled;

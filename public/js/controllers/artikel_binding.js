@@ -45,13 +45,7 @@ class ArtikelBinding extends Binding {
      * @returns {ArtikelBinding}
      */
     update(artikel, configuration) {
-        if (configuration) {
-            console.log("Update configuration", configuration);
-            this._updateConfiguration(configuration);
-        } else {
-            console.log("No new configuration");
-        }
-
+        // first update the properties with the entity
         this._topic.update(artikel);
         this._from.update(artikel);
         this._author.update(artikel);
@@ -65,6 +59,11 @@ class ArtikelBinding extends Binding {
         this._season.update(artikel);
         this._form.update(artikel);
         this._location.update(artikel);
+
+        // if there's a configuration change apply it after all property updates
+        if (configuration) {
+            this._updateConfiguration(configuration);
+        }
         return this;
     }
 
@@ -198,25 +197,42 @@ class ArtikelBinding extends Binding {
          * @private
          */
         return this.document.newSingleSelect(valueHolder, target, id, configuration.label, params, this._action, 'Liste-Tag',
-            newOption('-1', '…'), configuration.options);
+            newOption("-1", "…"), configuration.options);
     }
 
-    updateLayout(select, id) {
+    /**
+     * @param {PInput} text
+     * @param id
+     */
+    updateText(text, id) {
+        let config = this.getConfigurationFor(id);
+        text.setLabel(config.editable.label);
+        text.setPlaceholder(config.editable.placeholder);
+    }
+
+    updateSelect(select, id) {
         let oc = this.getConfigurationFor(id);
         select.clear();
         select.setLabel(oc.label);
+        select.addOption("-1", "…");
         select.addOptions(oc.options);
+        select.invalidate();
     }
 
     _updateConfiguration(configuration) {
         this._configuration = configuration;
 
-        this.updateLayout(this._tags, "online");
-        this.updateLayout(this._visual, "visual");
-        this.updateLayout(this._region, "region");
-        this.updateLayout(this._season, "season");
-        this.updateLayout(this._form, "form");
-        this.updateLayout(this._location, "place");
+        this.updateText(this._topic, "field.a");
+        this.updateText(this._from, "field.b");
+        this.updateText(this._author, "field.c");
+        this.updateText(this._text, "field.d");
+
+        this.updateSelect(this._tags, "online");
+        this.updateSelect(this._visual, "visual");
+        this.updateSelect(this._region, "region");
+        this.updateSelect(this._season, "season");
+        this.updateSelect(this._form, "form");
+        this.updateSelect(this._location, "place");
     }
 
     getConfigurationFor(id) {

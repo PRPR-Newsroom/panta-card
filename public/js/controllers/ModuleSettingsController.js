@@ -74,27 +74,6 @@ class ModuleSettingsController {
                     that.renderEditableLabel(mc, element, editable, "Beschriftung");
 
                     that.renderEditable(mc, editable, element);
-
-                    that.nl(element);
-
-                    switch (editable.type) {
-                        case "select":
-                            let footer = that.document.createElement("div");
-                            let addAction = that.document.createElement("button");
-                            addAction
-                                .addClass("panta-btn");
-                            addAction.innerHTML = "Neues Stichwort";
-                            addAction.setEventListener('click', function (e) {
-                                editable.values.push("");
-                                that.pluginController.setPluginModuleConfig(mc)
-                                    .then(function () {
-                                        console.log("New item added");
-                                    });
-                            });
-                            footer.appendChild(addAction);
-                            element.appendChild(footer);
-                            break;
-                    }
                 });
                 that.hideVersion();
                 return true;
@@ -189,7 +168,7 @@ class ModuleSettingsController {
 
     renderEditableText(mc, editable, element, label) {
         let that = this;
-        let group = this.document.createElement("p");
+        let group = this.document.createElement("span");
         group.innerHTML = "<strong>" + label + "</strong>";
         element.appendChild(group);
 
@@ -208,7 +187,7 @@ class ModuleSettingsController {
 
     renderEditableSelect(mc, editable, element, label) {
         let that = this;
-        let group = this.document.createElement("p");
+        let group = this.document.createElement("span");
         group.innerHTML = "<strong>" + label + "</strong>";
         element.appendChild(group);
 
@@ -246,6 +225,33 @@ class ModuleSettingsController {
                 prev.appendChild(curr);
                 return prev;
             }, element);
+
+        let sorter = new SwitchItem(that.document, "Sortierbar", editable.sortable)
+        sorter.setOnActivationListener(function(previous, updated) {
+            editable.sortable = updated;
+            return that.pluginController.setPluginModuleConfig(mc)
+                .then(function() {
+                    return updated;
+                });
+        });
+        element.appendChild(sorter.render());
+
+        that.nl(element);
+
+        let footer = that.document.createElement("div");
+        let addAction = that.document.createElement("button");
+        addAction
+            .addClass("panta-btn");
+        addAction.innerHTML = "Neues Stichwort";
+        addAction.setEventListener('click', function (e) {
+            editable.values.push("");
+            that.pluginController.setPluginModuleConfig(mc)
+                .then(function () {
+                    console.log("New item added");
+                });
+        });
+        footer.appendChild(addAction);
+        element.appendChild(footer);
     }
 
     /**
@@ -256,7 +262,7 @@ class ModuleSettingsController {
      */
     renderEditableLabel(mc, element, editable, label) {
         let that = this;
-        let name = that.document.createElement("p");
+        let name = that.document.createElement("span");
         name.innerHTML = "<strong>" + label + "</strong>";
         element.appendChild(name);
         let editableName = new ModuleEditableTextItem(editable.label, false);
@@ -278,13 +284,14 @@ class ModuleSettingsController {
      */
     renderFieldGroup(mc, type, element, section) {
         let that = this;
-        let group = that.document.createElement("p");
+        let group = that.document.createElement("span");
         let typed = mc.config.editables
             .filter(function (editable) {
                 return editable.type === type;
             });
+
         group.addClass(typed.length > 0 ? 'show' : 'hidden');
-        group.innerHTML = "<strong>" + section + ":</strong>";
+        group.innerHTML = "<strong>" + section + "</strong>";
         element.appendChild(group);
 
         typed.map(function (editable) {
@@ -301,7 +308,7 @@ class ModuleSettingsController {
                         });
                     })
                     .setOnActivationListener(function (module, editable, showOnFront) {
-                        editable.show_on_front = showOnFront;
+                        editable.show = showOnFront;
                         that.pluginController.setPluginModuleConfig(module)
                             .then(function (pc) {
                                 console.log("PluginConfiguration updated", pc);
@@ -355,8 +362,8 @@ class ModuleSettingsController {
             });
 
             this.document.getElementsByClassName("settings-content").forEach(function (element) {
-                let header = that.document.createElement("p");
-                header.innerHTML = "<strong>Module:</strong>";
+                let header = that.document.createElement("span");
+                header.innerHTML = "<strong>Module</strong>";
 
                 let hint = that.document.createElement("p");
                 hint.innerHTML = "Folgende Module sind für dieses Board verfügbar. " +
@@ -380,15 +387,32 @@ class ModuleSettingsController {
                             });
                         })
                         .setOnActivationListener(function (module, enabled) {
-                            config.card = {
-                                "icon": module.config.icon,
-                                "title": module.name,
-                                "content": {
-                                    "file": module.config.view
-                                },
-                            };
                             module.config.enabled = enabled;
-                            that.pluginController.setPluginModuleConfig(module, config.card);
+                            // first we need to update the module (without card info)
+                            that.pluginController.setPluginModuleConfig(module)
+                                .then(function(pc) {
+                                    if (pc instanceof PluginConfiguration) {
+                                        // and after the module is disabled/enabled we can update the card info with the current main module
+                                        let actives = pc.getActiveModules()
+                                            .sort(function(lhs, rhs) {
+                                                return lhs.config.sort - rhs.config.sort;
+                                            });
+                                        if (actives && actives.length > 0) {
+                                            let active = actives[0];
+                                            config.card = {
+                                                "icon": "./assets/" + active.config.icon,
+                                                "title": active.name,
+                                                "content": {
+                                                    "file": "./module.html"
+                                                },
+                                            };
+                                        }
+                                        that.pluginController.setPluginModuleConfig(module, config.card)
+                                            .then(function(pc) {
+                                                console.log("Main module set as card configuration");
+                                            });
+                                    }
+                                });
                         })
                         .render();
                 }).reduce(function (prev, curr) {

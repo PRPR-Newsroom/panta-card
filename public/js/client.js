@@ -83,7 +83,6 @@ TrelloPowerUp.initialize({
         return pc.getPluginConfiguration()
             .then(function (config) {
                 if (config && config.hasActiveModules()) {
-                    console.log("hasActiveModules");
                     return {
                         title: config.card.title,
                         icon: config.card.icon,
@@ -110,135 +109,19 @@ TrelloPowerUp.initialize({
         let cm = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION).init();
         return t.list('id', 'name')
             .then(function (list) {
-                return cm.isArticleModuleEnabled();
-            })
-            .then(function (enabled) {
-                let sorters = [];
-                if (enabled) {
-                    sorters.push({
-                        text: "Pagina (1 -> 99)",
-                        callback: function (t, opts) {
-                            return sortOnPagina(getArticleControllerWith(cm, list, opts), t, opts, "asc");
-                        }
+                // i didn't manage to do it without t.list()... somehow t.list returns another promise than Promise.all()
+                return Promise.all([
+                    cm.getArticleModuleSorters(),
+                    cm.getPlanModuleSorters()
+                ])
+            }).map(function (context) {
+                return context["configuration"]()
+                    .then(function (configuration) {
+                        return context["sorters"](configuration);
                     });
-                    sorters.push({
-                        text: "Online (Mo. -> So.)",
-                        callback: function (t, opts) {
-                            return sortOnTags(getArticleControllerWith(cm, list, opts), t, opts, "asc");
-                        }
-                    });
-                }
-                return sorters;
-            });
+            }).reduce(function (prev, cur) {
+                // create a flattened list from a nested list
+                return prev.concat(cur);
+            }, []);
     }
 });
-
-/**
- * Get an articleController for this list and options
- * @param {ClientManager} cm the client manager
- * @param list the trello list
- * @param opts the trello callback options that contain the cards within this list
- * @returns {ArtikelController}
- */
-function getArticleControllerWith(cm, list, opts) {
-
-    for (let index in opts.cards) {
-        let card = opts.cards[index];
-        let artikel = cm.getArticleController().getByCard(card);
-        if (artikel && !card.closed) {
-            cm.getArticleController().insert(artikel, card);
-        }
-    }
-    return cm.getArticleController();
-}
-
-/**
- * Get the sorted cards using the article's pagina property
- * @param articleController
- * @param t the trello api
- * @param opts the options that contain the cards to be sorted
- * @param sort sort strategy: asc or desc
- * @returns {{sortedIds: *|{}|Uint8Array|any[]|Int32Array|Uint16Array}}
- */
-function sortOnPagina(articleController, t, opts, sort) {
-    let sortedCards = opts.cards.sort(
-        function (lhs_card, rhs_card) {
-            let lhs = articleController.getByCard(lhs_card);
-            let rhs = articleController.getByCard(rhs_card);
-            let lhsp = lhs ? parseFloat(lhs.pagina || Number.MAX_VALUE.toString()) : Number.MAX_VALUE;
-            let rhsp = rhs ? parseFloat(rhs.pagina || Number.MAX_VALUE.toString()) : Number.MAX_VALUE;
-            if (lhsp > rhsp) {
-                return sort === "asc" ? 1 : -1;
-            } else if (rhsp > lhsp) {
-                return sort === "asc" ? -1 : 1;
-            }
-            return 0;
-        });
-
-    return {
-        sortedIds: sortedCards.map(function (c) {
-            return c.id;
-        })
-    };
-}
-
-/**
- * Get the sorted cards using the article's tags (Tage) property
- * @param articleController
- * @param t the trello api
- * @param opts the options that contain the cards to be sorted
- * @param sort sort strategy: asc or desc
- * @returns {{sortedIds: *|{}|Uint8Array|any[]|Int32Array|Uint16Array}}
- */
-function sortOnTags(articleController, t, opts, sort) {
-    // Trello will call this if the user clicks on this sort
-    // opts.cards contains all card objects in the list
-    let sortedCards = opts.cards.sort(
-        function (lhs_card, rhs_card) {
-            let lhs = articleController.getByCard(lhs_card);
-            let rhs = articleController.getByCard(rhs_card);
-            let lhsp = lhs && lhs.tags ? map(lhs.tags) : Number.MAX_VALUE;
-            let rhsp = rhs && rhs.tags ? map(rhs.tags) : Number.MAX_VALUE;
-            if (lhsp > rhsp) {
-                return sort === "asc" ? 1 : -1;
-            } else if (rhsp > lhsp) {
-                return sort === "asc" ? -1 : 1;
-            }
-            return 0;
-        });
-
-    return {
-        sortedIds: sortedCards.map(function (c) {
-            return c.id;
-        })
-    };
-}
-
-/**
- * Map the parameter tag to a numeric value that can be sorted. Monday starts at zero and ends on sunday with six
- * @param tag
- * @returns {number}
- */
-function map(tag) {
-    if (!tag) {
-        return -1;
-    }
-    switch (tag) {
-        case "monday":
-            return 0;
-        case "tuesday":
-            return 1;
-        case "wednesday":
-            return 2;
-        case "thursday":
-            return 3;
-        case "friday":
-            return 4;
-        case "saturday":
-            return 5;
-        case "sunday":
-            return 6;
-        default:
-            return 7;
-    }
-}

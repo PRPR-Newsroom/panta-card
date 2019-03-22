@@ -130,4 +130,48 @@ class Controller {
     clear() {
 
     }
+
+    /**
+     * Get the artikel for the passed trello card
+     * @param {id: number} card
+     * @returns {*}
+     */
+    getByCard(card) {
+        return this._repository.get(card);
+    }
+
+    /**
+     * Check if the artikel is empty or not. It will return true if the entity has some content otherwise false
+     * @param entity
+     * @return {boolean}
+     */
+    hasContent(entity) {
+        return !entity.isEmpty()
+    }
+
+    /**
+     *
+     * @param {} editable
+     * @param {Artikel|Plan|ModuleConfig} entity
+     * @param defaultValue
+     * @return {*}
+     */
+    getMapping(editable, entity, defaultValue) {
+        switch (editable.type) {
+            case "select":
+                let index = this.getPropertyByName(entity, editable.id, -1);
+                return index !== -1 ? editable.values[index] : defaultValue;
+            default:
+                return this.getPropertyByName(entity, editable.id, defaultValue);
+        }
+    }
+
+    /**
+     * @param {Artikel|Plan|ModuleConfig} entity
+     * @param editableId
+     * @param defaultValue
+     * @return {*} the property value
+     * @abstract
+     */
+    getPropertyByName(entity, editableId, defaultValue) {}
 }

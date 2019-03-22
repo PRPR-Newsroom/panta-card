@@ -121,7 +121,7 @@ class PInput {
         let container = this._document.createElement("div");
 
         this._input.setAttribute("name", this._name);
-        this._input.placeholder = this._placeholder;
+        this.setPlaceholder();
         this._input.setAttribute("title", this._label);
         this._input.setAttribute("autocomplete", "new-password");
         if (this._value) {
@@ -167,6 +167,12 @@ class PInput {
         input.addClass("prop-" + this._type);
 
         return input;
+    }
+
+    setPlaceholder(placeholder) {
+        this._placeholder = placeholder || this._placeholder;
+        this._input.placeholder = this._placeholder;
+        this._input.setAttribute("placeholder", this._placeholder);
     }
 
     /**
@@ -353,9 +359,12 @@ class PInput {
                 // either the input is formatted or just a plain number
                 let parsed = this._parseNumber(this.getValue());
                 this._entity[this.getBoundProperty()] = parsed;
+                this._value = parsed;
                 break;
             default:
                 this._entity[this.getBoundProperty()] = this.getValue();
+                this._value = this.getValue();
+                break;
         }
 
     }
@@ -548,5 +557,10 @@ class SingleSelectInput extends PInput {
 
         label.addClass('focused-fix');
         return super.doCustomization(element);
+    }
+
+    invalidate() {
+        this._input.removeChildren();
+        this.doCustomization(this._input, this._labelInput);
     }
 }

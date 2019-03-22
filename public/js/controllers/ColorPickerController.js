@@ -37,7 +37,8 @@ class ColorPickerController {
                         e.stopPropagation();
                         that.updateColor(module, args["editable"], that.renderControls(controls, chooser.getAttribute("data-color"))["color"])
                             .then(function() {
-                                that._trello.back();
+                                // if we navigate back the setting does somehow not get persisted even if we do it here in "then()" chain
+                                // that._trello.back();
                             });
 
                     });
@@ -60,9 +61,10 @@ class ColorPickerController {
     updateColor(module, editableId, color) {
         let editable = this.getEditable(module, editableId);
         editable["color"] = color;
-        this._pluginController.setPluginModuleConfig(module)
+        return this._pluginController.setPluginModuleConfig(module)
             .then(function (pc) {
-                console.log("PluginConfiguration updated", pc);
+                console.log("updateColor done", pc);
+                return pc;
             });
     }
 

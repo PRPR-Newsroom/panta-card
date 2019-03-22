@@ -169,24 +169,36 @@ class ModulePlanController extends Controller {
     }
 
     /**
-     * Get the entity by card
-     * @param card
-     * @returns {{}}
-     */
-    getByCard(card) {
-        return this._repository.get(card);
-    }
-
-    /**
      * @param {Plan} entity
-     * @returns {boolean}
+     * @param name
+     * @param defaultValue
+     * @return {*}
      */
-    hasContent(entity) {
-        return !entity.isEmpty()
-    }
-
-    getRegionMapping(region) {
-        return ArtikelBinding.getRegionMapping(region);
+    getPropertyByName(entity, name, defaultValue) {
+        switch (name) {
+            case "field.a":
+                return entity.measures || defaultValue;
+            case "field.b":
+                return entity.description || defaultValue;
+            case "visual":
+                return entity.visual || defaultValue;
+            case "form":
+                return entity.form || defaultValue;
+            case "online":
+                return entity.online || defaultValue;
+            case "season":
+                return entity.season || defaultValue;
+            case "region":
+                return entity.region || defaultValue;
+            case "place":
+                return entity.place || defaultValue;
+            default:
+                if (entity.hasOwnProperty(name)) {
+                    return entity[name];
+                } else {
+                    return entity[name];
+                }
+        }
     }
 
     persist(entity, cardId) {

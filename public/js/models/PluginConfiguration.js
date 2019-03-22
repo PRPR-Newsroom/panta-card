@@ -105,7 +105,7 @@ class PluginConfiguration {
      */
     getModule(id, onlyEnabled) {
         return Object.values(this._modules).filter(function(value) {
-            return value && value.config && value.config.enabled === onlyEnabled;
+            return value && value.config && (!onlyEnabled || value.config.enabled);
         }).find(function(module) {
             return module.id === id;
         });

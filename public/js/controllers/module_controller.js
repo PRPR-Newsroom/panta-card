@@ -433,15 +433,6 @@ class ModuleController extends Controller {
     }
 
     /**
-     * Get the configuration by its card id
-     * @param card the trello card id which is used in {@code insert}
-     * @return {{}}
-     */
-    getByCard(card) {
-        return this._repository.get(card);
-    }
-
-    /**
      * Fetch all module configs from Trello
      */
     fetchAll(onComplete) {

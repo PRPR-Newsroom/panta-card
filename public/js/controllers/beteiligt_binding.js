@@ -101,7 +101,7 @@ class BeteiligtBinding extends Binding {
             // TODO data-label is obsolete when switched to module configuration
             'label': config.label || tab.getAttribute("data-label"),
             'binding': that,
-            'show': config.show_on_front
+            'show': config.show
         };
     }
 
@@ -127,7 +127,7 @@ class BeteiligtBinding extends Binding {
             this.document.getElementById("panta.content").appendChild(form);
         }
         let tab = this.document.getElementById(config.container);
-        if (config.show_on_front) {
+        if (config.show) {
             tab.removeClass("hidden");
         } else {
             tab.addClass("hidden");
@@ -143,8 +143,6 @@ class BeteiligtBinding extends Binding {
      * @returns {BeteiligtBinding}
      */
     update(entity, configuration) {
-        this._configuration = configuration;
-
         this._activated.activate();
         // update all PModuleConfigs with the new entity entity
         Object.values(this).filter(function (property) {
@@ -154,6 +152,11 @@ class BeteiligtBinding extends Binding {
         });
         // update the entity as well otherwise on change callbacks will re-store old entity states
         this._entity = entity;
+
+        if (configuration) {
+            this._updateConfiguration(configuration);
+        }
+
         return this;
     }
 
@@ -166,27 +169,27 @@ class BeteiligtBinding extends Binding {
         this.initLayouts();
         this.doLabels();
 
-        this._onsite = this._onsite !== null ? this._onsite.update(this._entity) : (this._onsite = new PModuleConfig(this.document, 'vor.Ort', this._involvements.onsite)
+        this._onsite = this._onsite !== null ? this._onsite.update(this._entity) : (this._onsite = new PModuleConfig(this.document, this._involvements.onsite)
             .bind(this._entity, 'onsite')
             .render());
 
-        this._text = this._text !== null ? this._text.update(this._entity) : (this._text = new PModuleConfig(this.document, 'Text', this._involvements.text)
+        this._text = this._text !== null ? this._text.update(this._entity) : (this._text = new PModuleConfig(this.document, this._involvements.text)
             .bind(this._entity, 'text')
             .render());
 
-        this._photo = this._photo !== null ? this._photo.update(this._entity) : (this._photo = new PModuleConfig(this.document, 'Foto', this._involvements.photo)
+        this._photo = this._photo !== null ? this._photo.update(this._entity) : (this._photo = new PModuleConfig(this.document, this._involvements.photo)
             .bind(this._entity, 'photo')
             .render());
 
-        this._video = this._video !== null ? this._video.update(this._entity) : (this._video = new PModuleConfig(this.document, 'Video', this._involvements.video)
+        this._video = this._video !== null ? this._video.update(this._entity) : (this._video = new PModuleConfig(this.document, this._involvements.video)
             .bind(this._entity, 'video')
             .render());
 
-        this._illu = this._illu !== null ? this._illu.update(this._entity) : (this._illu = new PModuleConfig(this.document, 'Illu.Grafik', this._involvements.illu)
+        this._illu = this._illu !== null ? this._illu.update(this._entity) : (this._illu = new PModuleConfig(this.document, this._involvements.illu)
             .bind(this._entity, 'illu')
             .render());
 
-        this._ad = this._ad !== null ? this._ad.update(this._entity) : (this._ad = new PModuleConfig(this.document, 'Inserat', this._involvements.ad)
+        this._ad = this._ad !== null ? this._ad.update(this._entity) : (this._ad = new PModuleConfig(this.document, this._involvements.ad)
             .bind(this._entity, 'ad')
             .render());
 
@@ -231,10 +234,8 @@ class BeteiligtBinding extends Binding {
     onLayout(forms, valueHolder) {
         // check if we need to switch the layout or if it's already the right one
         if (forms === this._activated) {
-            console.log("onLayout: only update the layout with new values");
             this.onLayoutUpdate(forms, valueHolder);
         } else {
-            console.log("onLayout: do a full layout");
             switch (valueHolder.layout) {
                 case "ad":
                     this.onAdLayout(forms, valueHolder);
@@ -307,7 +308,8 @@ class BeteiligtBinding extends Binding {
                 return editable.id === "title";
             });
             if (editable) {
-                title.addClass(editable.show_on_front ? 'show' : 'hidden');
+                title.removeClasses(["hidden", "show"]);
+                title.addClass(editable.show ? "show" : "hidden");
                 title.getElementsByClassName("js-panta-label").forEach(function (element) {
                     if (element instanceof HTMLElement) {
                         element.innerText = editable.label;
@@ -315,6 +317,34 @@ class BeteiligtBinding extends Binding {
                 });
             }
         })
+    }
+
+    /**
+     * Update all elements that are configured by this configuration
+     *
+     * @param configuration
+     * @private
+     */
+    _updateConfiguration(configuration) {
+        this._configuration = configuration;
+        this.doLabels();
+
+        this._updateTab(this._onsite, "onsite");
+        this._updateTab(this._text, "text");
+        this._updateTab(this._photo, "photo");
+        this._updateTab(this._video, "video");
+        this._updateTab(this._illu, "illu");
+        this._updateTab(this._ad, "ad");
+    }
+
+    /**
+     * @param {PModuleConfig} tab
+     * @param id
+     * @private
+     */
+    _updateTab(tab, id) {
+        let config = this.getConfigurationFor(id);
+        tab.setTabName(config.editable.label);
     }
 
     /**
@@ -356,5 +386,33 @@ class BeteiligtBinding extends Binding {
      */
     rememberFocus(element) {
         this._currentTabIndex = element.getTabIndex();
+    }
+
+    getConfigurationFor(id) {
+        let editable = this._configuration.config.editables
+            .filter(function (editable) {
+                return editable.id === id;
+            });
+
+        let label = editable[0].label;
+
+        let options = editable
+            .map(function (editable) {
+                return editable.values;
+            })
+            .flat()
+            .map(function (value, index) {
+                return newOption(index, value);
+            })
+            .reduce(function (prev, cur) {
+                prev.push(cur);
+                return prev;
+            }, []);
+
+        return {
+            "label": label,
+            "options": options,
+            "editable": editable[0]
+        };
     }
 }

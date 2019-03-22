@@ -61,7 +61,7 @@ class ModuleEditableItem extends AbstractItem {
         });
         let container = template.getClosestChildByClassName("panta-checkbox-container");
         let checkmark = container.getClosestChildByClassName("panta-js-checkbox");
-        checkmark.checked = that.editable.show_on_front === true;
+        checkmark.checked = that.editable.show === true;
         container.setEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();

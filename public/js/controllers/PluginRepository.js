@@ -14,8 +14,7 @@ class PluginRepository extends Repository {
             PluginRepository.instance.add(new PluginModuleConfig("module.artikel", "Artikel", {
                 "sort": 1,
                 "enabled": false,
-                "icon": "./assets/ic_artikel.png",
-                "view": "./module.html",
+                "icon": "ic_artikel.png",
 
                 "desc": 'module.artikel.desc',
 
@@ -25,7 +24,8 @@ class PluginRepository extends Repository {
                     "type": "select",
                     "label": "Visual",
                     "color": "blue",
-                    "show_on_front": false,
+                    "show": false,
+                    "sortable": false,
                     "values": [
                         "Bild",
                         "Icon",
@@ -39,7 +39,8 @@ class PluginRepository extends Repository {
                     "type": "select",
                     "label": "Form",
                     "color": "green",
-                    "show_on_front": false,
+                    "show": false,
+                    "sortable": false,
                     "values": [
                         "News",
                         "Artikel",
@@ -51,7 +52,8 @@ class PluginRepository extends Repository {
                     "type": "select",
                     "label": "Online",
                     "color": "yellow",
-                    "show_on_front": false,
+                    "show": false,
+                    "sortable": false,
                     "values": [
                         "Mo",
                         "Di",
@@ -67,7 +69,8 @@ class PluginRepository extends Repository {
                     "type": "select",
                     "label": "Saison",
                     "color": "sky",
-                    "show_on_front": false,
+                    "show": false,
+                    "sortable": false,
                     "values": [
                         "Sommer",
                         "Herbst",
@@ -78,7 +81,8 @@ class PluginRepository extends Repository {
                     "type": "select",
                     "label": "Region",
                     "color": "lime",
-                    "show_on_front": false,
+                    "show": false,
+                    "sortable": false,
                     "values": [
                         "Nord",
                         "Süd",
@@ -89,7 +93,8 @@ class PluginRepository extends Repository {
                     "type": "select",
                     "label": "Ort",
                     "color": "orange",
-                    "show_on_front": false,
+                    "show": false,
+                    "sortable": false,
                     "values": [
                         "CDS",
                         "STO",
@@ -105,7 +110,8 @@ class PluginRepository extends Repository {
                     "type": "text",
                     "label": "Thema",
                     "placeholder": "Lauftext",
-                    "show_on_front": false,
+                    "show": false,
+                    "sortable": false,
                     "color": "shades"
                 }, {
                     "id": "field.b",
@@ -113,7 +119,8 @@ class PluginRepository extends Repository {
                     "type": "text",
                     "label": "Input von",
                     "placeholder": "Name",
-                    "show_on_front": false,
+                    "show": false,
+                    "sortable": false,
                     "color": "shades"
                 }, {
                     "id": "field.c",
@@ -121,7 +128,8 @@ class PluginRepository extends Repository {
                     "type": "text",
                     "label": "Textautor*in",
                     "placeholder": "Name",
-                    "show_on_front": false,
+                    "show": false,
+                    "sortable": false,
                     "color": "shades"
                 }, {
                     "id": "field.d",
@@ -129,15 +137,15 @@ class PluginRepository extends Repository {
                     "type": "text",
                     "label": "Textbox",
                     "placeholder": "Lauftext",
-                    "show_on_front": false,
+                    "show": false,
+                    "sortable": false,
                     "color": "shades"
                 }]
             }), {"id": 1});
             PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", "Beteiligt", {
                 "sort": 3,
                 "enabled": false,
-                "icon": "./assets/ic_beteiligt.png",
-                "view": "./module.html",
+                "icon": "ic_beteiligt.png",
 
                 "desc": "module.beteiligt.desc",
 
@@ -154,7 +162,7 @@ class PluginRepository extends Repository {
                     "label": "vor.Ort",
                     "container": "pa.involved.onsite",
                     "layout": "regular",
-                    "show_on_front": true
+                    "show": true
                 }, {
                     "id": "text",
                     "desc": "module.beteiligt.layout.text",
@@ -162,7 +170,7 @@ class PluginRepository extends Repository {
                     "label": "Journalist",
                     "container": "pa.involved.text",
                     "layout": "regular",
-                    "show_on_front": true
+                    "show": true
                 }, {
                     "id": "photo",
                     "desc": "module.beteiligt.layout.photo",
@@ -170,7 +178,7 @@ class PluginRepository extends Repository {
                     "label": "Photo",
                     "container": "pa.involved.photo",
                     "layout": "regular",
-                    "show_on_front": true
+                    "show": true
                 }, {
                     "id": "video",
                     "desc": "module.beteiligt.layout.video",
@@ -178,7 +186,7 @@ class PluginRepository extends Repository {
                     "label": "Event",
                     "container": "pa.involved.video",
                     "layout": "regular",
-                    "show_on_front": true
+                    "show": true
                 }, {
                     "id": "illu",
                     "desc": "module.beteiligt.layout.illu",
@@ -186,7 +194,7 @@ class PluginRepository extends Repository {
                     "label": "Illu",
                     "container": "pa.involved.illu",
                     "layout": "regular",
-                    "show_on_front": true
+                    "show": true
                 }, {
                     "id": "ad",
                     "desc": "module.beteiligt.layout.ad",
@@ -194,7 +202,7 @@ class PluginRepository extends Repository {
                     "label": "weitere",
                     "container": "pa.involved.ad",
                     "layout": "regular",
-                    "show_on_front": true
+                    "show": true
                 }],
                 "layouts": {
                     "regular": {
@@ -210,8 +218,7 @@ class PluginRepository extends Repository {
             PluginRepository.instance.add(new PluginModuleConfig("module.plan", "Plan", {
                 "sort": 2,
                 "enabled": false,
-                "icon": "./assets/ic_plan.png",
-                "view": "./module.html",
+                "icon": "ic_plan.png",
                 "desc": "module.plan.desc",
                 "editables": [{
                     "id": "visual",
@@ -219,7 +226,8 @@ class PluginRepository extends Repository {
                     "type": "select",
                     "label": "Visual",
                     "color": "blue",
-                    "show_on_front": false,
+                    "show": false,
+                    "sortable": false,
                     "values": [
                         "Bild",
                         "Icon",
@@ -233,7 +241,8 @@ class PluginRepository extends Repository {
                     "type": "select",
                     "label": "Form",
                     "color": "green",
-                    "show_on_front": false,
+                    "show": false,
+                    "sortable": false,
                     "values": [
                         "News",
                         "Artikel",
@@ -245,7 +254,8 @@ class PluginRepository extends Repository {
                     "type": "select",
                     "label": "Online",
                     "color": "yellow",
-                    "show_on_front": false,
+                    "show": false,
+                    "sortable": false,
                     "values": [
                         "Mo",
                         "Di",
@@ -261,7 +271,8 @@ class PluginRepository extends Repository {
                     "type": "select",
                     "label": "Saison",
                     "color": "sky",
-                    "show_on_front": false,
+                    "show": false,
+                    "sortable": false,
                     "values": [
                         "Sommer",
                         "Herbst",
@@ -272,7 +283,8 @@ class PluginRepository extends Repository {
                     "type": "select",
                     "label": "Region",
                     "color": "lime",
-                    "show_on_front": false,
+                    "show": false,
+                    "sortable": false,
                     "values": [
                         "Nord",
                         "Süd",
@@ -283,7 +295,8 @@ class PluginRepository extends Repository {
                     "type": "select",
                     "label": "Ort",
                     "color": "orange",
-                    "show_on_front": false,
+                    "show": false,
+                    "sortable": false,
                     "values": [
                         "CDS",
                         "STO",
@@ -299,7 +312,8 @@ class PluginRepository extends Repository {
                     "type": "text",
                     "label": "Massnahmen",
                     "placeholder": "notieren…",
-                    "show_on_front": false,
+                    "show": false,
+                    "sortable": false,
                     "color": "shades"
                 }, {
                     "id": "field.b",
@@ -307,7 +321,8 @@ class PluginRepository extends Repository {
                     "type": "text",
                     "label": "Beschreibung",
                     "placeholder": "notieren…",
-                    "show_on_front": false,
+                    "show": false,
+                    "sortable": false,
                     "color": "shades"
                 }]
             }), {"id": 3});

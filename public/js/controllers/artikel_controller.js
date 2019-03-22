@@ -112,58 +112,13 @@ class ArtikelController extends Controller {
     // }
 
     /**
-     * Get the artikel for the passed trello card
-     * @param {id: number} card
-     * @returns {*}
-     */
-    getByCard(card) {
-        return this._repository.get(card);
-    }
-
-    /**
-     * Check if the artikel is empty or not. It will return true if the artikel (without the involvement part) has some content otherwise false
-     *
-     * @param {Artikel} artikel
-     */
-    hasArtikelContent(artikel) {
-        return !artikel.isEmpty()
-    }
-
-    /**
-     * Get the region mapping in german
-     * @param region
-     * @returns {string|*}
-     */
-    getRegionMapping(region) {
-        return ArtikelBinding.getRegionMapping(region);
-    }
-
-    /**
-     *
-     * @param {} editable
-     * @param {Artikel} entity
-     * @param defaultValue
-     * @return {*}
-     */
-    getMapping(editable, entity, defaultValue) {
-        switch (editable.type) {
-            case "select":
-                let index = this._getPropertyByName(entity, editable.id, -1);
-                return index !== -1 ? editable.values[index] : defaultValue;
-            default:
-                return this._getPropertyByName(entity, editable.id, defaultValue);
-        }
-    }
-
-    /**
      * Get a property value by its name
-     * @param {Artikel} entity
+     * @param {Artikel|Plan|ModuleConfig} entity
      * @param name
      * @param defaultValue
      * @return {*}
-     * @private
      */
-    _getPropertyByName(entity, name, defaultValue) {
+    getPropertyByName(entity, name, defaultValue) {
         switch (name) {
             case "visual":
                 return entity.visual || defaultValue;

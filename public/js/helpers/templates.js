@@ -294,6 +294,18 @@ let template_plan_mobile = '<div id="template">' +
     '    </div>' +
     '</div>';
 
+let template_settings_switch = '<div class="row module-switch-container">' +
+    '    <div class="col-2">' +
+    '       <div class="panta-module-enabled">' +
+    '           <label class="panta-checkbox-container">' +
+    '              <input class="panta-js-checkbox" type="checkbox" checked="checked">' +
+    '               <span class="panta-checkbox-checkmark elevate"></span>' +
+    '           </label>' +
+    '       </div>' +
+    '    </div>' +
+    '    <div class="col-10 switch-title"></div>' +
+    '</div>';
+
 let template_settings_module = '<div class="row module-container">' +
     '    <div class="col-2">' +
     '       <div class="panta-module-enabled">' +

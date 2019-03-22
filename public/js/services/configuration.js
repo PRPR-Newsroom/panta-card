@@ -25,6 +25,7 @@ const TEXTS = {
 
     'module.plan.desc': "Folgende Felder können individuell konfiguriert werden.",
     'module.plan.editable.desc': "Definieren Sie die Auswahlliste, die für das ganze Board gilt.",
-
+    'module.plan.field-a.desc': "Das Feld «A» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+    'module.plan.field-b.desc': "Das Feld «B» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an."
 
 };

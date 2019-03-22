@@ -29,13 +29,6 @@ class ModulePlanBinding extends Binding {
      * @returns {Binding}
      */
     update(entity, configuration) {
-        if (configuration) {
-            console.log("Update configuration", configuration);
-            this._updateConfiguration(configuration);
-        } else {
-            console.log("No new configuration");
-        }
-
         this._measures.update(entity);
         this._description.update(entity);
         this._fee.update(entity);
@@ -53,6 +46,14 @@ class ModulePlanBinding extends Binding {
 
         // update the entity as well otherwise on change callbacks will re-store old entity states
         this._entity = entity;
+
+        if (configuration) {
+            console.log("Update configuration", configuration);
+            this._updateConfiguration(configuration);
+        } else {
+            console.log("No new configuration");
+        }
+
         return this;
     }
 
@@ -177,22 +178,38 @@ class ModulePlanBinding extends Binding {
             newOption('-1', '…'), configuration.options);
     }
 
-    updateLayout(select, id) {
+    // TODO duplicate code here
+    /**
+     * @param {PInput} text
+     * @param id
+     */
+    updateText(text, id) {
+        let config = this.getConfigurationFor(id);
+        text.setLabel(config.editable.label);
+        text.setPlaceholder(config.editable.placeholder);
+    }
+
+    updateSelect(select, id) {
         let oc = this.getConfigurationFor(id);
         select.clear();
         select.setLabel(oc.label);
+        select.addOption("-1", "…");
         select.addOptions(oc.options);
+        select.invalidate();
     }
 
     _updateConfiguration(configuration) {
         this._configuration = configuration;
 
-        this.updateLayout(this._online, "online");
-        this.updateLayout(this._visual, "visual");
-        this.updateLayout(this._region, "region");
-        this.updateLayout(this._season, "season");
-        this.updateLayout(this._form, "form");
-        this.updateLayout(this._place, "place");
+        this.updateText(this._measures, "field.a");
+        this.updateText(this._description, "field.b");
+
+        this.updateSelect(this._online, "online");
+        this.updateSelect(this._visual, "visual");
+        this.updateSelect(this._region, "region");
+        this.updateSelect(this._season, "season");
+        this.updateSelect(this._form, "form");
+        this.updateSelect(this._place, "place");
     }
 
     /**
