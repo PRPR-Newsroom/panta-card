@@ -68,6 +68,7 @@ class ModuleSettingsItem extends AbstractItem{
             that._onEnterHandler(that.module);
         });
         templ.getElementsByClassName("module-title").forEach(function (element) {
+            element.addClass("underline");
             element.innerText = that.module.name;
             element.setAttribute("id", that.module.id);
         });

@@ -192,10 +192,6 @@ class ArtikelBinding extends Binding {
      */
     doLayout(target, id, valueHolder, params, configurationId) {
         let configuration = this.getConfigurationFor(configurationId || id);
-        /**
-         * @type {SingleSelectInput|PInput}
-         * @private
-         */
         return this.document.newSingleSelect(valueHolder, target, id, configuration.label, params, this._action, 'Liste-Tag',
             newOption("-1", "…"), configuration.options);
     }
@@ -216,6 +212,7 @@ class ArtikelBinding extends Binding {
         select.setLabel(oc.label);
         select.addOption("-1", "…");
         select.addOptions(oc.options);
+        select.setActive(oc.active);
         select.invalidate();
     }
 

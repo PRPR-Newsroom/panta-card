@@ -41,7 +41,7 @@
 
 /* On mouse-over, add a grey background color */
 .panta-checkbox-container:hover input ~ .panta-checkbox-checkmark:after {
-  border-color: lighten($color-active, 20%);
+  border-color: lighten($color-active, 30%);
 }
 
 /* When the checkbox is checked, add a blue background */
@@ -50,7 +50,7 @@
 }
 
 .panta-checkbox-container:hover input:checked ~ .panta-checkbox-checkmark:after {
-  border-color: lighten($color-active, 20%);
+  border-color: lighten($color-active, 30%);
 }
 
 /* Create the checkmark/indicator (hidden when not checked) */
@@ -68,7 +68,7 @@
 
   .elevate {
     &.panta-checkbox-checkmark:after {
-      border: solid lighten($color-active, 30%);
+      border: solid lighten($color-active, 40%);
       border-width: 0 2px 2px 0;
     }
   }

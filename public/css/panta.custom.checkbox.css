@@ -9,7 +9,8 @@
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
-  user-select: none; }
+  user-select: none;
+}
 
 /* Hide the browser's default checkbox */
 .panta-checkbox-container input {
@@ -17,7 +18,8 @@
   opacity: 0;
   cursor: pointer;
   height: 0;
-  width: 0; }
+  width: 0;
+}
 
 /* Create a custom checkbox */
 .panta-checkbox-checkmark {
@@ -26,37 +28,46 @@
   left: 0;
   height: 100%;
   width: 100%;
-  background-color: transparent; }
-  .panta-checkbox-checkmark.elevate {
-    border-radius: 100%;
-    border: 1px solid #798d99; }
+  background-color: transparent;
+}
+.panta-checkbox-checkmark.elevate {
+  border-radius: 100%;
+  border: 1px solid #798d99;
+}
 
 /* On mouse-over, add a grey background color */
 .panta-checkbox-container:hover input ~ .panta-checkbox-checkmark:after {
-  border-color: #fab974; }
+  border-color: #fcd2a5;
+}
 
 /* When the checkbox is checked, add a blue background */
 .panta-checkbox-container input:checked ~ .panta-checkbox-checkmark:after {
-  border-color: #F68712; }
+  border-color: #F68712;
+}
 
 .panta-checkbox-container:hover input:checked ~ .panta-checkbox-checkmark:after {
-  border-color: #fab974; }
+  border-color: #fcd2a5;
+}
 
 /* Create the checkmark/indicator (hidden when not checked) */
 .panta-checkbox-checkmark:after {
   content: "";
-  position: absolute; }
+  position: absolute;
+}
 
 /* Show the checkmark when checked */
 .panta-checkbox-container input:checked ~ .panta-checkbox-checkmark:after {
-  display: block; }
+  display: block;
+}
 
 .panta-checkbox-container .elevate.panta-checkbox-checkmark:after {
-  border: solid #fcd2a5;
-  border-width: 0 2px 2px 0; }
+  border: solid #fdebd7;
+  border-width: 0 2px 2px 0;
+}
 .panta-checkbox-container .panta-checkbox-checkmark:after {
   border: solid transparent;
-  border-width: 0 2px 2px 0; }
+  border-width: 0 2px 2px 0;
+}
 
 /* Style the checkmark/indicator */
 .panta-checkbox-container .panta-checkbox-checkmark:after {
@@ -68,6 +79,7 @@
   border-width: 0 2px 2px 0;
   -webkit-transform: rotate(45deg);
   -ms-transform: rotate(45deg);
-  transform: rotate(45deg); }
+  transform: rotate(45deg);
+}
 
 /*# sourceMappingURL=panta.custom.checkbox.css.map */

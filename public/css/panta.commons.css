@@ -13,6 +13,10 @@ html, body {
     font-weight: bold;
 }
 
+.underline {
+    text-decoration: underline;
+}
+
 .number, .money {
     text-align: right;
 }

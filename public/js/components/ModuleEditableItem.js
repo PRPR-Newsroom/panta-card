@@ -52,6 +52,7 @@ class ModuleEditableItem extends AbstractItem {
 
         template.getElementsByClassName("module-editable-name").forEach(function (item) {
             if (item instanceof HTMLElement) {
+                item.addClass("underline");
                 item.innerText = that.editable.label;
             }
         });

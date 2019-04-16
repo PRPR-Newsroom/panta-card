@@ -107,7 +107,6 @@ class ModulePlanBinding extends Binding {
             .addClass('bold')
             .addClass('multiline', true)
             .addConditionalFormatting(function (entity) {
-                /** @type Plan entity */
                 return {
                     'name': 'rule-costs-exceeded',
                     'active': entity.capOnDepenses < entity.totalCosts
@@ -170,10 +169,6 @@ class ModulePlanBinding extends Binding {
      */
     doLayout(target, id, valueHolder, params, configurationId) {
         let configuration = this.getConfigurationFor(configurationId || id);
-        /**
-         * @type {SingleSelectInput|PInput}
-         * @private
-         */
         return this.document.newSingleSelect(valueHolder, target, id, configuration.label, params, this._action, 'Liste-Tag',
             newOption('-1', '…'), configuration.options);
     }

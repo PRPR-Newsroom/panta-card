@@ -9,7 +9,7 @@ const TEXTS = {
     "mit dem «Gutzeichen» aktiviert wird, dann erscheint es in dieser Farbe auf der Trello Card Vorderseite, ansonsten wird es nur für die Trello Card Rückseite " +
     "verwendet.",
 
-    'module.artikel.editable.desc': "Definieren Sie die Auswahlliste, die für das ganze Board gilt.",
+    'module.artikel.editable.desc': "Definieren Sie die Auswahlliste, die für das ganze Board gilt. Bitte beachten Sie, dass maximal nur vier Auswahllisten sortierbar sein können.",
     'module.artikel.field-a.desc': "Das Artikelfeld «A» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
     'module.artikel.field-b.desc': "Das Artikelfeld «B» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
     'module.artikel.field-c.desc': "Das Artikelfeld «C» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
@@ -24,7 +24,7 @@ const TEXTS = {
     'module.beteiligt.special.desc': "Spezial-Layout",
 
     'module.plan.desc': "Folgende Felder können individuell konfiguriert werden.",
-    'module.plan.editable.desc': "Definieren Sie die Auswahlliste, die für das ganze Board gilt.",
+    'module.plan.editable.desc': "Definieren Sie die Auswahlliste, die für das ganze Board gilt. Bitte beachten Sie, dass maximal nur vier Auswahllisten sortierbar sein können.",
     'module.plan.field-a.desc': "Das Feld «A» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
     'module.plan.field-b.desc': "Das Feld «B» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an."
 

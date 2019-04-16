@@ -22,87 +22,97 @@ class PluginRepository extends Repository {
                     "id": "visual",
                     "desc": "module.artikel.editable.desc",
                     "type": "select",
-                    "label": "Visual",
+                    "label": "Liste 1",
                     "color": "blue",
+                    "active": true,
                     "show": false,
                     "sortable": false,
                     "values": [
-                        "Bild",
-                        "Icon",
-                        "Grafik",
-                        "Video",
-                        "Illu",
+                        "1. Stichwort",
+                        "2. Stichwort",
+                        "3. Stichwort",
+                        "4. Stichwort",
+                        "5. Stichwort",
                     ]
                 }, {
                     "id": "form",
                     "desc": "module.artikel.editable.desc",
                     "type": "select",
-                    "label": "Form",
+                    "label": "Liste 2",
                     "color": "green",
+                    "active": true,
                     "show": false,
                     "sortable": false,
                     "values": [
-                        "News",
-                        "Artikel",
-                        "Report",
+                        "1. Stichwort",
+                        "2. Stichwort",
+                        "3. Stichwort",
+                        "4. Stichwort",
+                        "5. Stichwort",
                     ]
                 }, {
                     "id": "online",
                     "desc": "module.artikel.editable.desc",
                     "type": "select",
-                    "label": "Online",
+                    "label": "Liste 3",
                     "color": "yellow",
+                    "active": true,
                     "show": false,
                     "sortable": false,
                     "values": [
-                        "Mo",
-                        "Di",
-                        "Mi",
-                        "Do",
-                        "Fr",
-                        "Sa",
-                        "So",
+                        "1. Stichwort",
+                        "2. Stichwort",
+                        "3. Stichwort",
+                        "4. Stichwort",
+                        "5. Stichwort",
                     ]
                 }, {
                     "id": "season",
                     "desc": "module.artikel.editable.desc",
                     "type": "select",
-                    "label": "Saison",
+                    "label": "Liste 4",
                     "color": "sky",
+                    "active": true,
                     "show": false,
                     "sortable": false,
                     "values": [
-                        "Sommer",
-                        "Herbst",
+                        "1. Stichwort",
+                        "2. Stichwort",
+                        "3. Stichwort",
+                        "4. Stichwort",
+                        "5. Stichwort",
                     ]
                 }, {
                     "id": "region",
                     "desc": "module.artikel.editable.desc",
                     "type": "select",
-                    "label": "Region",
+                    "label": "Liste 5",
                     "color": "lime",
+                    "active": true,
                     "show": false,
                     "sortable": false,
                     "values": [
-                        "Nord",
-                        "Süd",
+                        "1. Stichwort",
+                        "2. Stichwort",
+                        "3. Stichwort",
+                        "4. Stichwort",
+                        "5. Stichwort",
                     ]
                 }, {
                     "id": "place",
                     "desc": "module.artikel.editable.desc",
                     "type": "select",
-                    "label": "Ort",
+                    "label": "Liste 6",
                     "color": "orange",
+                    "active": true,
                     "show": false,
                     "sortable": false,
                     "values": [
-                        "CDS",
-                        "STO",
-                        "TAM",
-                        "WID",
-                        "Buech",
-                        "Rustico",
-                        "Schlatt",
+                        "1. Stichwort",
+                        "2. Stichwort",
+                        "3. Stichwort",
+                        "4. Stichwort",
+                        "5. Stichwort",
                     ]
                 }, {
                     "id": "field.a",
@@ -159,7 +169,7 @@ class PluginRepository extends Repository {
                     "id": "onsite",
                     "desc": "module.beteiligt.layout.onsite",
                     "type": "layout",
-                    "label": "vor.Ort",
+                    "label": "Reiter 1",
                     "container": "pa.involved.onsite",
                     "layout": "regular",
                     "show": true
@@ -167,7 +177,7 @@ class PluginRepository extends Repository {
                     "id": "text",
                     "desc": "module.beteiligt.layout.text",
                     "type": "layout",
-                    "label": "Journalist",
+                    "label": "Reiter 2",
                     "container": "pa.involved.text",
                     "layout": "regular",
                     "show": true
@@ -175,7 +185,7 @@ class PluginRepository extends Repository {
                     "id": "photo",
                     "desc": "module.beteiligt.layout.photo",
                     "type": "layout",
-                    "label": "Photo",
+                    "label": "Reiter 3",
                     "container": "pa.involved.photo",
                     "layout": "regular",
                     "show": true
@@ -183,7 +193,7 @@ class PluginRepository extends Repository {
                     "id": "video",
                     "desc": "module.beteiligt.layout.video",
                     "type": "layout",
-                    "label": "Event",
+                    "label": "Reiter 4",
                     "container": "pa.involved.video",
                     "layout": "regular",
                     "show": true
@@ -191,7 +201,7 @@ class PluginRepository extends Repository {
                     "id": "illu",
                     "desc": "module.beteiligt.layout.illu",
                     "type": "layout",
-                    "label": "Illu",
+                    "label": "Reiter 5",
                     "container": "pa.involved.illu",
                     "layout": "regular",
                     "show": true
@@ -199,7 +209,7 @@ class PluginRepository extends Repository {
                     "id": "ad",
                     "desc": "module.beteiligt.layout.ad",
                     "type": "layout",
-                    "label": "weitere",
+                    "label": "Reiter 6",
                     "container": "pa.involved.ad",
                     "layout": "regular",
                     "show": true
@@ -207,11 +217,11 @@ class PluginRepository extends Repository {
                 "layouts": {
                     "regular": {
                         "desc": "module.beteiligt.regular.desc",
-                        "label": "Regulär"
+                        "label": "Kontakt"
                     },
                     "ad": {
                         "desc": "module.beteiligt.special.desc",
-                        "label": "Spezial"
+                        "label": "Inserat"
                     }
                 },
             }), {"id": 2});

@@ -4,6 +4,7 @@ $jscomp.scope = {};
 $jscomp.ASSUME_ES5 = !1;
 $jscomp.ASSUME_NO_NATIVE_MAP = !1;
 $jscomp.ASSUME_NO_NATIVE_SET = !1;
+$jscomp.SIMPLE_FROUND_POLYFILL = !1;
 $jscomp.objectCreate = $jscomp.ASSUME_ES5 || "function" == typeof Object.create ? Object.create : function(a) {
   var b = function() {
   };
@@ -49,56 +50,21 @@ $jscomp.getGlobal = function(a) {
   return "undefined" != typeof window && window === a ? a : "undefined" != typeof global && null != global ? global : a;
 };
 $jscomp.global = $jscomp.getGlobal(this);
-$jscomp.defineProperty = $jscomp.ASSUME_ES5 || "function" == typeof Object.defineProperties ? Object.defineProperty : function(a, b, c) {
-  a != Array.prototype && a != Object.prototype && (a[b] = c.value);
-};
-$jscomp.SYMBOL_PREFIX = "jscomp_symbol_";
-$jscomp.initSymbol = function() {
-  $jscomp.initSymbol = function() {
-  };
-  $jscomp.global.Symbol || ($jscomp.global.Symbol = $jscomp.Symbol);
-};
-$jscomp.Symbol = function() {
-  var a = 0;
-  return function(b) {
-    return $jscomp.SYMBOL_PREFIX + (b || "") + a++;
-  };
-}();
-$jscomp.initSymbolIterator = function() {
-  $jscomp.initSymbol();
-  var a = $jscomp.global.Symbol.iterator;
-  a || (a = $jscomp.global.Symbol.iterator = $jscomp.global.Symbol("iterator"));
-  "function" != typeof Array.prototype[a] && $jscomp.defineProperty(Array.prototype, a, {configurable:!0, writable:!0, value:function() {
-    return $jscomp.arrayIterator(this);
-  }});
-  $jscomp.initSymbolIterator = function() {
-  };
-};
-$jscomp.initSymbolAsyncIterator = function() {
-  $jscomp.initSymbol();
-  var a = $jscomp.global.Symbol.asyncIterator;
-  a || (a = $jscomp.global.Symbol.asyncIterator = $jscomp.global.Symbol("asyncIterator"));
-  $jscomp.initSymbolAsyncIterator = function() {
+$jscomp.arrayIteratorImpl = function(a) {
+  var b = 0;
+  return function() {
+    return b < a.length ? {done:!1, value:a[b++]} : {done:!0};
   };
 };
 $jscomp.arrayIterator = function(a) {
-  var b = 0;
-  return $jscomp.iteratorPrototype(function() {
-    return b < a.length ? {done:!1, value:a[b++]} : {done:!0};
-  });
-};
-$jscomp.iteratorPrototype = function(a) {
-  $jscomp.initSymbolIterator();
-  a = {next:a};
-  a[$jscomp.global.Symbol.iterator] = function() {
-    return this;
-  };
-  return a;
+  return {next:$jscomp.arrayIteratorImpl(a)};
 };
 $jscomp.makeIterator = function(a) {
-  $jscomp.initSymbolIterator();
-  var b = a[Symbol.iterator];
+  var b = "undefined" != typeof Symbol && Symbol.iterator && a[Symbol.iterator];
   return b ? b.call(a) : $jscomp.arrayIterator(a);
+};
+$jscomp.defineProperty = $jscomp.ASSUME_ES5 || "function" == typeof Object.defineProperties ? Object.defineProperty : function(a, b, c) {
+  a != Array.prototype && a != Object.prototype && (a[b] = c.value);
 };
 $jscomp.polyfill = function(a, b, c, d) {
   if (b) {
@@ -129,15 +95,14 @@ $jscomp.polyfill("Promise", function(a) {
     return a;
   }
   b.prototype.asyncExecute = function(a) {
-    null == this.batch_ && (this.batch_ = [], this.asyncExecuteBatch_());
+    if (null == this.batch_) {
+      this.batch_ = [];
+      var b = this;
+      this.asyncExecuteFunction(function() {
+        b.executeBatch_();
+      });
+    }
     this.batch_.push(a);
-    return this;
-  };
-  b.prototype.asyncExecuteBatch_ = function() {
-    var a = this;
-    this.asyncExecuteFunction(function() {
-      a.executeBatch_();
-    });
   };
   var d = $jscomp.global.setTimeout;
   b.prototype.asyncExecuteFunction = function(a) {
@@ -319,6 +284,54 @@ $jscomp.polyfill("Promise", function(a) {
   };
   return e;
 }, "es6", "es3");
+$jscomp.SYMBOL_PREFIX = "jscomp_symbol_";
+$jscomp.initSymbol = function() {
+  $jscomp.initSymbol = function() {
+  };
+  $jscomp.global.Symbol || ($jscomp.global.Symbol = $jscomp.Symbol);
+};
+$jscomp.SymbolClass = function(a, b) {
+  this.$jscomp$symbol$id_ = a;
+  $jscomp.defineProperty(this, "description", {configurable:!0, writable:!0, value:b});
+};
+$jscomp.SymbolClass.prototype.toString = function() {
+  return this.$jscomp$symbol$id_;
+};
+$jscomp.Symbol = function() {
+  function a(c) {
+    if (this instanceof a) {
+      throw new TypeError("Symbol is not a constructor");
+    }
+    return new $jscomp.SymbolClass($jscomp.SYMBOL_PREFIX + (c || "") + "_" + b++, c);
+  }
+  var b = 0;
+  return a;
+}();
+$jscomp.initSymbolIterator = function() {
+  $jscomp.initSymbol();
+  var a = $jscomp.global.Symbol.iterator;
+  a || (a = $jscomp.global.Symbol.iterator = $jscomp.global.Symbol("Symbol.iterator"));
+  "function" != typeof Array.prototype[a] && $jscomp.defineProperty(Array.prototype, a, {configurable:!0, writable:!0, value:function() {
+    return $jscomp.iteratorPrototype($jscomp.arrayIteratorImpl(this));
+  }});
+  $jscomp.initSymbolIterator = function() {
+  };
+};
+$jscomp.initSymbolAsyncIterator = function() {
+  $jscomp.initSymbol();
+  var a = $jscomp.global.Symbol.asyncIterator;
+  a || (a = $jscomp.global.Symbol.asyncIterator = $jscomp.global.Symbol("Symbol.asyncIterator"));
+  $jscomp.initSymbolAsyncIterator = function() {
+  };
+};
+$jscomp.iteratorPrototype = function(a) {
+  $jscomp.initSymbolIterator();
+  a = {next:a};
+  a[$jscomp.global.Symbol.iterator] = function() {
+    return this;
+  };
+  return a;
+};
 $jscomp.iteratorFromArray = function(a, b) {
   $jscomp.initSymbolIterator();
   a instanceof String && (a += "");
@@ -344,6 +357,13 @@ $jscomp.polyfill("Array.prototype.keys", function(a) {
     });
   };
 }, "es6", "es3");
+$jscomp.polyfill("Array.prototype.values", function(a) {
+  return a ? a : function() {
+    return $jscomp.iteratorFromArray(this, function(a, c) {
+      return c;
+    });
+  };
+}, "es8", "es3");
 $jscomp.checkStringArgs = function(a, b, c) {
   if (null == a) {
     throw new TypeError("The 'this' value for String.prototype." + c + " must not be null or undefined");
@@ -367,27 +387,6 @@ $jscomp.polyfill("String.prototype.startsWith", function(a) {
     return h >= f;
   };
 }, "es6", "es3");
-$jscomp.owns = function(a, b) {
-  return Object.prototype.hasOwnProperty.call(a, b);
-};
-$jscomp.polyfill("Object.values", function(a) {
-  return a ? a : function(a) {
-    var b = [], d;
-    for (d in a) {
-      $jscomp.owns(a, d) && b.push(a[d]);
-    }
-    return b;
-  };
-}, "es8", "es3");
-$jscomp.polyfill("Object.entries", function(a) {
-  return a ? a : function(a) {
-    var b = [], d;
-    for (d in a) {
-      $jscomp.owns(a, d) && b.push([d, a[d]]);
-    }
-    return b;
-  };
-}, "es8", "es3");
 $jscomp.findInternal = function(a, b, c) {
   a instanceof String && (a = String(a));
   for (var d = a.length, e = 0; e < d; e++) {
@@ -403,11 +402,35 @@ $jscomp.polyfill("Array.prototype.find", function(a) {
     return $jscomp.findInternal(this, a, c).v;
   };
 }, "es6", "es3");
-$jscomp.polyfill("Array.prototype.values", function(a) {
-  return a ? a : function() {
-    return $jscomp.iteratorFromArray(this, function(a, c) {
-      return c;
-    });
+$jscomp.owns = function(a, b) {
+  return Object.prototype.hasOwnProperty.call(a, b);
+};
+$jscomp.polyfill("Object.values", function(a) {
+  return a ? a : function(a) {
+    var b = [], d;
+    for (d in a) {
+      $jscomp.owns(a, d) && b.push(a[d]);
+    }
+    return b;
+  };
+}, "es8", "es3");
+$jscomp.polyfill("Array.prototype.flat", function(a) {
+  return a ? a : function(a) {
+    a = void 0 === a ? 1 : Number(a);
+    for (var b = [], d = 0; d < this.length; d++) {
+      var e = this[d];
+      Array.isArray(e) && 0 < a ? (e = Array.prototype.flat.call(e, a - 1), b.push.apply(b, e)) : b.push(e);
+    }
+    return b;
+  };
+}, "es9", "es5");
+$jscomp.polyfill("Object.entries", function(a) {
+  return a ? a : function(a) {
+    var b = [], d;
+    for (d in a) {
+      $jscomp.owns(a, d) && b.push([d, a[d]]);
+    }
+    return b;
   };
 }, "es8", "es3");
 var Binding = function(a, b, c, d) {
@@ -443,16 +466,6 @@ Binding.prototype.unblock = function() {
   this._autoUpdater && clearInterval(this._autoUpdater);
 };
 // Input 1
-var TabIndexProvider = function() {
-  this.current = 1;
-};
-TabIndexProvider.prototype.getAndIncrement = function() {
-  return this.current++;
-};
-TabIndexProvider.prototype.reset = function() {
-  this.current = 1;
-};
-// Input 2
 var DI = function() {
 };
 DI.getInstance = function() {
@@ -478,12 +491,12 @@ DI.prototype.getArticleRepository = function() {
 DI.prototype.getTabIndexProvider = function() {
 };
 DI.INSTANCE = null;
-// Input 3
-var PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.artikel.desc":"Die Eingabefelder und Auswahllisten werden f\u00fcr das ganze Trello Board konfiguriert. F\u00fcr jedes Feld kann eine Farbe definiert werden. Wenn das Feld mit dem \u00abGutzeichen\u00bb aktiviert wird, dann erscheint es in dieser Farbe auf der Trello Card Vorderseite, ansonsten wird es nur f\u00fcr die Trello Card R\u00fcckseite verwendet.", "module.artikel.editable.desc":"Definieren Sie die Auswahlliste, die f\u00fcr das ganze Board gilt.", 
+// Input 2
+var PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.artikel.desc":"Die Eingabefelder und Auswahllisten werden f\u00fcr das ganze Trello Board konfiguriert. F\u00fcr jedes Feld kann eine Farbe definiert werden. Wenn das Feld mit dem \u00abGutzeichen\u00bb aktiviert wird, dann erscheint es in dieser Farbe auf der Trello Card Vorderseite, ansonsten wird es nur f\u00fcr die Trello Card R\u00fcckseite verwendet.", "module.artikel.editable.desc":"Definieren Sie die Auswahlliste, die f\u00fcr das ganze Board gilt. Bitte beachten Sie, dass maximal nur vier Auswahllisten sortierbar sein k\u00f6nnen.", 
 "module.artikel.field-a.desc":"Das Artikelfeld \u00abA\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.artikel.field-b.desc":"Das Artikelfeld \u00abB\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.artikel.field-c.desc":"Das Artikelfeld \u00abC\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.artikel.field-d.desc":"Das Artikelfeld \u00abD\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
 "module.beteiligt.desc":"Folgende Felder k\u00f6nnen individuell konfiguriert werden. Mit dem \u00abGutzeichen\u00bb kann das Feld sichtbar gemacht werden.", "module.beteiligt.label.desc":"Diese Beschriftung wird oberhalb des Moduls als \u00dcberschrift verwendet.", "module.beteiligt.layout.onsite":"Das Layout wird f\u00fcr das Tab \u00abvor.Ort\u00bb verwendet", "module.beteiligt.layout.text":"Das Layout wird f\u00fcr das Tab \u00abJournalist\u00bb verwendet", "module.beteiligt.regular.desc":"Standard-Layout", 
-"module.beteiligt.special.desc":"Spezial-Layout", "module.plan.desc":"Folgende Felder k\u00f6nnen individuell konfiguriert werden.", "module.plan.editable.desc":"Definieren Sie die Auswahlliste, die f\u00fcr das ganze Board gilt.", "module.plan.field-a.desc":"Das Feld \u00abA\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.plan.field-b.desc":"Das Feld \u00abB\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an."};
-// Input 4
+"module.beteiligt.special.desc":"Spezial-Layout", "module.plan.desc":"Folgende Felder k\u00f6nnen individuell konfiguriert werden.", "module.plan.editable.desc":"Definieren Sie die Auswahlliste, die f\u00fcr das ganze Board gilt. Bitte beachten Sie, dass maximal nur vier Auswahllisten sortierbar sein k\u00f6nnen.", "module.plan.field-a.desc":"Das Feld \u00abA\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.plan.field-b.desc":"Das Feld \u00abB\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an."};
+// Input 3
 var Repository = function() {
   this._repository = {};
 };
@@ -507,7 +520,72 @@ Repository.prototype.get = function(a) {
 };
 Repository.prototype.isNew = function(a) {
 };
+// Input 4
+var TabIndexProvider = function() {
+  this.current = 1;
+};
+TabIndexProvider.prototype.getAndIncrement = function() {
+  return this.current++;
+};
+TabIndexProvider.prototype.reset = function() {
+  this.current = 1;
+};
 // Input 5
+var Controller = function(a, b) {
+  this._repository = b;
+  this._binding = null;
+  this._window = a;
+};
+Controller.prototype.canUnblock = function() {
+  this._window.clientManager.getPluginController().upgrading || this._binding.unblock();
+};
+Controller.prototype.blockUi = function() {
+  this._binding.blockUi();
+  return Promise.resolve(!0);
+};
+Controller.prototype.update = function() {
+};
+Controller.prototype.render = function(a, b) {
+};
+Controller.prototype.detach = function() {
+  this._binding && this._binding.detach();
+};
+Controller.prototype.insert = function(a, b) {
+  a && this._repository.isNew(a) ? this._repository.add(a, b) : a && this._repository.replace(a, b);
+};
+Controller.prototype.create = function(a) {
+};
+Controller.prototype.onEvent = function(a, b) {
+};
+Controller.prototype.list = function() {
+  return this._repository.all();
+};
+Controller.prototype.size = function() {
+  return Object.keys(this.list()).length;
+};
+Controller.prototype.fetchAll = function() {
+};
+Controller.prototype.persist = function(a, b) {
+};
+Controller.prototype.clear = function() {
+};
+Controller.prototype.getByCard = function(a) {
+  return this._repository.get(a);
+};
+Controller.prototype.hasContent = function(a) {
+  return !a.isEmpty();
+};
+Controller.prototype.getMapping = function(a, b, c) {
+  switch(a.type) {
+    case "select":
+      return b = this.getPropertyByName(b, a.id, -1), -1 !== b ? a.values[b] : c;
+    default:
+      return this.getPropertyByName(b, a.id, c);
+  }
+};
+Controller.prototype.getPropertyByName = function(a, b, c) {
+};
+// Input 6
 var AbstractItem = function() {
 };
 AbstractItem.prototype.decorate = function(a) {
@@ -520,42 +598,64 @@ AbstractItem.prototype.decorate = function(a) {
   });
   return this;
 };
-// Input 6
-var ModuleEditableSelectItem = function(a) {
+// Input 7
+var ModuleSettingsItem = function(a, b) {
   AbstractItem.call(this);
-  this._options = [];
-  this._value = a;
+  this._document = a;
+  this._module = b;
 };
-$jscomp.inherits(ModuleEditableSelectItem, AbstractItem);
-ModuleEditableSelectItem.prototype.addOption = function(a) {
-  this._options.push(a);
-};
-ModuleEditableSelectItem.prototype.setOnTextChangeListener = function(a) {
-  this._onTextChangeListener = a;
+$jscomp.inherits(ModuleSettingsItem, AbstractItem);
+ModuleSettingsItem.prototype.setOnEnterListener = function(a) {
+  this._onEnterHandler = a;
   return this;
 };
-ModuleEditableSelectItem.prototype.render = function() {
-  var a = this, b = createByTemplate(template_settings_editable_select, template_settings_editable_select);
-  b.getElementsByClassName("module-editable-select-container").forEach(function(b) {
-    if (b instanceof HTMLElement) {
-      var c = b.getClosestChildByClassName("panta-js-select");
-      c.setEventListener("change", function(b) {
-        a._value = a._onTextChangeListener(a.value, b.srcElement.value);
-      });
-      a._options.forEach(function(a) {
-        c.appendChild(a);
-      });
-      c.value = a.value;
-    }
+ModuleSettingsItem.prototype.setOnActivationListener = function(a) {
+  this._onActivationHandler = a;
+  return this;
+};
+ModuleSettingsItem.prototype.render = function() {
+  var a = this, b = createByTemplate(template_settings_module, template_settings_module);
+  b.setEventListener("click", function(b) {
+    a._onEnterHandler(a.module);
+  });
+  b.getElementsByClassName("module-title").forEach(function(b) {
+    b.addClass("underline");
+    b.innerText = a.module.name;
+    b.setAttribute("id", a.module.id);
+  });
+  this.decorate(b);
+  b.getClosestChildByClassName("panta-js-icon").setAttribute("src", "./assets/" + a.module.config.icon);
+  var c = b.getClosestChildByClassName("panta-checkbox-container");
+  c.getClosestChildByClassName("panta-js-checkbox").checked = a.module.config.enabled;
+  c.setEventListener("click", function(b) {
+    b.preventDefault();
+    b.stopPropagation();
+    b = b.srcElement.getClosestParentByClassName("panta-checkbox-container").getClosestChildByClassName("panta-js-checkbox");
+    b.checked = !b.checked;
+    a._onActivationHandler(a.module, b.checked);
   });
   return b;
 };
-$jscomp.global.Object.defineProperties(ModuleEditableSelectItem.prototype, {value:{configurable:!0, enumerable:!0, get:function() {
-  return this._value;
+$jscomp.global.Object.defineProperties(ModuleSettingsItem.prototype, {module:{configurable:!0, enumerable:!0, get:function() {
+  return this._module;
 }, set:function(a) {
-  this._value = a;
+  this._module = a;
+}}, icon:{configurable:!0, enumerable:!0, get:function() {
+  return this._icon;
+}, set:function(a) {
+  this._icon = a;
+}}, enabled:{configurable:!0, enumerable:!0, get:function() {
+  return this._enabled;
+}, set:function(a) {
+  this._enabled = a;
+}}, label:{configurable:!0, enumerable:!0, get:function() {
+  return this._label;
+}, set:function(a) {
+  this._label = a;
+}}, document:{configurable:!0, enumerable:!0, get:function() {
+  return this._document;
 }}});
-// Input 7
+// Input 8
 var SwitchItem = function(a, b, c) {
   AbstractItem.call(this);
   this._document = a;
@@ -597,7 +697,41 @@ $jscomp.global.Object.defineProperties(SwitchItem.prototype, {enabled:{configura
 }}, document:{configurable:!0, enumerable:!0, get:function() {
   return this._document;
 }}});
-// Input 8
+// Input 9
+var ModuleEditableTextItem = function(a, b) {
+  AbstractItem.call(this);
+  this._value = a;
+  this._deletable = b;
+};
+$jscomp.inherits(ModuleEditableTextItem, AbstractItem);
+ModuleEditableTextItem.prototype.setOnTextChangeListener = function(a) {
+  this._onTextChangeListener = a;
+  return this;
+};
+ModuleEditableTextItem.prototype.setOnDeleteListener = function(a) {
+  this._onDeleteListener = a;
+  return this;
+};
+ModuleEditableTextItem.prototype.render = function() {
+  var a = this, b = createByTemplate(template_settings_editable_option, template_settings_editable_option);
+  b.getElementsByClassName("module-editable-option-name").forEach(function(b) {
+    b instanceof HTMLElement && (b = b.getClosestChildByClassName("panta-js-name"), b.setEventListener("change", function(b) {
+      a._value = a._onTextChangeListener(a.value, b.srcElement.value);
+    }), b.value = a.value);
+  });
+  b.getElementsByClassName("panta-js-delete").forEach(function(b) {
+    b instanceof HTMLElement && (a._deletable ? (b.removeClass("hidden"), b.setEventListener("click", function(b) {
+      a._onDeleteListener(a.value);
+    })) : b.addClass("hidden"));
+  });
+  return b;
+};
+$jscomp.global.Object.defineProperties(ModuleEditableTextItem.prototype, {value:{configurable:!0, enumerable:!0, get:function() {
+  return this._value;
+}, set:function(a) {
+  this._value = a;
+}}});
+// Input 10
 var PInput = function(a, b, c, d, e, f, h) {
   this._document = a;
   this._label = 0 === b.length ? "" : b;
@@ -839,6 +973,7 @@ SingleLineInput.prototype.doCustomization = function(a, b) {
 var SingleSelectInput = function(a, b, c, d, e, f) {
   PInput.call(this, a, b, c, d, e, "select", !!f);
   this._options = [];
+  this._active = !0;
 };
 $jscomp.inherits(SingleSelectInput, PInput);
 SingleSelectInput.prototype.setEmpty = function(a, b) {
@@ -858,6 +993,12 @@ SingleSelectInput.prototype.addOption = function(a, b) {
   this._options.push({value:a, text:b, empty:!1});
   return this;
 };
+SingleSelectInput.prototype.setActive = function(a) {
+  this._active = a;
+};
+SingleSelectInput.prototype.isActive = function() {
+  return this._active;
+};
 SingleSelectInput.prototype.doCustomization = function(a, b) {
   var c = this;
   this._options.forEach(function(b, e) {
@@ -874,7 +1015,45 @@ SingleSelectInput.prototype.invalidate = function() {
   this._input.removeChildren();
   this.doCustomization(this._input, this._labelInput);
 };
-// Input 9
+SingleSelectInput.prototype.updateVisualState = function() {
+  this.isActive() ? (this._input.removeClass("hidden"), this._labelInput.removeClass("hidden")) : (this._input.addClass("hidden"), this._labelInput.addClass("hidden"));
+};
+// Input 11
+var ModuleEditableSelectItem = function(a) {
+  AbstractItem.call(this);
+  this._options = [];
+  this._value = a;
+};
+$jscomp.inherits(ModuleEditableSelectItem, AbstractItem);
+ModuleEditableSelectItem.prototype.addOption = function(a) {
+  this._options.push(a);
+};
+ModuleEditableSelectItem.prototype.setOnTextChangeListener = function(a) {
+  this._onTextChangeListener = a;
+  return this;
+};
+ModuleEditableSelectItem.prototype.render = function() {
+  var a = this, b = createByTemplate(template_settings_editable_select, template_settings_editable_select);
+  b.getElementsByClassName("module-editable-select-container").forEach(function(b) {
+    if (b instanceof HTMLElement) {
+      var c = b.getClosestChildByClassName("panta-js-select");
+      c.setEventListener("change", function(b) {
+        a._value = a._onTextChangeListener(a.value, b.srcElement.value);
+      });
+      a._options.forEach(function(a) {
+        c.appendChild(a);
+      });
+      c.value = a.value;
+    }
+  });
+  return b;
+};
+$jscomp.global.Object.defineProperties(ModuleEditableSelectItem.prototype, {value:{configurable:!0, enumerable:!0, get:function() {
+  return this._value;
+}, set:function(a) {
+  this._value = a;
+}}});
+// Input 12
 var PModuleConfig = function(a, b) {
   this.document = a;
   this.valueHolder = b;
@@ -921,7 +1100,7 @@ PModuleConfig.prototype.beginEditing = function() {
 PModuleConfig.prototype.endEditing = function() {
   this.valueHolder.tab.removeClass("editing");
 };
-// Input 10
+// Input 13
 var ModuleEditableItem = function(a, b) {
   AbstractItem.call(this);
   this._module = a;
@@ -944,7 +1123,7 @@ ModuleEditableItem.prototype.render = function() {
   var a = this, b = createByTemplate(template_settings_editable, template_settings_editable);
   this.decorate(b);
   b.getElementsByClassName("module-editable-name").forEach(function(b) {
-    b instanceof HTMLElement && (b.innerText = a.editable.label);
+    b instanceof HTMLElement && (b.addClass("underline"), b.innerText = a.editable.label);
   });
   b.setEventListener("click", function() {
     a._onEnterHandler(a.module, a.editable);
@@ -982,97 +1161,726 @@ $jscomp.global.Object.defineProperties(ModuleEditableItem.prototype, {module:{co
 }, set:function(a) {
   this._editable = a;
 }}});
-// Input 11
-var ModuleSettingsItem = function(a, b) {
-  AbstractItem.call(this);
-  this._document = a;
-  this._module = b;
+// Input 14
+var BeteiligtRepository = function() {
+  Repository.call(this);
 };
-$jscomp.inherits(ModuleSettingsItem, AbstractItem);
-ModuleSettingsItem.prototype.setOnEnterListener = function(a) {
-  this._onEnterHandler = a;
-  return this;
+$jscomp.inherits(BeteiligtRepository, Repository);
+BeteiligtRepository.prototype.isNew = function(a) {
+  var b = this;
+  return null === Object.keys(this._repository).find(function(c, d) {
+    return b._repository[c].id === a.id;
+  });
 };
-ModuleSettingsItem.prototype.setOnActivationListener = function(a) {
-  this._onActivationHandler = a;
-  return this;
+// Input 15
+var BeteiligtBinding = function(a, b, c, d, e) {
+  Binding.call(this, a, b, c, d);
+  this._activated = this._ad = this._illu = this._video = this._photo = this._text = this._onsite = null;
+  this._currentTabIndex = -1;
+  this._configuration = e;
 };
-ModuleSettingsItem.prototype.render = function() {
-  var a = this, b = createByTemplate(template_settings_module, template_settings_module);
-  b.setEventListener("click", function(b) {
-    a._onEnterHandler(a.module);
+$jscomp.inherits(BeteiligtBinding, Binding);
+BeteiligtBinding.prototype.initLayouts = function() {
+  var a = this, b = (this._configuration && this._configuration.config && this._configuration.config.editables ? this._configuration.config.editables : []).filter(function(a) {
+    return "layout" === a.type;
   });
-  b.getElementsByClassName("module-title").forEach(function(b) {
-    b.innerText = a.module.name;
-    b.setAttribute("id", a.module.id);
-  });
-  this.decorate(b);
-  b.getClosestChildByClassName("panta-js-icon").setAttribute("src", "./assets/" + a.module.config.icon);
-  var c = b.getClosestChildByClassName("panta-checkbox-container");
-  c.getClosestChildByClassName("panta-js-checkbox").checked = a.module.config.enabled;
-  c.setEventListener("click", function(b) {
-    b.preventDefault();
-    b.stopPropagation();
-    b = b.srcElement.getClosestParentByClassName("panta-checkbox-container").getClosestChildByClassName("panta-js-checkbox");
-    b.checked = !b.checked;
-    a._onActivationHandler(a.module, b.checked);
-  });
+  this._involvements = Object.values(b).reduce(function(b, d) {
+    b[d.id] = a._buildValueHolder(d, a.onLayout);
+    return b;
+  }, {});
+};
+BeteiligtBinding.prototype._buildValueHolder = function(a, b) {
+  var c = this, d = this._initTab(a);
+  return {"involved-in":a.id, data:null, renderer:function(a) {
+    b.call(c, this, a);
+  }, tab:d, layout:a.layout || d.getAttribute("data-layout"), label:a.label || d.getAttribute("data-label"), binding:c, show:a.show};
+};
+BeteiligtBinding.prototype.detach = function() {
+  var a = this.document.getElementById("panta.module");
+  a && (a.removeChildren(), a.removeSelf());
+};
+BeteiligtBinding.prototype._initTab = function(a) {
+  var b = this.document.getElementById("panta.module");
+  b || (b = createByTemplate(template_beteiligt, template_beteiligt), this.document.getElementById("panta.content").appendChild(b));
+  b = this.document.getElementById(a.container);
+  a.show ? b.removeClass("hidden") : b.addClass("hidden");
   return b;
 };
-$jscomp.global.Object.defineProperties(ModuleSettingsItem.prototype, {module:{configurable:!0, enumerable:!0, get:function() {
-  return this._module;
-}, set:function(a) {
-  this._module = a;
-}}, icon:{configurable:!0, enumerable:!0, get:function() {
-  return this._icon;
-}, set:function(a) {
-  this._icon = a;
-}}, enabled:{configurable:!0, enumerable:!0, get:function() {
-  return this._enabled;
-}, set:function(a) {
-  this._enabled = a;
-}}, label:{configurable:!0, enumerable:!0, get:function() {
-  return this._label;
-}, set:function(a) {
-  this._label = a;
-}}, document:{configurable:!0, enumerable:!0, get:function() {
-  return this._document;
-}}});
-// Input 12
-var ModuleEditableTextItem = function(a, b) {
-  AbstractItem.call(this);
-  this._value = a;
-  this._deletable = b;
-};
-$jscomp.inherits(ModuleEditableTextItem, AbstractItem);
-ModuleEditableTextItem.prototype.setOnTextChangeListener = function(a) {
-  this._onTextChangeListener = a;
+BeteiligtBinding.prototype.update = function(a, b) {
+  this._activated.activate();
+  Object.values(this).filter(function(a) {
+    return a instanceof PModuleConfig;
+  }).forEach(function(b) {
+    b.update(a);
+  });
+  this._entity = a;
+  b && this._updateConfiguration(b);
   return this;
 };
-ModuleEditableTextItem.prototype.setOnDeleteListener = function(a) {
-  this._onDeleteListener = a;
+BeteiligtBinding.prototype.bind = function() {
+  this.initLayouts();
+  this.doLabels();
+  this._onsite = null !== this._onsite ? this._onsite.update(this._entity) : this._onsite = (new PModuleConfig(this.document, this._involvements.onsite)).bind(this._entity, "onsite").render();
+  this._text = null !== this._text ? this._text.update(this._entity) : this._text = (new PModuleConfig(this.document, this._involvements.text)).bind(this._entity, "text").render();
+  this._photo = null !== this._photo ? this._photo.update(this._entity) : this._photo = (new PModuleConfig(this.document, this._involvements.photo)).bind(this._entity, "photo").render();
+  this._video = null !== this._video ? this._video.update(this._entity) : this._video = (new PModuleConfig(this.document, this._involvements.video)).bind(this._entity, "video").render();
+  this._illu = null !== this._illu ? this._illu.update(this._entity) : this._illu = (new PModuleConfig(this.document, this._involvements.illu)).bind(this._entity, "illu").render();
+  this._ad = null !== this._ad ? this._ad.update(this._entity) : this._ad = (new PModuleConfig(this.document, this._involvements.ad)).bind(this._entity, "ad").render();
+  var a = Object.values(this).filter(function(a) {
+    return a instanceof PModuleConfig && a.valueHolder.show;
+  })[0];
+  a.activate();
+  this._activated = a;
   return this;
 };
-ModuleEditableTextItem.prototype.render = function() {
-  var a = this, b = createByTemplate(template_settings_editable_option, template_settings_editable_option);
-  b.getElementsByClassName("module-editable-option-name").forEach(function(b) {
-    b instanceof HTMLElement && (b = b.getClosestChildByClassName("panta-js-name"), b.setEventListener("change", function(b) {
-      a._value = a._onTextChangeListener(a.value, b.srcElement.value);
-    }), b.value = a.value);
-  });
-  b.getElementsByClassName("panta-js-delete").forEach(function(b) {
-    b instanceof HTMLElement && (a._deletable ? (b.removeClass("hidden"), b.setEventListener("click", function(b) {
-      a._onDeleteListener(a.value);
-    })) : b.addClass("hidden"));
-  });
-  return b;
+BeteiligtBinding.prototype.onLayoutUpdate = function(a, b) {
+  a.setFieldValue("name", b.data, "name");
+  a.setFieldValue("social", b.data, "social");
+  a.setFieldValue("address", b.data, "address");
+  a.setFieldValue("notes", b.data, "notes");
+  a.setFieldValue("duedate", b.data, "duedate");
+  a.setFieldValue("fee", b.data, "fee");
+  a.setFieldValue("charges", b.data, "charges");
+  a.setFieldValue("project", b.data, "project");
+  a.setFieldValue("capOnDepenses", b.data, "capOnDepenses");
 };
-$jscomp.global.Object.defineProperties(ModuleEditableTextItem.prototype, {value:{configurable:!0, enumerable:!0, get:function() {
-  return this._value;
-}, set:function(a) {
-  this._value = a;
+BeteiligtBinding.prototype.onLayout = function(a, b) {
+  if (a === this._activated) {
+    this.onLayoutUpdate(a, b);
+  } else {
+    switch(b.layout) {
+      case "ad":
+        this.onAdLayout(a, b);
+        break;
+      default:
+        this.onRegularLayout(a, b);
+    }
+  }
+};
+BeteiligtBinding.prototype.onRegularLayout = function(a, b) {
+  var c = this.document.createElement("div");
+  c.innerHTML = isMobileBrowser() ? template_regular_mobile : template_regular;
+  c = c.cloneNode(!0);
+  this._switchContent(a, c);
+  b.show && (c = {context:this._context, valueHolder:b, config:this._entity}, a.setField("name", this.document.newSingleLineInput(b, ".pa.name", "name", "Name", c, this._action, "eintippen\u2026", "text", !1)), a.setField("social", this.document.newSingleLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", c, this._action, "notieren\u2026")), a.setField("address", this.document.newMultiLineInput(b, ".pa.address", "address", "Adresse", c, this._action, 2, "festhalten\u2026")), a.setField("notes", 
+  this.document.newMultiLineInput(b, ".pa.notes", "notes", "Notiz", c, this._action, 6, "formulieren\u2026")), a.setField("duedate", this.document.newSingleLineInput(b, ".pa.duedate", "duedate", "Deadline", c, this._action, "bestimmen\u2026", "text", !1)), a.setField("fee", this.document.newSingleLineInput(b, ".pa.fee", "fee", "Honorar Massnahme", c, this._action, "Betrag\u2026", "money", !1)), a.setField("charges", this.document.newSingleLineInput(b, ".pa.charges", "charges", "Spesen Massnahme", 
+  c, this._action, "Betrag\u2026", "money", !1)), a.setField("project", this.document.newSingleLineInput(b, ".pa.project", "project", "Total Beteiligte", c, this._action, "Betrag\u2026", "money", !0).addClass("bold")), a.setField("capOnDepenses", this.document.newSingleLineInput(b, ".pa.cap_on_depenses", "capOnDepenses", "Kostendach Total Projekt", c, this._action, "Betrag\u2026", "money", !1)));
+};
+BeteiligtBinding.prototype.onAdLayout = function(a, b) {
+  var c = this.document.createElement("div");
+  c.innerHTML = template_ad;
+  c = c.cloneNode(!0);
+  this._switchContent(a, c);
+  a = {context:this._context, valueHolder:b, config:this._entity};
+  this.document.newSingleLineInput(b, ".pa.name", "name", "Kontakt", a, this._action, "eintippen\u2026", "text", !1);
+  this.document.newSingleLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", a, this._action, "notieren\u2026");
+  this.document.newMultiLineInput(b, ".pa.address", "address", "Adresse", a, this._action, 2, "eingeben\u2026");
+  this.document.newSingleLineInput(b, ".pa.format", "format", "Format", a, this._action, "festhalten\u2026", "text", !1);
+  this.document.newSingleLineInput(b, ".pa.placement", "placement", "Platzierung", a, this._action, "vormerken\u2026", "text", !1);
+  this.document.newMultiLineInput(b, ".pa.notes", "notes", "Kunde.Sujet", a, this._action, 2, "Name.Stichwort\u2026");
+  this.document.newSingleLineInput(b, ".pa.price", "price", "Preis CHF", a, this._action, "bestimmen\u2026", "money", !1);
+  this.document.newSingleLineInput(b, ".pa.total", "total", "Total CHF", a, this._action, "", "money", !0).addClass("bold");
+};
+BeteiligtBinding.prototype.doLabels = function() {
+  var a = this;
+  this.document.getElementsByClassName("js-panta-editable-title").forEach(function(b) {
+    var c = a._configuration.config.editables.find(function(a) {
+      return "title" === a.id;
+    });
+    c && (b.removeClasses(["hidden", "show"]), b.addClass(c.show ? "show" : "hidden"), b.getElementsByClassName("js-panta-label").forEach(function(a) {
+      a instanceof HTMLElement && (a.innerText = c.label);
+    }));
+  });
+};
+BeteiligtBinding.prototype._updateConfiguration = function(a) {
+  this._configuration = a;
+  this.doLabels();
+  this._updateTab(this._onsite, "onsite");
+  this._updateTab(this._text, "text");
+  this._updateTab(this._photo, "photo");
+  this._updateTab(this._video, "video");
+  this._updateTab(this._illu, "illu");
+  this._updateTab(this._ad, "ad");
+};
+BeteiligtBinding.prototype._updateTab = function(a, b) {
+  b = this.getConfigurationFor(b);
+  a.setTabName(b.editable.label);
+};
+BeteiligtBinding.prototype._switchContent = function(a, b) {
+  var c = this.document.getElementById("pa.tab.content");
+  c.removeChildren();
+  this._onsite.valueHolder.tab.removeClasses(["selected", "editing"]);
+  this._text.valueHolder.tab.removeClasses(["selected", "editing"]);
+  this._photo.valueHolder.tab.removeClasses(["selected", "editing"]);
+  this._video.valueHolder.tab.removeClasses(["selected", "editing"]);
+  this._illu.valueHolder.tab.removeClasses(["selected", "editing"]);
+  this._ad.valueHolder.tab.removeClasses(["selected", "editing"]);
+  c.appendChild(b);
+  this._activated = a;
+};
+BeteiligtBinding.prototype.enterEditing = function() {
+  this._activated.beginEditing();
+};
+BeteiligtBinding.prototype.leaveEditing = function() {
+  this._activated.endEditing();
+};
+BeteiligtBinding.prototype.rememberFocus = function(a) {
+  this._currentTabIndex = a.getTabIndex();
+};
+BeteiligtBinding.prototype.getConfigurationFor = function(a) {
+  var b = this._configuration.config.editables.filter(function(b) {
+    return b.id === a;
+  }), c = b[0].label, d = b.map(function(a) {
+    return a.values;
+  }).flat().map(function(a, b) {
+    return newOption(b, a);
+  }).reduce(function(a, b) {
+    a.push(b);
+    return a;
+  }, []);
+  return {label:c, options:d, editable:b[0]};
+};
+// Input 16
+var ModulePlanController = function(a, b, c) {
+  Controller.call(this, a, new ModulePlanRepository);
+  this._trello = b;
+  this._telephone = c;
+  var d = this;
+  this._telephone.onmessage = function(a) {
+    a = Object.values(a.data.result || []).map(function(a) {
+      return Object.entries(a);
+    }).flat().reduce(function(a, b) {
+      var c = b[1];
+      switch(b[0]) {
+        case "fee:current":
+          a |= d._entity.fee !== c ? (d._entity.fee = c, 1) : 0;
+          break;
+        case "fee:overall":
+          a |= d._entity.projectFee !== c ? (d._entity.projectFee = c, 1) : 0;
+          break;
+        case "charge:current":
+          a |= d._entity.thirdPartyCharges !== c ? (d._entity.thirdPartyCharges = c, 1) : 0;
+          break;
+        case "charge:overall":
+          a |= d._entity.thirdPartyTotalCosts !== c ? (d._entity.thirdPartyTotalCosts = c, 1) : 0;
+          break;
+        case "costs:overall":
+          a |= d._entity.totalCosts !== c ? (d._entity.totalCosts = c, 1) : 0;
+      }
+      return a;
+    }, !1);
+    d._entity.capOnDepenses !== d.getCapOnDepenses() && (d._entity.capOnDepenses = d.getCapOnDepenses());
+    a && d._binding.update(d._entity);
+  };
+  this._binding = null;
+  this._propertyBag = {};
+  this.readPropertyBag();
+};
+$jscomp.inherits(ModulePlanController, Controller);
+ModulePlanController.getInstance = function(a, b, c) {
+  b.hasOwnProperty("planController") || (b.planController = new ModulePlanController(b, a, c));
+  return b.planController;
+};
+ModulePlanController.prototype.render = function(a, b) {
+  this._entity = a;
+  this._binding = this._binding ? this._binding.update(a, b) : (new ModulePlanBinding(this._window.document, a, this.onEvent, this, b)).bind();
+  return Controller.prototype.render.call(this, a);
+};
+ModulePlanController.prototype.update = function() {
+  if (!this._window.clientManager.isPlanModuleEnabled()) {
+    throw "Module is not enabled";
+  }
+  this._telephone.postMessage({get:["fee:current", "fee:overall", "charge:current", "charge:overall", "costs:overall"]});
+  this._entity && (this._entity.capOnDepenses = this.getCapOnDepenses());
+  this._binding && this._binding.update(this._entity);
+  return Controller.prototype.update.call(this);
+};
+ModulePlanController.prototype.onEvent = function(a, b) {
+  switch(b.hasOwnProperty("event") ? b.event : "change") {
+    case "change":
+      b.context._onChange.call(b.context, a);
+  }
+};
+ModulePlanController.prototype.getProperty = function(a, b) {
+  return this._propertyBag[a] || b;
+};
+ModulePlanController.prototype.setProperty = function(a, b) {
+  this._propertyBag[a] = b;
+  this._trello.set("board", "shared", ModulePlanController.PROPERTY_BAG_NAME, this._propertyBag);
+};
+ModulePlanController.prototype.readPropertyBag = function() {
+  var a = this;
+  this._trello.get("board", "shared", ModulePlanController.PROPERTY_BAG_NAME, {}).then(function(b) {
+    a._propertyBag = b;
+  });
+};
+ModulePlanController.prototype.getCapOnDepenses = function() {
+  var a = this.getProperty("cap_on_depenses");
+  return isNaN(a) ? null : parseFloat(a);
+};
+ModulePlanController.prototype.getPropertyByName = function(a, b, c) {
+  switch(b) {
+    case "field.a":
+      return a.measures || c;
+    case "field.b":
+      return a.description || c;
+    case "visual":
+      return a.visual || c;
+    case "form":
+      return a.form || c;
+    case "online":
+      return a.online || c;
+    case "season":
+      return a.season || c;
+    case "region":
+      return a.region || c;
+    case "place":
+      return a.place || c;
+    default:
+      return a.hasOwnProperty(b), a[b];
+  }
+};
+ModulePlanController.prototype.persist = function(a, b) {
+  return this._trello.set(b || "card", "shared", ModulePlanController.SHARED_NAME, a);
+};
+ModulePlanController.prototype.remove = function() {
+  return this._trello.remove("board", "shared", ModulePlanController.SHARED_NAME);
+};
+ModulePlanController.prototype._onChange = function(a) {
+  a.setProperty();
+  switch(a.getBoundProperty()) {
+    case "capOnDepenses":
+      this.setProperty("cap_on_depenses", a.getValue());
+      break;
+    default:
+      this.persist.call(this, a.getBinding());
+  }
+};
+ModulePlanController.prototype.clear = function() {
+  return Controller.prototype.clear.call(this);
+};
+ModulePlanController.prototype.create = function(a) {
+  return Plan.create(a);
+};
+$jscomp.global.Object.defineProperties(ModulePlanController, {SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.Plan";
+}}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.Plan.PropertyBag";
 }}});
-// Input 13
+// Input 17
+var ColorPickerController = function(a, b, c) {
+  this._windowManager = a;
+  this._pluginController = b;
+  this._trello = c;
+};
+ColorPickerController.prototype.render = function(a) {
+  var b = this;
+  return this._pluginController.findPluginModuleConfigByModuleId(a.module).then(function(c) {
+    var d = [];
+    b._windowManager.document.getElementsByClassName("panta-js-color-chooser").forEach(function(e) {
+      e.setEventListener("click", function(f) {
+        f.preventDefault();
+        f.stopPropagation();
+        b.updateColor(c, a.editable, b.renderControls(d, e.getAttribute("data-color")).color).then(function() {
+        });
+      });
+      d.push({color:e.getAttribute("data-color"), control:e.getClosestChildByClassName("panta-js-checkbox")});
+    });
+    var e = b.getEditable(c, a.editable);
+    b.renderControls(d, e.color);
+  });
+};
+ColorPickerController.prototype.updateColor = function(a, b, c) {
+  this.getEditable(a, b).color = c;
+  return this._pluginController.setPluginModuleConfig(a).then(function(a) {
+    console.log("updateColor done", a);
+    return a;
+  });
+};
+ColorPickerController.prototype.renderControls = function(a, b) {
+  return a.reduce(function(a, d) {
+    d.control.checked = d.color === b;
+    return d.control.checked ? d : a;
+  }, null);
+};
+ColorPickerController.prototype.getEditable = function(a, b) {
+  return a.config.editables.find(function(a) {
+    return a.id === b;
+  });
+};
+// Input 18
+var ArtikelController = function(a, b, c, d) {
+  Controller.call(this, a, c);
+  this.document = a.document;
+  this.trelloApi = b;
+  this._entity = null;
+  this._telephone = d;
+  this.setVersionInfo();
+};
+$jscomp.inherits(ArtikelController, Controller);
+ArtikelController.getInstance = function(a, b, c) {
+  b.hasOwnProperty("articleController") || (b.articleController = new ArtikelController(b, a, DI.getInstance().getArticleRepository(), c));
+  return b.articleController;
+};
+ArtikelController.prototype.setVersionInfo = function() {
+  this.trelloApi.set("card", "shared", ArtikelController.SHARED_META, this.getVersionInfo());
+};
+ArtikelController.prototype.getVersionInfo = function() {
+  return {version:ArtikelController.VERSION};
+};
+ArtikelController.prototype.create = function(a) {
+  return Artikel.create(a);
+};
+ArtikelController.prototype.getPropertyByName = function(a, b, c) {
+  switch(b) {
+    case "visual":
+      return a.visual || c;
+    case "form":
+      return a.form || c;
+    case "online":
+      return a.tags || c;
+    case "season":
+      return a.season || c;
+    case "region":
+      return a.region || c;
+    case "place":
+      return a.location || c;
+    case "field.a":
+      return a.from || c;
+    case "field.b":
+      return a.author || c;
+    case "field.c":
+      return a.text || c;
+    default:
+      return a.hasOwnProperty(b), a[b];
+  }
+};
+ArtikelController.prototype.fetchAll = function() {
+  var a = this;
+  return this.trelloApi.cards("id", "closed").filter(function(a) {
+    return !a.closed;
+  }).each(function(b) {
+    return a.trelloApi.get(b.id, "shared", ArtikelController.SHARED_NAME).then(function(c) {
+      a.insert(Artikel.create(c), b);
+    });
+  }).then(function() {
+    console.log("Fetch complete: " + a.size() + " article(s) to process");
+  });
+};
+ArtikelController.prototype.list = function() {
+  return this._repository.all();
+};
+ArtikelController.prototype.size = function() {
+  return Object.keys(this.list()).length;
+};
+ArtikelController.prototype.isManaged = function(a) {
+  return null !== a.id;
+};
+ArtikelController.prototype.manage = function(a) {
+  a.id = uuid();
+  return a;
+};
+ArtikelController.prototype.update = function() {
+  var a = this;
+  this._window.clientManager.isArticleModuleEnabled().then(function(b) {
+    if (!b) {
+      throw "Module is not enabled";
+    }
+    a._entity.total = a.getTotalPageCount();
+    a._binding.update(a._entity);
+    return !0;
+  });
+};
+ArtikelController.prototype.getTotalPageCount = function() {
+  return Object.values(this._repository.all()).map(function(a, b) {
+    a = parseInt(a.layout);
+    return isNaN(a) ? 0 : a;
+  }).reduce(function(a, b) {
+    return parseInt(a) + parseInt(b);
+  }, 0);
+};
+ArtikelController.prototype.render = function(a, b) {
+  this._entity = a ? a : Artikel.create();
+  this._binding = this._binding ? this._binding.update(this._entity, b) : (new ArtikelBinding(this.document, this._entity, this.onEvent, this, b)).bind();
+};
+ArtikelController.prototype.onEvent = function(a, b) {
+  switch(b.hasOwnProperty("event") ? b.event : "change") {
+    case "focus":
+      b.context._onFocus.call(b.context, a, b);
+      break;
+    default:
+      b.context._onChange.call(b.context, a, b);
+  }
+};
+ArtikelController.prototype._onFocus = function(a, b) {
+};
+ArtikelController.prototype._onChange = function(a, b) {
+  a.setProperty();
+  this.persist.call(this, a.getBinding());
+};
+ArtikelController.prototype.persist = function(a, b) {
+  return this.trelloApi.set(b || "card", "shared", ArtikelController.SHARED_NAME, a);
+};
+$jscomp.global.Object.defineProperties(ArtikelController, {VERSION:{configurable:!0, enumerable:!0, get:function() {
+  return 1;
+}}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.Artikel";
+}}, SHARED_META:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.Meta";
+}}});
+// Input 19
+var PluginController = function(a, b) {
+  this._window = b;
+  this._trelloApi = a;
+  this._upgrading = !1;
+  this._upgrades = {1:this._upgrade_1};
+  this._repository = PluginRepository.INSTANCE;
+};
+PluginController.getInstance = function(a, b) {
+  b.hasOwnProperty("pluginController") || (b.pluginController = new PluginController(a, b));
+  return b.pluginController;
+};
+PluginController.prototype.init = function() {
+  var a = this;
+  this._trelloApi.get("board", "shared", PluginController.SHARED_NAME, 1).then(function(b) {
+    PluginController.VERSION > b && (a._upgrading = !0, a.update.call(a, b, PluginController.VERSION));
+  });
+};
+PluginController.prototype.getPluginConfiguration = function() {
+  var a = this;
+  return this._trelloApi.get("board", "shared", PluginController.CONFIGURATION_NAME, null).then(function(b) {
+    return b ? (b = JSON.parse(LZString.decompress(b)), PluginConfiguration.create(b)) : new PluginConfiguration("1.0.0", "Panta.Card Power-Up", null, a.getAvailableModules());
+  });
+};
+PluginController.prototype.setPluginModuleConfig = function(a, b) {
+  var c = this;
+  return this.getPluginConfiguration().then(function(d) {
+    if (d instanceof PluginConfiguration) {
+      return d.card = b || d.card, d.modules.find(function(b) {
+        return b.id === a.id;
+      }).config = a.config, c._trelloApi.set("board", "shared", PluginController.CONFIGURATION_NAME, LZString.compress(JSON.stringify(d))), d;
+    }
+    throw "Invalid plugin configuration";
+  });
+};
+PluginController.prototype.findPluginModuleConfigByModuleId = function(a) {
+  return this.getPluginConfiguration().then(function(a) {
+    return a.modules;
+  }).filter(function(b) {
+    return b.id === a;
+  }).reduce(function(a, c) {
+    return c;
+  }, null);
+};
+PluginController.prototype.getAvailableModules = function() {
+  return Object.values(PluginRepository.INSTANCE.all()).sort(function(a, b) {
+    return a.config.sort - b.config.sort;
+  });
+};
+PluginController.prototype.remove = function() {
+  return this._trelloApi.remove("board", "shared", PluginController.SHARED_NAME);
+};
+PluginController.prototype.update = function(a, b) {
+  this._update(a, b);
+};
+PluginController.prototype._update = function(a, b) {
+  var c = this;
+  a < b ? (console.log("Applying upgrade %d ...", a), c._upgrades[a].call(this).then(function() {
+    console.log("... upgrade %d is successfully applied", a);
+    c._trelloApi.set("board", "shared", PluginController.SHARED_NAME, a + 1).then(function() {
+      c._update(a + 1, b);
+    });
+  })) : (console.log("No upgrades pending"), setTimeout(function() {
+    c._upgrading = !1;
+  }, 2000));
+};
+PluginController.prototype._upgrade_1 = function() {
+  var a = this, b = this._window.clientManager.getArticleController(), c = this._window.clientManager.getModuleController();
+  return b.fetchAll.call(b).then(function() {
+    a._upgradeAllArticleToModuleConfig.call(a, b, c);
+  }).then(function() {
+    return !0;
+  });
+};
+PluginController.prototype._upgradeAllArticleToModuleConfig = function(a, b) {
+  this._upgradeArticleToModuleConfig.call(this, a, b, Object.entries(a.list()), 0);
+};
+PluginController.prototype._upgradeArticleToModuleConfig = function(a, b, c, d) {
+  if (d < c.length) {
+    var e = this, f = c[d], h = f[0], g = f[1];
+    1 === g.version ? (f = Object.entries(g.involved).reduce(function(a, b) {
+      a.sections[b[0]] = b[1];
+      return a;
+    }, ModuleConfig.create()), b.persist.call(b, f, h).then(function() {
+      g.version = Artikel.VERSION;
+      "function" === typeof g.clearInvolved && g.clearInvolved();
+      return a.persist.call(a, g, h);
+    }).then(function() {
+      e._upgradeArticleToModuleConfig.call(e, a, b, c, d + 1, h);
+    })) : (console.log("Skipping article because its at version %d", g.version), this._upgradeArticleToModuleConfig.call(this, a, b, c, d + 1, h));
+  } else {
+    console.log("All articles updated");
+  }
+};
+$jscomp.global.Object.defineProperties(PluginController.prototype, {upgrading:{configurable:!0, enumerable:!0, get:function() {
+  return this._upgrading;
+}}});
+$jscomp.global.Object.defineProperties(PluginController, {VERSION:{configurable:!0, enumerable:!0, get:function() {
+  return 2;
+}}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.App";
+}}, CONFIGURATION_NAME:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.App.Configuration";
+}}});
+// Input 20
+var ArtikelBinding = function(a, b, c, d, e) {
+  Binding.call(this, a, b, c, d);
+  this._configuration = e;
+};
+$jscomp.inherits(ArtikelBinding, Binding);
+ArtikelBinding.getRegionMapping = function(a) {
+  switch(a) {
+    case "nord":
+    case "north":
+      return "Nord";
+    case "south":
+      return "S\u00fcd";
+    default:
+      return a;
+  }
+};
+ArtikelBinding.getTagMapping = function(a) {
+  return a;
+};
+ArtikelBinding.prototype.update = function(a, b) {
+  this._topic.update(a);
+  this._from.update(a);
+  this._author.update(a);
+  this._text.update(a);
+  this._pagina.update(a);
+  this._layout.update(a);
+  this._total.update(a);
+  this._tags.update(a);
+  this._visual.update(a);
+  this._region.update(a);
+  this._season.update(a);
+  this._form.update(a);
+  this._location.update(a);
+  b && this._updateConfiguration(b);
+  return this;
+};
+ArtikelBinding.prototype.bind = function() {
+  this.onLayout({data:this._entity}, {context:this._context, artikel:this._entity});
+  return this;
+};
+ArtikelBinding.prototype.onLayout = function(a, b) {
+  var c = this.document.createElement("div");
+  c.innerHTML = template_artikel;
+  c = c.cloneNode(!0);
+  this._switchContent(c);
+  c = this.getConfigurationFor("field.a");
+  this._topic = this.document.newMultiLineInput(a, "pa.topic", "topic", c.label, b, this._action, 2, c.editable.placeholder);
+  this._layout = this.document.newSingleLineInput(a, "pa.layout", "layout", "Seiten Layout", b, this._action, "Zahl", "number", !1);
+  c = this.getConfigurationFor("field.b");
+  this._from = this.document.newSingleLineInput(a, "pa.input-from", "from", c.label, b, this._action, c.editable.placeholder);
+  c = this.getConfigurationFor("field.c");
+  this._author = this.document.newSingleLineInput(a, "pa.author", "author", c.label, b, this._action, c.editable.placeholder);
+  this._total = this.document.newSingleLineInput(a, "pa.total", "total", "Seiten Total", b, this._action, "Summe", "number", !0).addClass("bold");
+  c = this.getConfigurationFor("field.d");
+  this._text = this.document.newMultiLineInput(a, "pa.text", "text", c.label, b, this._action, 2, c.editable.placeholder);
+  this._pagina = this.document.newSingleLineInput(a, "pa.pagina", "pagina", "Pagina", b, this._action, "Zahl", "number", !1).addClass("pagina").addClass("bold");
+  this._tags = this.doLayout("pa.tags", "tags", a, b, "online");
+  this._visual = this.doLayout("pa.visual", "visual", a, b);
+  this._region = this.doLayout("pa.region", "region", a, b);
+  this._season = this.doLayout("pa.season", "season", a, b);
+  this._form = this.doLayout("pa.form", "form", a, b);
+  this._location = this.doLayout("pa.location", "location", a, b, "place");
+};
+ArtikelBinding.prototype.detach = function() {
+  var a = this.document.getElementById("pa.artikel.content");
+  a && (a.removeChildren(), a.removeSelf());
+};
+ArtikelBinding.prototype._switchContent = function(a) {
+  var b = this._initLayout();
+  b.removeChildren();
+  b.appendChild(a);
+};
+ArtikelBinding.prototype._initLayout = function() {
+  var a = this.document.getElementById("pa.artikel.content") || this.document.createElement("span");
+  if (!a.getAttribute("id")) {
+    var b = this.document.createElement("form");
+    b.setAttribute("autocomplete", "off");
+    b.setAttribute("id", "panta.form");
+    a.setAttribute("id", "pa.artikel.content");
+    b.appendChild(a);
+    this.document.getElementById("panta.content").appendChild(b);
+  }
+  return a;
+};
+ArtikelBinding.prototype.doLayout = function(a, b, c, d, e) {
+  e = this.getConfigurationFor(e || b);
+  return this.document.newSingleSelect(c, a, b, e.label, d, this._action, "Liste-Tag", newOption("-1", "\u2026"), e.options);
+};
+ArtikelBinding.prototype.updateText = function(a, b) {
+  b = this.getConfigurationFor(b);
+  a.setLabel(b.editable.label);
+  a.setPlaceholder(b.editable.placeholder);
+};
+ArtikelBinding.prototype.updateSelect = function(a, b) {
+  b = this.getConfigurationFor(b);
+  a.clear();
+  a.setLabel(b.label);
+  a.addOption("-1", "\u2026");
+  a.addOptions(b.options);
+  a.setActive(b.active);
+  a.invalidate();
+};
+ArtikelBinding.prototype._updateConfiguration = function(a) {
+  this._configuration = a;
+  this.updateText(this._topic, "field.a");
+  this.updateText(this._from, "field.b");
+  this.updateText(this._author, "field.c");
+  this.updateText(this._text, "field.d");
+  this.updateSelect(this._tags, "online");
+  this.updateSelect(this._visual, "visual");
+  this.updateSelect(this._region, "region");
+  this.updateSelect(this._season, "season");
+  this.updateSelect(this._form, "form");
+  this.updateSelect(this._location, "place");
+};
+ArtikelBinding.prototype.getConfigurationFor = function(a) {
+  var b = this._configuration.config.editables.filter(function(b) {
+    return b.id === a;
+  }), c = b[0].label, d = b.map(function(a) {
+    return a.values;
+  }).flat().map(function(a, b) {
+    return newOption(b, a);
+  }).reduce(function(a, b) {
+    a.push(b);
+    return a;
+  }, []);
+  return {label:c, options:d, editable:b[0]};
+};
+// Input 21
+var PluginRepository = function() {
+  Repository.call(this);
+};
+$jscomp.inherits(PluginRepository, Repository);
+$jscomp.global.Object.defineProperties(PluginRepository, {INSTANCE:{configurable:!0, enumerable:!0, get:function() {
+  PluginRepository.instance || (PluginRepository.instance = new PluginRepository, PluginRepository.instance.add(new PluginModuleConfig("module.artikel", "Artikel", {sort:1, enabled:!1, icon:"ic_artikel.png", desc:"module.artikel.desc", editables:[{id:"visual", desc:"module.artikel.editable.desc", type:"select", label:"Liste 1", color:"blue", active:!0, show:!1, sortable:!1, values:["1. Stichwort", "2. Stichwort", "3. Stichwort", "4. Stichwort", "5. Stichwort"]}, {id:"form", desc:"module.artikel.editable.desc", 
+  type:"select", label:"Liste 2", color:"green", active:!0, show:!1, sortable:!1, values:["1. Stichwort", "2. Stichwort", "3. Stichwort", "4. Stichwort", "5. Stichwort"]}, {id:"online", desc:"module.artikel.editable.desc", type:"select", label:"Liste 3", color:"yellow", active:!0, show:!1, sortable:!1, values:["1. Stichwort", "2. Stichwort", "3. Stichwort", "4. Stichwort", "5. Stichwort"]}, {id:"season", desc:"module.artikel.editable.desc", type:"select", label:"Liste 4", color:"sky", active:!0, 
+  show:!1, sortable:!1, values:["1. Stichwort", "2. Stichwort", "3. Stichwort", "4. Stichwort", "5. Stichwort"]}, {id:"region", desc:"module.artikel.editable.desc", type:"select", label:"Liste 5", color:"lime", active:!0, show:!1, sortable:!1, values:["1. Stichwort", "2. Stichwort", "3. Stichwort", "4. Stichwort", "5. Stichwort"]}, {id:"place", desc:"module.artikel.editable.desc", type:"select", label:"Liste 6", color:"orange", active:!0, show:!1, sortable:!1, values:["1. Stichwort", "2. Stichwort", 
+  "3. Stichwort", "4. Stichwort", "5. Stichwort"]}, {id:"field.a", desc:"module.artikel.field-a.desc", type:"text", label:"Thema", placeholder:"Lauftext", show:!1, sortable:!1, color:"shades"}, {id:"field.b", desc:"module.artikel.field-b.desc", type:"text", label:"Input von", placeholder:"Name", show:!1, sortable:!1, color:"shades"}, {id:"field.c", desc:"module.artikel.field-c.desc", type:"text", label:"Textautor*in", placeholder:"Name", show:!1, sortable:!1, color:"shades"}, {id:"field.d", desc:"module.artikel.field-d.desc", 
+  type:"text", label:"Textbox", placeholder:"Lauftext", show:!1, sortable:!1, color:"shades"}]}), {id:1}), PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", "Beteiligt", {sort:3, enabled:!1, icon:"ic_beteiligt.png", desc:"module.beteiligt.desc", editables:[{id:"title", desc:"module.beteiligt.label.desc", type:"label", placeholder:"", label:"Beteiligt"}, {id:"onsite", desc:"module.beteiligt.layout.onsite", type:"layout", label:"Reiter 1", container:"pa.involved.onsite", layout:"regular", 
+  show:!0}, {id:"text", desc:"module.beteiligt.layout.text", type:"layout", label:"Reiter 2", container:"pa.involved.text", layout:"regular", show:!0}, {id:"photo", desc:"module.beteiligt.layout.photo", type:"layout", label:"Reiter 3", container:"pa.involved.photo", layout:"regular", show:!0}, {id:"video", desc:"module.beteiligt.layout.video", type:"layout", label:"Reiter 4", container:"pa.involved.video", layout:"regular", show:!0}, {id:"illu", desc:"module.beteiligt.layout.illu", type:"layout", 
+  label:"Reiter 5", container:"pa.involved.illu", layout:"regular", show:!0}, {id:"ad", desc:"module.beteiligt.layout.ad", type:"layout", label:"Reiter 6", container:"pa.involved.ad", layout:"regular", show:!0}], layouts:{regular:{desc:"module.beteiligt.regular.desc", label:"Kontakt"}, ad:{desc:"module.beteiligt.special.desc", label:"Inserat"}}}), {id:2}), PluginRepository.instance.add(new PluginModuleConfig("module.plan", "Plan", {sort:2, enabled:!1, icon:"ic_plan.png", desc:"module.plan.desc", 
+  editables:[{id:"visual", desc:"module.plan.editable.desc", type:"select", label:"Visual", color:"blue", show:!1, sortable:!1, values:["Bild", "Icon", "Grafik", "Video", "Illu"]}, {id:"form", desc:"module.plan.editable.desc", type:"select", label:"Form", color:"green", show:!1, sortable:!1, values:["News", "Artikel", "Report"]}, {id:"online", desc:"module.plan.editable.desc", type:"select", label:"Online", color:"yellow", show:!1, sortable:!1, values:"Mo Di Mi Do Fr Sa So".split(" ")}, {id:"season", 
+  desc:"module.plan.editable.desc", type:"select", label:"Saison", color:"sky", show:!1, sortable:!1, values:["Sommer", "Herbst"]}, {id:"region", desc:"module.plan.editable.desc", type:"select", label:"Region", color:"lime", show:!1, sortable:!1, values:["Nord", "S\u00fcd"]}, {id:"place", desc:"module.plan.editable.desc", type:"select", label:"Ort", color:"orange", show:!1, sortable:!1, values:"CDS STO TAM WID Buech Rustico Schlatt".split(" ")}, {id:"field.a", desc:"module.plan.field-a.desc", type:"text", 
+  label:"Massnahmen", placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.b", desc:"module.plan.field-b.desc", type:"text", label:"Beschreibung", placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}]}), {id:3}));
+  return PluginRepository.instance;
+}}});
+PluginRepository.instance = null;
+// Input 22
 var ClientManager = function(a, b, c) {
   this._window = a;
   this._trello = b;
@@ -1349,62 +2157,7 @@ ClientManager.prototype.sortOnSelect = function(a, b, c, d) {
     return a.id;
   })};
 };
-// Input 14
-var Controller = function(a, b) {
-  this._repository = b;
-  this._binding = null;
-  this._window = a;
-};
-Controller.prototype.canUnblock = function() {
-  this._window.clientManager.getPluginController().upgrading || this._binding.unblock();
-};
-Controller.prototype.blockUi = function() {
-  this._binding.blockUi();
-  return Promise.resolve(!0);
-};
-Controller.prototype.update = function() {
-};
-Controller.prototype.render = function(a, b) {
-};
-Controller.prototype.detach = function() {
-  this._binding && this._binding.detach();
-};
-Controller.prototype.insert = function(a, b) {
-  a && this._repository.isNew(a) ? this._repository.add(a, b) : a && this._repository.replace(a, b);
-};
-Controller.prototype.create = function(a) {
-};
-Controller.prototype.onEvent = function(a, b) {
-};
-Controller.prototype.list = function() {
-  return this._repository.all();
-};
-Controller.prototype.size = function() {
-  return Object.keys(this.list()).length;
-};
-Controller.prototype.fetchAll = function() {
-};
-Controller.prototype.persist = function(a, b) {
-};
-Controller.prototype.clear = function() {
-};
-Controller.prototype.getByCard = function(a) {
-  return this._repository.get(a);
-};
-Controller.prototype.hasContent = function(a) {
-  return !a.isEmpty();
-};
-Controller.prototype.getMapping = function(a, b, c) {
-  switch(a.type) {
-    case "select":
-      return b = this.getPropertyByName(b, a.id, -1), -1 !== b ? a.values[b] : c;
-    default:
-      return this.getPropertyByName(b, a.id, c);
-  }
-};
-Controller.prototype.getPropertyByName = function(a, b, c) {
-};
-// Input 15
+// Input 23
 var ModuleSettingsController = function(a, b, c, d, e) {
   this.trello = a;
   this.pluginController = b;
@@ -1529,6 +2282,14 @@ ModuleSettingsController.prototype.renderEditableSelect = function(a, b, c, d) {
     });
   });
   c.appendChild(d.render());
+  d = new SwitchItem(e.document, "Aktiv", b.active);
+  d.setOnActivationListener(function(c, d) {
+    b.active = d;
+    return e.pluginController.setPluginModuleConfig(a).then(function() {
+      return d;
+    });
+  });
+  c.appendChild(d.render());
   e.nl(c);
   d = e.document.createElement("div");
   f = e.document.createElement("button");
@@ -1632,64 +2393,7 @@ ModuleSettingsController.prototype.hideVersion = function() {
     a.addClass("hidden");
   });
 };
-// Input 16
-var ColorPickerController = function(a, b, c) {
-  this._windowManager = a;
-  this._pluginController = b;
-  this._trello = c;
-};
-ColorPickerController.prototype.render = function(a) {
-  var b = this;
-  return this._pluginController.findPluginModuleConfigByModuleId(a.module).then(function(c) {
-    var d = [];
-    b._windowManager.document.getElementsByClassName("panta-js-color-chooser").forEach(function(e) {
-      e.setEventListener("click", function(f) {
-        f.preventDefault();
-        f.stopPropagation();
-        b.updateColor(c, a.editable, b.renderControls(d, e.getAttribute("data-color")).color).then(function() {
-        });
-      });
-      d.push({color:e.getAttribute("data-color"), control:e.getClosestChildByClassName("panta-js-checkbox")});
-    });
-    var e = b.getEditable(c, a.editable);
-    b.renderControls(d, e.color);
-  });
-};
-ColorPickerController.prototype.updateColor = function(a, b, c) {
-  this.getEditable(a, b).color = c;
-  return this._pluginController.setPluginModuleConfig(a).then(function(a) {
-    console.log("updateColor done", a);
-    return a;
-  });
-};
-ColorPickerController.prototype.renderControls = function(a, b) {
-  return a.reduce(function(a, d) {
-    d.control.checked = d.color === b;
-    return d.control.checked ? d : a;
-  }, null);
-};
-ColorPickerController.prototype.getEditable = function(a, b) {
-  return a.config.editables.find(function(a) {
-    return a.id === b;
-  });
-};
-// Input 17
-var ModulePlanRepository = function() {
-  Repository.call(this);
-};
-$jscomp.inherits(ModulePlanRepository, Repository);
-// Input 18
-var BeteiligtRepository = function() {
-  Repository.call(this);
-};
-$jscomp.inherits(BeteiligtRepository, Repository);
-BeteiligtRepository.prototype.isNew = function(a) {
-  var b = this;
-  return null === Object.keys(this._repository).find(function(c, d) {
-    return b._repository[c].id === a.id;
-  });
-};
-// Input 19
+// Input 24
 var ModuleController = function(a, b, c) {
   Controller.call(this, a, new BeteiligtRepository);
   this.document = a.document;
@@ -1926,7 +2630,7 @@ $jscomp.global.Object.defineProperties(ModuleController, {VERSION:{configurable:
 }}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Beteiligt.PropertyBag";
 }}});
-// Input 20
+// Input 25
 var ArtikelRepository = function() {
   Repository.call(this);
 };
@@ -1940,255 +2644,12 @@ ArtikelRepository.prototype.isNew = function(a) {
     return b._repository[c].id === a.id;
   });
 };
-// Input 21
-var ArtikelController = function(a, b, c, d) {
-  Controller.call(this, a, c);
-  this.document = a.document;
-  this.trelloApi = b;
-  this._entity = null;
-  this._telephone = d;
-  this.setVersionInfo();
+// Input 26
+var ModulePlanRepository = function() {
+  Repository.call(this);
 };
-$jscomp.inherits(ArtikelController, Controller);
-ArtikelController.getInstance = function(a, b, c) {
-  b.hasOwnProperty("articleController") || (b.articleController = new ArtikelController(b, a, DI.getInstance().getArticleRepository(), c));
-  return b.articleController;
-};
-ArtikelController.prototype.setVersionInfo = function() {
-  this.trelloApi.set("card", "shared", ArtikelController.SHARED_META, this.getVersionInfo());
-};
-ArtikelController.prototype.getVersionInfo = function() {
-  return {version:ArtikelController.VERSION};
-};
-ArtikelController.prototype.create = function(a) {
-  return Artikel.create(a);
-};
-ArtikelController.prototype.getPropertyByName = function(a, b, c) {
-  switch(b) {
-    case "visual":
-      return a.visual || c;
-    case "form":
-      return a.form || c;
-    case "online":
-      return a.tags || c;
-    case "season":
-      return a.season || c;
-    case "region":
-      return a.region || c;
-    case "place":
-      return a.location || c;
-    case "field.a":
-      return a.from || c;
-    case "field.b":
-      return a.author || c;
-    case "field.c":
-      return a.text || c;
-    default:
-      return a.hasOwnProperty(b), a[b];
-  }
-};
-ArtikelController.prototype.fetchAll = function() {
-  var a = this;
-  return this.trelloApi.cards("id", "closed").filter(function(a) {
-    return !a.closed;
-  }).each(function(b) {
-    return a.trelloApi.get(b.id, "shared", ArtikelController.SHARED_NAME).then(function(c) {
-      a.insert(Artikel.create(c), b);
-    });
-  }).then(function() {
-    console.log("Fetch complete: " + a.size() + " article(s) to process");
-  });
-};
-ArtikelController.prototype.list = function() {
-  return this._repository.all();
-};
-ArtikelController.prototype.size = function() {
-  return Object.keys(this.list()).length;
-};
-ArtikelController.prototype.isManaged = function(a) {
-  return null !== a.id;
-};
-ArtikelController.prototype.manage = function(a) {
-  a.id = uuid();
-  return a;
-};
-ArtikelController.prototype.update = function() {
-  var a = this;
-  this._window.clientManager.isArticleModuleEnabled().then(function(b) {
-    if (!b) {
-      throw "Module is not enabled";
-    }
-    a._entity.total = a.getTotalPageCount();
-    a._binding.update(a._entity);
-    return !0;
-  });
-};
-ArtikelController.prototype.getTotalPageCount = function() {
-  return Object.values(this._repository.all()).map(function(a, b) {
-    a = parseInt(a.layout);
-    return isNaN(a) ? 0 : a;
-  }).reduce(function(a, b) {
-    return parseInt(a) + parseInt(b);
-  }, 0);
-};
-ArtikelController.prototype.render = function(a, b) {
-  this._entity = a ? a : Artikel.create();
-  this._binding = this._binding ? this._binding.update(this._entity, b) : (new ArtikelBinding(this.document, this._entity, this.onEvent, this, b)).bind();
-};
-ArtikelController.prototype.onEvent = function(a, b) {
-  switch(b.hasOwnProperty("event") ? b.event : "change") {
-    case "focus":
-      b.context._onFocus.call(b.context, a, b);
-      break;
-    default:
-      b.context._onChange.call(b.context, a, b);
-  }
-};
-ArtikelController.prototype._onFocus = function(a, b) {
-};
-ArtikelController.prototype._onChange = function(a, b) {
-  a.setProperty();
-  this.persist.call(this, a.getBinding());
-};
-ArtikelController.prototype.persist = function(a, b) {
-  return this.trelloApi.set(b || "card", "shared", ArtikelController.SHARED_NAME, a);
-};
-$jscomp.global.Object.defineProperties(ArtikelController, {VERSION:{configurable:!0, enumerable:!0, get:function() {
-  return 1;
-}}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
-  return "panta.Artikel";
-}}, SHARED_META:{configurable:!0, enumerable:!0, get:function() {
-  return "panta.Meta";
-}}});
-// Input 22
-var ArtikelBinding = function(a, b, c, d, e) {
-  Binding.call(this, a, b, c, d);
-  this._configuration = e;
-};
-$jscomp.inherits(ArtikelBinding, Binding);
-ArtikelBinding.getRegionMapping = function(a) {
-  switch(a) {
-    case "nord":
-    case "north":
-      return "Nord";
-    case "south":
-      return "S\u00fcd";
-    default:
-      return a;
-  }
-};
-ArtikelBinding.getTagMapping = function(a) {
-  return a;
-};
-ArtikelBinding.prototype.update = function(a, b) {
-  this._topic.update(a);
-  this._from.update(a);
-  this._author.update(a);
-  this._text.update(a);
-  this._pagina.update(a);
-  this._layout.update(a);
-  this._total.update(a);
-  this._tags.update(a);
-  this._visual.update(a);
-  this._region.update(a);
-  this._season.update(a);
-  this._form.update(a);
-  this._location.update(a);
-  b && this._updateConfiguration(b);
-  return this;
-};
-ArtikelBinding.prototype.bind = function() {
-  this.onLayout({data:this._entity}, {context:this._context, artikel:this._entity});
-  return this;
-};
-ArtikelBinding.prototype.onLayout = function(a, b) {
-  var c = this.document.createElement("div");
-  c.innerHTML = template_artikel;
-  c = c.cloneNode(!0);
-  this._switchContent(c);
-  c = this.getConfigurationFor("field.a");
-  this._topic = this.document.newMultiLineInput(a, "pa.topic", "topic", c.label, b, this._action, 2, c.editable.placeholder);
-  this._layout = this.document.newSingleLineInput(a, "pa.layout", "layout", "Seiten Layout", b, this._action, "Zahl", "number", !1);
-  c = this.getConfigurationFor("field.b");
-  this._from = this.document.newSingleLineInput(a, "pa.input-from", "from", c.label, b, this._action, c.editable.placeholder);
-  c = this.getConfigurationFor("field.c");
-  this._author = this.document.newSingleLineInput(a, "pa.author", "author", c.label, b, this._action, c.editable.placeholder);
-  this._total = this.document.newSingleLineInput(a, "pa.total", "total", "Seiten Total", b, this._action, "Summe", "number", !0).addClass("bold");
-  c = this.getConfigurationFor("field.d");
-  this._text = this.document.newMultiLineInput(a, "pa.text", "text", c.label, b, this._action, 2, c.editable.placeholder);
-  this._pagina = this.document.newSingleLineInput(a, "pa.pagina", "pagina", "Pagina", b, this._action, "Zahl", "number", !1).addClass("pagina").addClass("bold");
-  this._tags = this.doLayout("pa.tags", "tags", a, b, "online");
-  this._visual = this.doLayout("pa.visual", "visual", a, b);
-  this._region = this.doLayout("pa.region", "region", a, b);
-  this._season = this.doLayout("pa.season", "season", a, b);
-  this._form = this.doLayout("pa.form", "form", a, b);
-  this._location = this.doLayout("pa.location", "location", a, b, "place");
-};
-ArtikelBinding.prototype.detach = function() {
-  var a = this.document.getElementById("pa.artikel.content");
-  a && (a.removeChildren(), a.removeSelf());
-};
-ArtikelBinding.prototype._switchContent = function(a) {
-  var b = this._initLayout();
-  b.removeChildren();
-  b.appendChild(a);
-};
-ArtikelBinding.prototype._initLayout = function() {
-  var a = this.document.getElementById("pa.artikel.content") || this.document.createElement("span");
-  if (!a.getAttribute("id")) {
-    var b = this.document.createElement("form");
-    b.setAttribute("autocomplete", "off");
-    b.setAttribute("id", "panta.form");
-    a.setAttribute("id", "pa.artikel.content");
-    b.appendChild(a);
-    this.document.getElementById("panta.content").appendChild(b);
-  }
-  return a;
-};
-ArtikelBinding.prototype.doLayout = function(a, b, c, d, e) {
-  e = this.getConfigurationFor(e || b);
-  return this.document.newSingleSelect(c, a, b, e.label, d, this._action, "Liste-Tag", newOption("-1", "\u2026"), e.options);
-};
-ArtikelBinding.prototype.updateText = function(a, b) {
-  b = this.getConfigurationFor(b);
-  a.setLabel(b.editable.label);
-  a.setPlaceholder(b.editable.placeholder);
-};
-ArtikelBinding.prototype.updateSelect = function(a, b) {
-  b = this.getConfigurationFor(b);
-  a.clear();
-  a.setLabel(b.label);
-  a.addOption("-1", "\u2026");
-  a.addOptions(b.options);
-  a.invalidate();
-};
-ArtikelBinding.prototype._updateConfiguration = function(a) {
-  this._configuration = a;
-  this.updateText(this._topic, "field.a");
-  this.updateText(this._from, "field.b");
-  this.updateText(this._author, "field.c");
-  this.updateText(this._text, "field.d");
-  this.updateSelect(this._tags, "online");
-  this.updateSelect(this._visual, "visual");
-  this.updateSelect(this._region, "region");
-  this.updateSelect(this._season, "season");
-  this.updateSelect(this._form, "form");
-  this.updateSelect(this._location, "place");
-};
-ArtikelBinding.prototype.getConfigurationFor = function(a) {
-  var b = this._configuration.config.editables.filter(function(b) {
-    return b.id === a;
-  }), c = b[0].label, d = b.map(function(a) {
-    return a.values;
-  }).flat().map(function(a, b) {
-    return newOption(b, a);
-  }).reduce(function(a, b) {
-    a.push(b);
-    return a;
-  }, []);
-  return {label:c, options:d, editable:b[0]};
-};
-// Input 23
+$jscomp.inherits(ModulePlanRepository, Repository);
+// Input 27
 var ModulePlanBinding = function(a, b, c, d, e) {
   Binding.call(this, a, b, c, d);
   this._configuration = e;
@@ -2302,441 +2763,59 @@ ModulePlanBinding.prototype._initContent = function() {
   }
   return a;
 };
-// Input 24
-var PluginRepository = function() {
-  Repository.call(this);
-};
-$jscomp.inherits(PluginRepository, Repository);
-$jscomp.global.Object.defineProperties(PluginRepository, {INSTANCE:{configurable:!0, enumerable:!0, get:function() {
-  PluginRepository.instance || (PluginRepository.instance = new PluginRepository, PluginRepository.instance.add(new PluginModuleConfig("module.artikel", "Artikel", {sort:1, enabled:!1, icon:"ic_artikel.png", desc:"module.artikel.desc", editables:[{id:"visual", desc:"module.artikel.editable.desc", type:"select", label:"Visual", color:"blue", show:!1, sortable:!1, values:["Bild", "Icon", "Grafik", "Video", "Illu"]}, {id:"form", desc:"module.artikel.editable.desc", type:"select", label:"Form", color:"green", 
-  show:!1, sortable:!1, values:["News", "Artikel", "Report"]}, {id:"online", desc:"module.artikel.editable.desc", type:"select", label:"Online", color:"yellow", show:!1, sortable:!1, values:"Mo Di Mi Do Fr Sa So".split(" ")}, {id:"season", desc:"module.artikel.editable.desc", type:"select", label:"Saison", color:"sky", show:!1, sortable:!1, values:["Sommer", "Herbst"]}, {id:"region", desc:"module.artikel.editable.desc", type:"select", label:"Region", color:"lime", show:!1, sortable:!1, values:["Nord", 
-  "S\u00fcd"]}, {id:"place", desc:"module.artikel.editable.desc", type:"select", label:"Ort", color:"orange", show:!1, sortable:!1, values:"CDS STO TAM WID Buech Rustico Schlatt".split(" ")}, {id:"field.a", desc:"module.artikel.field-a.desc", type:"text", label:"Thema", placeholder:"Lauftext", show:!1, sortable:!1, color:"shades"}, {id:"field.b", desc:"module.artikel.field-b.desc", type:"text", label:"Input von", placeholder:"Name", show:!1, sortable:!1, color:"shades"}, {id:"field.c", desc:"module.artikel.field-c.desc", 
-  type:"text", label:"Textautor*in", placeholder:"Name", show:!1, sortable:!1, color:"shades"}, {id:"field.d", desc:"module.artikel.field-d.desc", type:"text", label:"Textbox", placeholder:"Lauftext", show:!1, sortable:!1, color:"shades"}]}), {id:1}), PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", "Beteiligt", {sort:3, enabled:!1, icon:"ic_beteiligt.png", desc:"module.beteiligt.desc", editables:[{id:"title", desc:"module.beteiligt.label.desc", type:"label", placeholder:"", 
-  label:"Beteiligt"}, {id:"onsite", desc:"module.beteiligt.layout.onsite", type:"layout", label:"vor.Ort", container:"pa.involved.onsite", layout:"regular", show:!0}, {id:"text", desc:"module.beteiligt.layout.text", type:"layout", label:"Journalist", container:"pa.involved.text", layout:"regular", show:!0}, {id:"photo", desc:"module.beteiligt.layout.photo", type:"layout", label:"Photo", container:"pa.involved.photo", layout:"regular", show:!0}, {id:"video", desc:"module.beteiligt.layout.video", type:"layout", 
-  label:"Event", container:"pa.involved.video", layout:"regular", show:!0}, {id:"illu", desc:"module.beteiligt.layout.illu", type:"layout", label:"Illu", container:"pa.involved.illu", layout:"regular", show:!0}, {id:"ad", desc:"module.beteiligt.layout.ad", type:"layout", label:"weitere", container:"pa.involved.ad", layout:"regular", show:!0}], layouts:{regular:{desc:"module.beteiligt.regular.desc", label:"Regul\u00e4r"}, ad:{desc:"module.beteiligt.special.desc", label:"Spezial"}}}), {id:2}), PluginRepository.instance.add(new PluginModuleConfig("module.plan", 
-  "Plan", {sort:2, enabled:!1, icon:"ic_plan.png", desc:"module.plan.desc", editables:[{id:"visual", desc:"module.plan.editable.desc", type:"select", label:"Visual", color:"blue", show:!1, sortable:!1, values:["Bild", "Icon", "Grafik", "Video", "Illu"]}, {id:"form", desc:"module.plan.editable.desc", type:"select", label:"Form", color:"green", show:!1, sortable:!1, values:["News", "Artikel", "Report"]}, {id:"online", desc:"module.plan.editable.desc", type:"select", label:"Online", color:"yellow", 
-  show:!1, sortable:!1, values:"Mo Di Mi Do Fr Sa So".split(" ")}, {id:"season", desc:"module.plan.editable.desc", type:"select", label:"Saison", color:"sky", show:!1, sortable:!1, values:["Sommer", "Herbst"]}, {id:"region", desc:"module.plan.editable.desc", type:"select", label:"Region", color:"lime", show:!1, sortable:!1, values:["Nord", "S\u00fcd"]}, {id:"place", desc:"module.plan.editable.desc", type:"select", label:"Ort", color:"orange", show:!1, sortable:!1, values:"CDS STO TAM WID Buech Rustico Schlatt".split(" ")}, 
-  {id:"field.a", desc:"module.plan.field-a.desc", type:"text", label:"Massnahmen", placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.b", desc:"module.plan.field-b.desc", type:"text", label:"Beschreibung", placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}]}), {id:3}));
-  return PluginRepository.instance;
-}}});
-PluginRepository.instance = null;
-// Input 25
-var ModulePlanController = function(a, b, c) {
-  Controller.call(this, a, new ModulePlanRepository);
-  this._trello = b;
-  this._telephone = c;
-  var d = this;
-  this._telephone.onmessage = function(a) {
-    a = Object.values(a.data.result || []).map(function(a) {
-      return Object.entries(a);
-    }).flat().reduce(function(a, b) {
-      var c = b[1];
-      switch(b[0]) {
-        case "fee:current":
-          a |= d._entity.fee !== c ? (d._entity.fee = c, 1) : 0;
-          break;
-        case "fee:overall":
-          a |= d._entity.projectFee !== c ? (d._entity.projectFee = c, 1) : 0;
-          break;
-        case "charge:current":
-          a |= d._entity.thirdPartyCharges !== c ? (d._entity.thirdPartyCharges = c, 1) : 0;
-          break;
-        case "charge:overall":
-          a |= d._entity.thirdPartyTotalCosts !== c ? (d._entity.thirdPartyTotalCosts = c, 1) : 0;
-          break;
-        case "costs:overall":
-          a |= d._entity.totalCosts !== c ? (d._entity.totalCosts = c, 1) : 0;
-      }
-      return a;
-    }, !1);
-    d._entity.capOnDepenses !== d.getCapOnDepenses() && (d._entity.capOnDepenses = d.getCapOnDepenses());
-    a && d._binding.update(d._entity);
-  };
-  this._binding = null;
-  this._propertyBag = {};
-  this.readPropertyBag();
-};
-$jscomp.inherits(ModulePlanController, Controller);
-ModulePlanController.getInstance = function(a, b, c) {
-  b.hasOwnProperty("planController") || (b.planController = new ModulePlanController(b, a, c));
-  return b.planController;
-};
-ModulePlanController.prototype.render = function(a, b) {
-  this._entity = a;
-  this._binding = this._binding ? this._binding.update(a, b) : (new ModulePlanBinding(this._window.document, a, this.onEvent, this, b)).bind();
-  return Controller.prototype.render.call(this, a);
-};
-ModulePlanController.prototype.update = function() {
-  if (!this._window.clientManager.isPlanModuleEnabled()) {
-    throw "Module is not enabled";
-  }
-  this._telephone.postMessage({get:["fee:current", "fee:overall", "charge:current", "charge:overall", "costs:overall"]});
-  this._entity && (this._entity.capOnDepenses = this.getCapOnDepenses());
-  this._binding && this._binding.update(this._entity);
-  return Controller.prototype.update.call(this);
-};
-ModulePlanController.prototype.onEvent = function(a, b) {
-  switch(b.hasOwnProperty("event") ? b.event : "change") {
-    case "change":
-      b.context._onChange.call(b.context, a);
-  }
-};
-ModulePlanController.prototype.getProperty = function(a, b) {
-  return this._propertyBag[a] || b;
-};
-ModulePlanController.prototype.setProperty = function(a, b) {
-  this._propertyBag[a] = b;
-  this._trello.set("board", "shared", ModulePlanController.PROPERTY_BAG_NAME, this._propertyBag);
-};
-ModulePlanController.prototype.readPropertyBag = function() {
-  var a = this;
-  this._trello.get("board", "shared", ModulePlanController.PROPERTY_BAG_NAME, {}).then(function(b) {
-    a._propertyBag = b;
-  });
-};
-ModulePlanController.prototype.getCapOnDepenses = function() {
-  var a = this.getProperty("cap_on_depenses");
-  return isNaN(a) ? null : parseFloat(a);
-};
-ModulePlanController.prototype.getPropertyByName = function(a, b, c) {
-  switch(b) {
-    case "field.a":
-      return a.measures || c;
-    case "field.b":
-      return a.description || c;
-    case "visual":
-      return a.visual || c;
-    case "form":
-      return a.form || c;
-    case "online":
-      return a.online || c;
-    case "season":
-      return a.season || c;
-    case "region":
-      return a.region || c;
-    case "place":
-      return a.place || c;
-    default:
-      return a.hasOwnProperty(b), a[b];
-  }
-};
-ModulePlanController.prototype.persist = function(a, b) {
-  return this._trello.set(b || "card", "shared", ModulePlanController.SHARED_NAME, a);
-};
-ModulePlanController.prototype.remove = function() {
-  return this._trello.remove("board", "shared", ModulePlanController.SHARED_NAME);
-};
-ModulePlanController.prototype._onChange = function(a) {
-  a.setProperty();
-  switch(a.getBoundProperty()) {
-    case "capOnDepenses":
-      this.setProperty("cap_on_depenses", a.getValue());
-      break;
-    default:
-      this.persist.call(this, a.getBinding());
-  }
-};
-ModulePlanController.prototype.clear = function() {
-  return Controller.prototype.clear.call(this);
-};
-ModulePlanController.prototype.create = function(a) {
-  return Plan.create(a);
-};
-$jscomp.global.Object.defineProperties(ModulePlanController, {SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
-  return "panta.Plan";
-}}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
-  return "panta.Plan.PropertyBag";
-}}});
-// Input 26
-var PluginController = function(a, b) {
-  this._window = b;
-  this._trelloApi = a;
-  this._upgrading = !1;
-  this._upgrades = {1:this._upgrade_1};
-  this._repository = PluginRepository.INSTANCE;
-};
-PluginController.getInstance = function(a, b) {
-  b.hasOwnProperty("pluginController") || (b.pluginController = new PluginController(a, b));
-  return b.pluginController;
-};
-PluginController.prototype.init = function() {
-  var a = this;
-  this._trelloApi.get("board", "shared", PluginController.SHARED_NAME, 1).then(function(b) {
-    PluginController.VERSION > b && (a._upgrading = !0, a.update.call(a, b, PluginController.VERSION));
-  });
-};
-PluginController.prototype.getPluginConfiguration = function() {
-  var a = this;
-  return this._trelloApi.get("board", "shared", PluginController.CONFIGURATION_NAME, null).then(function(b) {
-    return b ? (b = JSON.parse(LZString.decompress(b)), PluginConfiguration.create(b)) : new PluginConfiguration("1.0.0", "Panta.Card Power-Up", null, a.getAvailableModules());
-  });
-};
-PluginController.prototype.setPluginModuleConfig = function(a, b) {
-  var c = this;
-  return this.getPluginConfiguration().then(function(d) {
-    if (d instanceof PluginConfiguration) {
-      return d.card = b || d.card, d.modules.find(function(b) {
-        return b.id === a.id;
-      }).config = a.config, c._trelloApi.set("board", "shared", PluginController.CONFIGURATION_NAME, LZString.compress(JSON.stringify(d))), d;
-    }
-    throw "Invalid plugin configuration";
-  });
-};
-PluginController.prototype.findPluginModuleConfigByModuleId = function(a) {
-  return this.getPluginConfiguration().then(function(a) {
-    return a.modules;
-  }).filter(function(b) {
-    return b.id === a;
-  }).reduce(function(a, c) {
-    return c;
-  }, null);
-};
-PluginController.prototype.getAvailableModules = function() {
-  return Object.values(PluginRepository.INSTANCE.all()).sort(function(a, b) {
-    return a.config.sort - b.config.sort;
-  });
-};
-PluginController.prototype.remove = function() {
-  return this._trelloApi.remove("board", "shared", PluginController.SHARED_NAME);
-};
-PluginController.prototype.update = function(a, b) {
-  this._update(a, b);
-};
-PluginController.prototype._update = function(a, b) {
-  var c = this;
-  a < b ? (console.log("Applying upgrade %d ...", a), c._upgrades[a].call(this).then(function() {
-    console.log("... upgrade %d is successfully applied", a);
-    c._trelloApi.set("board", "shared", PluginController.SHARED_NAME, a + 1).then(function() {
-      c._update(a + 1, b);
-    });
-  })) : (console.log("No upgrades pending"), setTimeout(function() {
-    c._upgrading = !1;
-  }, 2000));
-};
-PluginController.prototype._upgrade_1 = function() {
-  var a = this, b = this._window.clientManager.getArticleController(), c = this._window.clientManager.getModuleController();
-  return b.fetchAll.call(b).then(function() {
-    a._upgradeAllArticleToModuleConfig.call(a, b, c);
-  }).then(function() {
-    return !0;
-  });
-};
-PluginController.prototype._upgradeAllArticleToModuleConfig = function(a, b) {
-  this._upgradeArticleToModuleConfig.call(this, a, b, Object.entries(a.list()), 0);
-};
-PluginController.prototype._upgradeArticleToModuleConfig = function(a, b, c, d) {
-  if (d < c.length) {
-    var e = this, f = c[d], h = f[0], g = f[1];
-    1 === g.version ? (f = Object.entries(g.involved).reduce(function(a, b) {
-      a.sections[b[0]] = b[1];
-      return a;
-    }, ModuleConfig.create()), b.persist.call(b, f, h).then(function() {
-      g.version = Artikel.VERSION;
-      "function" === typeof g.clearInvolved && g.clearInvolved();
-      return a.persist.call(a, g, h);
-    }).then(function() {
-      e._upgradeArticleToModuleConfig.call(e, a, b, c, d + 1, h);
-    })) : (console.log("Skipping article because its at version %d", g.version), this._upgradeArticleToModuleConfig.call(this, a, b, c, d + 1, h));
-  } else {
-    console.log("All articles updated");
-  }
-};
-$jscomp.global.Object.defineProperties(PluginController.prototype, {upgrading:{configurable:!0, enumerable:!0, get:function() {
-  return this._upgrading;
-}}});
-$jscomp.global.Object.defineProperties(PluginController, {VERSION:{configurable:!0, enumerable:!0, get:function() {
-  return 2;
-}}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
-  return "panta.App";
-}}, CONFIGURATION_NAME:{configurable:!0, enumerable:!0, get:function() {
-  return "panta.App.Configuration";
-}}});
-// Input 27
-var BeteiligtBinding = function(a, b, c, d, e) {
-  Binding.call(this, a, b, c, d);
-  this._activated = this._ad = this._illu = this._video = this._photo = this._text = this._onsite = null;
-  this._currentTabIndex = -1;
-  this._configuration = e;
-};
-$jscomp.inherits(BeteiligtBinding, Binding);
-BeteiligtBinding.prototype.initLayouts = function() {
-  var a = this, b = (this._configuration && this._configuration.config && this._configuration.config.editables ? this._configuration.config.editables : []).filter(function(a) {
-    return "layout" === a.type;
-  });
-  this._involvements = Object.values(b).reduce(function(b, d) {
-    b[d.id] = a._buildValueHolder(d, a.onLayout);
-    return b;
-  }, {});
-};
-BeteiligtBinding.prototype._buildValueHolder = function(a, b) {
-  var c = this, d = this._initTab(a);
-  return {"involved-in":a.id, data:null, renderer:function(a) {
-    b.call(c, this, a);
-  }, tab:d, layout:a.layout || d.getAttribute("data-layout"), label:a.label || d.getAttribute("data-label"), binding:c, show:a.show};
-};
-BeteiligtBinding.prototype.detach = function() {
-  var a = this.document.getElementById("panta.module");
-  a && (a.removeChildren(), a.removeSelf());
-};
-BeteiligtBinding.prototype._initTab = function(a) {
-  var b = this.document.getElementById("panta.module");
-  b || (b = createByTemplate(template_beteiligt, template_beteiligt), this.document.getElementById("panta.content").appendChild(b));
-  b = this.document.getElementById(a.container);
-  a.show ? b.removeClass("hidden") : b.addClass("hidden");
-  return b;
-};
-BeteiligtBinding.prototype.update = function(a, b) {
-  this._activated.activate();
-  Object.values(this).filter(function(a) {
-    return a instanceof PModuleConfig;
-  }).forEach(function(b) {
-    b.update(a);
-  });
-  this._entity = a;
-  b && this._updateConfiguration(b);
-  return this;
-};
-BeteiligtBinding.prototype.bind = function() {
-  this.initLayouts();
-  this.doLabels();
-  this._onsite = null !== this._onsite ? this._onsite.update(this._entity) : this._onsite = (new PModuleConfig(this.document, this._involvements.onsite)).bind(this._entity, "onsite").render();
-  this._text = null !== this._text ? this._text.update(this._entity) : this._text = (new PModuleConfig(this.document, this._involvements.text)).bind(this._entity, "text").render();
-  this._photo = null !== this._photo ? this._photo.update(this._entity) : this._photo = (new PModuleConfig(this.document, this._involvements.photo)).bind(this._entity, "photo").render();
-  this._video = null !== this._video ? this._video.update(this._entity) : this._video = (new PModuleConfig(this.document, this._involvements.video)).bind(this._entity, "video").render();
-  this._illu = null !== this._illu ? this._illu.update(this._entity) : this._illu = (new PModuleConfig(this.document, this._involvements.illu)).bind(this._entity, "illu").render();
-  this._ad = null !== this._ad ? this._ad.update(this._entity) : this._ad = (new PModuleConfig(this.document, this._involvements.ad)).bind(this._entity, "ad").render();
-  var a = Object.values(this).filter(function(a) {
-    return a instanceof PModuleConfig && a.valueHolder.show;
-  })[0];
-  a.activate();
-  this._activated = a;
-  return this;
-};
-BeteiligtBinding.prototype.onLayoutUpdate = function(a, b) {
-  a.setFieldValue("name", b.data, "name");
-  a.setFieldValue("social", b.data, "social");
-  a.setFieldValue("address", b.data, "address");
-  a.setFieldValue("notes", b.data, "notes");
-  a.setFieldValue("duedate", b.data, "duedate");
-  a.setFieldValue("fee", b.data, "fee");
-  a.setFieldValue("charges", b.data, "charges");
-  a.setFieldValue("project", b.data, "project");
-  a.setFieldValue("capOnDepenses", b.data, "capOnDepenses");
-};
-BeteiligtBinding.prototype.onLayout = function(a, b) {
-  if (a === this._activated) {
-    this.onLayoutUpdate(a, b);
-  } else {
-    switch(b.layout) {
-      case "ad":
-        this.onAdLayout(a, b);
-        break;
-      default:
-        this.onRegularLayout(a, b);
-    }
-  }
-};
-BeteiligtBinding.prototype.onRegularLayout = function(a, b) {
-  var c = this.document.createElement("div");
-  c.innerHTML = isMobileBrowser() ? template_regular_mobile : template_regular;
-  c = c.cloneNode(!0);
-  this._switchContent(a, c);
-  b.show && (c = {context:this._context, valueHolder:b, config:this._entity}, a.setField("name", this.document.newSingleLineInput(b, ".pa.name", "name", "Name", c, this._action, "eintippen\u2026", "text", !1)), a.setField("social", this.document.newSingleLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", c, this._action, "notieren\u2026")), a.setField("address", this.document.newMultiLineInput(b, ".pa.address", "address", "Adresse", c, this._action, 2, "festhalten\u2026")), a.setField("notes", 
-  this.document.newMultiLineInput(b, ".pa.notes", "notes", "Notiz", c, this._action, 6, "formulieren\u2026")), a.setField("duedate", this.document.newSingleLineInput(b, ".pa.duedate", "duedate", "Deadline", c, this._action, "bestimmen\u2026", "text", !1)), a.setField("fee", this.document.newSingleLineInput(b, ".pa.fee", "fee", "Honorar Massnahme", c, this._action, "Betrag\u2026", "money", !1)), a.setField("charges", this.document.newSingleLineInput(b, ".pa.charges", "charges", "Spesen Massnahme", 
-  c, this._action, "Betrag\u2026", "money", !1)), a.setField("project", this.document.newSingleLineInput(b, ".pa.project", "project", "Total Beteiligte", c, this._action, "Betrag\u2026", "money", !0).addClass("bold")), a.setField("capOnDepenses", this.document.newSingleLineInput(b, ".pa.cap_on_depenses", "capOnDepenses", "Kostendach Total Projekt", c, this._action, "Betrag\u2026", "money", !1)));
-};
-BeteiligtBinding.prototype.onAdLayout = function(a, b) {
-  var c = this.document.createElement("div");
-  c.innerHTML = template_ad;
-  c = c.cloneNode(!0);
-  this._switchContent(a, c);
-  a = {context:this._context, valueHolder:b, config:this._entity};
-  this.document.newSingleLineInput(b, ".pa.name", "name", "Kontakt", a, this._action, "eintippen\u2026", "text", !1);
-  this.document.newSingleLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", a, this._action, "notieren\u2026");
-  this.document.newMultiLineInput(b, ".pa.address", "address", "Adresse", a, this._action, 2, "eingeben\u2026");
-  this.document.newSingleLineInput(b, ".pa.format", "format", "Format", a, this._action, "festhalten\u2026", "text", !1);
-  this.document.newSingleLineInput(b, ".pa.placement", "placement", "Platzierung", a, this._action, "vormerken\u2026", "text", !1);
-  this.document.newMultiLineInput(b, ".pa.notes", "notes", "Kunde.Sujet", a, this._action, 2, "Name.Stichwort\u2026");
-  this.document.newSingleLineInput(b, ".pa.price", "price", "Preis CHF", a, this._action, "bestimmen\u2026", "money", !1);
-  this.document.newSingleLineInput(b, ".pa.total", "total", "Total CHF", a, this._action, "", "money", !0).addClass("bold");
-};
-BeteiligtBinding.prototype.doLabels = function() {
-  var a = this;
-  this.document.getElementsByClassName("js-panta-editable-title").forEach(function(b) {
-    var c = a._configuration.config.editables.find(function(a) {
-      return "title" === a.id;
-    });
-    c && (b.removeClasses(["hidden", "show"]), b.addClass(c.show ? "show" : "hidden"), b.getElementsByClassName("js-panta-label").forEach(function(a) {
-      a instanceof HTMLElement && (a.innerText = c.label);
-    }));
-  });
-};
-BeteiligtBinding.prototype._updateConfiguration = function(a) {
-  this._configuration = a;
-  this.doLabels();
-  this._updateTab(this._onsite, "onsite");
-  this._updateTab(this._text, "text");
-  this._updateTab(this._photo, "photo");
-  this._updateTab(this._video, "video");
-  this._updateTab(this._illu, "illu");
-  this._updateTab(this._ad, "ad");
-};
-BeteiligtBinding.prototype._updateTab = function(a, b) {
-  b = this.getConfigurationFor(b);
-  a.setTabName(b.editable.label);
-};
-BeteiligtBinding.prototype._switchContent = function(a, b) {
-  var c = this.document.getElementById("pa.tab.content");
-  c.removeChildren();
-  this._onsite.valueHolder.tab.removeClasses(["selected", "editing"]);
-  this._text.valueHolder.tab.removeClasses(["selected", "editing"]);
-  this._photo.valueHolder.tab.removeClasses(["selected", "editing"]);
-  this._video.valueHolder.tab.removeClasses(["selected", "editing"]);
-  this._illu.valueHolder.tab.removeClasses(["selected", "editing"]);
-  this._ad.valueHolder.tab.removeClasses(["selected", "editing"]);
-  c.appendChild(b);
-  this._activated = a;
-};
-BeteiligtBinding.prototype.enterEditing = function() {
-  this._activated.beginEditing();
-};
-BeteiligtBinding.prototype.leaveEditing = function() {
-  this._activated.endEditing();
-};
-BeteiligtBinding.prototype.rememberFocus = function(a) {
-  this._currentTabIndex = a.getTabIndex();
-};
-BeteiligtBinding.prototype.getConfigurationFor = function(a) {
-  var b = this._configuration.config.editables.filter(function(b) {
-    return b.id === a;
-  }), c = b[0].label, d = b.map(function(a) {
-    return a.values;
-  }).flat().map(function(a, b) {
-    return newOption(b, a);
-  }).reduce(function(a, b) {
-    a.push(b);
-    return a;
-  }, []);
-  return {label:c, options:d, editable:b[0]};
-};
 // Input 28
-var PluginCardConfig = function(a, b, c) {
-  this._title = a;
-  this._icon = b;
-  this._content = c;
+var PluginConfiguration = function(a, b, c, d) {
+  this._version = a;
+  this._description = b;
+  this._card = c;
+  this._modules = d || [];
 };
-$jscomp.global.Object.defineProperties(PluginCardConfig.prototype, {title:{configurable:!0, enumerable:!0, get:function() {
-  return this._title;
+PluginConfiguration.create = function(a) {
+  return this._create(a);
+};
+PluginConfiguration._create = function(a) {
+  return a ? new PluginConfiguration(JsonSerialization.getProperty(a, "version") || "1.0.0", JsonSerialization.getProperty(a, "description") || "Dieses Panta.Card Power-Up umfasst das Modul:", JsonSerialization.getProperty(a, "card"), this._readModules(a)) : new PluginConfiguration("1.0.0", "Panta.Card Power-Up", null, []);
+};
+PluginConfiguration._readModules = function(a) {
+  a = JsonSerialization.getProperty(a, "modules") || {1:JSON.stringify(new PluginModuleConfig("module.artikel", "Artikel", {}))};
+  return Object.values(a).map(function(a) {
+    return PluginModuleConfig.create(a);
+  });
+};
+PluginConfiguration.prototype.getActiveModules = function() {
+  return Object.values(this._modules).filter(function(a) {
+    return a && a.config && a.config.enabled;
+  });
+};
+PluginConfiguration.prototype.getModule = function(a, b) {
+  return Object.values(this._modules).filter(function(a) {
+    return a && a.config && (!b || a.config.enabled);
+  }).find(function(b) {
+    return b.id === a;
+  });
+};
+PluginConfiguration.prototype.hasActiveModules = function() {
+  return 0 < this.getActiveModules().length;
+};
+$jscomp.global.Object.defineProperties(PluginConfiguration.prototype, {card:{configurable:!0, enumerable:!0, get:function() {
+  return this._card;
 }, set:function(a) {
-  this._title = a;
-}}, icon:{configurable:!0, enumerable:!0, get:function() {
-  return this._icon;
+  this._card = a;
+}}, modules:{configurable:!0, enumerable:!0, get:function() {
+  return this._modules;
 }, set:function(a) {
-  this._icon = a;
-}}, content:{configurable:!0, enumerable:!0, get:function() {
-  return this._content;
+  this._modules = a;
+}}, version:{configurable:!0, enumerable:!0, get:function() {
+  return this._version;
 }, set:function(a) {
-  this._content = a;
+  this._version = a;
+}}, description:{configurable:!0, enumerable:!0, get:function() {
+  return this._description;
+}, set:function(a) {
+  this._description = a;
+}}});
+$jscomp.global.Object.defineProperties(PluginConfiguration, {VERSION:{configurable:!0, enumerable:!0, get:function() {
+  return 1;
 }}});
 // Input 29
 var PluginModuleConfig = function(a, b, c) {
@@ -2761,6 +2840,105 @@ $jscomp.global.Object.defineProperties(PluginModuleConfig.prototype, {config:{co
   this._id = a;
 }}});
 // Input 30
+var Artikel = function(a, b, c, d, e, f, h, g, k, l, m, q, n, p) {
+  this._id = a || uuid();
+  this._topic = b;
+  this._pagina = c;
+  this._from = d;
+  this._layout = e;
+  this._total = f;
+  this._tags = h;
+  this._form = n;
+  this._visual = g;
+  this._region = k;
+  this._season = l;
+  this._location = p;
+  this._author = m;
+  this._text = q;
+  this._version = Artikel.VERSION;
+};
+Artikel.create = function(a) {
+  return this._create(a);
+};
+Artikel._create = function(a) {
+  if (a) {
+    var b = JsonSerialization.getProperty(a, "region");
+    "nord" === b && (b = "north");
+    b = new Artikel(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "topic"), JsonSerialization.getProperty(a, "pagina"), JsonSerialization.getProperty(a, "from"), JsonSerialization.getProperty(a, "layout"), JsonSerialization.getProperty(a, "total"), JsonSerialization.getProperty(a, "tags"), JsonSerialization.getProperty(a, "visual"), b, JsonSerialization.getProperty(a, "season"), JsonSerialization.getProperty(a, "author"), JsonSerialization.getProperty(a, "text"), JsonSerialization.getProperty(a, 
+    "form"), JsonSerialization.getProperty(a, "location"));
+    b.version = JsonSerialization.getProperty(a, "version");
+    return b;
+  }
+  return new Artikel;
+};
+Artikel.prototype.isEmpty = function() {
+  return isBlank(this.topic) && isBlank(this.pagina) && isBlank(this.from) && isBlank(this.layout) && isBlank(this.tags) && isBlank(this.visual) && isBlank(this.region) && isBlank(this.season) && isBlank(this.location) && isBlank(this.author) && isBlank(this.text);
+};
+$jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, enumerable:!0, get:function() {
+  return this._id;
+}, set:function(a) {
+  this._id = a;
+}}, from:{configurable:!0, enumerable:!0, get:function() {
+  return this._from;
+}, set:function(a) {
+  this._from = a;
+}}, location:{configurable:!0, enumerable:!0, get:function() {
+  return this._location;
+}, set:function(a) {
+  this._location = a;
+}}, topic:{configurable:!0, enumerable:!0, get:function() {
+  return this._topic;
+}, set:function(a) {
+  this._topic = a;
+}}, pagina:{configurable:!0, enumerable:!0, get:function() {
+  return this._pagina;
+}, set:function(a) {
+  this._pagina = a;
+}}, layout:{configurable:!0, enumerable:!0, get:function() {
+  return this._layout;
+}, set:function(a) {
+  this._layout = a;
+}}, total:{configurable:!0, enumerable:!0, get:function() {
+  return this._total;
+}, set:function(a) {
+  this._total = a;
+}}, tags:{configurable:!0, enumerable:!0, get:function() {
+  return this._tags;
+}, set:function(a) {
+  this._tags = a;
+}}, form:{configurable:!0, enumerable:!0, get:function() {
+  return this._form;
+}, set:function(a) {
+  this._form = a;
+}}, visual:{configurable:!0, enumerable:!0, get:function() {
+  return this._visual;
+}, set:function(a) {
+  this._visual = a;
+}}, region:{configurable:!0, enumerable:!0, get:function() {
+  return this._region;
+}, set:function(a) {
+  this._region = a;
+}}, season:{configurable:!0, enumerable:!0, get:function() {
+  return this._season;
+}, set:function(a) {
+  this._season = a;
+}}, author:{configurable:!0, enumerable:!0, get:function() {
+  return this._author;
+}, set:function(a) {
+  this._author = a;
+}}, text:{configurable:!0, enumerable:!0, get:function() {
+  return this._text;
+}, set:function(a) {
+  this._text = a;
+}}, version:{configurable:!0, enumerable:!0, get:function() {
+  return this._version;
+}, set:function(a) {
+  this._version = a;
+}}});
+$jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enumerable:!0, get:function() {
+  return 3;
+}}});
+// Input 31
 var Plan = function(a, b, c, d, e, f, h, g, k, l, m, q, n, p, r) {
   this._id = a || uuid();
   this._fee = d;
@@ -2862,7 +3040,26 @@ $jscomp.global.Object.defineProperties(Plan.prototype, {id:{configurable:!0, enu
 $jscomp.global.Object.defineProperties(Plan, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
 }}});
-// Input 31
+// Input 32
+var PluginCardConfig = function(a, b, c) {
+  this._title = a;
+  this._icon = b;
+  this._content = c;
+};
+$jscomp.global.Object.defineProperties(PluginCardConfig.prototype, {title:{configurable:!0, enumerable:!0, get:function() {
+  return this._title;
+}, set:function(a) {
+  this._title = a;
+}}, icon:{configurable:!0, enumerable:!0, get:function() {
+  return this._icon;
+}, set:function(a) {
+  this._icon = a;
+}}, content:{configurable:!0, enumerable:!0, get:function() {
+  return this._content;
+}, set:function(a) {
+  this._content = a;
+}}});
+// Input 33
 var ModuleConfig = function(a, b) {
   this._id = a || uuid();
   this._sections = b;
@@ -3014,159 +3211,6 @@ $jscomp.global.Object.defineProperties(AdBeteiligt.prototype, {format:{configura
   return this._total;
 }, set:function(a) {
   this._total = a;
-}}});
-// Input 32
-var PluginConfiguration = function(a, b, c, d) {
-  this._version = a;
-  this._description = b;
-  this._card = c;
-  this._modules = d || [];
-};
-PluginConfiguration.create = function(a) {
-  return this._create(a);
-};
-PluginConfiguration._create = function(a) {
-  return a ? new PluginConfiguration(JsonSerialization.getProperty(a, "version") || "1.0.0", JsonSerialization.getProperty(a, "description") || "Dieses Panta.Card Power-Up umfasst das Modul:", JsonSerialization.getProperty(a, "card"), this._readModules(a)) : new PluginConfiguration("1.0.0", "Panta.Card Power-Up", null, []);
-};
-PluginConfiguration._readModules = function(a) {
-  a = JsonSerialization.getProperty(a, "modules") || {1:JSON.stringify(new PluginModuleConfig("module.artikel", "Artikel", {}))};
-  return Object.values(a).map(function(a) {
-    return PluginModuleConfig.create(a);
-  });
-};
-PluginConfiguration.prototype.getActiveModules = function() {
-  return Object.values(this._modules).filter(function(a) {
-    return a && a.config && a.config.enabled;
-  });
-};
-PluginConfiguration.prototype.getModule = function(a, b) {
-  return Object.values(this._modules).filter(function(a) {
-    return a && a.config && (!b || a.config.enabled);
-  }).find(function(b) {
-    return b.id === a;
-  });
-};
-PluginConfiguration.prototype.hasActiveModules = function() {
-  return 0 < this.getActiveModules().length;
-};
-$jscomp.global.Object.defineProperties(PluginConfiguration.prototype, {card:{configurable:!0, enumerable:!0, get:function() {
-  return this._card;
-}, set:function(a) {
-  this._card = a;
-}}, modules:{configurable:!0, enumerable:!0, get:function() {
-  return this._modules;
-}, set:function(a) {
-  this._modules = a;
-}}, version:{configurable:!0, enumerable:!0, get:function() {
-  return this._version;
-}, set:function(a) {
-  this._version = a;
-}}, description:{configurable:!0, enumerable:!0, get:function() {
-  return this._description;
-}, set:function(a) {
-  this._description = a;
-}}});
-$jscomp.global.Object.defineProperties(PluginConfiguration, {VERSION:{configurable:!0, enumerable:!0, get:function() {
-  return 1;
-}}});
-// Input 33
-var Artikel = function(a, b, c, d, e, f, h, g, k, l, m, q, n, p) {
-  this._id = a || uuid();
-  this._topic = b;
-  this._pagina = c;
-  this._from = d;
-  this._layout = e;
-  this._total = f;
-  this._tags = h;
-  this._form = n;
-  this._visual = g;
-  this._region = k;
-  this._season = l;
-  this._location = p;
-  this._author = m;
-  this._text = q;
-  this._version = Artikel.VERSION;
-};
-Artikel.create = function(a) {
-  return this._create(a);
-};
-Artikel._create = function(a) {
-  if (a) {
-    var b = JsonSerialization.getProperty(a, "region");
-    "nord" === b && (b = "north");
-    b = new Artikel(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "topic"), JsonSerialization.getProperty(a, "pagina"), JsonSerialization.getProperty(a, "from"), JsonSerialization.getProperty(a, "layout"), JsonSerialization.getProperty(a, "total"), JsonSerialization.getProperty(a, "tags"), JsonSerialization.getProperty(a, "visual"), b, JsonSerialization.getProperty(a, "season"), JsonSerialization.getProperty(a, "author"), JsonSerialization.getProperty(a, "text"), JsonSerialization.getProperty(a, 
-    "form"), JsonSerialization.getProperty(a, "location"));
-    b.version = JsonSerialization.getProperty(a, "version");
-    return b;
-  }
-  return new Artikel;
-};
-Artikel.prototype.isEmpty = function() {
-  return isBlank(this.topic) && isBlank(this.pagina) && isBlank(this.from) && isBlank(this.layout) && isBlank(this.tags) && isBlank(this.visual) && isBlank(this.region) && isBlank(this.season) && isBlank(this.location) && isBlank(this.author) && isBlank(this.text);
-};
-$jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, enumerable:!0, get:function() {
-  return this._id;
-}, set:function(a) {
-  this._id = a;
-}}, from:{configurable:!0, enumerable:!0, get:function() {
-  return this._from;
-}, set:function(a) {
-  this._from = a;
-}}, location:{configurable:!0, enumerable:!0, get:function() {
-  return this._location;
-}, set:function(a) {
-  this._location = a;
-}}, topic:{configurable:!0, enumerable:!0, get:function() {
-  return this._topic;
-}, set:function(a) {
-  this._topic = a;
-}}, pagina:{configurable:!0, enumerable:!0, get:function() {
-  return this._pagina;
-}, set:function(a) {
-  this._pagina = a;
-}}, layout:{configurable:!0, enumerable:!0, get:function() {
-  return this._layout;
-}, set:function(a) {
-  this._layout = a;
-}}, total:{configurable:!0, enumerable:!0, get:function() {
-  return this._total;
-}, set:function(a) {
-  this._total = a;
-}}, tags:{configurable:!0, enumerable:!0, get:function() {
-  return this._tags;
-}, set:function(a) {
-  this._tags = a;
-}}, form:{configurable:!0, enumerable:!0, get:function() {
-  return this._form;
-}, set:function(a) {
-  this._form = a;
-}}, visual:{configurable:!0, enumerable:!0, get:function() {
-  return this._visual;
-}, set:function(a) {
-  this._visual = a;
-}}, region:{configurable:!0, enumerable:!0, get:function() {
-  return this._region;
-}, set:function(a) {
-  this._region = a;
-}}, season:{configurable:!0, enumerable:!0, get:function() {
-  return this._season;
-}, set:function(a) {
-  this._season = a;
-}}, author:{configurable:!0, enumerable:!0, get:function() {
-  return this._author;
-}, set:function(a) {
-  this._author = a;
-}}, text:{configurable:!0, enumerable:!0, get:function() {
-  return this._text;
-}, set:function(a) {
-  this._text = a;
-}}, version:{configurable:!0, enumerable:!0, get:function() {
-  return this._version;
-}, set:function(a) {
-  this._version = a;
-}}});
-$jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enumerable:!0, get:function() {
-  return 3;
 }}});
 // Input 34
 HTMLElement.prototype.addClass = function(a) {

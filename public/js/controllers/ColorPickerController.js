@@ -76,7 +76,7 @@ class ColorPickerController {
     renderControls(controls, color) {
         return controls.reduce(function (prev, item) {
             item["control"].checked = item["color"] === color;
-            return item["control"].checked ? item : null || prev;
+            return item["control"].checked ? item : prev;
         }, null);
     }
 

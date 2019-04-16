@@ -491,6 +491,7 @@ class SingleSelectInput extends PInput {
     constructor(document, label, value, targetId, placeholder, readonly) {
         super(document, label, value, targetId, placeholder, "select", !!readonly);
         this._options = [];
+        this._active = true;
     }
 
     /**
@@ -537,6 +538,14 @@ class SingleSelectInput extends PInput {
         return this;
     }
 
+    setActive(active) {
+        this._active = active;
+    }
+
+    isActive() {
+        return this._active;
+    }
+
     /**
      * Creates the HTML list/drop-down and also selects the option that matches the currently set value
      * @param element
@@ -562,5 +571,16 @@ class SingleSelectInput extends PInput {
     invalidate() {
         this._input.removeChildren();
         this.doCustomization(this._input, this._labelInput);
+        //this.updateVisualState();
+    }
+
+    updateVisualState() {
+        if (this.isActive()) {
+            this._input.removeClass("hidden");
+            this._labelInput.removeClass("hidden");
+        } else {
+            this._input.addClass("hidden");
+            this._labelInput.addClass("hidden");
+        }
     }
 }

@@ -236,6 +236,16 @@ class ModuleSettingsController {
         });
         element.appendChild(sorter.render());
 
+        let active = new SwitchItem(that.document, "Aktiv", editable.active)
+        active.setOnActivationListener(function(previous, updated) {
+            editable.active = updated;
+            return that.pluginController.setPluginModuleConfig(mc)
+                .then(function() {
+                    return updated;
+                });
+        });
+        element.appendChild(active.render());
+
         that.nl(element);
 
         let footer = that.document.createElement("div");
