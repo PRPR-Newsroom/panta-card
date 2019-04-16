@@ -9,9 +9,9 @@ let https = require('https');
 let fs = require('fs');
 
 let  options = {
-    key: fs.readFileSync('key.pem', 'utf8'),
-    cert: fs.readFileSync('cert.pem', 'utf8'),
-    passphrase: process.env.HTTPS_PASSPHRASE || ''
+    // key: fs.readFileSync('key.pem', 'utf8'),
+    // cert: fs.readFileSync('cert.pem', 'utf8'),
+    // passphrase: process.env.HTTPS_PASSPHRASE || ''
 };
 
 let app = express();
