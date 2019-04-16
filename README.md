@@ -65,6 +65,6 @@ werden.
 
 ![Trello Power-Up](docs/trello-powerup.png)
 
-Nachdem das Power-Up aktiviert wurde, erscheint es in den Trello Cards
+Nachdem das Power-Up aktiviert wurde, erscheint es in den Trello Cards.
 
 ![Trello Panta.Card](docs/trello_panta-card.png)
