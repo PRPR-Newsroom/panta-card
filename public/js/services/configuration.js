@@ -45,5 +45,7 @@ const TEXTS = {
 };
 
 const POWERUP_ADMINS = [
-    "manu29494020"
+    "manu29494020",
+    "koni_nordmann",
+    "ray2505",
 ];

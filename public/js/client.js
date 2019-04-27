@@ -16,7 +16,11 @@ TrelloPowerUp.initialize({
                                 height: 184
                             });
                         } else {
-                            alert("Du hast keine Berechtigung um Panta.Card zu konfigurieren. Bitte wenden dich an den Administrator, falls du die Berechtigung brauchst.");
+                            t.alert({
+                                message: "Du hast keine Berechtigung um Panta.Card zu konfigurieren. Bitte wenden dich an den Administrator, falls du die Berechtigung brauchst.",
+                                duration: 15,
+                                display: "error"
+                            });
                             return null;
                         }
                     });
