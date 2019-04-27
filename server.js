@@ -30,6 +30,18 @@ app.use('/version.jsonp', nocache, function (request, response) {
     });
 });
 
+app.use('/auth', nocache, function(request, response) {
+    response.header('Content-Type', 'application/json');
+    let username = request.query.username;
+    let password = request.query.password;
+    console.log("Username/Password", username, password);
+    if (username === "admin" && password === "KpFbQPt8664sP8Np") {
+        response.status(202).send("{ \"result\": \"success\"}");
+    } else {
+        response.status(401).send("{ \"result\": \"error\"}");
+    }
+});
+
 // http://expressjs.com/en/starter/static-files.html
 app.use(express.static('public'));
 

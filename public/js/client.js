@@ -5,11 +5,21 @@ TrelloPowerUp.initialize({
             icon: './assets/ic_pantarhei.png',
             text: 'Panta Einstellungen',
             callback: function (t) {
-                return t.popup({
-                    title: "Einstellungen",
-                    url: "settings.html",
-                    height: 184
-                })
+                console.log("open settings...");
+                return t.member('all')
+                    .then(function(member) {
+                        console.log(JSON.stringify(member));
+                        if (POWERUP_ADMINS.find(function(admin) { return member.username === admin; } )) {
+                            return t.popup({
+                                title: "Einstellungen",
+                                url: "settings.html",
+                                height: 184
+                            });
+                        } else {
+                            alert("Du hast keine Berechtigung um Panta.Card zu konfigurieren. Bitte wenden dich an den Administrator, falls du die Berechtigung brauchst.");
+                            return null;
+                        }
+                    });
             }
         }];
     },

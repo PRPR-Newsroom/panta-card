@@ -43,3 +43,7 @@ const TEXTS = {
     "module.beteiligt.field-sujet.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
 
 };
+
+const POWERUP_ADMINS = [
+    "manu29494020"
+];
