@@ -28,6 +28,12 @@ class ModuleEditableSelectItem extends AbstractItem {
         return this;
     }
 
+    fireOnCreate() {
+        if (this._onTextChangeListener) {
+            this._onTextChangeListener(this.value, this.value);
+        }
+    }
+
     render() {
         let that = this;
         let template = createByTemplate(template_settings_editable_select, template_settings_editable_select);

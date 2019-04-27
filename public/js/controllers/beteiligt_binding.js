@@ -260,11 +260,20 @@ class BeteiligtBinding extends Binding {
         this._switchContent(forms, templ);
         if (valueHolder.show) {
             let params = {'context': this._context, 'valueHolder': valueHolder, 'config': this._entity};
-            forms.setField("name", this.document.newSingleLineInput(valueHolder, ".pa.name", "name", "Name", params, this._action, "eintippen…", "text", false));
-            forms.setField("social", this.document.newSingleLineInput(valueHolder, ".pa.social", "social", "Telefon.Mail.Webseite", params, this._action, "notieren…"));
-            forms.setField("address", this.document.newMultiLineInput(valueHolder, ".pa.address", "address", "Adresse", params, this._action, 2, "festhalten…"));
-            forms.setField("notes", this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Notiz", params, this._action, 6, "formulieren…"));
-            forms.setField("duedate", this.document.newSingleLineInput(valueHolder, ".pa.duedate", "duedate", "Deadline", params, this._action, "bestimmen…", "text", false));
+            let config = this.getLayoutConfigurationFor("regular", "field.name");
+            forms.setField("name", this.document.newSingleLineInput(valueHolder, ".pa.name", "name", config.label, params, this._action, config.placeholder, "text", false));
+
+            config = this.getLayoutConfigurationFor("regular", "field.social");
+            forms.setField("social", this.document.newSingleLineInput(valueHolder, ".pa.social", "social", config.label, params, this._action, config.placeholder));
+
+            config = this.getLayoutConfigurationFor("regular", "field.address");
+            forms.setField("address", this.document.newMultiLineInput(valueHolder, ".pa.address", "address", config.label, params, this._action, 2, config.placeholder));
+
+            config = this.getLayoutConfigurationFor("regular", "field.notes");
+            forms.setField("notes", this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", config.label, params, this._action, 6, config.placeholder));
+
+            config = this.getLayoutConfigurationFor("regular", "field.deadline");
+            forms.setField("duedate", this.document.newSingleLineInput(valueHolder, ".pa.duedate", "duedate", config.label, params, this._action, config.placeholder, "text", false));
 
             forms.setField("fee", this.document.newSingleLineInput(valueHolder, ".pa.fee", "fee", "Honorar Massnahme", params, this._action, "Betrag…", "money", false));
             forms.setField("charges", this.document.newSingleLineInput(valueHolder, ".pa.charges", "charges", "Spesen Massnahme", params, this._action, "Betrag…", "money", false));
@@ -287,14 +296,29 @@ class BeteiligtBinding extends Binding {
         this._switchContent(forms, templ);
 
         let params = {'context': this._context, 'valueHolder': valueHolder, 'config': this._entity};
-        this.document.newSingleLineInput(valueHolder, ".pa.name", 'name', "Kontakt", params, this._action, "eintippen…", "text", false);
-        this.document.newSingleLineInput(valueHolder, ".pa.social", 'social', "Telefon.Mail.Webseite", params, this._action, "notieren…");
-        this.document.newMultiLineInput(valueHolder, ".pa.address", 'address', "Adresse", params, this._action, 2, "eingeben…");
-        this.document.newSingleLineInput(valueHolder, ".pa.format", 'format', 'Format', params, this._action, "festhalten…", "text", false);
-        this.document.newSingleLineInput(valueHolder, ".pa.placement", "placement", "Platzierung", params, this._action, "vormerken…", "text", false);
-        this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", "Kunde.Sujet", params, this._action, 2, "Name.Stichwort…");
-        this.document.newSingleLineInput(valueHolder, ".pa.price", "price", "Preis CHF", params, this._action, "bestimmen…", "money", false);
-        this.document.newSingleLineInput(valueHolder, ".pa.total", "total", "Total CHF", params, this._action, "", "money", true)
+        let config = this.getLayoutConfigurationFor("ad", "field.name");
+        this.document.newSingleLineInput(valueHolder, ".pa.name", 'name', config.label, params, this._action, config.placeholder, "text", false);
+
+        config = this.getLayoutConfigurationFor("ad", "field.social");
+        this.document.newSingleLineInput(valueHolder, ".pa.social", 'social', config.label, params, this._action, config.placeholder);
+
+        config = this.getLayoutConfigurationFor("ad", "field.address");
+        this.document.newMultiLineInput(valueHolder, ".pa.address", 'address', config.label, params, this._action, 2, config.placeholder);
+
+        config = this.getLayoutConfigurationFor("ad", "field.format");
+        this.document.newSingleLineInput(valueHolder, ".pa.format", 'format', config.label, params, this._action, config.placeholder, "text", false);
+
+        config = this.getLayoutConfigurationFor("ad", "field.placement");
+        this.document.newSingleLineInput(valueHolder, ".pa.placement", "placement", config.label, params, this._action, config.placeholder, "text", false);
+
+        config = this.getLayoutConfigurationFor("ad", "field.sujet");
+        this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", config.label, params, this._action, 2, config.placeholder);
+
+        config = this.getLayoutConfigurationFor("ad", "field.price");
+        this.document.newSingleLineInput(valueHolder, ".pa.price", "price", config.label, params, this._action, config.placeholder, "money", false);
+
+        config = this.getLayoutConfigurationFor("ad", "field.total");
+        this.document.newSingleLineInput(valueHolder, ".pa.total", "total", config.label, params, this._action, config.placeholder, "money", true)
             .addClass("bold");
     }
 
@@ -386,6 +410,21 @@ class BeteiligtBinding extends Binding {
      */
     rememberFocus(element) {
         this._currentTabIndex = element.getTabIndex();
+    }
+
+    /**
+     * @param {string} layout the layout id
+     * @param id the field id
+     */
+    getLayoutConfigurationFor(layout, id) {
+        let lc = Object.keys(this._configuration.config.layouts)
+            .find(function (key) {
+                return key === layout;
+            });
+        return this._configuration.config.layouts[lc].fields
+            .find(function(field) {
+                return field.id === id;
+            });
     }
 
     getConfigurationFor(id) {

@@ -66,10 +66,7 @@ class ModuleSettingsController {
                 });
                 that.document.getElementsByClassName("settings-content").forEach(function (element) {
 
-                    let hint = that.document.createElement("p");
-                    hint.innerHTML = __(editable.desc);
-
-                    element.appendChild(hint);
+                    that.renderEditableHint(element, editable);
 
                     that.renderEditableLabel(mc, element, editable, "Beschriftung");
 
@@ -110,7 +107,7 @@ class ModuleSettingsController {
     /**
      * @param {PluginModuleConfig} mc
      * @param editable
-     * @param element
+     * @param element container element
      */
     renderEditable(mc, editable, element) {
         switch (editable.type) {
@@ -158,12 +155,64 @@ class ModuleSettingsController {
 
         chooser.setOnTextChangeListener(function(prev, cur) {
             editable.layout = cur;
+            // add layout form
+            switch (editable.layout) {
+                case "regular":
+                case "ad":
+                    that.renderLayoutForm(mc, editable.layout, element);
+                    break;
+                default:
+                    console.error("Unknown layout: ", editable.layout);
+                    break;
+            }
             that.pluginController.setPluginModuleConfig(mc)
                 .then(function() {
                     console.log("Updated");
                 });
         });
-        element.appendChild(chooser.render());
+        let column = that.document.createElement("div");
+        element.appendChild(column);
+
+        column.appendChild(chooser.render());
+
+        chooser.fireOnCreate();
+    }
+
+    /**
+     * @param {PluginModuleConfig} mc
+     * @param {string} layout
+     * @param {HTMLElement} element
+     */
+    renderLayoutForm(mc, layout, element) {
+        let that = this;
+        let layoutConfig = mc.config.layouts[layout];
+
+        let holders = this.createLayoutFormHolder(element);
+
+        holders.forEach(function(holder) {
+            holder.removeChildren();
+
+            let hint = that.document.createElement("p");
+            hint.innerHTML = __("module.beteiligt.layout-" + layout + ".desc");
+            holder.appendChild(hint);
+
+            layoutConfig.fields.forEach(function(field) {
+                that.renderEditableHint(holder, field);
+                that.renderEditableLabel(mc, holder, field, "Beschriftung");
+                that.renderEditable(mc, field, holder);
+            });
+        });
+
+    }
+
+    createLayoutFormHolder(parent) {
+        let that = this;
+        let holders = that.document.getElementsByClassName("panta-js-layout-form");
+        if (holders.length === 0) {
+            holders = [that.document.createElement("div").addClass("panta-js-layout-form")];
+            parent.append(holders[0]);
+        }
+        return holders;
     }
 
     renderEditableText(mc, editable, element, label) {
@@ -262,6 +311,13 @@ class ModuleSettingsController {
         });
         footer.appendChild(addAction);
         element.appendChild(footer);
+    }
+
+    renderEditableHint(element, editable) {
+        let that = this;
+        let hint = that.document.createElement("p");
+        hint.innerHTML = __(editable.desc);
+        element.appendChild(hint);
     }
 
     /**

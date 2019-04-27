@@ -26,6 +26,20 @@ const TEXTS = {
     'module.plan.desc': "Folgende Felder können individuell konfiguriert werden.",
     'module.plan.editable.desc': "Definieren Sie die Auswahlliste, die für das ganze Board gilt. Bitte beachten Sie, dass maximal nur vier Auswahllisten sortierbar sein können.",
     'module.plan.field-a.desc': "Das Feld «A» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
-    'module.plan.field-b.desc': "Das Feld «B» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an."
+    'module.plan.field-b.desc': "Das Feld «B» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+
+    "module.beteiligt.layout-regular.desc": "Das Kontakt-Formular hat folgende Felder, die individualisert werden können",
+    "module.beteiligt.layout-ad.desc": "Das Inserat-Formular hat folgende Felder, die individualisert werden können",
+
+    "module.beteiligt.field-name.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+    "module.beteiligt.field-social.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+    "module.beteiligt.field-address.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+    "module.beteiligt.field-notes.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+    "module.beteiligt.field-deadline.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+    "module.beteiligt.field-total.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+    "module.beteiligt.field-price.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+    "module.beteiligt.field-placement.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+    "module.beteiligt.field-format.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+    "module.beteiligt.field-sujet.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
 
 };

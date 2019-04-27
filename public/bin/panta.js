@@ -495,7 +495,10 @@ DI.INSTANCE = null;
 var PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.artikel.desc":"Die Eingabefelder und Auswahllisten werden f\u00fcr das ganze Trello Board konfiguriert. F\u00fcr jedes Feld kann eine Farbe definiert werden. Wenn das Feld mit dem \u00abGutzeichen\u00bb aktiviert wird, dann erscheint es in dieser Farbe auf der Trello Card Vorderseite, ansonsten wird es nur f\u00fcr die Trello Card R\u00fcckseite verwendet.", "module.artikel.editable.desc":"Definieren Sie die Auswahlliste, die f\u00fcr das ganze Board gilt. Bitte beachten Sie, dass maximal nur vier Auswahllisten sortierbar sein k\u00f6nnen.", 
 "module.artikel.field-a.desc":"Das Artikelfeld \u00abA\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.artikel.field-b.desc":"Das Artikelfeld \u00abB\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.artikel.field-c.desc":"Das Artikelfeld \u00abC\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.artikel.field-d.desc":"Das Artikelfeld \u00abD\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
 "module.beteiligt.desc":"Folgende Felder k\u00f6nnen individuell konfiguriert werden. Mit dem \u00abGutzeichen\u00bb kann das Feld sichtbar gemacht werden.", "module.beteiligt.label.desc":"Diese Beschriftung wird oberhalb des Moduls als \u00dcberschrift verwendet.", "module.beteiligt.layout.onsite":"Das Layout wird f\u00fcr das Tab \u00abvor.Ort\u00bb verwendet", "module.beteiligt.layout.text":"Das Layout wird f\u00fcr das Tab \u00abJournalist\u00bb verwendet", "module.beteiligt.regular.desc":"Standard-Layout", 
-"module.beteiligt.special.desc":"Spezial-Layout", "module.plan.desc":"Folgende Felder k\u00f6nnen individuell konfiguriert werden.", "module.plan.editable.desc":"Definieren Sie die Auswahlliste, die f\u00fcr das ganze Board gilt. Bitte beachten Sie, dass maximal nur vier Auswahllisten sortierbar sein k\u00f6nnen.", "module.plan.field-a.desc":"Das Feld \u00abA\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.plan.field-b.desc":"Das Feld \u00abB\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an."};
+"module.beteiligt.special.desc":"Spezial-Layout", "module.plan.desc":"Folgende Felder k\u00f6nnen individuell konfiguriert werden.", "module.plan.editable.desc":"Definieren Sie die Auswahlliste, die f\u00fcr das ganze Board gilt. Bitte beachten Sie, dass maximal nur vier Auswahllisten sortierbar sein k\u00f6nnen.", "module.plan.field-a.desc":"Das Feld \u00abA\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.plan.field-b.desc":"Das Feld \u00abB\u00bb ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
+"module.beteiligt.layout-regular.desc":"Das Kontakt-Formular hat folgende Felder, die individualisert werden k\u00f6nnen", "module.beteiligt.layout-ad.desc":"Das Inserat-Formular hat folgende Felder, die individualisert werden k\u00f6nnen", "module.beteiligt.field-name.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-social.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
+"module.beteiligt.field-address.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-notes.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-deadline.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-total.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
+"module.beteiligt.field-price.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-placement.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-format.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-sujet.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an."};
 // Input 3
 var Repository = function() {
   this._repository = {};
@@ -1032,6 +1035,9 @@ ModuleEditableSelectItem.prototype.setOnTextChangeListener = function(a) {
   this._onTextChangeListener = a;
   return this;
 };
+ModuleEditableSelectItem.prototype.fireOnCreate = function() {
+  this._onTextChangeListener && this._onTextChangeListener(this.value, this.value);
+};
 ModuleEditableSelectItem.prototype.render = function() {
   var a = this, b = createByTemplate(template_settings_editable_select, template_settings_editable_select);
   b.getElementsByClassName("module-editable-select-container").forEach(function(b) {
@@ -1262,9 +1268,23 @@ BeteiligtBinding.prototype.onRegularLayout = function(a, b) {
   c.innerHTML = isMobileBrowser() ? template_regular_mobile : template_regular;
   c = c.cloneNode(!0);
   this._switchContent(a, c);
-  b.show && (c = {context:this._context, valueHolder:b, config:this._entity}, a.setField("name", this.document.newSingleLineInput(b, ".pa.name", "name", "Name", c, this._action, "eintippen\u2026", "text", !1)), a.setField("social", this.document.newSingleLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", c, this._action, "notieren\u2026")), a.setField("address", this.document.newMultiLineInput(b, ".pa.address", "address", "Adresse", c, this._action, 2, "festhalten\u2026")), a.setField("notes", 
-  this.document.newMultiLineInput(b, ".pa.notes", "notes", "Notiz", c, this._action, 6, "formulieren\u2026")), a.setField("duedate", this.document.newSingleLineInput(b, ".pa.duedate", "duedate", "Deadline", c, this._action, "bestimmen\u2026", "text", !1)), a.setField("fee", this.document.newSingleLineInput(b, ".pa.fee", "fee", "Honorar Massnahme", c, this._action, "Betrag\u2026", "money", !1)), a.setField("charges", this.document.newSingleLineInput(b, ".pa.charges", "charges", "Spesen Massnahme", 
-  c, this._action, "Betrag\u2026", "money", !1)), a.setField("project", this.document.newSingleLineInput(b, ".pa.project", "project", "Total Beteiligte", c, this._action, "Betrag\u2026", "money", !0).addClass("bold")), a.setField("capOnDepenses", this.document.newSingleLineInput(b, ".pa.cap_on_depenses", "capOnDepenses", "Kostendach Total Projekt", c, this._action, "Betrag\u2026", "money", !1)));
+  if (b.show) {
+    c = {context:this._context, valueHolder:b, config:this._entity};
+    var d = this.getLayoutConfigurationFor("regular", "field.name");
+    a.setField("name", this.document.newSingleLineInput(b, ".pa.name", "name", d.label, c, this._action, d.placeholder, "text", !1));
+    d = this.getLayoutConfigurationFor("regular", "field.social");
+    a.setField("social", this.document.newSingleLineInput(b, ".pa.social", "social", d.label, c, this._action, d.placeholder));
+    d = this.getLayoutConfigurationFor("regular", "field.address");
+    a.setField("address", this.document.newMultiLineInput(b, ".pa.address", "address", d.label, c, this._action, 2, d.placeholder));
+    d = this.getLayoutConfigurationFor("regular", "field.notes");
+    a.setField("notes", this.document.newMultiLineInput(b, ".pa.notes", "notes", d.label, c, this._action, 6, d.placeholder));
+    d = this.getLayoutConfigurationFor("regular", "field.deadline");
+    a.setField("duedate", this.document.newSingleLineInput(b, ".pa.duedate", "duedate", d.label, c, this._action, d.placeholder, "text", !1));
+    a.setField("fee", this.document.newSingleLineInput(b, ".pa.fee", "fee", "Honorar Massnahme", c, this._action, "Betrag\u2026", "money", !1));
+    a.setField("charges", this.document.newSingleLineInput(b, ".pa.charges", "charges", "Spesen Massnahme", c, this._action, "Betrag\u2026", "money", !1));
+    a.setField("project", this.document.newSingleLineInput(b, ".pa.project", "project", "Total Beteiligte", c, this._action, "Betrag\u2026", "money", !0).addClass("bold"));
+    a.setField("capOnDepenses", this.document.newSingleLineInput(b, ".pa.cap_on_depenses", "capOnDepenses", "Kostendach Total Projekt", c, this._action, "Betrag\u2026", "money", !1));
+  }
 };
 BeteiligtBinding.prototype.onAdLayout = function(a, b) {
   var c = this.document.createElement("div");
@@ -1272,14 +1292,22 @@ BeteiligtBinding.prototype.onAdLayout = function(a, b) {
   c = c.cloneNode(!0);
   this._switchContent(a, c);
   a = {context:this._context, valueHolder:b, config:this._entity};
-  this.document.newSingleLineInput(b, ".pa.name", "name", "Kontakt", a, this._action, "eintippen\u2026", "text", !1);
-  this.document.newSingleLineInput(b, ".pa.social", "social", "Telefon.Mail.Webseite", a, this._action, "notieren\u2026");
-  this.document.newMultiLineInput(b, ".pa.address", "address", "Adresse", a, this._action, 2, "eingeben\u2026");
-  this.document.newSingleLineInput(b, ".pa.format", "format", "Format", a, this._action, "festhalten\u2026", "text", !1);
-  this.document.newSingleLineInput(b, ".pa.placement", "placement", "Platzierung", a, this._action, "vormerken\u2026", "text", !1);
-  this.document.newMultiLineInput(b, ".pa.notes", "notes", "Kunde.Sujet", a, this._action, 2, "Name.Stichwort\u2026");
-  this.document.newSingleLineInput(b, ".pa.price", "price", "Preis CHF", a, this._action, "bestimmen\u2026", "money", !1);
-  this.document.newSingleLineInput(b, ".pa.total", "total", "Total CHF", a, this._action, "", "money", !0).addClass("bold");
+  c = this.getLayoutConfigurationFor("ad", "field.name");
+  this.document.newSingleLineInput(b, ".pa.name", "name", c.label, a, this._action, c.placeholder, "text", !1);
+  c = this.getLayoutConfigurationFor("ad", "field.social");
+  this.document.newSingleLineInput(b, ".pa.social", "social", c.label, a, this._action, c.placeholder);
+  c = this.getLayoutConfigurationFor("ad", "field.address");
+  this.document.newMultiLineInput(b, ".pa.address", "address", c.label, a, this._action, 2, c.placeholder);
+  c = this.getLayoutConfigurationFor("ad", "field.format");
+  this.document.newSingleLineInput(b, ".pa.format", "format", c.label, a, this._action, c.placeholder, "text", !1);
+  c = this.getLayoutConfigurationFor("ad", "field.placement");
+  this.document.newSingleLineInput(b, ".pa.placement", "placement", c.label, a, this._action, c.placeholder, "text", !1);
+  c = this.getLayoutConfigurationFor("ad", "field.sujet");
+  this.document.newMultiLineInput(b, ".pa.notes", "notes", c.label, a, this._action, 2, c.placeholder);
+  c = this.getLayoutConfigurationFor("ad", "field.price");
+  this.document.newSingleLineInput(b, ".pa.price", "price", c.label, a, this._action, c.placeholder, "money", !1);
+  c = this.getLayoutConfigurationFor("ad", "field.total");
+  this.document.newSingleLineInput(b, ".pa.total", "total", c.label, a, this._action, c.placeholder, "money", !0).addClass("bold");
 };
 BeteiligtBinding.prototype.doLabels = function() {
   var a = this;
@@ -1326,6 +1354,14 @@ BeteiligtBinding.prototype.leaveEditing = function() {
 };
 BeteiligtBinding.prototype.rememberFocus = function(a) {
   this._currentTabIndex = a.getTabIndex();
+};
+BeteiligtBinding.prototype.getLayoutConfigurationFor = function(a, b) {
+  var c = Object.keys(this._configuration.config.layouts).find(function(b) {
+    return b === a;
+  });
+  return this._configuration.config.layouts[c].fields.find(function(a) {
+    return a.id === b;
+  });
 };
 BeteiligtBinding.prototype.getConfigurationFor = function(a) {
   var b = this._configuration.config.editables.filter(function(b) {
@@ -1873,10 +1909,14 @@ $jscomp.global.Object.defineProperties(PluginRepository, {INSTANCE:{configurable
   "3. Stichwort", "4. Stichwort", "5. Stichwort"]}, {id:"field.a", desc:"module.artikel.field-a.desc", type:"text", label:"Thema", placeholder:"Lauftext", show:!1, sortable:!1, color:"shades"}, {id:"field.b", desc:"module.artikel.field-b.desc", type:"text", label:"Input von", placeholder:"Name", show:!1, sortable:!1, color:"shades"}, {id:"field.c", desc:"module.artikel.field-c.desc", type:"text", label:"Textautor*in", placeholder:"Name", show:!1, sortable:!1, color:"shades"}, {id:"field.d", desc:"module.artikel.field-d.desc", 
   type:"text", label:"Textbox", placeholder:"Lauftext", show:!1, sortable:!1, color:"shades"}]}), {id:1}), PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", "Beteiligt", {sort:3, enabled:!1, icon:"ic_beteiligt.png", desc:"module.beteiligt.desc", editables:[{id:"title", desc:"module.beteiligt.label.desc", type:"label", placeholder:"", label:"Beteiligt"}, {id:"onsite", desc:"module.beteiligt.layout.onsite", type:"layout", label:"Reiter 1", container:"pa.involved.onsite", layout:"regular", 
   show:!0}, {id:"text", desc:"module.beteiligt.layout.text", type:"layout", label:"Reiter 2", container:"pa.involved.text", layout:"regular", show:!0}, {id:"photo", desc:"module.beteiligt.layout.photo", type:"layout", label:"Reiter 3", container:"pa.involved.photo", layout:"regular", show:!0}, {id:"video", desc:"module.beteiligt.layout.video", type:"layout", label:"Reiter 4", container:"pa.involved.video", layout:"regular", show:!0}, {id:"illu", desc:"module.beteiligt.layout.illu", type:"layout", 
-  label:"Reiter 5", container:"pa.involved.illu", layout:"regular", show:!0}, {id:"ad", desc:"module.beteiligt.layout.ad", type:"layout", label:"Reiter 6", container:"pa.involved.ad", layout:"regular", show:!0}], layouts:{regular:{desc:"module.beteiligt.regular.desc", label:"Kontakt"}, ad:{desc:"module.beteiligt.special.desc", label:"Inserat"}}}), {id:2}), PluginRepository.instance.add(new PluginModuleConfig("module.plan", "Plan", {sort:2, enabled:!1, icon:"ic_plan.png", desc:"module.plan.desc", 
-  editables:[{id:"visual", desc:"module.plan.editable.desc", type:"select", label:"Visual", color:"blue", show:!1, sortable:!1, values:["Bild", "Icon", "Grafik", "Video", "Illu"]}, {id:"form", desc:"module.plan.editable.desc", type:"select", label:"Form", color:"green", show:!1, sortable:!1, values:["News", "Artikel", "Report"]}, {id:"online", desc:"module.plan.editable.desc", type:"select", label:"Online", color:"yellow", show:!1, sortable:!1, values:"Mo Di Mi Do Fr Sa So".split(" ")}, {id:"season", 
-  desc:"module.plan.editable.desc", type:"select", label:"Saison", color:"sky", show:!1, sortable:!1, values:["Sommer", "Herbst"]}, {id:"region", desc:"module.plan.editable.desc", type:"select", label:"Region", color:"lime", show:!1, sortable:!1, values:["Nord", "S\u00fcd"]}, {id:"place", desc:"module.plan.editable.desc", type:"select", label:"Ort", color:"orange", show:!1, sortable:!1, values:"CDS STO TAM WID Buech Rustico Schlatt".split(" ")}, {id:"field.a", desc:"module.plan.field-a.desc", type:"text", 
-  label:"Massnahmen", placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.b", desc:"module.plan.field-b.desc", type:"text", label:"Beschreibung", placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}]}), {id:3}));
+  label:"Reiter 5", container:"pa.involved.illu", layout:"regular", show:!0}, {id:"ad", desc:"module.beteiligt.layout.ad", type:"layout", label:"Reiter 6", container:"pa.involved.ad", layout:"regular", show:!0}], layouts:{regular:{desc:"module.beteiligt.regular.desc", label:"Kontakt", fields:[{id:"field.name", desc:"module.beteiligt.field-name.desc", type:"text", label:"Name", placeholder:"eintippen\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.social", desc:"module.beteiligt.field-social.desc", 
+  type:"text", label:"Telefon.Mail.Webseite", placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.address", desc:"module.beteiligt.field-address.desc", type:"text", label:"Adresse", placeholder:"festhalten\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.notes", desc:"module.beteiligt.field-notes.desc", type:"text", label:"Notizen", placeholder:"formulieren\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.deadline", desc:"module.beteiligt.field-deadline.desc", 
+  type:"text", label:"Deadline", placeholder:"bestimmen\u2026", show:!1, sortable:!1, color:"shades"}]}, ad:{desc:"module.beteiligt.special.desc", label:"Inserat", fields:[{id:"field.sujet", desc:"module.beteiligt.field-sujet.desc", type:"text", label:"Kunde.Sujet", placeholder:"Name.Stichwort\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.format", desc:"module.beteiligt.field-format.desc", type:"text", label:"Format", placeholder:"festhalten\u2026", show:!1, sortable:!1, color:"shades"}, 
+  {id:"field.placement", desc:"module.beteiligt.field-placement.desc", type:"text", label:"Platzierung", placeholder:"vormerken\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.price", desc:"module.beteiligt.field-price.desc", type:"text", label:"Preis CHF", placeholder:"bestimmen\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.total", desc:"module.beteiligt.field-total.desc", type:"text", label:"Total", placeholder:"", show:!1, sortable:!1, color:"shades"}, {id:"field.name", desc:"module.beteiligt.field-name.desc", 
+  type:"text", label:"Kontakt", placeholder:"eintippen\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.social", desc:"module.beteiligt.field-social.desc", type:"text", label:"Telefon.Mail.Webseite", placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.address", desc:"module.beteiligt.field-address.desc", type:"text", label:"Adresse", placeholder:"festhalten\u2026", show:!1, sortable:!1, color:"shades"}]}}}), {id:2}), PluginRepository.instance.add(new PluginModuleConfig("module.plan", 
+  "Plan", {sort:2, enabled:!1, icon:"ic_plan.png", desc:"module.plan.desc", editables:[{id:"visual", desc:"module.plan.editable.desc", type:"select", label:"Visual", color:"blue", show:!1, sortable:!1, values:["Bild", "Icon", "Grafik", "Video", "Illu"]}, {id:"form", desc:"module.plan.editable.desc", type:"select", label:"Form", color:"green", show:!1, sortable:!1, values:["News", "Artikel", "Report"]}, {id:"online", desc:"module.plan.editable.desc", type:"select", label:"Online", color:"yellow", 
+  show:!1, sortable:!1, values:"Mo Di Mi Do Fr Sa So".split(" ")}, {id:"season", desc:"module.plan.editable.desc", type:"select", label:"Saison", color:"sky", show:!1, sortable:!1, values:["Sommer", "Herbst"]}, {id:"region", desc:"module.plan.editable.desc", type:"select", label:"Region", color:"lime", show:!1, sortable:!1, values:["Nord", "S\u00fcd"]}, {id:"place", desc:"module.plan.editable.desc", type:"select", label:"Ort", color:"orange", show:!1, sortable:!1, values:"CDS STO TAM WID Buech Rustico Schlatt".split(" ")}, 
+  {id:"field.a", desc:"module.plan.field-a.desc", type:"text", label:"Massnahmen", placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.b", desc:"module.plan.field-b.desc", type:"text", label:"Beschreibung", placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}]}), {id:3}));
   return PluginRepository.instance;
 }}});
 PluginRepository.instance = null;
@@ -2179,9 +2219,7 @@ ModuleSettingsController.prototype.edit = function() {
       return b.id === a.editable;
     });
     a.document.getElementsByClassName("settings-content").forEach(function(d) {
-      var e = a.document.createElement("p");
-      e.innerHTML = __(c.desc);
-      d.appendChild(e);
+      a.renderEditableHint(d, c);
       a.renderEditableLabel(b, d, c, "Beschriftung");
       a.renderEditable(b, c, d);
     });
@@ -2229,13 +2267,43 @@ ModuleSettingsController.prototype.renderEditableLayout = function(a, b, c, d) {
     c.addOption(g);
     return c;
   }, new ModuleEditableSelectItem(b.layout));
-  d.setOnTextChangeListener(function(c, d) {
-    b.layout = d;
+  d.setOnTextChangeListener(function(d, f) {
+    b.layout = f;
+    switch(b.layout) {
+      case "regular":
+      case "ad":
+        e.renderLayoutForm(a, b.layout, c);
+        break;
+      default:
+        console.error("Unknown layout: ", b.layout);
+    }
     e.pluginController.setPluginModuleConfig(a).then(function() {
       console.log("Updated");
     });
   });
-  c.appendChild(d.render());
+  f = e.document.createElement("div");
+  c.appendChild(f);
+  f.appendChild(d.render());
+  d.fireOnCreate();
+};
+ModuleSettingsController.prototype.renderLayoutForm = function(a, b, c) {
+  var d = this, e = a.config.layouts[b];
+  this.createLayoutFormHolder(c).forEach(function(c) {
+    c.removeChildren();
+    var f = d.document.createElement("p");
+    f.innerHTML = __("module.beteiligt.layout-" + b + ".desc");
+    c.appendChild(f);
+    e.fields.forEach(function(b) {
+      d.renderEditableHint(c, b);
+      d.renderEditableLabel(a, c, b, "Beschriftung");
+      d.renderEditable(a, b, c);
+    });
+  });
+};
+ModuleSettingsController.prototype.createLayoutFormHolder = function(a) {
+  var b = this.document.getElementsByClassName("panta-js-layout-form");
+  0 === b.length && (b = [this.document.createElement("div").addClass("panta-js-layout-form")], a.append(b[0]));
+  return b;
 };
 ModuleSettingsController.prototype.renderEditableText = function(a, b, c, d) {
   var e = this, f = this.document.createElement("span");
@@ -2303,6 +2371,11 @@ ModuleSettingsController.prototype.renderEditableSelect = function(a, b, c, d) {
   });
   d.appendChild(f);
   c.appendChild(d);
+};
+ModuleSettingsController.prototype.renderEditableHint = function(a, b) {
+  var c = this.document.createElement("p");
+  c.innerHTML = __(b.desc);
+  a.appendChild(c);
 };
 ModuleSettingsController.prototype.renderEditableLabel = function(a, b, c, d) {
   var e = this, f = e.document.createElement("span");
