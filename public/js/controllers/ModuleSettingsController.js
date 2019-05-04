@@ -68,7 +68,7 @@ class ModuleSettingsController {
 
                     that.renderEditableHint(element, editable);
 
-                    that.renderEditableLabel(mc, element, editable, "Beschriftung");
+                    that.renderEditableLabel(mc, element, editable, editable.title || "Beschriftung");
 
                     that.renderEditable(mc, editable, element);
                 });
@@ -131,7 +131,7 @@ class ModuleSettingsController {
      */
     renderEditableLayout(mc, editable, element, label) {
         let that = this;
-        let group = this.document.createElement("p");
+        let group = this.document.createElement("span");
         group.innerHTML = "<strong>" + label + "</strong>";
         element.appendChild(group);
 
@@ -197,7 +197,6 @@ class ModuleSettingsController {
             holder.appendChild(hint);
 
             layoutConfig.fields.forEach(function(field) {
-                that.renderEditableHint(holder, field);
                 that.renderEditableLabel(mc, holder, field, "Beschriftung");
                 that.renderEditable(mc, field, holder);
             });
@@ -284,16 +283,6 @@ class ModuleSettingsController {
                 });
         });
         element.appendChild(sorter.render());
-
-        let active = new SwitchItem(that.document, "Aktiv", editable.active)
-        active.setOnActivationListener(function(previous, updated) {
-            editable.active = updated;
-            return that.pluginController.setPluginModuleConfig(mc)
-                .then(function() {
-                    return updated;
-                });
-        });
-        element.appendChild(active.render());
 
         that.nl(element);
 
@@ -432,9 +421,7 @@ class ModuleSettingsController {
                 header.innerHTML = "<strong>Module</strong>";
 
                 let hint = that.document.createElement("p");
-                hint.innerHTML = "Folgende Module sind für dieses Board verfügbar. " +
-                    "Sobald mindestens ein Modul aktiviert ist, wird dieses Modul in " +
-                    "der Trello Card dargestellt.";
+                hint.innerHTML =  __("module.settings.hint");
 
                 element.appendChild(hint);
                 element.appendChild(header);

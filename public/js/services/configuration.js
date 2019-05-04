@@ -5,28 +5,53 @@ const PLUGIN_CONFIGURATION = {
 };
 
 const TEXTS = {
-    'module.artikel.desc': "Die Eingabefelder und Auswahllisten werden für das ganze Trello Board konfiguriert. Für jedes Feld kann eine Farbe definiert werden. Wenn das Feld " +
-    "mit dem «Gutzeichen» aktiviert wird, dann erscheint es in dieser Farbe auf der Trello Card Vorderseite, ansonsten wird es nur für die Trello Card Rückseite " +
-    "verwendet.",
 
-    'module.artikel.editable.desc': "Definieren Sie die Auswahlliste, die für das ganze Board gilt. Bitte beachten Sie, dass maximal nur vier Auswahllisten sortierbar sein können.",
-    'module.artikel.field-a.desc': "Das Artikelfeld «A» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
-    'module.artikel.field-b.desc': "Das Artikelfeld «B» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
-    'module.artikel.field-c.desc': "Das Artikelfeld «C» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
-    'module.artikel.field-d.desc': "Das Artikelfeld «D» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+    "module.settings.hint": "Folgende MODULE sind für dieses BOARD verfügbar:<br/>" +
+        "Sobald mindestens ein MODUL aktiviert ist, wird dieses in jeder CARD auf dem BOARD dargestellt.",
 
-    'module.beteiligt.desc': "Folgende Felder können individuell konfiguriert werden. Mit dem «Gutzeichen» kann das Feld sichtbar gemacht werden.",
-    'module.beteiligt.label.desc': "Diese Beschriftung wird oberhalb des Moduls als Überschrift verwendet.",
+    'module.artikel.desc': "ARTIKEL-Eingabefelder und LISTEN für dieses BOARD konfigurieren:<br/>" +
+        "Für jedes Feld kann eine Farbe definiert werden.<br/>" +
+        "Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf der CARD Vorderseite – ansonsten wird es nur auf der CARD Innenseite dargestellt.",
 
-    'module.beteiligt.layout.onsite': "Das Layout wird für das Tab «vor.Ort» verwendet",
-    'module.beteiligt.layout.text': "Das Layout wird für das Tab «Journalist» verwendet",
+    'module.artikel.editable.desc': "Beschriftung und Stichworte der maximal sechs LISTEN definieren:<br/>" +
+        "Die Reihenfolge der Stichwort muss fix erfasst werden.<br/>" +
+        "Die Zahl der Stichwort ist NICHT begrenzt.<br/>" +
+        "Maximal vier der sechs LISTEN lassen sich sortieren.<br/>" +
+        "LISTEN ohne Beschriftung werden auf der CARD nicht dargestellt.",
+
+    'module.artikel.field-a.desc': "Das Textfeld «A» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
+    'module.artikel.field-b.desc': "Das Textfeld «B» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
+    'module.artikel.field-c.desc': "Das Textfeld «C» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
+    'module.artikel.field-d.desc': "Das Textfeld «D» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
+
+    'module.beteiligt.desc': "BETEILIGT kann als Ergänzung zum ARTIKEL oder PLAN aktiviert werden.<br/>" +
+        "Hier die Eingabefelder und LISTEN für das ganze BOARD konfigurieren:",
+    'module.beteiligt.label.desc': "Dieser Titel wird oberhalb des Modul BETEILIGT auf jeder CARD sichtbar.",
+
+    'module.beteiligt.layout.onsite': "TAB-Titel tippen und LAYOUT auswählen.",
+    'module.beteiligt.layout.text': "TAB-Titel tippen und LAYOUT auswählen.",
+    'module.beteiligt.layout.photo': "TAB-Titel tippen und LAYOUT auswählen.",
+    'module.beteiligt.layout.video': "TAB-Titel tippen und LAYOUT auswählen.",
+    'module.beteiligt.layout.illu': "TAB-Titel tippen und LAYOUT auswählen.",
+    'module.beteiligt.layout.ad': "TAB-Titel tippen und LAYOUT auswählen.",
+
     'module.beteiligt.regular.desc': "Standard-Layout",
     'module.beteiligt.special.desc': "Spezial-Layout",
 
-    'module.plan.desc': "Folgende Felder können individuell konfiguriert werden.",
-    'module.plan.editable.desc': "Definieren Sie die Auswahlliste, die für das ganze Board gilt. Bitte beachten Sie, dass maximal nur vier Auswahllisten sortierbar sein können.",
-    'module.plan.field-a.desc': "Das Feld «A» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
-    'module.plan.field-b.desc': "Das Feld «B» ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+    'module.plan.desc': "PLAN-Eingabefelder und Auswahllisten für das BOARD konfigurieren:<br/>" +
+        "Für jedes Feld kann eine Farbe definiert werden.<br/>" +
+        "Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf " +
+        "der CARD Vorderseite – ansonsten wird es nur auf der CARD " +
+        "Innenseite dargestellt.",
+
+    'module.plan.editable.desc': "Beschriftung und Stichworte der maximal sechs LISTEN definieren:<br/>" +
+        "Die Reihenfolge der Stichwort muss fix erfasst werden.<br/>" +
+        "Die Zahl der Stichwort ist NICHT begrenzt.<br/>" +
+        "Maximal vier der sechs LISTEN lassen sich sortieren.<br/>" +
+        "LISTEN ohne Beschriftung werden auf der CARD nicht dargestellt.",
+
+    'module.plan.field-a.desc': "Das Textfeld «A» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
+    'module.plan.field-b.desc': "Das Textfeld «B» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
 
     "module.beteiligt.layout-regular.desc": "Das Kontakt-Formular hat folgende Felder, die individualisert werden können",
     "module.beteiligt.layout-ad.desc": "Das Inserat-Formular hat folgende Felder, die individualisert werden können",

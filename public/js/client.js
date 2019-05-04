@@ -3,7 +3,7 @@ TrelloPowerUp.initialize({
     'card-buttons': function (t, options) {
         return [{
             icon: './assets/ic_pantarhei.png',
-            text: 'Panta Einstellungen',
+            text: 'Panta.Card.Setup',
             callback: function (t) {
                 console.log("open settings...");
                 return t.member('all')
