@@ -1671,7 +1671,7 @@ var PluginController = function(a, b) {
   this._window = b;
   this._trelloApi = a;
   this._upgrading = !1;
-  this._upgrades = {1:this._upgrade_1};
+  this._upgrades = {1:this._upgrade_1, 2:this._upgrade_2};
   this._repository = PluginRepository.INSTANCE;
 };
 PluginController.getInstance = function(a, b) {
@@ -1740,6 +1740,9 @@ PluginController.prototype._upgrade_1 = function() {
     return !0;
   });
 };
+PluginController.prototype._upgrade_2 = function() {
+  return Promise.resolve(!0);
+};
 PluginController.prototype._upgradeAllArticleToModuleConfig = function(a, b) {
   this._upgradeArticleToModuleConfig.call(this, a, b, Object.entries(a.list()), 0);
 };
@@ -1764,7 +1767,7 @@ $jscomp.global.Object.defineProperties(PluginController.prototype, {upgrading:{c
   return this._upgrading;
 }}});
 $jscomp.global.Object.defineProperties(PluginController, {VERSION:{configurable:!0, enumerable:!0, get:function() {
-  return 2;
+  return 3;
 }}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.App";
 }}, CONFIGURATION_NAME:{configurable:!0, enumerable:!0, get:function() {
