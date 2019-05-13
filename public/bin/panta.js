@@ -1482,7 +1482,10 @@ ModulePlanController.prototype.persist = function(a, b) {
   return this._trello.set(b || "card", "shared", ModulePlanController.SHARED_NAME, a);
 };
 ModulePlanController.prototype.remove = function() {
-  return this._trello.remove("board", "shared", ModulePlanController.SHARED_NAME);
+  var a = this;
+  return this._trello.remove("board", "shared", ModulePlanController.SHARED_NAME).then(function() {
+    return a._trello.remove("board", "shared", ModulePlanController.PROPERTY_BAG_NAME);
+  });
 };
 ModulePlanController.prototype._onChange = function(a) {
   a.setProperty();
@@ -1942,6 +1945,8 @@ ClientManager.assertClientManager = function(a, b, c) {
 ClientManager.getOrCreateClientManager = function(a, b, c) {
   a.hasOwnProperty("clientManager") || (a.clientManager = new ClientManager(a, b, c), a.addEventListener("beforeunload", function(a) {
     a.target.defaultView instanceof Window && a.target.defaultView.clientManager && (a.target.defaultView.clientManager.onUnload(), delete a.target.defaultView.clientManager);
+  }), a.addEventListener("keypress", function(b) {
+    127 === b.keyCode ? a.clientManager.flushKeyBuffer.call(a.clientManager) : 13 === b.keyCode || 10 === b.keyCode ? "remove" === a.clientManager.readKeyBuffer.call(a.clientManager) && (a.clientManager.removePluginData.call(a.clientManager), a.clientManager.flushKeyBuffer.call(a.clientManager)) : a.clientManager.appendKeyBuffer.call(a.clientManager, b.key);
   }));
   return a.clientManager;
 };
@@ -2203,15 +2208,16 @@ ClientManager.prototype.sortOnSelect = function(a, b, c, d) {
   })};
 };
 // Input 23
-var ModuleSettingsController = function(a, b, c, d, e) {
+var ModuleSettingsController = function(a, b, c, d, e, f) {
   this.trello = a;
   this.pluginController = b;
   this.module = c;
   this.document = e;
   this.editable = d;
+  this.clientManager = f;
 };
-ModuleSettingsController.create = function(a, b, c, d, e) {
-  return new ModuleSettingsController(a, b, c, d, e);
+ModuleSettingsController.create = function(a, b, c, d, e, f) {
+  return new ModuleSettingsController(a, b, c, d, e, f);
 };
 ModuleSettingsController.prototype.render = function(a) {
   this.clearContent();
@@ -2414,6 +2420,7 @@ ModuleSettingsController.prototype.index = function(a) {
   var b = this;
   a instanceof PluginConfiguration && (this.document.getElementsByClassName("plugin-version").forEach(function(c) {
     c.setEventListener("click", function() {
+      b.clientManager.removePluginData();
       b.trello.remove("board", "shared", PluginController.CONFIGURATION_NAME);
     });
     c.innerHTML = a.version;

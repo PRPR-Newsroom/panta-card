@@ -206,7 +206,11 @@ class ModulePlanController extends Controller {
     }
 
     remove() {
-        return this._trello.remove('board', 'shared', ModulePlanController.SHARED_NAME);
+        let that = this;
+        return this._trello.remove('board', 'shared', ModulePlanController.SHARED_NAME)
+            .then(function() {
+                return that._trello.remove('board', 'shared', ModulePlanController.PROPERTY_BAG_NAME);
+            });
     }
 
     _onChange(source) {

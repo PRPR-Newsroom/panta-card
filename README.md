@@ -1,32 +1,22 @@
 # Panta.Card Power-Up
 
-Dieses Panta.Card Power-Up umfasst beide Module:
+Das Panta.Card Power-Up umfasst folgende Module:
 
 * Panta.Artikel
+* Panta.Plan
 * Panta.Beteiligt
 
-Zukünftig wird es noch ein weiteres Modul geben "M-PR-Plan".
-
-Da nicht jede Agentur/Projekt die gleichen Module braucht, wird es mehrere Power-Up
-Projekte geben, die dann die entsprechenden Module konfiguriert haben, d.h. bspw. ein
-Power-Up mit nur dem Modul "Panta.Artikel" oder ein Power-Up mit den Modulen
-"Panta.M-PR-Plan" und "Panta.Beteiligt". Zusätzlich werden wahrscheinlich noch weitere
-Module dazukommen, wenn es weitere Projekte/Kunden gibt.
+Pro Trello Board werden die Module konfiguriert. 
 
 ## Source-Code
 
-Auf GitHub wird der Source-Code des Power-Ups versioniert.
+Auf GitHub wird der Source-Code des Power-Ups versioniert. 
 
-### Sub-Modules
-
-Für diese Modul-Zusammenstellung kann evtl. die Git "Sub-Module" Funktionalität
-verwendet werden. Damit lassen sich Basis-Module in mehrere Projekten (hier Power-Ups)
-einbinden, wodurch Änderungen nur an einer Stelle gemacht werden können und alle
-Projekte, die das Modul einbinden, profitieren von diesen Änderungen.
+Der Besitzer ist PRPR-Newsroom: https://github.com/PRPR-Newsroom/panta-card
 
 ## CodeSandbox
 
-Da GitHub seinen Dienst ([RawGit](https://rawgit.com/)) seit kurzen eingestellt hat, wird
+Da GitHub seinen Dienst ([RawGit](https://rawgit.com/)) seit 2018/2019 eingestellt hat, wird
 CodeSandbox für das Bereitstellen des Power-Ups verwendet.
 
 Um das Projekt in CodeSandbox zu importieren, einfach den GitHub Repository Link auf der
@@ -60,7 +50,7 @@ oben aufgezeigt konfigurieren.
 
 ## Power-Up einschalten
 
-Sobald das Power-Up für ein Team konfiguriert ist, kann es in den Board aktiviert
+Sobald das Power-Up für ein Team konfiguriert ist, kann es in den Boards aktiviert
 werden.
 
 ![Trello Power-Up](docs/trello-powerup.png)
@@ -68,3 +58,16 @@ werden.
 Nachdem das Power-Up aktiviert wurde, erscheint es in den Trello Cards.
 
 ![Trello Panta.Card](docs/trello_panta-card.png)
+
+## Panta.Card Konfiguration
+
+Für jedes Trello Board können die drei Module konfiguriert werden. Um das Power-Up zu konfigurieren, muss zunächst eine Trello Card
+erstellt und geöffnet werden. In der Trello Card gibt's auf der rechten Seite ein Button "Panta.Card.Setup". Als Administrator des Power-Ups
+wird beim Klick auf den Knopf folgende Seite geladen:
+
+![Trello Panta.Card Settings](docs/1-settings.png)
+
+Das entsprechende Modul kann mit der Checkbox (rundes Kästchen) (de-)aktiviert werden. Wenn auf den Modul-Namen
+geklickt wird, dann wird die Modul-Konfiguration geöffnet.
+
+Die Konfigurations-Möglichkeiten werden in den einzelnen Seiten erklärt.

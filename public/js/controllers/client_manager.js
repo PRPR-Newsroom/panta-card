@@ -25,23 +25,24 @@ class ClientManager {
             windowManager.addEventListener('beforeunload', function (e) {
                 if (e.target.defaultView instanceof Window && e.target.defaultView.clientManager) {
                     e.target.defaultView.clientManager.onUnload();
+                    // TODO check this error/warning
                     delete e.target.defaultView.clientManager;
                 }
             });
-            // windowManager.addEventListener('keypress', function (e) {
-            //     if (e.keyCode === 127) {
-            //         // delete
-            //         windowManager.clientManager.flushKeyBuffer.call(windowManager.clientManager);
-            //     } else if (e.keyCode === 13 || e.keyCode === 10) {
-            //         let buffer = windowManager.clientManager.readKeyBuffer.call(windowManager.clientManager);
-            //         if (buffer === 'remove') {
-            //             windowManager.clientManager.removePluginData.call(windowManager.clientManager);
-            //             windowManager.clientManager.flushKeyBuffer.call(windowManager.clientManager);
-            //         }
-            //     } else {
-            //         windowManager.clientManager.appendKeyBuffer.call(windowManager.clientManager, e.key);
-            //     }
-            // })
+            windowManager.addEventListener('keypress', function (e) {
+                if (e.keyCode === 127) {
+                    // delete
+                    windowManager.clientManager.flushKeyBuffer.call(windowManager.clientManager);
+                } else if (e.keyCode === 13 || e.keyCode === 10) {
+                    let buffer = windowManager.clientManager.readKeyBuffer.call(windowManager.clientManager);
+                    if (buffer === 'remove') {
+                        windowManager.clientManager.removePluginData.call(windowManager.clientManager);
+                        windowManager.clientManager.flushKeyBuffer.call(windowManager.clientManager);
+                    }
+                } else {
+                    windowManager.clientManager.appendKeyBuffer.call(windowManager.clientManager, e.key);
+                }
+            })
         }
         return windowManager.clientManager;
     }

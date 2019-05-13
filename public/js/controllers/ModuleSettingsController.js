@@ -6,10 +6,11 @@ class ModuleSettingsController {
      * @param module
      * @param editable
      * @param document
+     * @param {ClientManager} clientManager
      * @returns {ModuleSettingsController}
      */
-    static create(trello, pluginController, module, editable, document) {
-        return new ModuleSettingsController(trello, pluginController, module, editable, document);
+    static create(trello, pluginController, module, editable, document, clientManager) {
+        return new ModuleSettingsController(trello, pluginController, module, editable, document, clientManager);
     }
 
     /**
@@ -19,9 +20,10 @@ class ModuleSettingsController {
      * @param module
      * @param editable
      * @param document
+     * @param {ClientManager} clientManager
      * @private
      */
-    constructor(trello, pluginController, module, editable, document) {
+    constructor(trello, pluginController, module, editable, document, clientManager) {
         this.trello = trello;
         /**
          * @type PluginController
@@ -34,6 +36,7 @@ class ModuleSettingsController {
          */
         this.document = document;
         this.editable = editable;
+        this.clientManager = clientManager;
     }
 
     /**
@@ -405,6 +408,7 @@ class ModuleSettingsController {
         if (config instanceof PluginConfiguration) {
             this.document.getElementsByClassName("plugin-version").forEach(function (element) {
                 element.setEventListener('click', function () {
+                    that.clientManager.removePluginData();
                     that.trello.remove('board', 'shared', PluginController.CONFIGURATION_NAME);
                 });
                 element.innerHTML = config.version;

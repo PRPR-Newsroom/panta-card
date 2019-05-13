@@ -5,10 +5,8 @@ TrelloPowerUp.initialize({
             icon: './assets/ic_pantarhei.png',
             text: 'Panta.Card.Setup',
             callback: function (t) {
-                console.log("open settings...");
                 return t.member('all')
                     .then(function(member) {
-                        console.log(JSON.stringify(member));
                         if (POWERUP_ADMINS.find(function(admin) { return member.username === admin; } )) {
                             return t.popup({
                                 title: "Einstellungen",

@@ -1,13 +1,14 @@
+let clientManager = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION);
 /**
  * @type {PluginController}
  */
-let pluginController = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION).init().getPluginController();
+let pluginController = clientManager.init().getPluginController();
 
 t.render(function () {
 
     return pluginController.getPluginConfiguration()
         .then(function (data) {
-            let moduleSettingsController = ModuleSettingsController.create(t, pluginController, t.arg("module"), t.arg("editable"), document);
+            let moduleSettingsController = ModuleSettingsController.create(t, pluginController, t.arg("module"), t.arg("editable"), document, clientManager);
 
             return moduleSettingsController.render.call(moduleSettingsController, data)
                 .then(function() {
