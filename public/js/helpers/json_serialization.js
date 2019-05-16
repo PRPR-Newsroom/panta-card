@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * Serializes/Deserializes the entities using a JSON representation
  */
@@ -39,7 +41,11 @@ class JsonSerialization {
     }
 
     static getProperty(json, propertyName) {
-        return json[JsonSerialization.denomalize(propertyName)];
+        if (json) {
+            return json[JsonSerialization.denomalize(propertyName)];
+        } else {
+            return null;
+        }
     }
 
     getAllProperties(obj) {

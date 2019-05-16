@@ -1,34 +1,11 @@
-class ArtikelRepository {
+class ArtikelRepository extends Repository {
 
     constructor() {
-        this._repository = {};
-
-        this._contains = function(artikel) {
-            return function(value, index) {
-                return value.id === artikel.id;
-            }
-        };
-    }
-
-    /**
-     * Get all artikels
-     * @returns {{}}
-     */
-    all() {
-        return this._repository;
+        super();
     }
 
     add(artikel, card) {
-        this._repository[card.id] = artikel;
-        console.debug("Artikel added: " + artikel.id + " (size=" + this._repository.length + ")");
-    }
-
-    replace(artikel, card) {
-        this._repository[card.id] = artikel;
-    }
-
-    get(card) {
-        return this._repository[card.id];
+        super.add(artikel, card);
     }
 
     /**

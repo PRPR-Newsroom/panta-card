@@ -1,0 +1,107 @@
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+[class*=col-] {
+  float: left;
+  padding: 0px;
+  border: 0px solid red;
+}
+[class*=col-] textarea {
+  height: 26px;
+}
+
+[class*=col-]::after {
+  content: "";
+}
+
+.field {
+  padding: 2px;
+}
+
+.row {
+  max-width: 500px;
+}
+
+.row::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+form .line-phone-1 textarea.u-border {
+  height: 26px;
+}
+form .line-phone-2 textarea.u-border {
+  height: 44px;
+}
+form .line-phone-3 textarea.u-border {
+  height: 62px;
+}
+form .line-phone-4 textarea.u-border {
+  height: 80px;
+}
+form .line-phone-5 textarea.u-border {
+  height: 98px;
+}
+form .line-phone-6 textarea.u-border {
+  height: 116px;
+}
+form .line-phone-7 textarea {
+  height: 134px;
+}
+form .line-phone-8 textarea {
+  height: 152px;
+}
+
+.col-phone-1 {
+  width: 8.33%;
+}
+
+.col-phone-2 {
+  width: 16.66%;
+}
+
+.col-phone-3 {
+  width: 25%;
+}
+
+.col-phone-4 {
+  width: 33.33%;
+}
+
+.col-phone-5 {
+  width: 41.66%;
+}
+
+.col-phone-6 {
+  width: 50%;
+}
+
+.col-phone-7 {
+  width: 58.33%;
+}
+
+.col-phone-8 {
+  width: 66.66%;
+}
+
+.col-phone-9 {
+  width: 75%;
+}
+
+.col-phone-10 {
+  width: 83.33%;
+}
+
+.col-phone-11 {
+  width: 91.66%;
+}
+
+.col-phone-12 {
+  width: 100%;
+}
+
+/*# sourceMappingURL=grid.mobile.phone.css.map */

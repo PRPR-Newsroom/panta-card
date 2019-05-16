@@ -1,0 +1,94 @@
+@import "variables";
+
+/* Customize the label (the container) */
+.panta-checkbox-container {
+  width: 100%;
+  height: 100%;
+  display: block;
+  position: relative;
+  cursor: pointer;
+  font-size: 22px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+}
+
+/* Hide the browser's default checkbox */
+.panta-checkbox-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Create a custom checkbox */
+.panta-checkbox-checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: transparent;
+
+  &.elevate {
+    border-radius: 100%;
+    border: 1px solid $border-color;
+  }
+}
+
+/* On mouse-over, add a grey background color */
+.panta-checkbox-container:hover input ~ .panta-checkbox-checkmark:after {
+  border-color: lighten($color-active, 30%);
+}
+
+/* When the checkbox is checked, add a blue background */
+.panta-checkbox-container input:checked ~ .panta-checkbox-checkmark:after {
+  border-color: $color-active;
+}
+
+.panta-checkbox-container:hover input:checked ~ .panta-checkbox-checkmark:after {
+  border-color: lighten($color-active, 30%);
+}
+
+/* Create the checkmark/indicator (hidden when not checked) */
+.panta-checkbox-checkmark:after {
+  content: "";
+  position: absolute;
+}
+
+/* Show the checkmark when checked */
+.panta-checkbox-container input:checked ~ .panta-checkbox-checkmark:after {
+  display: block;
+}
+
+.panta-checkbox-container {
+
+  .elevate {
+    &.panta-checkbox-checkmark:after {
+      border: solid lighten($color-active, 40%);
+      border-width: 0 2px 2px 0;
+    }
+  }
+
+  .panta-checkbox-checkmark:after {
+    border: solid transparent;
+    border-width: 0 2px 2px 0;
+  }
+}
+
+/* Style the checkmark/indicator */
+.panta-checkbox-container .panta-checkbox-checkmark:after {
+  width: 25%;
+  height: 50%;
+  left: 30%;
+  top: 10%;
+  display: block;
+  border-width: 0 2px 2px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+

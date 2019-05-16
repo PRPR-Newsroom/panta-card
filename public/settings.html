@@ -1,12 +1,35 @@
 <html>
-  <head>
+<head>
     <link rel="stylesheet" href="https://p.trellocdn.com/power-up.min.css">
-    <script src="https://p.trellocdn.com/power-up.min.js"></script>
-  </head>
-  <body>
-    <div id="content">
-      <p>Hier könnte man dann die panta.Card mit benutzerdefinierten Feldern definieren</p>
-    </div>
-    <script src="/js/settings.js" />
-  </body>
+    <link rel="stylesheet" href="css/panta.commons.css"/>
+    <link rel="stylesheet" href="css/panta.settings.css"/>
+    <link rel="stylesheet" href="css/panta.custom.checkbox.css"/>
+    <link rel="stylesheet" href="css/panta.custom.button.css"/>
+    <link rel="stylesheet" href="css/panta.colors.css"/>
+    <link rel="stylesheet" href="css/firefox.css"/>
+    <link rel="stylesheet" href="css/chrome.css"/>
+</head>
+<body>
+<div id="content" style="min-height: 200px">
+    <form>
+        <div class="row hidden">
+            <div class="col-12 line-2">
+                <p class="plugin-description editable"></p>
+            </div>
+        </div>
+
+    </form>
+
+    <span class="settings-content"></span>
+
+    <br/>
+    <small class="plugin-version-container">Version: <span class="plugin-version"/></small>
+</div>
+
+<script src="https://p.trellocdn.com/power-up.min.js"></script>
+<script src="libs/lz-string.min.js"></script>
+<script src="bin/panta.js"></script>
+<script src="js/views/head.js"></script>
+<script src="js/settings.js"></script>
+</body>
 </html>

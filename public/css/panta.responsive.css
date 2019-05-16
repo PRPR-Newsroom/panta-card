@@ -2,6 +2,12 @@ html, body {
     overflow-y: auto;
 }
 
+form textarea {
+    /* We need to override the Trello default */
+    min-height: 26px;
+    padding-bottom: 2px;
+}
+
 form label.focused-fix {
     border-color: #798d99;
 }
@@ -14,70 +20,11 @@ form label.focused:not(.prop-select) {
     border-color: #a5acb0;
 }
 
-form label {
-    border-radius: 3px 3px 0 0;
-    background: rgba(0, 0, 0, .03);
-    margin-bottom: 0;
-    padding: 0 0 0 0.45em;
-    border-left: 1px solid #798d99;
-    border-right: 1px solid #798d99;
-    border-top: 1px solid #798d99;
-    border-bottom: 0;
-    color: #B2B3B3;
-    font-weight: normal;
-}
-
-form .u-border:not(.padding-fix) {
-    height: 40px;
-}
-
-form .u-border, form .u-border:focus {
-    border-top: none;
-    overflow: auto;
-    outline: none;
-    outline: 0 !important;
-    border-radius: 0 0 3px 3px;
-    background: rgba(0, 0, 0, .03);
-    padding-top: 0;
-
-    -webkit-appearance: none;
-    -webkit-box-shadow: none;
-    -moz-box-shadow: none;
-    box-shadow: none !important;
-    min-height: 36px;
-    margin-bottom: 4px;
-}
-
-form select.u-border, form select.u-border:focus {
-    margin: 0 0 5px 0;
-    background: rgba(0, 0, 0, .03);
-    border-top: 0;
-    border-left: 1px solid #798d99;
-    border-right: 1px solid #798d99;
-    border-bottom: 1px solid #798d99;
-    outline: none;
-
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-
-    -moz-appearance: none;
-    -webkit-appearance: none;
-    appearance: none;
-
-    padding: .5em;
-    line-height: 1.3;
-}
-
-.padding-fix {
+.rows-2 {
     padding-bottom: 8px;
 }
 
-.field {
-    min-height: 60px;
-}
-
 .field * {
-    line-height: 1.1;
+    line-height: 18px;
 }
 

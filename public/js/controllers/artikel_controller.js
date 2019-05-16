@@ -2,7 +2,7 @@
  * Controller of artikels that let you manage multiple artikels
  *
  */
-class ArtikelController {
+class ArtikelController extends Controller {
 
     /**
      * The app version
@@ -28,35 +28,50 @@ class ArtikelController {
         return "panta.Meta";
     }
 
-    constructor(document, trelloApi) {
+    /**
+     * Get the singleton controller
+     *
+     * @param trelloApi the Trello API
+     * @param windowManager
+     * @returns {ArtikelController}
+     */
+    static getInstance(trelloApi, windowManager, telephone) {
+        if (!windowManager.hasOwnProperty('articleController')) {
+            windowManager.articleController = new ArtikelController(
+                windowManager,
+                trelloApi,
+                DI.getInstance().getArticleRepository(),
+                telephone
+            );
+        }
+        return windowManager.articleController;
+    }
+
+    /**
+     * @param windowManager
+     * @param trelloApi
+     * @param {Repository} repository
+     * @param telephone
+     */
+    constructor(windowManager, trelloApi, repository, telephone) {
+        super(windowManager, repository);
         /**
          * @type {HTMLDocument}
          */
-        this.document = document;
+        this.document = windowManager.document;
+
         this.trelloApi = trelloApi;
         /**
          * @type {Artikel}
          * @private
          */
-        this._artikel = null;
+        this._entity = null;
 
         /**
-         * @type {ArtikelBinding}
-         * @private
+         * The telephone to the client manager
+         * @type {MessagePort}
          */
-        this._artikelBinding = null;
-
-        /**
-         * @type {BeteiligtBinding}
-         * @private
-         */
-        this._beteiligtBinding = null;
-
-        /**
-         * @type {ArtikelRepository}
-         * @private
-         */
-        this._repository = new ArtikelRepository();
+        this._telephone = telephone;
 
         this.setVersionInfo();
     }
@@ -79,53 +94,77 @@ class ArtikelController {
         }
     }
 
+    create(json) {
+        return Artikel.create(json);
+    }
+
+// /**
+    //  * Insert the passed artikel into the repository and associates it with the given card
+    //  * @param {Artikel} artikel
+    //  * @param {{id: number}} card
+    //  */
+    // insert(artikel, card) {
+    //     if (artikel && this._repository.isNew(artikel)) {
+    //         this._repository.add(artikel, card);
+    //     } else if (artikel) {
+    //         this._repository.replace(artikel, card);
+    //     }
+    // }
+
     /**
-     * Insert the passed artikel into the repository and associates it with the given card
-     * @param {Artikel} artikel
-     * @param {Trello.Card} card
+     * Get a property value by its name
+     * @param {Artikel|Plan|ModuleConfig} entity
+     * @param name
+     * @param defaultValue
+     * @return {*}
      */
-    insert(artikel, card) {
-        if (artikel && this._repository.isNew(artikel)) {
-            this._repository.add(artikel);
-        } else if (artikel) {
-            this._repository.replace(artikel, card);
+    getPropertyByName(entity, name, defaultValue) {
+        switch (name) {
+            case "visual":
+                return entity.visual || defaultValue;
+            case "form":
+                return entity.form || defaultValue;
+            case "online":
+                return entity.tags || defaultValue;
+            case "season":
+                return entity.season || defaultValue;
+            case "region":
+                return entity.region || defaultValue;
+            case "place":
+                return entity.location || defaultValue;
+            case "field.a":
+                return entity.from || defaultValue;
+            case "field.b":
+                return entity.author || defaultValue;
+            case "field.c":
+                return entity.text || defaultValue;
+            default:
+                if (entity.hasOwnProperty(name)) {
+                    return entity[name];
+                } else {
+                    return entity[name];
+                }
         }
     }
 
     /**
-     * Get the artikel for the passed trello card
-     * @param card
-     * @returns {*}
+     * Fetch all articles from Trello
      */
-    getByCard(card) {
-        return this._repository.get(card);
-    }
-
-    /**
-     * Check if the artikel is empty or not. It will return true if the artikel (without the involvement part) has some content otherwise false
-     *
-     * @param {Artikel} artikel
-     */
-    hasArtikelContent(artikel) {
-        return !artikel.isEmpty()
-    }
-
-    /**
-     * Get the region mapping in german
-     * @param region
-     * @returns {string|*}
-     */
-    getRegionMapping(region) {
-        return ArtikelBinding.getRegionMapping(region);
-    }
-
-    /**
-     * Get the human readable name of that 'tag' (german)
-     * @param tag
-     * @returns {string|*}
-     */
-    getTagMapping(tag) {
-        return ArtikelBinding.getTagMapping(tag);
+    fetchAll() {
+        let that = this;
+        return this.trelloApi.cards('id', 'closed')
+            .filter(function (card) {
+                return !card.closed;
+            })
+            .each(function (card) {
+                return that.trelloApi.get(card.id, 'shared', ArtikelController.SHARED_NAME)
+                    .then(function (json) {
+                        that.insert(Artikel.create(json), card);
+                    });
+            })
+            .then(function () {
+                console.log("Fetch complete: " + that.size() + " article(s) to process");
+            })
     }
 
     /**
@@ -167,30 +206,17 @@ class ArtikelController {
      * Called when the artikel has changed and the controller should re-compute dynamic properties (totals)
      */
     update() {
-        // calc total
-        this._artikel.total = this.getTotalPageCount();
-
-        // calc price in involved
-        this._artikel.getInvolvedFor('ad').total = this.getTotalPrice();
-
-        this._artikelBinding.update(this._artikel);
-        this._beteiligtBinding.update(this._artikel);
-    }
-
-    /**
-     * Compute the total price over all artikels in the "ad"-involved section
-     * @returns {number}
-     */
-    getTotalPrice() {
-        return Object.values(this._repository.all()).map(function (item, index) {
-            return item.getInvolvedFor('ad');
-        }).filter(function (item, index) {
-            return item instanceof AdBeteiligt && !isNaN(parseFloat(item.price));
-        }).map(function (item, index) {
-            return item.price;
-        }).reduce(function (previousValue, currentValue) {
-            return parseFloat(previousValue) + parseFloat(currentValue);
-        }, 0.0);
+        let that = this;
+        this._window.clientManager.isArticleModuleEnabled()
+            .then(function (enabled) {
+                if (!enabled) {
+                    throw "Module is not enabled";
+                }
+                // calc total
+                that._entity.total = that.getTotalPageCount();
+                that._binding.update(that._entity);
+                return true;
+            });
     }
 
     /**
@@ -211,59 +237,63 @@ class ArtikelController {
 
     /**
      * Render the passed artikel onto the document
-     * @param (Artikel) artikel
+     * @param {Artikel} artikel
+     * @param configuration optional
      */
-    render(artikel) {
-        this._artikel = artikel ? artikel : Artikel.create();
-        this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._artikel) : new ArtikelBinding(this.document, this._artikel, this.onArtikelChanged, this).bind();
-        this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(this._artikel) : new BeteiligtBinding(this.document, this._artikel, this.onDataInvolvedChanged, this).bind();
+    render(artikel, configuration) {
+        this._entity = artikel ? artikel : Artikel.create();
+        this._binding = this._binding ? this._binding.update(this._entity, configuration) : new ArtikelBinding(this.document, this._entity, this.onEvent, this, configuration).bind();
     }
 
     /**
-     * Called when the data in panta.Beteiligt has changed
-     * @param source the source input element
-     * @param args a dictionary object with 'context', 'valueHolder' and 'artikel'
+     * Called when there's an event happening on the target input element
+     *
+     * @param {PInput} source the source input element (s. PInputs)
+     * @param ctx dictionary object with 'context', 'event' (change, focus)
      */
-    onDataInvolvedChanged(source, args) {
-        source.setProperty();
-
-        let ctx = args['context'];
-        let valueHolder = args['valueHolder'];
-        let artikel = args['artikel'];
-        let involved = source.getBinding();
-
-        // update the involved part of the artikel
-        artikel.putInvolved(valueHolder['involved-in'], involved);
-        ctx._persistArtikel(ctx.trelloApi, artikel);
-        console.log("Stored: " + source.getBoundProperty() + " = " + source.getValue());
+    onEvent(source, ctx) {
+        let event = ctx.hasOwnProperty('event') ? ctx['event'] : 'change';
+        switch (event) {
+            case 'focus':
+                ctx['context']._onFocus.call(ctx['context'], source, ctx);
+                break;
+            default:
+                ctx['context']._onChange.call(ctx['context'], source, ctx);
+                break;
+        }
     }
 
     /**
-     * Called when the panta.Artikel part has changed. This will persist the artikel and set inform the source element to apply the change definitively so after this the
+     * Handle focus events
+     *
+     * @param {PInput} source the source input element (s. PInputs)
+     * @param ctx dictionary object with 'context', 'event' (change, focus)
+     * @private
+     */
+    _onFocus(source, ctx) {
+        // nothing to do
+    }
+
+    /**
+     * Called when the panta.Artikel part has changed. This will persist the entity and set inform the source element to apply the change definitively so after this the
      * PInput's value is set and cannot be rolled back. This would also be a good place to make some input validation
      *
-     * @param source the source input element (s. PInputs)
-     * @param ctx dictionary object with 'context' and 'artikel'
+     * @param {PInput} source the source input element (s. PInputs)
+     * @param ctx dictionary object with 'context', 'event' (change, focus)
+     * @private
      */
-    onArtikelChanged(source, ctx) {
+    _onChange(source, ctx) {
         source.setProperty();
-        /**
-         * @type {Artikel}
-         */
-        let artikel = source.getBinding();
-        // update the beteiligtBinding with the new artikel
-        ctx['context']._beteiligtBinding.update(artikel);
-        ctx['context']._persistArtikel(ctx['context'].trelloApi, artikel);
+        this.persist.call(this, source.getBinding());
     }
 
     /**
      * Persist the artikel with the trelloApi
-     * @param trelloApi the API
      * @param artikel the artikel to persist
-     * @private
+     * @param cardId optionally the card id. if no id is specified it will use the currently opened card (scoped)
      */
-    _persistArtikel(trelloApi, artikel) {
-        trelloApi.set('card', 'shared', ArtikelController.SHARED_NAME, artikel);
+    persist(artikel, cardId) {
+        return this.trelloApi.set(cardId || 'card', 'shared', ArtikelController.SHARED_NAME, artikel);
     }
 
 }

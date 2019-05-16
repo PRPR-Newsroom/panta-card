@@ -1,0 +1,44 @@
+form {
+
+  label {
+    border-radius: 3px 3px 0 0;
+    background: rgba(0, 0, 0, .03);
+    margin-bottom: 0;
+    padding: 0 0 0 0.45em;
+    border-left: 1px solid #798d99;
+    border-right: 1px solid #798d99;
+    border-top: 1px solid #798d99;
+    border-bottom: 0;
+    color: #B2B3B3;
+    font-weight: normal;
+  }
+  .u-border, .u-border:focus {
+    overflow: auto;
+    border-top: none;
+    outline: none;
+    outline: 0 !important;
+    border-radius: 0 0 3px 3px;
+    background: rgba(0, 0, 0, .03);
+    padding-top: 0;
+    -webkit-appearance: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none !important;
+    margin-bottom: 4px;
+  }
+  select.u-border, select.u-border:focus {
+    margin: 0 0 5px 0;
+    background: rgba(0, 0, 0, .03);
+    border-top: 0;
+    border-left: 1px solid #798d99;
+    border-right: 1px solid #798d99;
+    border-bottom: 1px solid #798d99;
+    outline: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    appearance: none;
+
+    padding: .5em;
+    line-height: 18px;
+  }
+}
