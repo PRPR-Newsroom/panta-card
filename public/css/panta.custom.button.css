@@ -1,18 +1,22 @@
 .panta-btn {
-  border: 1px solid #798d99; }
-  .panta-btn.panta-btn-dot, .panta-btn.panta-btn-icon {
-    padding: 0;
-    margin: 0; }
-  .panta-btn.panta-btn-dot {
-    -webkit-border-radius: 8px;
-    -moz-border-radius: 8px;
-    border-radius: 8px;
-    width: 16px;
-    height: 16px; }
-  .panta-btn.panta-btn-icon {
-    width: 32px;
-    height: 32px;
-    border: 0;
-    margin-left: 2px; }
+  border: 1px solid #798d99;
+}
+.panta-btn.panta-btn-dot, .panta-btn.panta-btn-icon {
+  padding: 0;
+  margin: 0;
+}
+.panta-btn.panta-btn-dot {
+  -webkit-border-radius: 8px;
+  -moz-border-radius: 8px;
+  border-radius: 8px;
+  width: 16px;
+  height: 16px;
+}
+.panta-btn.panta-btn-icon {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  margin-left: 2px;
+}
 
 /*# sourceMappingURL=panta.custom.button.css.map */

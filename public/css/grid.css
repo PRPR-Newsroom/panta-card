@@ -1,87 +1,114 @@
 * {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
-  box-sizing: border-box; }
+  box-sizing: border-box;
+}
 
-[class*="col-"] {
+[class*=col-] {
   float: left;
   padding: 0px;
-  border: 0px solid red; }
-  [class*="col-"] textarea {
-    height: 26px; }
+  border: 0px solid red;
+}
+[class*=col-] textarea {
+  height: 26px;
+}
 
-[class*="col-"]::after {
-  content: ""; }
+[class*=col-]::after {
+  content: "";
+}
 
 .field {
-  padding: 2px; }
+  padding: 2px;
+}
 
 .row {
-  max-width: 500px; }
+  max-width: 500px;
+}
 
 .row::after {
   content: "";
   clear: both;
-  display: table; }
+  display: table;
+}
 
 .line-1 textarea {
-  height: 26px; }
+  height: 26px;
+}
 
 .line-2 textarea {
-  height: 44px; }
+  height: 44px;
+}
 
 .line-3 textarea {
-  height: 62px; }
+  height: 62px;
+}
 
 .line-4 textarea {
-  height: 80px; }
+  height: 80px;
+}
 
 .line-5 textarea {
-  height: 98px; }
+  height: 98px;
+}
 
 .line-6 textarea {
-  height: 116px; }
+  height: 116px;
+}
 
 .line-7 textarea {
-  height: 134px; }
+  height: 134px;
+}
 
 .line-8 textarea {
-  height: 152px; }
+  height: 152px;
+}
 
 .col-1 {
-  width: 8.33%; }
+  width: 8.33%;
+}
 
 .col-2 {
-  width: 16.66%; }
+  width: 16.66%;
+}
 
 .col-3 {
-  width: 25%; }
+  width: 25%;
+}
 
 .col-4 {
-  width: 33.33%; }
+  width: 33.33%;
+}
 
 .col-5 {
-  width: 41.66%; }
+  width: 41.66%;
+}
 
 .col-6 {
-  width: 50%; }
+  width: 50%;
+}
 
 .col-7 {
-  width: 58.33%; }
+  width: 58.33%;
+}
 
 .col-8 {
-  width: 66.66%; }
+  width: 66.66%;
+}
 
 .col-9 {
-  width: 75%; }
+  width: 75%;
+}
 
 .col-10 {
-  width: 83.33%; }
+  width: 83.33%;
+}
 
 .col-11 {
-  width: 91.66%; }
+  width: 91.66%;
+}
 
 .col-12 {
-  width: 100%; }
+  width: 100%;
+}
 
 /*# sourceMappingURL=grid.css.map */
