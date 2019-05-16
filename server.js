@@ -5,13 +5,13 @@ let compression = require('compression');
 let cors = require('cors');
 let express = require('express');
 let nocache = require('node-nocache');
-let https = require('https');
+let http = require('http');
 let fs = require('fs');
 
 let  options = {
-    key: fs.readFileSync('key.pem', 'utf8'),
-    cert: fs.readFileSync('cert.pem', 'utf8'),
-    passphrase: process.env.HTTPS_PASSPHRASE || ''
+    // key: fs.readFileSync('key.pem', 'utf8'),
+    // cert: fs.readFileSync('cert.pem', 'utf8'),
+    // passphrase: process.env.HTTPS_PASSPHRASE || ''
 };
 
 let app = express();
@@ -30,10 +30,23 @@ app.use('/version.jsonp', nocache, function (request, response) {
     });
 });
 
+app.use('/auth', nocache, function(request, response) {
+    response.header('Content-Type', 'application/json');
+    let username = request.query.username;
+    let password = request.query.password;
+    console.log("Username/Password", username, password);
+    if (username === "admin" && password === "KpFbQPt8664sP8Np") {
+        response.status(202).send("{ \"result\": \"success\"}");
+    } else {
+        response.status(401).send("{ \"result\": \"error\"}");
+    }
+});
+
 // http://expressjs.com/en/starter/static-files.html
 app.use(express.static('public'));
 
-let server = https.createServer(options, app);
+let server = http.createServer(options, app);
+let port = 8080;
 
-console.log("Server listening on port " + (process.env.SERVER_PORT || 8443));
-server.listen(process.env.SERVER_PORT || 8443);
+console.log("Server listening on port " + (port));
+server.listen(port);

@@ -2,7 +2,7 @@
  * Controller of artikels that let you manage multiple artikels
  *
  */
-class ArtikelController {
+class ArtikelController extends Controller {
 
     /**
      * The app version
@@ -54,12 +54,11 @@ class ArtikelController {
      * @param telephone
      */
     constructor(windowManager, trelloApi, repository, telephone) {
+        super(windowManager, repository);
         /**
          * @type {HTMLDocument}
          */
         this.document = windowManager.document;
-
-        this._window = windowManager;
 
         this.trelloApi = trelloApi;
         /**
@@ -67,24 +66,6 @@ class ArtikelController {
          * @private
          */
         this._entity = null;
-
-        /**
-         * @type {ArtikelBinding}
-         * @private
-         */
-        this._artikelBinding = null;
-
-        /**
-         * @type {BeteiligtBinding}
-         * @private
-         */
-        this._beteiligtBinding = null;
-
-        /**
-         * @type {ArtikelRepository}
-         * @private
-         */
-        this._repository = repository;
 
         /**
          * The telephone to the client manager
@@ -113,53 +94,57 @@ class ArtikelController {
         }
     }
 
+    create(json) {
+        return Artikel.create(json);
+    }
+
+// /**
+    //  * Insert the passed artikel into the repository and associates it with the given card
+    //  * @param {Artikel} artikel
+    //  * @param {{id: number}} card
+    //  */
+    // insert(artikel, card) {
+    //     if (artikel && this._repository.isNew(artikel)) {
+    //         this._repository.add(artikel, card);
+    //     } else if (artikel) {
+    //         this._repository.replace(artikel, card);
+    //     }
+    // }
+
     /**
-     * Insert the passed artikel into the repository and associates it with the given card
-     * @param {Artikel} artikel
-     * @param {{id: number}} card
+     * Get a property value by its name
+     * @param {Artikel|Plan|ModuleConfig} entity
+     * @param name
+     * @param defaultValue
+     * @return {*}
      */
-    insert(artikel, card) {
-        if (artikel && this._repository.isNew(artikel)) {
-            this._repository.add(artikel, card);
-        } else if (artikel) {
-            this._repository.replace(artikel, card);
+    getPropertyByName(entity, name, defaultValue) {
+        switch (name) {
+            case "visual":
+                return entity.visual || defaultValue;
+            case "form":
+                return entity.form || defaultValue;
+            case "online":
+                return entity.tags || defaultValue;
+            case "season":
+                return entity.season || defaultValue;
+            case "region":
+                return entity.region || defaultValue;
+            case "place":
+                return entity.location || defaultValue;
+            case "field.a":
+                return entity.from || defaultValue;
+            case "field.b":
+                return entity.author || defaultValue;
+            case "field.c":
+                return entity.text || defaultValue;
+            default:
+                if (entity.hasOwnProperty(name)) {
+                    return entity[name];
+                } else {
+                    return entity[name];
+                }
         }
-    }
-
-    /**
-     * Get the artikel for the passed trello card
-     * @param {id: number} card
-     * @returns {*}
-     */
-    getByCard(card) {
-        return this._repository.get(card);
-    }
-
-    /**
-     * Check if the artikel is empty or not. It will return true if the artikel (without the involvement part) has some content otherwise false
-     *
-     * @param {Artikel} artikel
-     */
-    hasArtikelContent(artikel) {
-        return !artikel.isEmpty()
-    }
-
-    /**
-     * Get the region mapping in german
-     * @param region
-     * @returns {string|*}
-     */
-    getRegionMapping(region) {
-        return ArtikelBinding.getRegionMapping(region);
-    }
-
-    /**
-     * Get the human readable name of that 'tag' (german)
-     * @param tag
-     * @returns {string|*}
-     */
-    getTagMapping(tag) {
-        return ArtikelBinding.getTagMapping(tag);
     }
 
     /**
@@ -221,25 +206,17 @@ class ArtikelController {
      * Called when the artikel has changed and the controller should re-compute dynamic properties (totals)
      */
     update() {
-        if (!this._window.clientManager.isArticleModuleEnabled()) {
-            throw "Module is not enabled";
-        }
-        // calc total
-        this._entity.total = this.getTotalPageCount();
-        this._artikelBinding.update(this._entity);
-    }
-
-    /**
-     * Block the UI because there's for example an upgrade going on
-     */
-    blockUi() {
-        this._artikelBinding.blockUi();
-    }
-
-    canUnblock() {
-        if (!this._window.clientManager.getPluginController().upgrading) {
-            this._artikelBinding.unblock();
-        }
+        let that = this;
+        this._window.clientManager.isArticleModuleEnabled()
+            .then(function (enabled) {
+                if (!enabled) {
+                    throw "Module is not enabled";
+                }
+                // calc total
+                that._entity.total = that.getTotalPageCount();
+                that._binding.update(that._entity);
+                return true;
+            });
     }
 
     /**
@@ -260,11 +237,12 @@ class ArtikelController {
 
     /**
      * Render the passed artikel onto the document
-     * @param (Artikel) artikel
+     * @param {Artikel} artikel
+     * @param configuration optional
      */
-    render(artikel) {
+    render(artikel, configuration) {
         this._entity = artikel ? artikel : Artikel.create();
-        this._artikelBinding = this._artikelBinding ? this._artikelBinding.update(this._entity) : new ArtikelBinding(this.document, this._entity, this.onEvent, this).bind();
+        this._binding = this._binding ? this._binding.update(this._entity, configuration) : new ArtikelBinding(this.document, this._entity, this.onEvent, this, configuration).bind();
     }
 
     /**

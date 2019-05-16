@@ -121,7 +121,7 @@ class PInput {
         let container = this._document.createElement("div");
 
         this._input.setAttribute("name", this._name);
-        this._input.placeholder = this._placeholder;
+        this.setPlaceholder();
         this._input.setAttribute("title", this._label);
         this._input.setAttribute("autocomplete", "new-password");
         if (this._value) {
@@ -139,10 +139,8 @@ class PInput {
 
         this.setupEvents();
 
-        this._labelInput = this._document.createElement("label");
-        this._labelInput.appendChild(this._document.createTextNode(this._label));
-        this._labelInput.setAttribute("for", this._input.getAttribute("name"));
-        this._labelInput.addClass("prop-" + this._type);
+        this._labelInput = this.setLabel();
+
         if (this._label.length === 0) {
             container.setAttribute("class", "field hidden");
         } else {
@@ -158,6 +156,23 @@ class PInput {
         this.doCustomization(this._input, this._labelInput);
 
         return this;
+    }
+
+    setLabel(label) {
+        this._label = label || this._label;
+        let input = this._labelInput || this._document.createElement("label");
+        input.removeChildren();
+        input.appendChild(this._document.createTextNode(this._label));
+        input.setAttribute("for", this._input.getAttribute("name"));
+        input.addClass("prop-" + this._type);
+
+        return input;
+    }
+
+    setPlaceholder(placeholder) {
+        this._placeholder = placeholder || this._placeholder;
+        this._input.placeholder = this._placeholder;
+        this._input.setAttribute("placeholder", this._placeholder);
     }
 
     /**
@@ -344,9 +359,12 @@ class PInput {
                 // either the input is formatted or just a plain number
                 let parsed = this._parseNumber(this.getValue());
                 this._entity[this.getBoundProperty()] = parsed;
+                this._value = parsed;
                 break;
             default:
                 this._entity[this.getBoundProperty()] = this.getValue();
+                this._value = this.getValue();
+                break;
         }
 
     }
@@ -473,6 +491,7 @@ class SingleSelectInput extends PInput {
     constructor(document, label, value, targetId, placeholder, readonly) {
         super(document, label, value, targetId, placeholder, "select", !!readonly);
         this._options = [];
+        this._active = true;
     }
 
     /**
@@ -490,6 +509,20 @@ class SingleSelectInput extends PInput {
         return this;
     }
 
+    clear() {
+        this._options.splice(0, this._options.length);
+    }
+
+    /**
+     * @param {[]} options
+     */
+    addOptions(options) {
+        let that = this;
+        options.forEach(function(option) {
+            that.addOption(option.value, option.text);
+        });
+    }
+
     /**
      * Add another option
      * @param value
@@ -505,6 +538,14 @@ class SingleSelectInput extends PInput {
         return this;
     }
 
+    setActive(active) {
+        this._active = active;
+    }
+
+    isActive() {
+        return this._active;
+    }
+
     /**
      * Creates the HTML list/drop-down and also selects the option that matches the currently set value
      * @param element
@@ -513,11 +554,11 @@ class SingleSelectInput extends PInput {
      */
     doCustomization(element, label) {
         let that = this;
-        this._options.forEach(function(item, _) {
+        this._options.forEach(function(item, index) {
             let opt = document.createElement("option");
             opt.value = item.value;
             opt.text = item.text;
-            if (item.value === that._value) {
+            if (parseInt(item.value) === parseInt(that._value)) {
                 opt.setAttribute("selected", "selected");
             }
             element.appendChild(opt);
@@ -525,5 +566,21 @@ class SingleSelectInput extends PInput {
 
         label.addClass('focused-fix');
         return super.doCustomization(element);
+    }
+
+    invalidate() {
+        this._input.removeChildren();
+        this.doCustomization(this._input, this._labelInput);
+        //this.updateVisualState();
+    }
+
+    updateVisualState() {
+        if (this.isActive()) {
+            this._input.removeClass("hidden");
+            this._labelInput.removeClass("hidden");
+        } else {
+            this._input.addClass("hidden");
+            this._labelInput.addClass("hidden");
+        }
     }
 }

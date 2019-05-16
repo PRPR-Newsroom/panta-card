@@ -1,3 +1,28 @@
+@import "variables" ;
+
 html, body {
   background-color: transparent;
+}
+
+.panta-item {
+  border: 1px solid $border-color;
+  background-color: $bg-color;
+  padding: 0.5em;
+  margin: 0.1em;
+  border-radius: $border-radius;
+  cursor: pointer;
+  &.hovered {
+    background-color: $bg-color-hovered;
+  }
+}
+
+.panta-module-enabled {
+  width: 18px;
+  height: 18px;
+}
+
+.panta-color-chooser {
+  width: 80%;
+  height: 80%;
+  margin: 15%;
 }

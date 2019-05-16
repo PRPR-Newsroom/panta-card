@@ -1,5 +1,5 @@
 # specify the node base image with your desired version node:<version>
-FROM node:6
+FROM node:10
 
 ENV APPDIR /usr/src/app
 
@@ -24,6 +24,6 @@ VOLUME /etc/certs
 USER nobody
 
 # Ports > 1024 since we're not root.
-EXPOSE 8888 8443 5001
+EXPOSE 8080 8443 5001
 
 CMD ["npm", "start"]

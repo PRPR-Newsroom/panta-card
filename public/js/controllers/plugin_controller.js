@@ -5,7 +5,7 @@ class PluginController {
      * @returns {number}
      */
     static get VERSION() {
-        return 2;
+        return 3;
     }
 
     /**
@@ -36,7 +36,8 @@ class PluginController {
         this._trelloApi = trelloApi;
         this._upgrading = false;
         this._upgrades = {
-            1: this._upgrade_1
+            1: this._upgrade_1,
+            2: this._upgrade_2
         }
         /**
          * @type {PluginRepository}
@@ -79,14 +80,73 @@ class PluginController {
      */
     getPluginConfiguration() {
         // Endpoint: https://trello.com/1/boards/<ID>/pluginData
-        return this._trelloApi.get('board', 'shared', PluginController.CONFIGURATION_NAME, null)
-            .then(function (data) {
-                return PluginConfiguration.create(data);
-            });
+        let that = this;
+        return this._trelloApi.get(
+            'board',
+            'shared',
+            PluginController.CONFIGURATION_NAME,
+            null
+        ).then(function (data) {
+            if (data) {
+                let json = JSON.parse(LZString.decompress(data));
+                return PluginConfiguration.create(json);
+            } else {
+                return new PluginConfiguration(
+                    "1.0.0",
+                    "Panta.Card Power-Up",
+                    null,
+                    that.getAvailableModules()
+                );
+            }
+        });
+    }
+
+    /**
+     * @param {PluginModuleConfig} pmc
+     * @param card (optional) if set it will also store the new card configuration on the plugin configuration
+     * @return {PromiseLike<T> | Promise<T>}
+     */
+    setPluginModuleConfig(pmc, card) {
+        let that = this;
+        return this.getPluginConfiguration()
+            .then(function (pc) {
+                if (pc instanceof PluginConfiguration) {
+                    pc.card = card || pc.card;
+                    let item = pc.modules.find(function (item) {
+                        return item.id === pmc.id;
+                    });
+                    item.config = pmc.config;
+
+                    that._trelloApi.set('board', 'shared', PluginController.CONFIGURATION_NAME, LZString.compress(JSON.stringify(pc)));
+                    return pc;
+                } else {
+                    throw "Invalid plugin configuration";
+                }
+            })
+    }
+
+    /**
+     * @param id
+     * @return {PluginModuleConfig}
+     */
+    findPluginModuleConfigByModuleId(id) {
+        return this.getPluginConfiguration()
+            .then(function (pc) {
+                return pc.modules;
+            })
+            .filter(function (module) {
+                return module.id === id;
+            })
+            .reduce(function (prev, cur) {
+                prev = cur;
+                return prev;
+            }, null);
     }
 
     getAvailableModules() {
-        return this._repository.all();
+        return Object.values(PluginRepository.INSTANCE.all()).sort(function (lhs, rhs) {
+            return lhs.config.sort - rhs.config.sort;
+        });
     }
 
     /**
@@ -150,6 +210,14 @@ class PluginController {
         }).then(function () {
             return true;
         });
+    }
+
+    /**
+     * Perform upgrade from 2 -> 3
+     * @private
+     */
+    _upgrade_2() {
+        return Promise.resolve(true);
     }
 
     /**

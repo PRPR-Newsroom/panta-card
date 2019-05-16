@@ -1,3 +1,5 @@
+// TODO duplicate code in artikelbinding => base class for plan and article?
+
 class ModulePlanBinding extends Binding {
 
     /**
@@ -6,21 +8,27 @@ class ModulePlanBinding extends Binding {
      * your change handler because it gets passed there too.
      *
      * @param document the underlying root document
-     * @param config the entity
+     * @param entity the entity
      * @param action the onChange handler
      * @param context the context that is passed in your change handler
+     * @param configuration
      */
-    constructor(document, entity, action, context) {
+    constructor(document, entity, action, context, configuration) {
         super(document, entity, action, context);
+
+        /**
+         * @type {PluginModuleConfig}
+         */
+        this._configuration = configuration;
     }
 
     /**
      * Update the form with that entity and set it as the new entity on this instance
      * @param entity
+     * @param configuration
      * @returns {Binding}
      */
-    update(entity) {
-
+    update(entity, configuration) {
         this._measures.update(entity);
         this._description.update(entity);
         this._fee.update(entity);
@@ -38,6 +46,14 @@ class ModulePlanBinding extends Binding {
 
         // update the entity as well otherwise on change callbacks will re-store old entity states
         this._entity = entity;
+
+        if (configuration) {
+            console.log("Update configuration", configuration);
+            this._updateConfiguration(configuration);
+        } else {
+            console.log("No new configuration");
+        }
+
         return this;
     }
 
@@ -57,19 +73,20 @@ class ModulePlanBinding extends Binding {
      * @param valueHolder
      */
     onLayout(valueHolder) {
-        let virtual = this.document.createElement('div');
-        virtual.innerHTML = isMobileBrowser() ? template_plan_mobile : template_plan;
-        let templ = virtual.cloneNode(true);
+        let templ = createByTemplate(template_plan, template_plan_mobile);
         this._switchContent(templ);
 
         let params = {'context': this._context, 'valueHolder': valueHolder, 'entity': this._entity};
 
+        let aconfig = this.getConfigurationFor("field.a");
         /**
          * @type {MultiLineInput}
          */
-        this._measures = this.document.newMultiLineInput(valueHolder, '.pa.plan.measures', 'measures', 'Massnahme', params, this._action, 2, 'notieren…')
+        this._measures = this.document.newMultiLineInput(valueHolder, '.pa.plan.measures', 'measures', aconfig.label, params, this._action, 2, aconfig.editable.placeholder)
             .addClass("multiline");
-        this._description = this.document.newMultiLineInput(valueHolder, '.pa.plan.description', 'description', 'Beschreibung', params, this._action, 3, 'notieren…')
+
+        let bconfig = this.getConfigurationFor("field.b");
+        this._description = this.document.newMultiLineInput(valueHolder, '.pa.plan.description', 'description', bconfig.label, params, this._action, 3, bconfig.editable.placeholder)
             .addClass("rows-2");
         this._fee = this.document.newSingleLineInput(valueHolder, '.pa.plan.fee', 'fee', 'Total Honorar Beteiligte', params, this._action, '', 'money', true)
             .addClass('multiline', true);
@@ -90,65 +107,137 @@ class ModulePlanBinding extends Binding {
             .addClass('bold')
             .addClass('multiline', true)
             .addConditionalFormatting(function (entity) {
-                /** @type Plan entity */
                 return {
                     'name': 'rule-costs-exceeded',
                     'active': entity.capOnDepenses < entity.totalCosts
                 };
             }, false);
 
-        this._visual = this._visual = this.document.newSingleSelect(valueHolder, 'pa.plan.visual', 'visual', 'Visual', params, this._action, 'x-Liste', newOption('', '…'), [
-            newOption("picture", "Bild"),
-            newOption("icon", "Icon"),
-            newOption("graphics", "Grafik"),
-            newOption("videos", "Video"),
-            newOption("illustrations", "Illu"),
-        ]);
+        /**
+         * @type {SingleSelectInput}
+         * @private
+         */
+        this._visual = this.doLayout("pa.plan.visual", "visual", valueHolder, params);
 
         /**
          * @type {SingleSelectInput}
          * @private
          */
-        this._form = this.document.newSingleSelect(valueHolder, 'pa.plan.form', 'form', 'Form', params, this._action, 'x-Liste', newOption('', '…'), [
-            newOption("news", "News"),
-            newOption("article", "Artikel"),
-            newOption("report", "Report"),
-        ]);
+        this._form = this.doLayout("pa.plan.form", "form", valueHolder, params);
 
-        this._online = this.document.newSingleSelect(valueHolder, 'pa.plan.online', 'online', 'Online', params, this._action, 'Liste-Tag', newOption('', '…'), [
-            newOption("monday", ArtikelBinding.getTagMapping("monday")),
-            newOption("tuesday", ArtikelBinding.getTagMapping("tuesday")),
-            newOption("wednesday", ArtikelBinding.getTagMapping("wednesday")),
-            newOption("thursday", ArtikelBinding.getTagMapping("thursday")),
-            newOption("friday", ArtikelBinding.getTagMapping("friday")),
-            newOption("saturday", ArtikelBinding.getTagMapping("saturday")),
-            newOption("sunday", ArtikelBinding.getTagMapping("sunday")),
-        ]);
-
-        this._region = this.document.newSingleSelect(valueHolder, 'pa.plan.region', 'region', 'Region', params, this._action, 'x-Liste', newOption('', '…'), [
-            newOption("north", ArtikelBinding.getRegionMapping("north")),
-            newOption("south", ArtikelBinding.getRegionMapping("south")),
-        ]);
         /**
          * @type {SingleSelectInput}
          * @private
          */
-        this._season = this.document.newSingleSelect(valueHolder, 'pa.plan.season', 'season', 'Saison', params, this._action, 'x-Liste', newOption('', '…'), [
-            newOption("summer", "Sommer"),
-            newOption("fall", "Herbst"),
-        ]);
+        this._online = this.doLayout("pa.plan.online", "online", valueHolder, params);
 
+        /**
+         * @type {SingleSelectInput}
+         * @private
+         */
+        this._region = this.doLayout("pa.plan.region", "region", valueHolder, params);
 
-        this._place = this.document.newSingleSelect(valueHolder, 'pa.plan.place', 'place', 'Ort', params, this._action, 'x-Liste', newOption('', '…'), [
-            newOption("cds", "CDS"),
-            newOption("sto", "STO"),
-            newOption("tam", "TAM"),
-            newOption("wid", "WID"),
-            newOption("buech", "Buech"),
-            newOption("rustico", "Rustico"),
-            newOption("schlatt", "Schlatt"),
-        ]);
+        /**
+         * @type {SingleSelectInput}
+         * @private
+         */
+        this._season = this.doLayout("pa.plan.season", "season", valueHolder, params);
 
+        /**
+         * @type {SingleSelectInput}
+         * @private
+         */
+        this._place = this.doLayout("pa.plan.place", "place", valueHolder, params);
+    }
+
+    detach() {
+        let container = this.document.getElementById("pa.plan.content");
+        if (container) {
+            container.removeChildren();
+            container.removeSelf();
+        }
+    }
+
+    /**
+     * TODO duplicate code (s. ArtikelBinding)
+     * @param target the target HTML element id
+     * @param id the property id
+     * @param valueHolder
+     * @param params
+     * @param configurationId if the property id differs from the configuration id you can pass the configuration id separately
+     * @return {SingleSelectInput|PInput}
+     */
+    doLayout(target, id, valueHolder, params, configurationId) {
+        let configuration = this.getConfigurationFor(configurationId || id);
+        return this.document.newSingleSelect(valueHolder, target, id, configuration.label, params, this._action, 'Liste-Tag',
+            newOption('-1', '…'), configuration.options);
+    }
+
+    // TODO duplicate code here
+    /**
+     * @param {PInput} text
+     * @param id
+     */
+    updateText(text, id) {
+        let config = this.getConfigurationFor(id);
+        text.setLabel(config.editable.label);
+        text.setPlaceholder(config.editable.placeholder);
+    }
+
+    updateSelect(select, id) {
+        let oc = this.getConfigurationFor(id);
+        select.clear();
+        select.setLabel(oc.label);
+        select.addOption("-1", "…");
+        select.addOptions(oc.options);
+        select.invalidate();
+    }
+
+    _updateConfiguration(configuration) {
+        this._configuration = configuration;
+
+        this.updateText(this._measures, "field.a");
+        this.updateText(this._description, "field.b");
+
+        this.updateSelect(this._online, "online");
+        this.updateSelect(this._visual, "visual");
+        this.updateSelect(this._region, "region");
+        this.updateSelect(this._season, "season");
+        this.updateSelect(this._form, "form");
+        this.updateSelect(this._place, "place");
+    }
+
+    /**
+     * TODO dup code
+     * @param id
+     * @return {{label, options: number | Array | T, editable: *}}
+     */
+    getConfigurationFor(id) {
+        let editable = this._configuration.config.editables
+            .filter(function (editable) {
+                return editable.id === id;
+            });
+
+        let label = editable[0].label;
+
+        let options = editable
+            .map(function (editable) {
+                return editable.values;
+            })
+            .flat()
+            .map(function (value, index) {
+                return newOption(index, value);
+            })
+            .reduce(function (prev, cur) {
+                prev.push(cur);
+                return prev;
+            }, []);
+
+        return {
+            "label": label,
+            "options": options,
+            "editable": editable[0]
+        };
     }
 
     /**
@@ -158,9 +247,21 @@ class ModulePlanBinding extends Binding {
      * @private
      */
     _switchContent(templ) {
-        let content = this.document.getElementById("pa.plan.content");
+        let content = this._initContent();
         content.removeChildren();
         content.appendChild(templ);
     }
 
+    _initContent() {
+        let container = this.document.getElementById("pa.plan.content") || this.document.createElement("span");
+        if (!container.getAttribute("id")) {
+            let form = this.document.createElement("form");
+            form.setAttribute("autocomplete", "off");
+            form.setAttribute("id", "panta.form.plan");
+            container.setAttribute("id", "pa.plan.content");
+            form.appendChild(container);
+            this.document.getElementById("panta.content").appendChild(form);
+        }
+        return container;
+    }
 }

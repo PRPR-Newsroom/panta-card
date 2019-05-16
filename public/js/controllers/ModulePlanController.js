@@ -22,8 +22,7 @@ class ModulePlanController extends Controller {
     }
 
     constructor(windowManager, trelloApi, telephone) {
-        super(new ModulePlanRepository());
-        this._window = windowManager;
+        super(windowManager, new ModulePlanRepository());
         this._trello = trelloApi;
         /**
          * The wire to the client manager
@@ -64,7 +63,6 @@ class ModulePlanController extends Controller {
                 that._entity.capOnDepenses = that.getCapOnDepenses();
             }
             if (needUpdate) {
-                console.log("Update needed");
                 that._binding.update(that._entity);
             }
         };
@@ -84,12 +82,12 @@ class ModulePlanController extends Controller {
         this.readPropertyBag();
     }
 
-    render(entity) {
+    render(entity, configuration) {
         /**
          * @type Plan
          */
         this._entity = entity;
-        this._binding = this._binding ? this._binding.update(entity) : new ModulePlanBinding(this._window.document, entity, this.onEvent, this).bind();
+        this._binding = this._binding ? this._binding.update(entity, configuration) : new ModulePlanBinding(this._window.document, entity, this.onEvent, this, configuration).bind();
         return super.render(entity);
     }
 
@@ -171,28 +169,36 @@ class ModulePlanController extends Controller {
     }
 
     /**
-     * Get the entity by card
-     * @param card
-     * @returns {{}}
-     */
-    getByCard(card) {
-        return this._repository.get(card);
-    }
-
-    /**
      * @param {Plan} entity
-     * @returns {boolean}
+     * @param name
+     * @param defaultValue
+     * @return {*}
      */
-    hasContent(entity) {
-        return !entity.isEmpty()
-    }
-
-    getRegionMapping(region) {
-        return ArtikelBinding.getRegionMapping(region);
-    }
-
-    getOnlineMapping(online) {
-        return ArtikelBinding.getTagMapping(online);
+    getPropertyByName(entity, name, defaultValue) {
+        switch (name) {
+            case "field.a":
+                return entity.measures || defaultValue;
+            case "field.b":
+                return entity.description || defaultValue;
+            case "visual":
+                return entity.visual || defaultValue;
+            case "form":
+                return entity.form || defaultValue;
+            case "online":
+                return entity.online || defaultValue;
+            case "season":
+                return entity.season || defaultValue;
+            case "region":
+                return entity.region || defaultValue;
+            case "place":
+                return entity.place || defaultValue;
+            default:
+                if (entity.hasOwnProperty(name)) {
+                    return entity[name];
+                } else {
+                    return entity[name];
+                }
+        }
     }
 
     persist(entity, cardId) {
@@ -200,7 +206,11 @@ class ModulePlanController extends Controller {
     }
 
     remove() {
-        return this._trello.remove('board', 'shared', ModulePlanController.SHARED_NAME);
+        let that = this;
+        return this._trello.remove('board', 'shared', ModulePlanController.SHARED_NAME)
+            .then(function() {
+                return that._trello.remove('board', 'shared', ModulePlanController.PROPERTY_BAG_NAME);
+            });
     }
 
     _onChange(source) {
@@ -215,4 +225,11 @@ class ModulePlanController extends Controller {
         }
     }
 
+    clear() {
+        return super.clear();
+    }
+
+    create(json) {
+        return Plan.create(json);
+    }
 }

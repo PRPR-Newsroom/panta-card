@@ -90,6 +90,13 @@ HTMLElement.prototype.removeChildren = function () {
 };
 
 /**
+ * Remove this element itself from the DOM
+ */
+HTMLElement.prototype.removeSelf = function() {
+    this.parentElement.removeChild(this);
+};
+
+/**
  * (Re-)Set an event listener on this HTML element
  * @param event
  * @param callback
@@ -123,6 +130,28 @@ HTMLElement.prototype.getClosestChildByTagName = function (tagName) {
     } else {
         for (let i = 0;i<this.children.length;i++) {
             let child = this.children.item(i).getClosestChildByTagName(tagName);
+            if (child!==null) {
+                return child;
+            }
+        }
+        return null;
+    }
+};
+
+/**
+ * Get the closest child element that contains that class name or null if none
+ * @param className
+ * @returns {*}
+ */
+HTMLElement.prototype.getClosestChildByClassName = function (className) {
+    let found = Object.values(this.children).find(function(child) {
+        return child.hasClass(className);
+    }, this);
+    if (found != null) {
+        return found;
+    } else {
+        for (let i = 0;i<this.children.length;i++) {
+            let child = this.children.item(i).getClosestChildByClassName(className);
             if (child!==null) {
                 return child;
             }
@@ -230,7 +259,7 @@ HTMLDocument.prototype.newSingleLineInput = function (valueHolder,
  * @param placeholder
  * @param empty an object with 'value' and 'text' that is used when the user did not select anything
  * @param options an array of {value/text} options
- * @returns {SingleSelectInput}
+ * @returns {SingleSelectInput|PInput}
  */
 HTMLDocument.prototype.newSingleSelect = function (valueHolder, targetId, property, label, actionParameters, actionCallback, placeholder = "", empty, options) {
     let ssi = new SingleSelectInput(this, label, null, targetId, placeholder)
@@ -252,7 +281,7 @@ HTMLDocument.prototype.createStylesheet = function (href) {
     link.href = href;
     link.media = 'all';
     return link;
-}
+};
 
 /**
  * Check if a string is considered
@@ -267,6 +296,16 @@ String.prototype.toHTML = function() {
     var txt = document.createElement('textarea');
     txt.innerHTML = this;
     return txt.value;
+};
+
+/**
+ * Convert a string to an escaped HTML version
+ * @return {string}
+ */
+String.prototype.toHtmlEntities = function() {
+    return this.replace(/[\u00A0-\u9999<>\&]/gim, function(i) {
+        return '&#' + i.charCodeAt(0) + ';';
+    });
 };
 
 /**
@@ -303,6 +342,18 @@ Window.prototype.autoTabIndex = function() {
 };
 
 /**
+ *
+ * @param desktop_template
+ * @param mobile_template
+ * @returns {Node}
+ */
+Window.prototype.createByTemplate = function(desktop_template, mobile_template) {
+    let virtual = this.document.createElement('div');
+    virtual.innerHTML = isMobileBrowser() ? mobile_template : desktop_template;
+    return virtual.cloneNode(true);
+};
+
+/**
  * A helper function to create new options
  * @param value
  * @param text
@@ -317,4 +368,13 @@ function newOption(value, text) {
 
 function isNumber(number) {
     return number && !isNaN(number)
+}
+
+/**
+ * Translate a text by its id
+ * @param id
+ * @private
+ */
+function __(id) {
+    return TEXTS[id];
 }

@@ -1,0 +1,74 @@
+@import "variables";
+
+.panta-bgcolor-blue {
+  background-color: $trello-blue;
+}
+
+.panta-bgcolor-green {
+  background-color: $trello-green;
+}
+
+.panta-bgcolor-orange {
+  background-color: $trello-orange;
+}
+
+.panta-bgcolor-red {
+  background-color: $trello-red;
+}
+
+.panta-bgcolor-yellow {
+  background-color: $trello-yellow;
+}
+
+.panta-bgcolor-purple {
+  background-color: $trello-purple;
+}
+
+.panta-bgcolor-pink {
+  background-color: $trello-pink;
+}
+
+.panta-bgcolor-sky {
+  background-color: $trello-sky;
+}
+
+.panta-bgcolor-lime {
+  background-color: $trello-lime;
+}
+
+.panta-bgcolor-shades {
+  background-color: $trello-shades;
+}
+
+.panta-btn {
+  &.panta-bgcolor-blue:hover {
+    background-color: darken($trello-blue, 10%);
+  }
+  &.panta-bgcolor-green:hover {
+    background-color: darken($trello-green, 10%);
+  }
+  &.panta-bgcolor-orange:hover {
+    background-color: darken($trello-orange, 10%);
+  }
+  &.panta-bgcolor-red:hover {
+    background-color: darken($trello-red, 10%);
+  }
+  &.panta-bgcolor-yellow:hover {
+    background-color: darken($trello-yellow, 10%);
+  }
+  &.panta-bgcolor-purple:hover {
+    background-color: darken($trello-purple, 10%);
+  }
+  &.panta-bgcolor-pink:hover {
+    background-color: darken($trello-pink, 10%);
+  }
+  &.panta-bgcolor-sky:hover {
+    background-color: darken($trello-sky, 10%);
+  }
+  &.panta-bgcolor-lime:hover {
+    background-color: darken($trello-lime, 10%);
+  }
+  &.panta-bgcolor-shades:hover {
+    background-color: darken($trello-shades, 10%);
+  }
+}

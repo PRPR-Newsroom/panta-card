@@ -1,7 +1,7 @@
 /**
  * The Beteiligt Controller
  */
-class ModuleController {
+class ModuleController extends Controller {
     /**
      * The app version
      * @returns {number}
@@ -58,11 +58,11 @@ class ModuleController {
      * @param telephone
      */
     constructor(windowManager, trelloApi, telephone) {
+        super(windowManager, new BeteiligtRepository());
         /**
          * @type {HTMLDocument}
          */
         this.document = windowManager.document;
-        this._window = windowManager;
 
         this.trelloApi = trelloApi;
 
@@ -71,12 +71,6 @@ class ModuleController {
          * @private
          */
         this._beteiligtBinding = null;
-
-        /**
-         * @type {BeteiligtRepository}
-         * @private
-         */
-        this._repository = new BeteiligtRepository();
 
         /**
          * @type {ModuleConfig}
@@ -175,29 +169,18 @@ class ModuleController {
     render(entity, configuration) {
         this._entity = entity;
         this._beteiligtBinding = this._beteiligtBinding
-            ? this._beteiligtBinding.update(entity)
+            ? this._beteiligtBinding.update(entity, configuration)
             : this._createBinding(entity, configuration);
     }
 
     _createBinding(entity, configuration) {
-        return new BeteiligtBinding(this.document, entity, this.onEvent, this).bind(configuration)
-    }
-
-    /**
-     * Insert the passed artikel into the repository and associates it with the given card
-     * @param {ModuleConfig} entity
-     * @param {{id: number}} card
-     */
-    insert(entity, card) {
-        if (entity && this._repository.isNew(entity)) {
-            this._repository.add(entity, card);
-        } else if (entity) {
-            this._repository.replace(entity, card);
-        }
+        return new BeteiligtBinding(this.document, entity, this.onEvent, this, configuration).bind()
     }
 
     /**
      * Hide the whole module
+     *
+     * @obsolete this is probably not used anymore because the modules are loaded by configuration anyways
      */
     hide() {
         this.document.getElementById("panta.module").addClass("hidden");
@@ -293,7 +276,8 @@ class ModuleController {
      */
     getTotalPrice() {
         return Object.values(this._repository.all()).map(function (item) {
-            return item.sections['ad'];
+            let sections = item && item.sections ? item.sections : {};
+            return sections['ad'];
         }).filter(function (item) {
             return item instanceof AdBeteiligt && !isNaN(parseFloat(item.price));
         }).map(function (item) {
@@ -311,7 +295,8 @@ class ModuleController {
     getTotalProjectCosts() {
         return Object.values(this._repository.all()).map(function (item) {
             // we only need the sections without the keys
-            return Object.values(item.sections);
+            let sections = item && item.sections ? item.sections : {};
+            return Object.values(sections);
         }).flat() // flatten the entries
             .filter(function (item) {
                 return item instanceof OtherBeteiligt;
@@ -330,7 +315,8 @@ class ModuleController {
     getOverallTotalFee() {
         return Object.values(this._repository.all()).map(function (item) {
             // we only need the sections without the keys
-            return Object.values(item.sections);
+            let sections = item && item.sections ? item.sections : {};
+            return Object.values(sections);
         }).flat() // flatten the entries
             .filter(function (item) {
                 return item instanceof OtherBeteiligt;
@@ -347,7 +333,8 @@ class ModuleController {
      * Get the fee total in all sections
      */
     getTotalFee() {
-        return Object.values(this._entity.sections)
+        let sections = this._entity && this._entity.sections ? this._entity.sections : {};
+        return Object.values(sections)
             .filter(function (item) {
                 return item instanceof OtherBeteiligt;
             })
@@ -363,7 +350,8 @@ class ModuleController {
      * Get the total of charges in all sections
      */
     getTotalCharges() {
-        return Object.values(this._entity.sections)
+        let sections = this._entity && this._entity.sections ? this._entity.sections : {};
+        return Object.values(sections)
             .filter(function (item) {
                 return item instanceof OtherBeteiligt;
             })
@@ -379,7 +367,8 @@ class ModuleController {
      * Get the total of charges in all sections
      */
     getTotalProject() {
-        return Object.values(this._entity.sections)
+        let sections = this._entity && this._entity.sections ? this._entity.sections : {};
+        return Object.values(sections)
             .filter(function (item) {
                 return item instanceof OtherBeteiligt;
             })
@@ -398,7 +387,8 @@ class ModuleController {
     getOverallTotalCharges() {
         return Object.values(this._repository.all()).map(function (item) {
             // we only need the sections without the keys
-            return Object.values(item.sections);
+            let sections = item && item.sections ? item.sections : {};
+            return Object.values(sections);
         }).flat() // flatten the entries
             .filter(function (item) {
                 return item instanceof OtherBeteiligt;
@@ -418,7 +408,8 @@ class ModuleController {
     getOverallCosts() {
         return Object.values(this._repository.all()).map(function (item) {
             // we only need the sections without the keys
-            return Object.values(item.sections);
+            let sections = item && item.sections ? item.sections : {};
+            return Object.values(sections);
         }).flat() // flatten the entries
             .filter(function (item) {
                 return item instanceof OtherBeteiligt;
@@ -442,31 +433,6 @@ class ModuleController {
     }
 
     /**
-     * Get the configuration by its card id
-     * @param card the trello card id which is used in {@code insert}
-     * @return {{}}
-     */
-    getByCard(card) {
-        return this._repository.get(card);
-    }
-
-    /**
-     * Get all module configs
-     * @returns {Array}
-     */
-    list() {
-        return this._repository.all();
-    }
-
-    /**
-     * Get the number of module configs
-     * @returns {number}
-     */
-    size() {
-        return Object.keys(this.list()).length;
-    }
-
-    /**
      * Fetch all module configs from Trello
      */
     fetchAll(onComplete) {
@@ -478,7 +444,7 @@ class ModuleController {
             .each(function (card) {
                 return that.trelloApi.get(card.id, 'shared', ModuleController.SHARED_NAME)
                     .then(function (json) {
-                        that.insert(ModuleConfig.create(json), card);
+                        that.insert(that.create(json), card);
                     });
             })
             .then(function () {
@@ -548,5 +514,9 @@ class ModuleController {
             this.trelloApi.remove(key, 'shared', ModuleController.SHARED_NAME);
         }, this);
         this._repository.clearAll();
+    }
+
+    create(json) {
+        return ModuleConfig.create(json);
     }
 }
