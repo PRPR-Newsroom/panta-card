@@ -246,27 +246,38 @@ class PluginController {
             let article = entry[1];
             if (article.version === 1) {
                 // only update if the article is still on version 1 because articles with newer versions are already using module configs
-                let mconfig = Object.entries(article.involved).reduce(function (previous, entry) {
-                    let section = entry[0];
-                    let involved = entry[1];
-                    previous.sections[section] = involved;
-                    return previous;
-                }, ModuleConfig.create());
+                if (article.involved) {
+                    let mconfig = Object.entries(article.involved).reduce(function (previous, entry) {
+                        let section = entry[0];
+                        let involved = entry[1];
+                        previous.sections[section] = involved;
+                        return previous;
+                    }, ModuleConfig.create());
 
-                // persist the module config
-                mc.persist.call(mc, mconfig, cardId)
-                    .then(function () {
-                            article.version = Artikel.VERSION;
-                            if (typeof article.clearInvolved === "function") {
-                                article.clearInvolved();
+                    // persist the module config
+                    mc.persist.call(mc, mconfig, cardId)
+                        .then(function () {
+                                article.version = Artikel.VERSION;
+                                if (typeof article.clearInvolved === "function") {
+                                    article.clearInvolved();
+                                }
+                                return ac.persist.call(ac, article, cardId);
                             }
-                            return ac.persist.call(ac, article, cardId);
-                        }
-                    )
-                    // and then proceed with the next article
-                    .then(function () {
-                        that._upgradeArticleToModuleConfig.call(that, ac, mc, articles, index + 1, cardId)
-                    });
+                        )
+                        // and then proceed with the next article
+                        .then(function () {
+                            that._upgradeArticleToModuleConfig.call(that, ac, mc, articles, index + 1, cardId)
+                        });
+                } else {
+                    // if there's no involved data then just update the version and proceed to the next item
+                    console.log("The article does not have any involved data. Just update the version of the article and proceed to the next item.");
+                    article.version = Artikel.VERSION;
+                    return ac.persist.call(ac, article, cardId)
+                        // and then proceed with the next article
+                        .then(function () {
+                            that._upgradeArticleToModuleConfig.call(that, ac, mc, articles, index + 1, cardId)
+                        });
+                }
 
             } else {
                 console.log("Skipping article because its at version %d", article.version);
