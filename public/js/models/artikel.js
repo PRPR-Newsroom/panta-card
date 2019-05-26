@@ -44,6 +44,9 @@ class Artikel {
                 JsonSerialization.getProperty(json, 'form'),
                 JsonSerialization.getProperty(json, 'location')
             );
+            // involved constains the whole panta.Beteiligt datastore
+            artikel.involved = JsonSerialization.getProperty(json, 'involved');
+
             // set the version
             artikel.version = JsonSerialization.getProperty(json, 'version');
             return artikel;
@@ -84,7 +87,20 @@ class Artikel {
         this._location = location;
         this._author = author;
         this._text = text;
+        /**
+         *
+         * @type {{}}
+         * @private
+         * @deprecated this is replaced by module configurations
+         */
+        this._involved = {};
         this._version = Artikel.VERSION;
+        this.putInvolved('onsite', new OtherBeteiligt());
+        this.putInvolved('text', new OtherBeteiligt());
+        this.putInvolved('photo', new OtherBeteiligt());
+        this.putInvolved('video', new OtherBeteiligt());
+        this.putInvolved('illu', new OtherBeteiligt());
+        this.putInvolved('ad', new AdBeteiligt());
     }
 
     /**
@@ -95,6 +111,51 @@ class Artikel {
         return isBlank(this.topic) && isBlank(this.pagina) && isBlank(this.from) && isBlank(this.layout) && isBlank(this.tags) && isBlank(this.visual)
             && isBlank(this.region) && isBlank(this.season) && isBlank(this.location) && isBlank(this.author) && isBlank(this.text);
     }
+    /**
+     * Get the associated involved container
+     * @param name
+     * @returns {CommonBeteiligt}
+     *
+     * @deprecated this is replaced by module configurations
+     */
+    getInvolvedFor(name) {
+        return this._involved[name];
+    }
+
+    /**
+     * Put a new involved container onto the model and associate it with the given name
+     * @param name
+     * @param involved
+     * @deprecated this is replaced by module configurations
+     */
+    putInvolved(name, involved) {
+        this._involved[name] = involved;
+    }
+
+    /**
+     * Get the number of involvements
+     * @returns {number}
+     * @deprecated this is replaced by module configurations
+     */
+    getInvolvedCount() {
+        let that = this;
+        let count = 0;
+        Object.keys(this._involved).forEach(function(key) {
+            if (!that.getInvolvedFor(key).isEmpty()) {
+                count++;
+            }
+        });
+        return count;
+    }
+
+    /**
+     * Clear all involved sections
+     *
+     * @deprecated this is replaced by module configurations
+     */
+    clearInvolved() {
+        this._involved = {};
+    }
 
     // GETTER & SETTER
 
@@ -104,6 +165,32 @@ class Artikel {
 
     set id(value) {
         this._id = value;
+    }
+
+    get involved() {
+        return this._involved;
+    }
+
+    set involved(involved) {
+        for (let key in involved) {
+            if (involved.hasOwnProperty(key)) {
+                switch (key) {
+                    case 'onsite':
+                    case 'text':
+                    case 'photo':
+                    case 'video':
+                    case 'illu':
+                        this.putInvolved(key, OtherBeteiligt.create(involved[key]));
+                        break;
+                    case 'ad':
+                        this.putInvolved(key, AdBeteiligt.create(involved[key]));
+                        break;
+                    default:
+                        console.log("Unknown involved part: " + key);
+                        break;
+                }
+            }
+        }
     }
 
     get from() {

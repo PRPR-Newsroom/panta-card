@@ -2941,7 +2941,14 @@ var Artikel = function(a, b, c, d, e, f, h, g, k, l, m, q, n, p) {
   this._location = p;
   this._author = m;
   this._text = q;
+  this._involved = {};
   this._version = Artikel.VERSION;
+  this.putInvolved("onsite", new OtherBeteiligt);
+  this.putInvolved("text", new OtherBeteiligt);
+  this.putInvolved("photo", new OtherBeteiligt);
+  this.putInvolved("video", new OtherBeteiligt);
+  this.putInvolved("illu", new OtherBeteiligt);
+  this.putInvolved("ad", new AdBeteiligt);
 };
 Artikel.create = function(a) {
   return this._create(a);
@@ -2952,6 +2959,7 @@ Artikel._create = function(a) {
     "nord" === b && (b = "north");
     b = new Artikel(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "topic"), JsonSerialization.getProperty(a, "pagina"), JsonSerialization.getProperty(a, "from"), JsonSerialization.getProperty(a, "layout"), JsonSerialization.getProperty(a, "total"), JsonSerialization.getProperty(a, "tags"), JsonSerialization.getProperty(a, "visual"), b, JsonSerialization.getProperty(a, "season"), JsonSerialization.getProperty(a, "author"), JsonSerialization.getProperty(a, "text"), JsonSerialization.getProperty(a, 
     "form"), JsonSerialization.getProperty(a, "location"));
+    b.involved = JsonSerialization.getProperty(a, "involved");
     b.version = JsonSerialization.getProperty(a, "version");
     return b;
   }
@@ -2960,10 +2968,47 @@ Artikel._create = function(a) {
 Artikel.prototype.isEmpty = function() {
   return isBlank(this.topic) && isBlank(this.pagina) && isBlank(this.from) && isBlank(this.layout) && isBlank(this.tags) && isBlank(this.visual) && isBlank(this.region) && isBlank(this.season) && isBlank(this.location) && isBlank(this.author) && isBlank(this.text);
 };
+Artikel.prototype.getInvolvedFor = function(a) {
+  return this._involved[a];
+};
+Artikel.prototype.putInvolved = function(a, b) {
+  this._involved[a] = b;
+};
+Artikel.prototype.getInvolvedCount = function() {
+  var a = this, b = 0;
+  Object.keys(this._involved).forEach(function(c) {
+    a.getInvolvedFor(c).isEmpty() || b++;
+  });
+  return b;
+};
+Artikel.prototype.clearInvolved = function() {
+  this._involved = {};
+};
 $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, enumerable:!0, get:function() {
   return this._id;
 }, set:function(a) {
   this._id = a;
+}}, involved:{configurable:!0, enumerable:!0, get:function() {
+  return this._involved;
+}, set:function(a) {
+  for (var b in a) {
+    if (a.hasOwnProperty(b)) {
+      switch(b) {
+        case "onsite":
+        case "text":
+        case "photo":
+        case "video":
+        case "illu":
+          this.putInvolved(b, OtherBeteiligt.create(a[b]));
+          break;
+        case "ad":
+          this.putInvolved(b, AdBeteiligt.create(a[b]));
+          break;
+        default:
+          console.log("Unknown involved part: " + b);
+      }
+    }
+  }
 }}, from:{configurable:!0, enumerable:!0, get:function() {
   return this._from;
 }, set:function(a) {
