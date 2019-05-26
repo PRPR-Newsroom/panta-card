@@ -1752,16 +1752,26 @@ PluginController.prototype._upgradeAllArticleToModuleConfig = function(a, b) {
 PluginController.prototype._upgradeArticleToModuleConfig = function(a, b, c, d) {
   if (d < c.length) {
     var e = this, f = c[d], h = f[0], g = f[1];
-    1 === g.version ? (f = Object.entries(g.involved).reduce(function(a, b) {
-      a.sections[b[0]] = b[1];
-      return a;
-    }, ModuleConfig.create()), b.persist.call(b, f, h).then(function() {
-      g.version = Artikel.VERSION;
-      "function" === typeof g.clearInvolved && g.clearInvolved();
-      return a.persist.call(a, g, h);
-    }).then(function() {
-      e._upgradeArticleToModuleConfig.call(e, a, b, c, d + 1, h);
-    })) : (console.log("Skipping article because its at version %d", g.version), this._upgradeArticleToModuleConfig.call(this, a, b, c, d + 1, h));
+    if (1 === g.version) {
+      if (g.involved) {
+        f = Object.entries(g.involved).reduce(function(a, b) {
+          a.sections[b[0]] = b[1];
+          return a;
+        }, ModuleConfig.create()), b.persist.call(b, f, h).then(function() {
+          g.version = Artikel.VERSION;
+          "function" === typeof g.clearInvolved && g.clearInvolved();
+          return a.persist.call(a, g, h);
+        }).then(function() {
+          e._upgradeArticleToModuleConfig.call(e, a, b, c, d + 1, h);
+        });
+      } else {
+        return console.log("The article does not have any involved data. Just update the version of the article and proceed to the next item."), g.version = Artikel.VERSION, a.persist.call(a, g, h).then(function() {
+          e._upgradeArticleToModuleConfig.call(e, a, b, c, d + 1, h);
+        });
+      }
+    } else {
+      console.log("Skipping article because its at version %d", g.version), this._upgradeArticleToModuleConfig.call(this, a, b, c, d + 1, h);
+    }
   } else {
     console.log("All articles updated");
   }
