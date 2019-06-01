@@ -3214,7 +3214,13 @@ ModuleConfig.create = function(a, b) {
 ModuleConfig._getSectionFactory = function(a, b) {
   return a && a.config && a.config.editables ? "regular" === a.config.editables.filter(function(a) {
     return a.id === b;
-  })[0].layout ? OtherBeteiligt.create : AdBeteiligt.create : OtherBeteiligt.create;
+  })[0].layout ? function() {
+    return OtherBeteiligt.create();
+  } : function() {
+    return AdBeteiligt.create();
+  } : function() {
+    return OtherBeteiligt.create();
+  };
 };
 ModuleConfig.prototype.getContentCount = function() {
   return Object.values(this.sections).filter(function(a) {

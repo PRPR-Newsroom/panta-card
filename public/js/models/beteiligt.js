@@ -24,27 +24,32 @@ class ModuleConfig {
             });
     }
 
-
     /**
      * Get the section factory depending on the id and configuration
      *
      * @param configuration
      * @param id
-     * @returns {(function(*=): OtherBeteiligt)|(function(*=): AdBeteiligt)}
+     * @returns {function(): CommonBeteiligt}
      * @private
      */
     static _getSectionFactory(configuration, id) {
         if (!configuration || !configuration.config || !configuration.config.editables) {
-            return OtherBeteiligt.create;
+            return function() {
+                return OtherBeteiligt.create();
+            };
         }
         let editable = configuration.config.editables
             .filter(function (editable) {
                 return editable.id === id;
             })[0];
         if (editable.layout === 'regular') {
-            return OtherBeteiligt.create;
+            return function() {
+                return OtherBeteiligt.create();
+            };
         } else {
-            return AdBeteiligt.create;
+            return function() {
+                return AdBeteiligt.create();
+            };
         }
     }
     
