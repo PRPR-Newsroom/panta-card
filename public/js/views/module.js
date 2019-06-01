@@ -1,4 +1,6 @@
 /**
+ * THIS IS NOT USED ANYMORE. SEE PLUGIN.HTML
+ *
  * @type {ModuleController}
  */
 let moduleController = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION).init().getModuleController();
@@ -16,7 +18,7 @@ t.render(function () {
                         return module.config.layouts;
                     })[0];
                     if (module_config) {
-                        moduleController.render(ModuleConfig.create(jsonobj), module_config);
+                        moduleController.render(ModuleConfig.create(jsonobj, module_config), module_config);
                     }
                 });
         })

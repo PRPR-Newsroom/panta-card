@@ -516,7 +516,7 @@ class ModuleController extends Controller {
         this._repository.clearAll();
     }
 
-    create(json) {
-        return ModuleConfig.create(json);
+    create(json, configuration) {
+        return ModuleConfig.create(json, configuration || this._beteiligtBinding.configuration);
     }
 }

@@ -94,7 +94,7 @@ class ArtikelController extends Controller {
         }
     }
 
-    create(json) {
+    create(json, configuration) {
         return Artikel.create(json);
     }
 

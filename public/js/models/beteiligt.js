@@ -7,22 +7,44 @@ class ModuleConfig {
 
     /**
      * @param jsonObj
+     * @param configuration the configuration that is used to get the right layout for the sections if the section is empty
      * @returns {ModuleConfig}
      */
-    static create(jsonObj) {
+    static create(jsonObj, configuration) {
         let sections = JsonSerialization.getProperty(jsonObj, 'sections') || {};
-        // TODO the section type must be dynamic
         return new ModuleConfig(JsonSerialization.getProperty(jsonObj, 'id'),
             {
-                'onsite': OtherBeteiligt.create(sections.onsite),
-                'text': OtherBeteiligt.create(sections.text),
-                'photo': OtherBeteiligt.create(sections.photo),
-                'video': OtherBeteiligt.create(sections.video),
-                'illu': OtherBeteiligt.create(sections.illu),
-                'ad': OtherBeteiligt.create(sections.ad)
+                'onsite': CommonBeteiligt.create(sections.onsite, ModuleConfig._getSectionFactory(configuration, "onsite")),
+                'text': CommonBeteiligt.create(sections.text, ModuleConfig._getSectionFactory(configuration, "text")),
+                'photo': CommonBeteiligt.create(sections.photo, ModuleConfig._getSectionFactory(configuration, "photo")),
+                'video': CommonBeteiligt.create(sections.video, ModuleConfig._getSectionFactory(configuration, "video")),
+                'illu': CommonBeteiligt.create(sections.illu, ModuleConfig._getSectionFactory(configuration, "illu")),
+                'ad': CommonBeteiligt.create(sections.ad, ModuleConfig._getSectionFactory(configuration, "ad"))
             });
     }
 
+    /**
+     * Get the section factory depending on the id and configuration
+     * @param configuration
+     * @param id
+     * @private
+     */
+    static _getSectionFactory(configuration, id) {
+        let editable = configuration.config.editables
+            .filter(function (editable) {
+                return editable.id === id;
+            })[0];
+        if (editable.layout === 'regular') {
+            return function() {
+                return OtherBeteiligt.create();
+            }
+        } else {
+            return function() {
+                return AdBeteiligt.create();
+            }
+        }
+    }
+    
     constructor(id, sections) {
         this._id = id || uuid();
         this._sections = sections;
@@ -58,9 +80,10 @@ class CommonBeteiligt {
     /**
      * Create the beteiligt entity depending on its type
      * @param jsonObj
+     * @param factory to get a default beteiligt instance
      * @returns {CommonBeteiligt}
      */
-    static create(jsonObj) {
+    static create(jsonObj, factory) {
         // detect type
         if (jsonObj) {
             let type = JsonSerialization.getProperty(jsonObj, "type");
@@ -68,11 +91,13 @@ class CommonBeteiligt {
                 case "ad":
                     return AdBeteiligt.create(jsonObj);
                 case "other":
-                default:
                     return OtherBeteiligt.create(jsonObj);
+                default:
+                    return factory ? factory() : null;
             }
         } else {
-            throw new Error("Invalid jsonObj: cannot create Beteiligt Entity");
+            // if nothing else configured we assume it's a OtherBeteiligt layout
+            return factory ? factory.call(this) : null;
         }
     }
 
