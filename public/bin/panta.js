@@ -3207,17 +3207,14 @@ var ModuleConfig = function(a, b) {
 };
 ModuleConfig.create = function(a, b) {
   var c = JsonSerialization.getProperty(a, "sections") || {};
-  return new ModuleConfig(JsonSerialization.getProperty(a, "id"), {onsite:CommonBeteiligt.create(c.onsite, ModuleConfig._getSectionFactory(b, "onsite")), text:CommonBeteiligt.create(c.text, ModuleConfig._getSectionFactory(b, "text")), photo:CommonBeteiligt.create(c.photo, ModuleConfig._getSectionFactory(b, "photo")), video:CommonBeteiligt.create(c.video, ModuleConfig._getSectionFactory(b, "video")), illu:CommonBeteiligt.create(c.illu, ModuleConfig._getSectionFactory(b, "illu")), ad:CommonBeteiligt.create(c.ad, 
-  ModuleConfig._getSectionFactory(b, "ad"))});
+  a = JsonSerialization.getProperty(a, "id");
+  return new ModuleConfig(a, {onsite:CommonBeteiligt.create(c.onsite, ModuleConfig._getSectionFactory(b, "onsite")), text:CommonBeteiligt.create(c.text, ModuleConfig._getSectionFactory(b, "text")), photo:CommonBeteiligt.create(c.photo, ModuleConfig._getSectionFactory(b, "photo")), video:CommonBeteiligt.create(c.video, ModuleConfig._getSectionFactory(b, "video")), illu:CommonBeteiligt.create(c.illu, ModuleConfig._getSectionFactory(b, "illu")), ad:CommonBeteiligt.create(c.ad, ModuleConfig._getSectionFactory(b, 
+  "ad"))});
 };
 ModuleConfig._getSectionFactory = function(a, b) {
-  return "regular" === a.config.editables.filter(function(a) {
+  return a && a.config && a.config.editables ? "regular" === a.config.editables.filter(function(a) {
     return a.id === b;
-  })[0].layout ? function() {
-    return OtherBeteiligt.create();
-  } : function() {
-    return AdBeteiligt.create();
-  };
+  })[0].layout ? OtherBeteiligt.create : AdBeteiligt.create : OtherBeteiligt.create;
 };
 ModuleConfig.prototype.getContentCount = function() {
   return Object.values(this.sections).filter(function(a) {

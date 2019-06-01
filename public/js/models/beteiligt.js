@@ -12,7 +12,8 @@ class ModuleConfig {
      */
     static create(jsonObj, configuration) {
         let sections = JsonSerialization.getProperty(jsonObj, 'sections') || {};
-        return new ModuleConfig(JsonSerialization.getProperty(jsonObj, 'id'),
+        let id = JsonSerialization.getProperty(jsonObj, 'id');
+        return new ModuleConfig(id,
             {
                 'onsite': CommonBeteiligt.create(sections.onsite, ModuleConfig._getSectionFactory(configuration, "onsite")),
                 'text': CommonBeteiligt.create(sections.text, ModuleConfig._getSectionFactory(configuration, "text")),
@@ -23,25 +24,27 @@ class ModuleConfig {
             });
     }
 
+
     /**
      * Get the section factory depending on the id and configuration
+     *
      * @param configuration
      * @param id
+     * @returns {(function(*=): OtherBeteiligt)|(function(*=): AdBeteiligt)}
      * @private
      */
     static _getSectionFactory(configuration, id) {
+        if (!configuration || !configuration.config || !configuration.config.editables) {
+            return OtherBeteiligt.create;
+        }
         let editable = configuration.config.editables
             .filter(function (editable) {
                 return editable.id === id;
             })[0];
         if (editable.layout === 'regular') {
-            return function() {
-                return OtherBeteiligt.create();
-            }
+            return OtherBeteiligt.create;
         } else {
-            return function() {
-                return AdBeteiligt.create();
-            }
+            return AdBeteiligt.create;
         }
     }
     
