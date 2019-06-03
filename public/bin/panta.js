@@ -558,7 +558,7 @@ Controller.prototype.detach = function() {
 Controller.prototype.insert = function(a, b) {
   a && this._repository.isNew(a) ? this._repository.add(a, b) : a && this._repository.replace(a, b);
 };
-Controller.prototype.create = function(a) {
+Controller.prototype.create = function(a, b) {
 };
 Controller.prototype.onEvent = function(a, b) {
 };
@@ -1251,6 +1251,10 @@ BeteiligtBinding.prototype.onLayoutUpdate = function(a, b) {
   a.setFieldValue("charges", b.data, "charges");
   a.setFieldValue("project", b.data, "project");
   a.setFieldValue("capOnDepenses", b.data, "capOnDepenses");
+  a.setFieldValue("price", b.data, "price");
+  a.setFieldValue("format", b.data, "format");
+  a.setFieldValue("placement", b.data, "placement");
+  a.setFieldValue("total", b.data, "total");
 };
 BeteiligtBinding.prototype.onLayout = function(a, b) {
   if (a === this._activated) {
@@ -1293,23 +1297,25 @@ BeteiligtBinding.prototype.onAdLayout = function(a, b) {
   c.innerHTML = template_ad;
   c = c.cloneNode(!0);
   this._switchContent(a, c);
-  a = {context:this._context, valueHolder:b, config:this._entity};
-  c = this.getLayoutConfigurationFor("ad", "field.name");
-  this.document.newSingleLineInput(b, ".pa.name", "name", c.label, a, this._action, c.placeholder, "text", !1);
-  c = this.getLayoutConfigurationFor("ad", "field.social");
-  this.document.newSingleLineInput(b, ".pa.social", "social", c.label, a, this._action, c.placeholder);
-  c = this.getLayoutConfigurationFor("ad", "field.address");
-  this.document.newMultiLineInput(b, ".pa.address", "address", c.label, a, this._action, 2, c.placeholder);
-  c = this.getLayoutConfigurationFor("ad", "field.format");
-  this.document.newSingleLineInput(b, ".pa.format", "format", c.label, a, this._action, c.placeholder, "text", !1);
-  c = this.getLayoutConfigurationFor("ad", "field.placement");
-  this.document.newSingleLineInput(b, ".pa.placement", "placement", c.label, a, this._action, c.placeholder, "text", !1);
-  c = this.getLayoutConfigurationFor("ad", "field.sujet");
-  this.document.newMultiLineInput(b, ".pa.notes", "notes", c.label, a, this._action, 2, c.placeholder);
-  c = this.getLayoutConfigurationFor("ad", "field.price");
-  this.document.newSingleLineInput(b, ".pa.price", "price", c.label, a, this._action, c.placeholder, "money", !1);
-  c = this.getLayoutConfigurationFor("ad", "field.total");
-  this.document.newSingleLineInput(b, ".pa.total", "total", c.label, a, this._action, c.placeholder, "money", !0).addClass("bold");
+  if (b.show) {
+    c = {context:this._context, valueHolder:b, config:this._entity};
+    var d = this.getLayoutConfigurationFor("ad", "field.name");
+    a.setField("name", this.document.newSingleLineInput(b, ".pa.name", "name", d.label, c, this._action, d.placeholder, "text", !1));
+    d = this.getLayoutConfigurationFor("ad", "field.social");
+    a.setField("social", this.document.newSingleLineInput(b, ".pa.social", "social", d.label, c, this._action, d.placeholder));
+    d = this.getLayoutConfigurationFor("ad", "field.address");
+    a.setField("address", this.document.newMultiLineInput(b, ".pa.address", "address", d.label, c, this._action, 2, d.placeholder));
+    d = this.getLayoutConfigurationFor("ad", "field.format");
+    a.setField("format", this.document.newSingleLineInput(b, ".pa.format", "format", d.label, c, this._action, d.placeholder, "text", !1));
+    d = this.getLayoutConfigurationFor("ad", "field.placement");
+    a.setField("placement", this.document.newSingleLineInput(b, ".pa.placement", "placement", d.label, c, this._action, d.placeholder, "text", !1));
+    d = this.getLayoutConfigurationFor("ad", "field.sujet");
+    a.setField("notes", this.document.newMultiLineInput(b, ".pa.notes", "notes", d.label, c, this._action, 2, d.placeholder));
+    d = this.getLayoutConfigurationFor("ad", "field.price");
+    a.setField("price", this.document.newSingleLineInput(b, ".pa.price", "price", d.label, c, this._action, d.placeholder, "money", !1));
+    d = this.getLayoutConfigurationFor("ad", "field.total");
+    a.setField("total", this.document.newSingleLineInput(b, ".pa.total", "total", d.label, c, this._action, d.placeholder, "money", !0).addClass("bold"));
+  }
 };
 BeteiligtBinding.prototype.doLabels = function() {
   var a = this;
@@ -1378,6 +1384,9 @@ BeteiligtBinding.prototype.getConfigurationFor = function(a) {
   }, []);
   return {label:c, options:d, editable:b[0]};
 };
+$jscomp.global.Object.defineProperties(BeteiligtBinding.prototype, {configuration:{configurable:!0, enumerable:!0, get:function() {
+  return this._configuration;
+}}});
 // Input 16
 var ModulePlanController = function(a, b, c) {
   Controller.call(this, a, new ModulePlanRepository);
@@ -1500,7 +1509,7 @@ ModulePlanController.prototype._onChange = function(a) {
 ModulePlanController.prototype.clear = function() {
   return Controller.prototype.clear.call(this);
 };
-ModulePlanController.prototype.create = function(a) {
+ModulePlanController.prototype.create = function(a, b) {
   return Plan.create(a);
 };
 $jscomp.global.Object.defineProperties(ModulePlanController, {SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
@@ -1569,7 +1578,7 @@ ArtikelController.prototype.setVersionInfo = function() {
 ArtikelController.prototype.getVersionInfo = function() {
   return {version:ArtikelController.VERSION};
 };
-ArtikelController.prototype.create = function(a) {
+ArtikelController.prototype.create = function(a, b) {
   return Artikel.create(a);
 };
 ArtikelController.prototype.getPropertyByName = function(a, b, c) {
@@ -2704,8 +2713,8 @@ ModuleController.prototype.clear = function() {
   }, this);
   this._repository.clearAll();
 };
-ModuleController.prototype.create = function(a) {
-  return ModuleConfig.create(a);
+ModuleController.prototype.create = function(a, b) {
+  return ModuleConfig.create(a, b || this._beteiligtBinding.configuration);
 };
 $jscomp.global.Object.defineProperties(ModuleController, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
@@ -2941,7 +2950,14 @@ var Artikel = function(a, b, c, d, e, f, h, g, k, l, m, q, n, p) {
   this._location = p;
   this._author = m;
   this._text = q;
+  this._involved = {};
   this._version = Artikel.VERSION;
+  this.putInvolved("onsite", new OtherBeteiligt);
+  this.putInvolved("text", new OtherBeteiligt);
+  this.putInvolved("photo", new OtherBeteiligt);
+  this.putInvolved("video", new OtherBeteiligt);
+  this.putInvolved("illu", new OtherBeteiligt);
+  this.putInvolved("ad", new AdBeteiligt);
 };
 Artikel.create = function(a) {
   return this._create(a);
@@ -2952,6 +2968,7 @@ Artikel._create = function(a) {
     "nord" === b && (b = "north");
     b = new Artikel(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "topic"), JsonSerialization.getProperty(a, "pagina"), JsonSerialization.getProperty(a, "from"), JsonSerialization.getProperty(a, "layout"), JsonSerialization.getProperty(a, "total"), JsonSerialization.getProperty(a, "tags"), JsonSerialization.getProperty(a, "visual"), b, JsonSerialization.getProperty(a, "season"), JsonSerialization.getProperty(a, "author"), JsonSerialization.getProperty(a, "text"), JsonSerialization.getProperty(a, 
     "form"), JsonSerialization.getProperty(a, "location"));
+    b.involved = JsonSerialization.getProperty(a, "involved");
     b.version = JsonSerialization.getProperty(a, "version");
     return b;
   }
@@ -2960,10 +2977,47 @@ Artikel._create = function(a) {
 Artikel.prototype.isEmpty = function() {
   return isBlank(this.topic) && isBlank(this.pagina) && isBlank(this.from) && isBlank(this.layout) && isBlank(this.tags) && isBlank(this.visual) && isBlank(this.region) && isBlank(this.season) && isBlank(this.location) && isBlank(this.author) && isBlank(this.text);
 };
+Artikel.prototype.getInvolvedFor = function(a) {
+  return this._involved[a];
+};
+Artikel.prototype.putInvolved = function(a, b) {
+  this._involved[a] = b;
+};
+Artikel.prototype.getInvolvedCount = function() {
+  var a = this, b = 0;
+  Object.keys(this._involved).forEach(function(c) {
+    a.getInvolvedFor(c).isEmpty() || b++;
+  });
+  return b;
+};
+Artikel.prototype.clearInvolved = function() {
+  this._involved = {};
+};
 $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, enumerable:!0, get:function() {
   return this._id;
 }, set:function(a) {
   this._id = a;
+}}, involved:{configurable:!0, enumerable:!0, get:function() {
+  return this._involved;
+}, set:function(a) {
+  for (var b in a) {
+    if (a.hasOwnProperty(b)) {
+      switch(b) {
+        case "onsite":
+        case "text":
+        case "photo":
+        case "video":
+        case "illu":
+          this.putInvolved(b, OtherBeteiligt.create(a[b]));
+          break;
+        case "ad":
+          this.putInvolved(b, AdBeteiligt.create(a[b]));
+          break;
+        default:
+          console.log("Unknown involved part: " + b);
+      }
+    }
+  }
 }}, from:{configurable:!0, enumerable:!0, get:function() {
   return this._from;
 }, set:function(a) {
@@ -3151,9 +3205,22 @@ var ModuleConfig = function(a, b) {
   this._sections = b;
   this._version = CommonBeteiligt.VERSION;
 };
-ModuleConfig.create = function(a) {
-  var b = JsonSerialization.getProperty(a, "sections") || {};
-  return new ModuleConfig(JsonSerialization.getProperty(a, "id"), {onsite:OtherBeteiligt.create(b.onsite), text:OtherBeteiligt.create(b.text), photo:OtherBeteiligt.create(b.photo), video:OtherBeteiligt.create(b.video), illu:OtherBeteiligt.create(b.illu), ad:OtherBeteiligt.create(b.ad)});
+ModuleConfig.create = function(a, b) {
+  var c = JsonSerialization.getProperty(a, "sections") || {};
+  a = JsonSerialization.getProperty(a, "id");
+  return new ModuleConfig(a, {onsite:CommonBeteiligt.create(c.onsite, ModuleConfig._getSectionFactory(b, "onsite")), text:CommonBeteiligt.create(c.text, ModuleConfig._getSectionFactory(b, "text")), photo:CommonBeteiligt.create(c.photo, ModuleConfig._getSectionFactory(b, "photo")), video:CommonBeteiligt.create(c.video, ModuleConfig._getSectionFactory(b, "video")), illu:CommonBeteiligt.create(c.illu, ModuleConfig._getSectionFactory(b, "illu")), ad:CommonBeteiligt.create(c.ad, ModuleConfig._getSectionFactory(b, 
+  "ad"))});
+};
+ModuleConfig._getSectionFactory = function(a, b) {
+  return a && a.config && a.config.editables ? "regular" === a.config.editables.filter(function(a) {
+    return a.id === b;
+  })[0].layout ? function() {
+    return OtherBeteiligt.create();
+  } : function() {
+    return AdBeteiligt.create();
+  } : function() {
+    return OtherBeteiligt.create();
+  };
 };
 ModuleConfig.prototype.getContentCount = function() {
   return Object.values(this.sections).filter(function(a) {
@@ -3178,16 +3245,18 @@ var CommonBeteiligt = function(a, b, c, d, e) {
   this._type = null;
   this._id = a;
 };
-CommonBeteiligt.create = function(a) {
+CommonBeteiligt.create = function(a, b) {
   if (a) {
     switch(JsonSerialization.getProperty(a, "type")) {
       case "ad":
         return AdBeteiligt.create(a);
-      default:
+      case "other":
         return OtherBeteiligt.create(a);
+      default:
+        return b ? b() : null;
     }
   } else {
-    throw Error("Invalid jsonObj: cannot create Beteiligt Entity");
+    return b ? b.call(this) : null;
   }
 };
 CommonBeteiligt.prototype.isEmpty = function() {
