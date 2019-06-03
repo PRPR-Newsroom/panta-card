@@ -45,7 +45,13 @@ TrelloPowerUp.initialize({
             .then(function (card) {
                 return t.get(card.id, 'shared', ModuleController.SHARED_NAME)
                     .then(function (list_data) {
-                        return ModuleConfig.create(list_data);
+                        return cm.getPluginController().getPluginConfiguration()
+                            .then(function (configuration) {
+                                let module_config = configuration.modules.filter(function (module) {
+                                    return module.id === 'module.beteiligt';
+                                })[0];
+                                return ModuleConfig.create(list_data, module_config);
+                            });
                     })
                     .then(function (config) {
                         cm.getModuleController().insert(config, card);

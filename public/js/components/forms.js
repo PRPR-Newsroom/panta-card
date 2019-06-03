@@ -82,7 +82,7 @@ class PModuleConfig {
     }
 
     /**
-     *
+     * Map an input field with a name
      * @param name
      * @param {PInput} inputField
      */

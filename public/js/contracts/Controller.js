@@ -79,10 +79,11 @@ class Controller {
     /**
      * Create an entity from the json
      * @param json
+     * @param configuration
      * @return {}
      * @abstract
      */
-    create(json) {}
+    create(json, configuration) {}
 
     /**
      * Called when an event has occurred
