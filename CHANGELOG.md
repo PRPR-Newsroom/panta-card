@@ -1,3 +1,8 @@
+[1.3.4]
+
+* Tab layouts can now be switched back and forth
+* Removed unused console output
+
 [1.3.3]
 
 * Making Beteiligt Module work with dynamic layouts (Kontakt and Inserat)
