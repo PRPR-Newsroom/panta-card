@@ -1,3 +1,6 @@
+[1.3.3]
+
+* Making Beteiligt Module work with dynamic layouts (Kontakt and Inserat)
 
 [1.3.2]
 

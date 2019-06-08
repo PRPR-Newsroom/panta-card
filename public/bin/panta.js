@@ -433,6 +433,15 @@ $jscomp.polyfill("Object.entries", function(a) {
     return b;
   };
 }, "es8", "es3");
+$jscomp.polyfill("Array.prototype.flatMap", function(a) {
+  return a ? a : function(a, c) {
+    for (var b = [], e = 0; e < this.length; e++) {
+      var f = a.call(c, this[e], e, this);
+      Array.isArray(f) ? b.push.apply(b, f) : b.push(f);
+    }
+    return b;
+  };
+}, "es9", "es5");
 var Binding = function(a, b, c, d) {
   this.document = a;
   this._entity = b;
@@ -1543,7 +1552,6 @@ ColorPickerController.prototype.render = function(a) {
 ColorPickerController.prototype.updateColor = function(a, b, c) {
   this.getEditable(a, b).color = c;
   return this._pluginController.setPluginModuleConfig(a).then(function(a) {
-    console.log("updateColor done", a);
     return a;
   });
 };
@@ -2553,13 +2561,18 @@ ModuleController.prototype.update = function() {
   if (!this._window.clientManager.isBeteiligtModuleEnabled()) {
     throw "Module is not enabled";
   }
-  this._entity.sections.ad.total = this.getTotalPrice();
-  var a = this.getTotalProject(), b = this.getCapOnDepenses();
+  var a = this.getTotalPrice();
+  Object.values(this._entity.sections).filter(function(a) {
+    return a instanceof AdBeteiligt;
+  }).forEach(function(b) {
+    b.total = a;
+  });
+  var b = this.getTotalProject(), c = this.getCapOnDepenses();
   Object.values(this._entity.sections).filter(function(a) {
     return a instanceof OtherBeteiligt;
-  }).forEach(function(c) {
-    c.project = a;
-    c.capOnDepenses = b;
+  }).forEach(function(a) {
+    a.project = b;
+    a.capOnDepenses = c;
   });
   this._beteiligtBinding.update(this._entity);
 };
@@ -2586,12 +2599,14 @@ ModuleController.prototype._onChange = function(a, b) {
   b.config.sections[b.valueHolder["involved-in"]] = a.getBinding();
   this._beteiligtBinding.rememberFocus(a);
   this.persist.call(this, b.config).then(function() {
-    console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue());
+    console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue(), b.config);
   });
 };
 ModuleController.prototype.getTotalPrice = function() {
-  return Object.values(this._repository.all()).map(function(a) {
-    return (a && a.sections ? a.sections : {}).ad;
+  return Object.values(this._repository.all()).flatMap(function(a) {
+    return Object.values(a && a.sections ? a.sections : {}).filter(function(a) {
+      return a instanceof AdBeteiligt;
+    });
   }).filter(function(a) {
     return a instanceof AdBeteiligt && !isNaN(parseFloat(a.price));
   }).map(function(a) {
@@ -3214,12 +3229,12 @@ ModuleConfig.create = function(a, b) {
 ModuleConfig._getSectionFactory = function(a, b) {
   return a && a.config && a.config.editables ? "regular" === a.config.editables.filter(function(a) {
     return a.id === b;
-  })[0].layout ? function() {
-    return OtherBeteiligt.create();
-  } : function() {
-    return AdBeteiligt.create();
-  } : function() {
-    return OtherBeteiligt.create();
+  })[0].layout ? function(a) {
+    return OtherBeteiligt.create(a);
+  } : function(a) {
+    return AdBeteiligt.create(a);
+  } : function(a) {
+    return OtherBeteiligt.create(a);
   };
 };
 ModuleConfig.prototype.getContentCount = function() {
@@ -3246,18 +3261,7 @@ var CommonBeteiligt = function(a, b, c, d, e) {
   this._id = a;
 };
 CommonBeteiligt.create = function(a, b) {
-  if (a) {
-    switch(JsonSerialization.getProperty(a, "type")) {
-      case "ad":
-        return AdBeteiligt.create(a);
-      case "other":
-        return OtherBeteiligt.create(a);
-      default:
-        return b ? b() : null;
-    }
-  } else {
-    return b ? b.call(this) : null;
-  }
+  return b ? b.call(this, a) : null;
 };
 CommonBeteiligt.prototype.isEmpty = function() {
   return isBlank(this.name) && isBlank(this.social) && isBlank(this.address) && isBlank(this.notes);
