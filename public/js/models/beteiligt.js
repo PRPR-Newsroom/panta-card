@@ -34,8 +34,8 @@ class ModuleConfig {
      */
     static _getSectionFactory(configuration, id) {
         if (!configuration || !configuration.config || !configuration.config.editables) {
-            return function() {
-                return OtherBeteiligt.create();
+            return function(jsonObj) {
+                return OtherBeteiligt.create(jsonObj);
             };
         }
         let editable = configuration.config.editables
@@ -43,12 +43,12 @@ class ModuleConfig {
                 return editable.id === id;
             })[0];
         if (editable.layout === 'regular') {
-            return function() {
-                return OtherBeteiligt.create();
+            return function(jsonObj) {
+                return OtherBeteiligt.create(jsonObj);
             };
         } else {
-            return function() {
-                return AdBeteiligt.create();
+            return function(jsonObj) {
+                return AdBeteiligt.create(jsonObj);
             };
         }
     }
@@ -92,21 +92,8 @@ class CommonBeteiligt {
      * @returns {CommonBeteiligt}
      */
     static create(jsonObj, factory) {
-        // detect type
-        if (jsonObj) {
-            let type = JsonSerialization.getProperty(jsonObj, "type");
-            switch (type) {
-                case "ad":
-                    return AdBeteiligt.create(jsonObj);
-                case "other":
-                    return OtherBeteiligt.create(jsonObj);
-                default:
-                    return factory ? factory() : null;
-            }
-        } else {
-            // if nothing else configured we assume it's a OtherBeteiligt layout
-            return factory ? factory.call(this) : null;
-        }
+        // the factory accepts a json object and passes it to the actual model class
+        return factory ? factory.call(this, jsonObj) : null;
     }
 
     constructor(id, name, social, address, notes) {
@@ -284,7 +271,7 @@ class AdBeteiligt extends CommonBeteiligt {
      */
     static _create(jsonObj) {
         if (jsonObj) {
-            return new AdBeteiligt(
+            let model = new AdBeteiligt(
                 JsonSerialization.getProperty(jsonObj, 'id'),
                 JsonSerialization.getProperty(jsonObj, 'name'),
                 JsonSerialization.getProperty(jsonObj, 'social'),
@@ -293,7 +280,8 @@ class AdBeteiligt extends CommonBeteiligt {
                 JsonSerialization.getProperty(jsonObj, 'format'),
                 JsonSerialization.getProperty(jsonObj, 'placement'),
                 JsonSerialization.getProperty(jsonObj, 'price')
-            )
+            );
+            return model;
         } else {
             return new AdBeteiligt();
         }
