@@ -65,6 +65,15 @@ class BeteiligtBinding extends Binding {
         this._configuration = configuration;
     }
 
+    /**
+     * Get the configuration of this binding
+     *
+     * @returns {PluginModuleConfig}
+     */
+    get configuration() {
+        return this._configuration;
+    }
+
     initLayouts() {
         let that = this;
         let layouts = (this._configuration && this._configuration.config && this._configuration.config.editables ? this._configuration.config.editables : []).filter(function (item) {
@@ -212,6 +221,7 @@ class BeteiligtBinding extends Binding {
      * @param valueHolder
      */
     onLayoutUpdate(forms, valueHolder) {
+        // common fields (both KONTAKT and INSERAT)
         forms.setFieldValue("name", valueHolder.data, "name");
         forms.setFieldValue("social", valueHolder.data, "social");
         forms.setFieldValue("address", valueHolder.data, "address");
@@ -222,6 +232,12 @@ class BeteiligtBinding extends Binding {
         forms.setFieldValue("charges", valueHolder.data, "charges");
         forms.setFieldValue("project", valueHolder.data, "project");
         forms.setFieldValue("capOnDepenses", valueHolder.data, "capOnDepenses");
+
+        // fields from INSERAT Layout
+        forms.setFieldValue("price", valueHolder.data, "price");
+        forms.setFieldValue("format", valueHolder.data, "format");
+        forms.setFieldValue("placement", valueHolder.data, "placement");
+        forms.setFieldValue("total", valueHolder.data, "total");
     }
 
     /**
@@ -295,31 +311,33 @@ class BeteiligtBinding extends Binding {
 
         this._switchContent(forms, templ);
 
-        let params = {'context': this._context, 'valueHolder': valueHolder, 'config': this._entity};
-        let config = this.getLayoutConfigurationFor("ad", "field.name");
-        this.document.newSingleLineInput(valueHolder, ".pa.name", 'name', config.label, params, this._action, config.placeholder, "text", false);
+        if (valueHolder.show) {
+            let params = {'context': this._context, 'valueHolder': valueHolder, 'config': this._entity};
+            let config = this.getLayoutConfigurationFor("ad", "field.name");
+            forms.setField("name", this.document.newSingleLineInput(valueHolder, ".pa.name", 'name', config.label, params, this._action, config.placeholder, "text", false));
 
-        config = this.getLayoutConfigurationFor("ad", "field.social");
-        this.document.newSingleLineInput(valueHolder, ".pa.social", 'social', config.label, params, this._action, config.placeholder);
+            config = this.getLayoutConfigurationFor("ad", "field.social");
+            forms.setField("social", this.document.newSingleLineInput(valueHolder, ".pa.social", 'social', config.label, params, this._action, config.placeholder));
 
-        config = this.getLayoutConfigurationFor("ad", "field.address");
-        this.document.newMultiLineInput(valueHolder, ".pa.address", 'address', config.label, params, this._action, 2, config.placeholder);
+            config = this.getLayoutConfigurationFor("ad", "field.address");
+            forms.setField("address", this.document.newMultiLineInput(valueHolder, ".pa.address", 'address', config.label, params, this._action, 2, config.placeholder));
 
-        config = this.getLayoutConfigurationFor("ad", "field.format");
-        this.document.newSingleLineInput(valueHolder, ".pa.format", 'format', config.label, params, this._action, config.placeholder, "text", false);
+            config = this.getLayoutConfigurationFor("ad", "field.format");
+            forms.setField("format", this.document.newSingleLineInput(valueHolder, ".pa.format", 'format', config.label, params, this._action, config.placeholder, "text", false));
 
-        config = this.getLayoutConfigurationFor("ad", "field.placement");
-        this.document.newSingleLineInput(valueHolder, ".pa.placement", "placement", config.label, params, this._action, config.placeholder, "text", false);
+            config = this.getLayoutConfigurationFor("ad", "field.placement");
+            forms.setField("placement", this.document.newSingleLineInput(valueHolder, ".pa.placement", "placement", config.label, params, this._action, config.placeholder, "text", false));
 
-        config = this.getLayoutConfigurationFor("ad", "field.sujet");
-        this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", config.label, params, this._action, 2, config.placeholder);
+            config = this.getLayoutConfigurationFor("ad", "field.sujet");
+            forms.setField("notes", this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", config.label, params, this._action, 2, config.placeholder));
 
-        config = this.getLayoutConfigurationFor("ad", "field.price");
-        this.document.newSingleLineInput(valueHolder, ".pa.price", "price", config.label, params, this._action, config.placeholder, "money", false);
+            config = this.getLayoutConfigurationFor("ad", "field.price");
+            forms.setField("price", this.document.newSingleLineInput(valueHolder, ".pa.price", "price", config.label, params, this._action, config.placeholder, "money", false));
 
-        config = this.getLayoutConfigurationFor("ad", "field.total");
-        this.document.newSingleLineInput(valueHolder, ".pa.total", "total", config.label, params, this._action, config.placeholder, "money", true)
-            .addClass("bold");
+            config = this.getLayoutConfigurationFor("ad", "field.total");
+            forms.setField("total", this.document.newSingleLineInput(valueHolder, ".pa.total", "total", config.label, params, this._action, config.placeholder, "money", true)
+                .addClass("bold"));
+        }
     }
 
     /**
@@ -422,7 +440,7 @@ class BeteiligtBinding extends Binding {
                 return key === layout;
             });
         return this._configuration.config.layouts[lc].fields
-            .find(function(field) {
+            .find(function (field) {
                 return field.id === id;
             });
     }
@@ -454,4 +472,5 @@ class BeteiligtBinding extends Binding {
             "editable": editable[0]
         };
     }
+
 }

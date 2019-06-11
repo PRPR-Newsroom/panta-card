@@ -194,8 +194,12 @@ class ModuleController extends Controller {
             throw "Module is not enabled";
         }
         // update the total price in the "ad" section
-        // TODO no hardcoded access!
-        this._entity.sections['ad'].total = this.getTotalPrice();
+        let total = this.getTotalPrice();
+        Object.values(this._entity.sections).filter(function(section) {
+            return section instanceof AdBeteiligt
+        }).forEach(function(section) {
+            section.total = total;
+        });
         let totalProject = this.getTotalProject();
         let cod = this.getCapOnDepenses();
         // set all dynamic properties in all OtherBeteiligt sections
@@ -266,7 +270,7 @@ class ModuleController extends Controller {
         this._beteiligtBinding.rememberFocus(source);
         // update the involved part of the entity
         this.persist.call(this, args['config']).then(function () {
-            console.log("Stored: " + source.getBoundProperty() + " = " + source.getValue());
+            console.log("Stored: " + source.getBoundProperty() + " = " + source.getValue(), args['config']);
         });
     }
 
@@ -275,9 +279,11 @@ class ModuleController extends Controller {
      * @returns {number}
      */
     getTotalPrice() {
-        return Object.values(this._repository.all()).map(function (item) {
+        return Object.values(this._repository.all()).flatMap(function (item) {
             let sections = item && item.sections ? item.sections : {};
-            return sections['ad'];
+            return Object.values(sections).filter(function(section) {
+                return section instanceof AdBeteiligt
+            });
         }).filter(function (item) {
             return item instanceof AdBeteiligt && !isNaN(parseFloat(item.price));
         }).map(function (item) {
@@ -516,7 +522,7 @@ class ModuleController extends Controller {
         this._repository.clearAll();
     }
 
-    create(json) {
-        return ModuleConfig.create(json);
+    create(json, configuration) {
+        return ModuleConfig.create(json, configuration || this._beteiligtBinding.configuration);
     }
 }

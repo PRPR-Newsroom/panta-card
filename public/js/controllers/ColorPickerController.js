@@ -63,7 +63,6 @@ class ColorPickerController {
         editable["color"] = color;
         return this._pluginController.setPluginModuleConfig(module)
             .then(function (pc) {
-                console.log("updateColor done", pc);
                 return pc;
             });
     }

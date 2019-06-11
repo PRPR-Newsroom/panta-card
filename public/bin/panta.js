@@ -433,6 +433,15 @@ $jscomp.polyfill("Object.entries", function(a) {
     return b;
   };
 }, "es8", "es3");
+$jscomp.polyfill("Array.prototype.flatMap", function(a) {
+  return a ? a : function(a, c) {
+    for (var b = [], e = 0; e < this.length; e++) {
+      var f = a.call(c, this[e], e, this);
+      Array.isArray(f) ? b.push.apply(b, f) : b.push(f);
+    }
+    return b;
+  };
+}, "es9", "es5");
 var Binding = function(a, b, c, d) {
   this.document = a;
   this._entity = b;
@@ -558,7 +567,7 @@ Controller.prototype.detach = function() {
 Controller.prototype.insert = function(a, b) {
   a && this._repository.isNew(a) ? this._repository.add(a, b) : a && this._repository.replace(a, b);
 };
-Controller.prototype.create = function(a) {
+Controller.prototype.create = function(a, b) {
 };
 Controller.prototype.onEvent = function(a, b) {
 };
@@ -1251,6 +1260,10 @@ BeteiligtBinding.prototype.onLayoutUpdate = function(a, b) {
   a.setFieldValue("charges", b.data, "charges");
   a.setFieldValue("project", b.data, "project");
   a.setFieldValue("capOnDepenses", b.data, "capOnDepenses");
+  a.setFieldValue("price", b.data, "price");
+  a.setFieldValue("format", b.data, "format");
+  a.setFieldValue("placement", b.data, "placement");
+  a.setFieldValue("total", b.data, "total");
 };
 BeteiligtBinding.prototype.onLayout = function(a, b) {
   if (a === this._activated) {
@@ -1293,23 +1306,25 @@ BeteiligtBinding.prototype.onAdLayout = function(a, b) {
   c.innerHTML = template_ad;
   c = c.cloneNode(!0);
   this._switchContent(a, c);
-  a = {context:this._context, valueHolder:b, config:this._entity};
-  c = this.getLayoutConfigurationFor("ad", "field.name");
-  this.document.newSingleLineInput(b, ".pa.name", "name", c.label, a, this._action, c.placeholder, "text", !1);
-  c = this.getLayoutConfigurationFor("ad", "field.social");
-  this.document.newSingleLineInput(b, ".pa.social", "social", c.label, a, this._action, c.placeholder);
-  c = this.getLayoutConfigurationFor("ad", "field.address");
-  this.document.newMultiLineInput(b, ".pa.address", "address", c.label, a, this._action, 2, c.placeholder);
-  c = this.getLayoutConfigurationFor("ad", "field.format");
-  this.document.newSingleLineInput(b, ".pa.format", "format", c.label, a, this._action, c.placeholder, "text", !1);
-  c = this.getLayoutConfigurationFor("ad", "field.placement");
-  this.document.newSingleLineInput(b, ".pa.placement", "placement", c.label, a, this._action, c.placeholder, "text", !1);
-  c = this.getLayoutConfigurationFor("ad", "field.sujet");
-  this.document.newMultiLineInput(b, ".pa.notes", "notes", c.label, a, this._action, 2, c.placeholder);
-  c = this.getLayoutConfigurationFor("ad", "field.price");
-  this.document.newSingleLineInput(b, ".pa.price", "price", c.label, a, this._action, c.placeholder, "money", !1);
-  c = this.getLayoutConfigurationFor("ad", "field.total");
-  this.document.newSingleLineInput(b, ".pa.total", "total", c.label, a, this._action, c.placeholder, "money", !0).addClass("bold");
+  if (b.show) {
+    c = {context:this._context, valueHolder:b, config:this._entity};
+    var d = this.getLayoutConfigurationFor("ad", "field.name");
+    a.setField("name", this.document.newSingleLineInput(b, ".pa.name", "name", d.label, c, this._action, d.placeholder, "text", !1));
+    d = this.getLayoutConfigurationFor("ad", "field.social");
+    a.setField("social", this.document.newSingleLineInput(b, ".pa.social", "social", d.label, c, this._action, d.placeholder));
+    d = this.getLayoutConfigurationFor("ad", "field.address");
+    a.setField("address", this.document.newMultiLineInput(b, ".pa.address", "address", d.label, c, this._action, 2, d.placeholder));
+    d = this.getLayoutConfigurationFor("ad", "field.format");
+    a.setField("format", this.document.newSingleLineInput(b, ".pa.format", "format", d.label, c, this._action, d.placeholder, "text", !1));
+    d = this.getLayoutConfigurationFor("ad", "field.placement");
+    a.setField("placement", this.document.newSingleLineInput(b, ".pa.placement", "placement", d.label, c, this._action, d.placeholder, "text", !1));
+    d = this.getLayoutConfigurationFor("ad", "field.sujet");
+    a.setField("notes", this.document.newMultiLineInput(b, ".pa.notes", "notes", d.label, c, this._action, 2, d.placeholder));
+    d = this.getLayoutConfigurationFor("ad", "field.price");
+    a.setField("price", this.document.newSingleLineInput(b, ".pa.price", "price", d.label, c, this._action, d.placeholder, "money", !1));
+    d = this.getLayoutConfigurationFor("ad", "field.total");
+    a.setField("total", this.document.newSingleLineInput(b, ".pa.total", "total", d.label, c, this._action, d.placeholder, "money", !0).addClass("bold"));
+  }
 };
 BeteiligtBinding.prototype.doLabels = function() {
   var a = this;
@@ -1378,6 +1393,9 @@ BeteiligtBinding.prototype.getConfigurationFor = function(a) {
   }, []);
   return {label:c, options:d, editable:b[0]};
 };
+$jscomp.global.Object.defineProperties(BeteiligtBinding.prototype, {configuration:{configurable:!0, enumerable:!0, get:function() {
+  return this._configuration;
+}}});
 // Input 16
 var ModulePlanController = function(a, b, c) {
   Controller.call(this, a, new ModulePlanRepository);
@@ -1500,7 +1518,7 @@ ModulePlanController.prototype._onChange = function(a) {
 ModulePlanController.prototype.clear = function() {
   return Controller.prototype.clear.call(this);
 };
-ModulePlanController.prototype.create = function(a) {
+ModulePlanController.prototype.create = function(a, b) {
   return Plan.create(a);
 };
 $jscomp.global.Object.defineProperties(ModulePlanController, {SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
@@ -1534,7 +1552,6 @@ ColorPickerController.prototype.render = function(a) {
 ColorPickerController.prototype.updateColor = function(a, b, c) {
   this.getEditable(a, b).color = c;
   return this._pluginController.setPluginModuleConfig(a).then(function(a) {
-    console.log("updateColor done", a);
     return a;
   });
 };
@@ -1569,7 +1586,7 @@ ArtikelController.prototype.setVersionInfo = function() {
 ArtikelController.prototype.getVersionInfo = function() {
   return {version:ArtikelController.VERSION};
 };
-ArtikelController.prototype.create = function(a) {
+ArtikelController.prototype.create = function(a, b) {
   return Artikel.create(a);
 };
 ArtikelController.prototype.getPropertyByName = function(a, b, c) {
@@ -2544,13 +2561,18 @@ ModuleController.prototype.update = function() {
   if (!this._window.clientManager.isBeteiligtModuleEnabled()) {
     throw "Module is not enabled";
   }
-  this._entity.sections.ad.total = this.getTotalPrice();
-  var a = this.getTotalProject(), b = this.getCapOnDepenses();
+  var a = this.getTotalPrice();
+  Object.values(this._entity.sections).filter(function(a) {
+    return a instanceof AdBeteiligt;
+  }).forEach(function(b) {
+    b.total = a;
+  });
+  var b = this.getTotalProject(), c = this.getCapOnDepenses();
   Object.values(this._entity.sections).filter(function(a) {
     return a instanceof OtherBeteiligt;
-  }).forEach(function(c) {
-    c.project = a;
-    c.capOnDepenses = b;
+  }).forEach(function(a) {
+    a.project = b;
+    a.capOnDepenses = c;
   });
   this._beteiligtBinding.update(this._entity);
 };
@@ -2577,12 +2599,14 @@ ModuleController.prototype._onChange = function(a, b) {
   b.config.sections[b.valueHolder["involved-in"]] = a.getBinding();
   this._beteiligtBinding.rememberFocus(a);
   this.persist.call(this, b.config).then(function() {
-    console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue());
+    console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue(), b.config);
   });
 };
 ModuleController.prototype.getTotalPrice = function() {
-  return Object.values(this._repository.all()).map(function(a) {
-    return (a && a.sections ? a.sections : {}).ad;
+  return Object.values(this._repository.all()).flatMap(function(a) {
+    return Object.values(a && a.sections ? a.sections : {}).filter(function(a) {
+      return a instanceof AdBeteiligt;
+    });
   }).filter(function(a) {
     return a instanceof AdBeteiligt && !isNaN(parseFloat(a.price));
   }).map(function(a) {
@@ -2704,8 +2728,8 @@ ModuleController.prototype.clear = function() {
   }, this);
   this._repository.clearAll();
 };
-ModuleController.prototype.create = function(a) {
-  return ModuleConfig.create(a);
+ModuleController.prototype.create = function(a, b) {
+  return ModuleConfig.create(a, b || this._beteiligtBinding.configuration);
 };
 $jscomp.global.Object.defineProperties(ModuleController, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
@@ -3196,9 +3220,22 @@ var ModuleConfig = function(a, b) {
   this._sections = b;
   this._version = CommonBeteiligt.VERSION;
 };
-ModuleConfig.create = function(a) {
-  var b = JsonSerialization.getProperty(a, "sections") || {};
-  return new ModuleConfig(JsonSerialization.getProperty(a, "id"), {onsite:OtherBeteiligt.create(b.onsite), text:OtherBeteiligt.create(b.text), photo:OtherBeteiligt.create(b.photo), video:OtherBeteiligt.create(b.video), illu:OtherBeteiligt.create(b.illu), ad:OtherBeteiligt.create(b.ad)});
+ModuleConfig.create = function(a, b) {
+  var c = JsonSerialization.getProperty(a, "sections") || {};
+  a = JsonSerialization.getProperty(a, "id");
+  return new ModuleConfig(a, {onsite:CommonBeteiligt.create(c.onsite, ModuleConfig._getSectionFactory(b, "onsite")), text:CommonBeteiligt.create(c.text, ModuleConfig._getSectionFactory(b, "text")), photo:CommonBeteiligt.create(c.photo, ModuleConfig._getSectionFactory(b, "photo")), video:CommonBeteiligt.create(c.video, ModuleConfig._getSectionFactory(b, "video")), illu:CommonBeteiligt.create(c.illu, ModuleConfig._getSectionFactory(b, "illu")), ad:CommonBeteiligt.create(c.ad, ModuleConfig._getSectionFactory(b, 
+  "ad"))});
+};
+ModuleConfig._getSectionFactory = function(a, b) {
+  return a && a.config && a.config.editables ? "regular" === a.config.editables.filter(function(a) {
+    return a.id === b;
+  })[0].layout ? function(a) {
+    return OtherBeteiligt.create(a);
+  } : function(a) {
+    return AdBeteiligt.create(a);
+  } : function(a) {
+    return OtherBeteiligt.create(a);
+  };
 };
 ModuleConfig.prototype.getContentCount = function() {
   return Object.values(this.sections).filter(function(a) {
@@ -3223,17 +3260,8 @@ var CommonBeteiligt = function(a, b, c, d, e) {
   this._type = null;
   this._id = a;
 };
-CommonBeteiligt.create = function(a) {
-  if (a) {
-    switch(JsonSerialization.getProperty(a, "type")) {
-      case "ad":
-        return AdBeteiligt.create(a);
-      default:
-        return OtherBeteiligt.create(a);
-    }
-  } else {
-    throw Error("Invalid jsonObj: cannot create Beteiligt Entity");
-  }
+CommonBeteiligt.create = function(a, b) {
+  return b ? b.call(this, a) : null;
 };
 CommonBeteiligt.prototype.isEmpty = function() {
   return isBlank(this.name) && isBlank(this.social) && isBlank(this.address) && isBlank(this.notes);

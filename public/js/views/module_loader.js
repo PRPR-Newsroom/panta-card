@@ -28,7 +28,7 @@ t.render(function () {
                 .then(function (json) {
                     return context["configuration"]
                         .then(function (configuration) {
-                            controller.render(controller.create(json), configuration);
+                            controller.render(controller.create(json, configuration), configuration);
                             return true;
                         })
                 })
@@ -39,7 +39,12 @@ t.render(function () {
                 .each(function (card) {
                     return t.get(card.id, 'shared', context["shared"])
                         .then(function (json) {
-                            controller.insert(controller.create(json), card);
+                            return context["configuration"]
+                                .then(function (configuration) {
+                                    controller.insert(controller.create(json, configuration), card);
+                                    return true;
+                                });
+
                         })
                 });
         })

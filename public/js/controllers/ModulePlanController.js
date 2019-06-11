@@ -229,7 +229,7 @@ class ModulePlanController extends Controller {
         return super.clear();
     }
 
-    create(json) {
+    create(json, configuration) {
         return Plan.create(json);
     }
 }
