@@ -133,10 +133,12 @@ class ArtikelController extends Controller {
             case "place":
                 return entity.location || defaultValue;
             case "field.a":
-                return entity.from || defaultValue;
+                return entity.topic || defaultValue;
             case "field.b":
-                return entity.author || defaultValue;
+                return entity.from || defaultValue;
             case "field.c":
+                return entity.author || defaultValue;
+            case "field.d":
                 return entity.text || defaultValue;
             default:
                 if (entity.hasOwnProperty(name)) {

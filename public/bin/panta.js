@@ -1604,10 +1604,12 @@ ArtikelController.prototype.getPropertyByName = function(a, b, c) {
     case "place":
       return a.location || c;
     case "field.a":
-      return a.from || c;
+      return a.topic || c;
     case "field.b":
-      return a.author || c;
+      return a.from || c;
     case "field.c":
+      return a.author || c;
+    case "field.d":
       return a.text || c;
     default:
       return a.hasOwnProperty(b), a[b];
