@@ -387,6 +387,37 @@ $jscomp.polyfill("String.prototype.startsWith", function(a) {
     return h >= f;
   };
 }, "es6", "es3");
+$jscomp.owns = function(a, b) {
+  return Object.prototype.hasOwnProperty.call(a, b);
+};
+$jscomp.polyfill("Object.values", function(a) {
+  return a ? a : function(a) {
+    var b = [], d;
+    for (d in a) {
+      $jscomp.owns(a, d) && b.push(a[d]);
+    }
+    return b;
+  };
+}, "es8", "es3");
+$jscomp.polyfill("Object.entries", function(a) {
+  return a ? a : function(a) {
+    var b = [], d;
+    for (d in a) {
+      $jscomp.owns(a, d) && b.push([d, a[d]]);
+    }
+    return b;
+  };
+}, "es8", "es3");
+$jscomp.polyfill("Array.prototype.flat", function(a) {
+  return a ? a : function(a) {
+    a = void 0 === a ? 1 : Number(a);
+    for (var b = [], d = 0; d < this.length; d++) {
+      var e = this[d];
+      Array.isArray(e) && 0 < a ? (e = Array.prototype.flat.call(e, a - 1), b.push.apply(b, e)) : b.push(e);
+    }
+    return b;
+  };
+}, "es9", "es5");
 $jscomp.findInternal = function(a, b, c) {
   a instanceof String && (a = String(a));
   for (var d = a.length, e = 0; e < d; e++) {
@@ -402,37 +433,6 @@ $jscomp.polyfill("Array.prototype.find", function(a) {
     return $jscomp.findInternal(this, a, c).v;
   };
 }, "es6", "es3");
-$jscomp.owns = function(a, b) {
-  return Object.prototype.hasOwnProperty.call(a, b);
-};
-$jscomp.polyfill("Object.values", function(a) {
-  return a ? a : function(a) {
-    var b = [], d;
-    for (d in a) {
-      $jscomp.owns(a, d) && b.push(a[d]);
-    }
-    return b;
-  };
-}, "es8", "es3");
-$jscomp.polyfill("Array.prototype.flat", function(a) {
-  return a ? a : function(a) {
-    a = void 0 === a ? 1 : Number(a);
-    for (var b = [], d = 0; d < this.length; d++) {
-      var e = this[d];
-      Array.isArray(e) && 0 < a ? (e = Array.prototype.flat.call(e, a - 1), b.push.apply(b, e)) : b.push(e);
-    }
-    return b;
-  };
-}, "es9", "es5");
-$jscomp.polyfill("Object.entries", function(a) {
-  return a ? a : function(a) {
-    var b = [], d;
-    for (d in a) {
-      $jscomp.owns(a, d) && b.push([d, a[d]]);
-    }
-    return b;
-  };
-}, "es8", "es3");
 $jscomp.polyfill("Array.prototype.flatMap", function(a) {
   return a ? a : function(a, c) {
     for (var b = [], e = 0; e < this.length; e++) {
@@ -1179,6 +1179,136 @@ $jscomp.global.Object.defineProperties(ModuleEditableItem.prototype, {module:{co
   this._editable = a;
 }}});
 // Input 14
+var ModulePlanController = function(a, b, c) {
+  Controller.call(this, a, new ModulePlanRepository);
+  this._trello = b;
+  this._telephone = c;
+  var d = this;
+  this._telephone.onmessage = function(a) {
+    a = Object.values(a.data.result || []).map(function(a) {
+      return Object.entries(a);
+    }).flat().reduce(function(a, b) {
+      var c = b[1];
+      switch(b[0]) {
+        case "fee:current":
+          a |= d._entity.fee !== c ? (d._entity.fee = c, 1) : 0;
+          break;
+        case "fee:overall":
+          a |= d._entity.projectFee !== c ? (d._entity.projectFee = c, 1) : 0;
+          break;
+        case "charge:current":
+          a |= d._entity.thirdPartyCharges !== c ? (d._entity.thirdPartyCharges = c, 1) : 0;
+          break;
+        case "charge:overall":
+          a |= d._entity.thirdPartyTotalCosts !== c ? (d._entity.thirdPartyTotalCosts = c, 1) : 0;
+          break;
+        case "costs:overall":
+          a |= d._entity.totalCosts !== c ? (d._entity.totalCosts = c, 1) : 0;
+      }
+      return a;
+    }, !1);
+    d._entity.capOnDepenses !== d.getCapOnDepenses() && (d._entity.capOnDepenses = d.getCapOnDepenses());
+    a && d._binding.update(d._entity);
+  };
+  this._binding = null;
+  this._propertyBag = {};
+  this.readPropertyBag();
+};
+$jscomp.inherits(ModulePlanController, Controller);
+ModulePlanController.getInstance = function(a, b, c) {
+  b.hasOwnProperty("planController") || (b.planController = new ModulePlanController(b, a, c));
+  return b.planController;
+};
+ModulePlanController.prototype.render = function(a, b) {
+  this._entity = a;
+  this._binding = this._binding ? this._binding.update(a, b) : (new ModulePlanBinding(this._window.document, a, this.onEvent, this, b)).bind();
+  return Controller.prototype.render.call(this, a);
+};
+ModulePlanController.prototype.update = function() {
+  if (!this._window.clientManager.isPlanModuleEnabled()) {
+    throw "Module is not enabled";
+  }
+  this._telephone.postMessage({get:["fee:current", "fee:overall", "charge:current", "charge:overall", "costs:overall"]});
+  this._entity && (this._entity.capOnDepenses = this.getCapOnDepenses());
+  this._binding && this._binding.update(this._entity);
+  return Controller.prototype.update.call(this);
+};
+ModulePlanController.prototype.onEvent = function(a, b) {
+  switch(b.hasOwnProperty("event") ? b.event : "change") {
+    case "change":
+      b.context._onChange.call(b.context, a);
+  }
+};
+ModulePlanController.prototype.getProperty = function(a, b) {
+  return this._propertyBag[a] || b;
+};
+ModulePlanController.prototype.setProperty = function(a, b) {
+  this._propertyBag[a] = b;
+  this._trello.set("board", "shared", ModulePlanController.PROPERTY_BAG_NAME, this._propertyBag);
+};
+ModulePlanController.prototype.readPropertyBag = function() {
+  var a = this;
+  this._trello.get("board", "shared", ModulePlanController.PROPERTY_BAG_NAME, {}).then(function(b) {
+    a._propertyBag = b;
+  });
+};
+ModulePlanController.prototype.getCapOnDepenses = function() {
+  var a = this.getProperty("cap_on_depenses");
+  return isNaN(a) ? null : parseFloat(a);
+};
+ModulePlanController.prototype.getPropertyByName = function(a, b, c) {
+  switch(b) {
+    case "field.a":
+      return a.measures || c;
+    case "field.b":
+      return a.description || c;
+    case "visual":
+      return a.visual || c;
+    case "form":
+      return a.form || c;
+    case "online":
+      return a.online || c;
+    case "season":
+      return a.season || c;
+    case "region":
+      return a.region || c;
+    case "place":
+      return a.place || c;
+    default:
+      return a.hasOwnProperty(b), a[b];
+  }
+};
+ModulePlanController.prototype.persist = function(a, b) {
+  return this._trello.set(b || "card", "shared", ModulePlanController.SHARED_NAME, a);
+};
+ModulePlanController.prototype.remove = function() {
+  var a = this;
+  return this._trello.remove("board", "shared", ModulePlanController.SHARED_NAME).then(function() {
+    return a._trello.remove("board", "shared", ModulePlanController.PROPERTY_BAG_NAME);
+  });
+};
+ModulePlanController.prototype._onChange = function(a) {
+  a.setProperty();
+  switch(a.getBoundProperty()) {
+    case "capOnDepenses":
+      this.setProperty("cap_on_depenses", a.getValue());
+      break;
+    default:
+      this.persist.call(this, a.getBinding());
+  }
+};
+ModulePlanController.prototype.clear = function() {
+  return Controller.prototype.clear.call(this);
+};
+ModulePlanController.prototype.create = function(a, b) {
+  return Plan.create(a);
+};
+$jscomp.global.Object.defineProperties(ModulePlanController, {SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.Plan";
+}}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.Plan.PropertyBag";
+}}});
+// Input 15
 var BeteiligtRepository = function() {
   Repository.call(this);
 };
@@ -1189,7 +1319,61 @@ BeteiligtRepository.prototype.isNew = function(a) {
     return b._repository[c].id === a.id;
   });
 };
-// Input 15
+// Input 16
+var ColorPickerController = function(a, b, c) {
+  this._windowManager = a;
+  this._pluginController = b;
+  this._trello = c;
+};
+ColorPickerController.prototype.render = function(a) {
+  var b = this;
+  return this._pluginController.findPluginModuleConfigByModuleId(a.module).then(function(c) {
+    var d = [];
+    b._windowManager.document.getElementsByClassName("panta-js-color-chooser").forEach(function(e) {
+      e.setEventListener("click", function(f) {
+        f.preventDefault();
+        f.stopPropagation();
+        b.updateColor(c, a.editable, b.renderControls(d, e.getAttribute("data-color")).color).then(function() {
+        });
+      });
+      d.push({color:e.getAttribute("data-color"), control:e.getClosestChildByClassName("panta-js-checkbox")});
+    });
+    var e = b.getEditable(c, a.editable);
+    b.renderControls(d, e.color);
+  });
+};
+ColorPickerController.prototype.updateColor = function(a, b, c) {
+  this.getEditable(a, b).color = c;
+  return this._pluginController.setPluginModuleConfig(a).then(function(a) {
+    return a;
+  });
+};
+ColorPickerController.prototype.renderControls = function(a, b) {
+  return a.reduce(function(a, d) {
+    d.control.checked = d.color === b;
+    return d.control.checked ? d : a;
+  }, null);
+};
+ColorPickerController.prototype.getEditable = function(a, b) {
+  return a.config.editables.find(function(a) {
+    return a.id === b;
+  });
+};
+// Input 17
+var ArtikelRepository = function() {
+  Repository.call(this);
+};
+$jscomp.inherits(ArtikelRepository, Repository);
+ArtikelRepository.prototype.add = function(a, b) {
+  Repository.prototype.add.call(this, a, b);
+};
+ArtikelRepository.prototype.isNew = function(a) {
+  var b = this;
+  return null === Object.keys(this._repository).find(function(c, d) {
+    return b._repository[c].id === a.id;
+  });
+};
+// Input 18
 var BeteiligtBinding = function(a, b, c, d, e) {
   Binding.call(this, a, b, c, d);
   this._activated = this._ad = this._illu = this._video = this._photo = this._text = this._onsite = null;
@@ -1396,415 +1580,29 @@ BeteiligtBinding.prototype.getConfigurationFor = function(a) {
 $jscomp.global.Object.defineProperties(BeteiligtBinding.prototype, {configuration:{configurable:!0, enumerable:!0, get:function() {
   return this._configuration;
 }}});
-// Input 16
-var ModulePlanController = function(a, b, c) {
-  Controller.call(this, a, new ModulePlanRepository);
-  this._trello = b;
-  this._telephone = c;
-  var d = this;
-  this._telephone.onmessage = function(a) {
-    a = Object.values(a.data.result || []).map(function(a) {
-      return Object.entries(a);
-    }).flat().reduce(function(a, b) {
-      var c = b[1];
-      switch(b[0]) {
-        case "fee:current":
-          a |= d._entity.fee !== c ? (d._entity.fee = c, 1) : 0;
-          break;
-        case "fee:overall":
-          a |= d._entity.projectFee !== c ? (d._entity.projectFee = c, 1) : 0;
-          break;
-        case "charge:current":
-          a |= d._entity.thirdPartyCharges !== c ? (d._entity.thirdPartyCharges = c, 1) : 0;
-          break;
-        case "charge:overall":
-          a |= d._entity.thirdPartyTotalCosts !== c ? (d._entity.thirdPartyTotalCosts = c, 1) : 0;
-          break;
-        case "costs:overall":
-          a |= d._entity.totalCosts !== c ? (d._entity.totalCosts = c, 1) : 0;
-      }
-      return a;
-    }, !1);
-    d._entity.capOnDepenses !== d.getCapOnDepenses() && (d._entity.capOnDepenses = d.getCapOnDepenses());
-    a && d._binding.update(d._entity);
-  };
-  this._binding = null;
-  this._propertyBag = {};
-  this.readPropertyBag();
-};
-$jscomp.inherits(ModulePlanController, Controller);
-ModulePlanController.getInstance = function(a, b, c) {
-  b.hasOwnProperty("planController") || (b.planController = new ModulePlanController(b, a, c));
-  return b.planController;
-};
-ModulePlanController.prototype.render = function(a, b) {
-  this._entity = a;
-  this._binding = this._binding ? this._binding.update(a, b) : (new ModulePlanBinding(this._window.document, a, this.onEvent, this, b)).bind();
-  return Controller.prototype.render.call(this, a);
-};
-ModulePlanController.prototype.update = function() {
-  if (!this._window.clientManager.isPlanModuleEnabled()) {
-    throw "Module is not enabled";
-  }
-  this._telephone.postMessage({get:["fee:current", "fee:overall", "charge:current", "charge:overall", "costs:overall"]});
-  this._entity && (this._entity.capOnDepenses = this.getCapOnDepenses());
-  this._binding && this._binding.update(this._entity);
-  return Controller.prototype.update.call(this);
-};
-ModulePlanController.prototype.onEvent = function(a, b) {
-  switch(b.hasOwnProperty("event") ? b.event : "change") {
-    case "change":
-      b.context._onChange.call(b.context, a);
-  }
-};
-ModulePlanController.prototype.getProperty = function(a, b) {
-  return this._propertyBag[a] || b;
-};
-ModulePlanController.prototype.setProperty = function(a, b) {
-  this._propertyBag[a] = b;
-  this._trello.set("board", "shared", ModulePlanController.PROPERTY_BAG_NAME, this._propertyBag);
-};
-ModulePlanController.prototype.readPropertyBag = function() {
-  var a = this;
-  this._trello.get("board", "shared", ModulePlanController.PROPERTY_BAG_NAME, {}).then(function(b) {
-    a._propertyBag = b;
-  });
-};
-ModulePlanController.prototype.getCapOnDepenses = function() {
-  var a = this.getProperty("cap_on_depenses");
-  return isNaN(a) ? null : parseFloat(a);
-};
-ModulePlanController.prototype.getPropertyByName = function(a, b, c) {
-  switch(b) {
-    case "field.a":
-      return a.measures || c;
-    case "field.b":
-      return a.description || c;
-    case "visual":
-      return a.visual || c;
-    case "form":
-      return a.form || c;
-    case "online":
-      return a.online || c;
-    case "season":
-      return a.season || c;
-    case "region":
-      return a.region || c;
-    case "place":
-      return a.place || c;
-    default:
-      return a.hasOwnProperty(b), a[b];
-  }
-};
-ModulePlanController.prototype.persist = function(a, b) {
-  return this._trello.set(b || "card", "shared", ModulePlanController.SHARED_NAME, a);
-};
-ModulePlanController.prototype.remove = function() {
-  var a = this;
-  return this._trello.remove("board", "shared", ModulePlanController.SHARED_NAME).then(function() {
-    return a._trello.remove("board", "shared", ModulePlanController.PROPERTY_BAG_NAME);
-  });
-};
-ModulePlanController.prototype._onChange = function(a) {
-  a.setProperty();
-  switch(a.getBoundProperty()) {
-    case "capOnDepenses":
-      this.setProperty("cap_on_depenses", a.getValue());
-      break;
-    default:
-      this.persist.call(this, a.getBinding());
-  }
-};
-ModulePlanController.prototype.clear = function() {
-  return Controller.prototype.clear.call(this);
-};
-ModulePlanController.prototype.create = function(a, b) {
-  return Plan.create(a);
-};
-$jscomp.global.Object.defineProperties(ModulePlanController, {SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
-  return "panta.Plan";
-}}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
-  return "panta.Plan.PropertyBag";
-}}});
-// Input 17
-var ColorPickerController = function(a, b, c) {
-  this._windowManager = a;
-  this._pluginController = b;
-  this._trello = c;
-};
-ColorPickerController.prototype.render = function(a) {
-  var b = this;
-  return this._pluginController.findPluginModuleConfigByModuleId(a.module).then(function(c) {
-    var d = [];
-    b._windowManager.document.getElementsByClassName("panta-js-color-chooser").forEach(function(e) {
-      e.setEventListener("click", function(f) {
-        f.preventDefault();
-        f.stopPropagation();
-        b.updateColor(c, a.editable, b.renderControls(d, e.getAttribute("data-color")).color).then(function() {
-        });
-      });
-      d.push({color:e.getAttribute("data-color"), control:e.getClosestChildByClassName("panta-js-checkbox")});
-    });
-    var e = b.getEditable(c, a.editable);
-    b.renderControls(d, e.color);
-  });
-};
-ColorPickerController.prototype.updateColor = function(a, b, c) {
-  this.getEditable(a, b).color = c;
-  return this._pluginController.setPluginModuleConfig(a).then(function(a) {
-    return a;
-  });
-};
-ColorPickerController.prototype.renderControls = function(a, b) {
-  return a.reduce(function(a, d) {
-    d.control.checked = d.color === b;
-    return d.control.checked ? d : a;
-  }, null);
-};
-ColorPickerController.prototype.getEditable = function(a, b) {
-  return a.config.editables.find(function(a) {
-    return a.id === b;
-  });
-};
-// Input 18
-var ArtikelController = function(a, b, c, d) {
-  Controller.call(this, a, c);
-  this.document = a.document;
-  this.trelloApi = b;
-  this._entity = null;
-  this._telephone = d;
-  this.setVersionInfo();
-};
-$jscomp.inherits(ArtikelController, Controller);
-ArtikelController.getInstance = function(a, b, c) {
-  b.hasOwnProperty("articleController") || (b.articleController = new ArtikelController(b, a, DI.getInstance().getArticleRepository(), c));
-  return b.articleController;
-};
-ArtikelController.prototype.setVersionInfo = function() {
-  this.trelloApi.set("card", "shared", ArtikelController.SHARED_META, this.getVersionInfo());
-};
-ArtikelController.prototype.getVersionInfo = function() {
-  return {version:ArtikelController.VERSION};
-};
-ArtikelController.prototype.create = function(a, b) {
-  return Artikel.create(a);
-};
-ArtikelController.prototype.getPropertyByName = function(a, b, c) {
-  switch(b) {
-    case "visual":
-      return a.visual || c;
-    case "form":
-      return a.form || c;
-    case "online":
-      return a.tags || c;
-    case "season":
-      return a.season || c;
-    case "region":
-      return a.region || c;
-    case "place":
-      return a.location || c;
-    case "field.a":
-      return a.topic || c;
-    case "field.b":
-      return a.from || c;
-    case "field.c":
-      return a.author || c;
-    case "field.d":
-      return a.text || c;
-    default:
-      return a.hasOwnProperty(b), a[b];
-  }
-};
-ArtikelController.prototype.fetchAll = function() {
-  var a = this;
-  return this.trelloApi.cards("id", "closed").filter(function(a) {
-    return !a.closed;
-  }).each(function(b) {
-    return a.trelloApi.get(b.id, "shared", ArtikelController.SHARED_NAME).then(function(c) {
-      a.insert(Artikel.create(c), b);
-    });
-  }).then(function() {
-    console.log("Fetch complete: " + a.size() + " article(s) to process");
-  });
-};
-ArtikelController.prototype.list = function() {
-  return this._repository.all();
-};
-ArtikelController.prototype.size = function() {
-  return Object.keys(this.list()).length;
-};
-ArtikelController.prototype.isManaged = function(a) {
-  return null !== a.id;
-};
-ArtikelController.prototype.manage = function(a) {
-  a.id = uuid();
-  return a;
-};
-ArtikelController.prototype.update = function() {
-  var a = this;
-  this._window.clientManager.isArticleModuleEnabled().then(function(b) {
-    if (!b) {
-      throw "Module is not enabled";
-    }
-    a._entity.total = a.getTotalPageCount();
-    a._binding.update(a._entity);
-    return !0;
-  });
-};
-ArtikelController.prototype.getTotalPageCount = function() {
-  return Object.values(this._repository.all()).map(function(a, b) {
-    a = parseInt(a.layout);
-    return isNaN(a) ? 0 : a;
-  }).reduce(function(a, b) {
-    return parseInt(a) + parseInt(b);
-  }, 0);
-};
-ArtikelController.prototype.render = function(a, b) {
-  this._entity = a ? a : Artikel.create();
-  this._binding = this._binding ? this._binding.update(this._entity, b) : (new ArtikelBinding(this.document, this._entity, this.onEvent, this, b)).bind();
-};
-ArtikelController.prototype.onEvent = function(a, b) {
-  switch(b.hasOwnProperty("event") ? b.event : "change") {
-    case "focus":
-      b.context._onFocus.call(b.context, a, b);
-      break;
-    default:
-      b.context._onChange.call(b.context, a, b);
-  }
-};
-ArtikelController.prototype._onFocus = function(a, b) {
-};
-ArtikelController.prototype._onChange = function(a, b) {
-  a.setProperty();
-  this.persist.call(this, a.getBinding());
-};
-ArtikelController.prototype.persist = function(a, b) {
-  return this.trelloApi.set(b || "card", "shared", ArtikelController.SHARED_NAME, a);
-};
-$jscomp.global.Object.defineProperties(ArtikelController, {VERSION:{configurable:!0, enumerable:!0, get:function() {
-  return 1;
-}}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
-  return "panta.Artikel";
-}}, SHARED_META:{configurable:!0, enumerable:!0, get:function() {
-  return "panta.Meta";
-}}});
 // Input 19
-var PluginController = function(a, b) {
-  this._window = b;
-  this._trelloApi = a;
-  this._upgrading = !1;
-  this._upgrades = {1:this._upgrade_1, 2:this._upgrade_2};
-  this._repository = PluginRepository.INSTANCE;
+var PluginRepository = function() {
+  Repository.call(this);
 };
-PluginController.getInstance = function(a, b) {
-  b.hasOwnProperty("pluginController") || (b.pluginController = new PluginController(a, b));
-  return b.pluginController;
-};
-PluginController.prototype.init = function() {
-  var a = this;
-  this._trelloApi.get("board", "shared", PluginController.SHARED_NAME, 1).then(function(b) {
-    PluginController.VERSION > b && (a._upgrading = !0, a.update.call(a, b, PluginController.VERSION));
-  });
-};
-PluginController.prototype.getPluginConfiguration = function() {
-  var a = this;
-  return this._trelloApi.get("board", "shared", PluginController.CONFIGURATION_NAME, null).then(function(b) {
-    return b ? (b = JSON.parse(LZString.decompress(b)), PluginConfiguration.create(b)) : new PluginConfiguration("1.0.0", "Panta.Card Power-Up", null, a.getAvailableModules());
-  });
-};
-PluginController.prototype.setPluginModuleConfig = function(a, b) {
-  var c = this;
-  return this.getPluginConfiguration().then(function(d) {
-    if (d instanceof PluginConfiguration) {
-      return d.card = b || d.card, d.modules.find(function(b) {
-        return b.id === a.id;
-      }).config = a.config, c._trelloApi.set("board", "shared", PluginController.CONFIGURATION_NAME, LZString.compress(JSON.stringify(d))), d;
-    }
-    throw "Invalid plugin configuration";
-  });
-};
-PluginController.prototype.findPluginModuleConfigByModuleId = function(a) {
-  return this.getPluginConfiguration().then(function(a) {
-    return a.modules;
-  }).filter(function(b) {
-    return b.id === a;
-  }).reduce(function(a, c) {
-    return c;
-  }, null);
-};
-PluginController.prototype.getAvailableModules = function() {
-  return Object.values(PluginRepository.INSTANCE.all()).sort(function(a, b) {
-    return a.config.sort - b.config.sort;
-  });
-};
-PluginController.prototype.remove = function() {
-  return this._trelloApi.remove("board", "shared", PluginController.SHARED_NAME);
-};
-PluginController.prototype.update = function(a, b) {
-  this._update(a, b);
-};
-PluginController.prototype._update = function(a, b) {
-  var c = this;
-  a < b ? (console.log("Applying upgrade %d ...", a), c._upgrades[a].call(this).then(function() {
-    console.log("... upgrade %d is successfully applied", a);
-    c._trelloApi.set("board", "shared", PluginController.SHARED_NAME, a + 1).then(function() {
-      c._update(a + 1, b);
-    });
-  })) : (console.log("No upgrades pending"), setTimeout(function() {
-    c._upgrading = !1;
-  }, 2000));
-};
-PluginController.prototype._upgrade_1 = function() {
-  var a = this, b = this._window.clientManager.getArticleController(), c = this._window.clientManager.getModuleController();
-  return b.fetchAll.call(b).then(function() {
-    a._upgradeAllArticleToModuleConfig.call(a, b, c);
-  }).then(function() {
-    return !0;
-  });
-};
-PluginController.prototype._upgrade_2 = function() {
-  return Promise.resolve(!0);
-};
-PluginController.prototype._upgradeAllArticleToModuleConfig = function(a, b) {
-  this._upgradeArticleToModuleConfig.call(this, a, b, Object.entries(a.list()), 0);
-};
-PluginController.prototype._upgradeArticleToModuleConfig = function(a, b, c, d) {
-  if (d < c.length) {
-    var e = this, f = c[d], h = f[0], g = f[1];
-    if (1 === g.version) {
-      if (g.involved) {
-        f = Object.entries(g.involved).reduce(function(a, b) {
-          a.sections[b[0]] = b[1];
-          return a;
-        }, ModuleConfig.create()), b.persist.call(b, f, h).then(function() {
-          g.version = Artikel.VERSION;
-          "function" === typeof g.clearInvolved && g.clearInvolved();
-          return a.persist.call(a, g, h);
-        }).then(function() {
-          e._upgradeArticleToModuleConfig.call(e, a, b, c, d + 1, h);
-        });
-      } else {
-        return console.log("The article does not have any involved data. Just update the version of the article and proceed to the next item."), g.version = Artikel.VERSION, a.persist.call(a, g, h).then(function() {
-          e._upgradeArticleToModuleConfig.call(e, a, b, c, d + 1, h);
-        });
-      }
-    } else {
-      console.log("Skipping article because its at version %d", g.version), this._upgradeArticleToModuleConfig.call(this, a, b, c, d + 1, h);
-    }
-  } else {
-    console.log("All articles updated");
-  }
-};
-$jscomp.global.Object.defineProperties(PluginController.prototype, {upgrading:{configurable:!0, enumerable:!0, get:function() {
-  return this._upgrading;
+$jscomp.inherits(PluginRepository, Repository);
+$jscomp.global.Object.defineProperties(PluginRepository, {INSTANCE:{configurable:!0, enumerable:!0, get:function() {
+  PluginRepository.instance || (PluginRepository.instance = new PluginRepository, PluginRepository.instance.add(new PluginModuleConfig("module.artikel", "Artikel", {sort:1, enabled:!1, icon:"ic_artikel.png", desc:"module.artikel.desc", editables:[{id:"visual", desc:"module.artikel.editable.desc", type:"select", label:"1.Liste", color:"blue", active:!0, show:!1, sortable:!1, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"form", desc:"module.artikel.editable.desc", 
+  type:"select", label:"2.Liste", color:"green", active:!0, show:!1, sortable:!1, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"online", desc:"module.artikel.editable.desc", type:"select", label:"3.Liste", color:"yellow", active:!0, show:!1, sortable:!1, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"season", desc:"module.artikel.editable.desc", type:"select", label:"4.Liste", color:"sky", active:!0, show:!1, sortable:!1, values:["1.Begriff", 
+  "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"region", desc:"module.artikel.editable.desc", type:"select", label:"5.Liste", color:"lime", active:!0, show:!1, sortable:!1, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"place", desc:"module.artikel.editable.desc", type:"select", label:"6.Liste", color:"orange", active:!0, show:!1, sortable:!1, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"field.a", desc:"module.artikel.field-a.desc", 
+  type:"text", label:"Thema", placeholder:"Lauftext", show:!1, sortable:!1, color:"shades"}, {id:"field.b", desc:"module.artikel.field-b.desc", type:"text", label:"Input von", placeholder:"Name", show:!1, sortable:!1, color:"shades"}, {id:"field.c", desc:"module.artikel.field-c.desc", type:"text", label:"Textautor*in", placeholder:"Name", show:!1, sortable:!1, color:"shades"}, {id:"field.d", desc:"module.artikel.field-d.desc", type:"text", label:"Textbox", placeholder:"Lauftext", show:!1, sortable:!1, 
+  color:"shades"}]}), {id:1}), PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", "Beteiligt", {sort:3, enabled:!1, icon:"ic_beteiligt.png", desc:"module.beteiligt.desc", editables:[{id:"title", desc:"module.beteiligt.label.desc", type:"label", placeholder:"", label:"Beteiligt", title:"Modul-Titel"}, {id:"onsite", desc:"module.beteiligt.layout.onsite", type:"layout", label:"1.Reiter", container:"pa.involved.onsite", layout:"regular", show:!0, title:"Reiter-Titel"}, {id:"text", 
+  desc:"module.beteiligt.layout.text", type:"layout", label:"2.Reiter", container:"pa.involved.text", layout:"regular", show:!0}, {id:"photo", desc:"module.beteiligt.layout.photo", type:"layout", label:"3.Reiter", container:"pa.involved.photo", layout:"regular", show:!0}, {id:"video", desc:"module.beteiligt.layout.video", type:"layout", label:"4.Reiter", container:"pa.involved.video", layout:"regular", show:!0}, {id:"illu", desc:"module.beteiligt.layout.illu", type:"layout", label:"5.Reiter", container:"pa.involved.illu", 
+  layout:"regular", show:!0}, {id:"ad", desc:"module.beteiligt.layout.ad", type:"layout", label:"6.Reiter", container:"pa.involved.ad", layout:"regular", show:!0}], layouts:{regular:{desc:"module.beteiligt.regular.desc", label:"Kontakt", fields:[{id:"field.name", desc:"module.beteiligt.field-name.desc", type:"text", label:"Name", placeholder:"eintippen\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.social", desc:"module.beteiligt.field-social.desc", type:"text", label:"Telefon.Mail.Webseite", 
+  placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.address", desc:"module.beteiligt.field-address.desc", type:"text", label:"Adresse", placeholder:"festhalten\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.notes", desc:"module.beteiligt.field-notes.desc", type:"text", label:"Notizen", placeholder:"formulieren\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.deadline", desc:"module.beteiligt.field-deadline.desc", type:"text", label:"Deadline", placeholder:"bestimmen\u2026", 
+  show:!1, sortable:!1, color:"shades"}]}, ad:{desc:"module.beteiligt.special.desc", label:"Inserat", fields:[{id:"field.sujet", desc:"module.beteiligt.field-sujet.desc", type:"text", label:"Kunde.Sujet", placeholder:"Name.Stichwort\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.format", desc:"module.beteiligt.field-format.desc", type:"text", label:"Format", placeholder:"festhalten\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.placement", desc:"module.beteiligt.field-placement.desc", 
+  type:"text", label:"Platzierung", placeholder:"vormerken\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.price", desc:"module.beteiligt.field-price.desc", type:"text", label:"Preis CHF", placeholder:"bestimmen\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.total", desc:"module.beteiligt.field-total.desc", type:"text", label:"Total", placeholder:"", show:!1, sortable:!1, color:"shades"}, {id:"field.name", desc:"module.beteiligt.field-name.desc", type:"text", label:"Kontakt", 
+  placeholder:"eintippen\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.social", desc:"module.beteiligt.field-social.desc", type:"text", label:"Telefon.Mail.Webseite", placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.address", desc:"module.beteiligt.field-address.desc", type:"text", label:"Adresse", placeholder:"festhalten\u2026", show:!1, sortable:!1, color:"shades"}]}}}), {id:2}), PluginRepository.instance.add(new PluginModuleConfig("module.plan", "Plan", 
+  {sort:2, enabled:!1, icon:"ic_plan.png", desc:"module.plan.desc", editables:[{id:"visual", desc:"module.plan.editable.desc", type:"select", label:"1.Liste", color:"blue", show:!1, sortable:!1, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"form", desc:"module.plan.editable.desc", type:"select", label:"2.Liste", color:"green", show:!1, sortable:!1, values:["1.Begriff", "2.Begriff", "3.Begriff"]}, {id:"online", desc:"module.plan.editable.desc", type:"select", label:"3.Liste", 
+  color:"yellow", show:!1, sortable:!1, values:"1.Begriff 2.Begriff 3.Begriff 4.Begriff 5.Begriff 6.Begriff 7.Begriff".split(" ")}, {id:"season", desc:"module.plan.editable.desc", type:"select", label:"4.Liste", color:"sky", show:!1, sortable:!1, values:["1.Begriff", "2.Begriff"]}, {id:"region", desc:"module.plan.editable.desc", type:"select", label:"5.Liste", color:"lime", show:!1, sortable:!1, values:["1.Begriff", "2.Begriff"]}, {id:"place", desc:"module.plan.editable.desc", type:"select", label:"6.Liste", 
+  color:"orange", show:!1, sortable:!1, values:"1.Begriff 2.Begriff 3.Begriff 4.Begriff 5.Begriff 6.Begriff 7.Begriff".split(" ")}, {id:"field.a", desc:"module.plan.field-a.desc", type:"text", label:"Massnahmen", placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.b", desc:"module.plan.field-b.desc", type:"text", label:"Beschreibung", placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}]}), {id:3}));
+  return PluginRepository.instance;
 }}});
-$jscomp.global.Object.defineProperties(PluginController, {VERSION:{configurable:!0, enumerable:!0, get:function() {
-  return 3;
-}}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
-  return "panta.App";
-}}, CONFIGURATION_NAME:{configurable:!0, enumerable:!0, get:function() {
-  return "panta.App.Configuration";
-}}});
+PluginRepository.instance = null;
 // Input 20
 var ArtikelBinding = function(a, b, c, d, e) {
   Binding.call(this, a, b, c, d);
@@ -1935,29 +1733,6 @@ ArtikelBinding.prototype.getConfigurationFor = function(a) {
   return {label:c, options:d, editable:b[0]};
 };
 // Input 21
-var PluginRepository = function() {
-  Repository.call(this);
-};
-$jscomp.inherits(PluginRepository, Repository);
-$jscomp.global.Object.defineProperties(PluginRepository, {INSTANCE:{configurable:!0, enumerable:!0, get:function() {
-  PluginRepository.instance || (PluginRepository.instance = new PluginRepository, PluginRepository.instance.add(new PluginModuleConfig("module.artikel", "Artikel", {sort:1, enabled:!1, icon:"ic_artikel.png", desc:"module.artikel.desc", editables:[{id:"visual", desc:"module.artikel.editable.desc", type:"select", label:"1.Liste", color:"blue", active:!0, show:!1, sortable:!1, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"form", desc:"module.artikel.editable.desc", 
-  type:"select", label:"2.Liste", color:"green", active:!0, show:!1, sortable:!1, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"online", desc:"module.artikel.editable.desc", type:"select", label:"3.Liste", color:"yellow", active:!0, show:!1, sortable:!1, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"season", desc:"module.artikel.editable.desc", type:"select", label:"4.Liste", color:"sky", active:!0, show:!1, sortable:!1, values:["1.Begriff", 
-  "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"region", desc:"module.artikel.editable.desc", type:"select", label:"5.Liste", color:"lime", active:!0, show:!1, sortable:!1, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"place", desc:"module.artikel.editable.desc", type:"select", label:"6.Liste", color:"orange", active:!0, show:!1, sortable:!1, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"field.a", desc:"module.artikel.field-a.desc", 
-  type:"text", label:"Thema", placeholder:"Lauftext", show:!1, sortable:!1, color:"shades"}, {id:"field.b", desc:"module.artikel.field-b.desc", type:"text", label:"Input von", placeholder:"Name", show:!1, sortable:!1, color:"shades"}, {id:"field.c", desc:"module.artikel.field-c.desc", type:"text", label:"Textautor*in", placeholder:"Name", show:!1, sortable:!1, color:"shades"}, {id:"field.d", desc:"module.artikel.field-d.desc", type:"text", label:"Textbox", placeholder:"Lauftext", show:!1, sortable:!1, 
-  color:"shades"}]}), {id:1}), PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", "Beteiligt", {sort:3, enabled:!1, icon:"ic_beteiligt.png", desc:"module.beteiligt.desc", editables:[{id:"title", desc:"module.beteiligt.label.desc", type:"label", placeholder:"", label:"Beteiligt", title:"Modul-Titel"}, {id:"onsite", desc:"module.beteiligt.layout.onsite", type:"layout", label:"1.Reiter", container:"pa.involved.onsite", layout:"regular", show:!0, title:"Reiter-Titel"}, {id:"text", 
-  desc:"module.beteiligt.layout.text", type:"layout", label:"2.Reiter", container:"pa.involved.text", layout:"regular", show:!0}, {id:"photo", desc:"module.beteiligt.layout.photo", type:"layout", label:"3.Reiter", container:"pa.involved.photo", layout:"regular", show:!0}, {id:"video", desc:"module.beteiligt.layout.video", type:"layout", label:"4.Reiter", container:"pa.involved.video", layout:"regular", show:!0}, {id:"illu", desc:"module.beteiligt.layout.illu", type:"layout", label:"5.Reiter", container:"pa.involved.illu", 
-  layout:"regular", show:!0}, {id:"ad", desc:"module.beteiligt.layout.ad", type:"layout", label:"6.Reiter", container:"pa.involved.ad", layout:"regular", show:!0}], layouts:{regular:{desc:"module.beteiligt.regular.desc", label:"Kontakt", fields:[{id:"field.name", desc:"module.beteiligt.field-name.desc", type:"text", label:"Name", placeholder:"eintippen\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.social", desc:"module.beteiligt.field-social.desc", type:"text", label:"Telefon.Mail.Webseite", 
-  placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.address", desc:"module.beteiligt.field-address.desc", type:"text", label:"Adresse", placeholder:"festhalten\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.notes", desc:"module.beteiligt.field-notes.desc", type:"text", label:"Notizen", placeholder:"formulieren\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.deadline", desc:"module.beteiligt.field-deadline.desc", type:"text", label:"Deadline", placeholder:"bestimmen\u2026", 
-  show:!1, sortable:!1, color:"shades"}]}, ad:{desc:"module.beteiligt.special.desc", label:"Inserat", fields:[{id:"field.sujet", desc:"module.beteiligt.field-sujet.desc", type:"text", label:"Kunde.Sujet", placeholder:"Name.Stichwort\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.format", desc:"module.beteiligt.field-format.desc", type:"text", label:"Format", placeholder:"festhalten\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.placement", desc:"module.beteiligt.field-placement.desc", 
-  type:"text", label:"Platzierung", placeholder:"vormerken\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.price", desc:"module.beteiligt.field-price.desc", type:"text", label:"Preis CHF", placeholder:"bestimmen\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.total", desc:"module.beteiligt.field-total.desc", type:"text", label:"Total", placeholder:"", show:!1, sortable:!1, color:"shades"}, {id:"field.name", desc:"module.beteiligt.field-name.desc", type:"text", label:"Kontakt", 
-  placeholder:"eintippen\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.social", desc:"module.beteiligt.field-social.desc", type:"text", label:"Telefon.Mail.Webseite", placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.address", desc:"module.beteiligt.field-address.desc", type:"text", label:"Adresse", placeholder:"festhalten\u2026", show:!1, sortable:!1, color:"shades"}]}}}), {id:2}), PluginRepository.instance.add(new PluginModuleConfig("module.plan", "Plan", 
-  {sort:2, enabled:!1, icon:"ic_plan.png", desc:"module.plan.desc", editables:[{id:"visual", desc:"module.plan.editable.desc", type:"select", label:"1.Liste", color:"blue", show:!1, sortable:!1, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"form", desc:"module.plan.editable.desc", type:"select", label:"2.Liste", color:"green", show:!1, sortable:!1, values:["1.Begriff", "2.Begriff", "3.Begriff"]}, {id:"online", desc:"module.plan.editable.desc", type:"select", label:"3.Liste", 
-  color:"yellow", show:!1, sortable:!1, values:"1.Begriff 2.Begriff 3.Begriff 4.Begriff 5.Begriff 6.Begriff 7.Begriff".split(" ")}, {id:"season", desc:"module.plan.editable.desc", type:"select", label:"4.Liste", color:"sky", show:!1, sortable:!1, values:["1.Begriff", "2.Begriff"]}, {id:"region", desc:"module.plan.editable.desc", type:"select", label:"5.Liste", color:"lime", show:!1, sortable:!1, values:["1.Begriff", "2.Begriff"]}, {id:"place", desc:"module.plan.editable.desc", type:"select", label:"6.Liste", 
-  color:"orange", show:!1, sortable:!1, values:"1.Begriff 2.Begriff 3.Begriff 4.Begriff 5.Begriff 6.Begriff 7.Begriff".split(" ")}, {id:"field.a", desc:"module.plan.field-a.desc", type:"text", label:"Massnahmen", placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.b", desc:"module.plan.field-b.desc", type:"text", label:"Beschreibung", placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}]}), {id:3}));
-  return PluginRepository.instance;
-}}});
-PluginRepository.instance = null;
-// Input 22
 var ClientManager = function(a, b, c) {
   this._window = a;
   this._trello = b;
@@ -2236,7 +2011,373 @@ ClientManager.prototype.sortOnSelect = function(a, b, c, d) {
     return a.id;
   })};
 };
+// Input 22
+var ArtikelController = function(a, b, c, d) {
+  Controller.call(this, a, c);
+  this.document = a.document;
+  this.trelloApi = b;
+  this._entity = null;
+  this._telephone = d;
+  this.setVersionInfo();
+};
+$jscomp.inherits(ArtikelController, Controller);
+ArtikelController.getInstance = function(a, b, c) {
+  b.hasOwnProperty("articleController") || (b.articleController = new ArtikelController(b, a, DI.getInstance().getArticleRepository(), c));
+  return b.articleController;
+};
+ArtikelController.prototype.setVersionInfo = function() {
+  this.trelloApi.set("card", "shared", ArtikelController.SHARED_META, this.getVersionInfo());
+};
+ArtikelController.prototype.getVersionInfo = function() {
+  return {version:ArtikelController.VERSION};
+};
+ArtikelController.prototype.create = function(a, b) {
+  return Artikel.create(a);
+};
+ArtikelController.prototype.getPropertyByName = function(a, b, c) {
+  switch(b) {
+    case "visual":
+      return a.visual || c;
+    case "form":
+      return a.form || c;
+    case "online":
+      return a.tags || c;
+    case "season":
+      return a.season || c;
+    case "region":
+      return a.region || c;
+    case "place":
+      return a.location || c;
+    case "field.a":
+      return a.topic || c;
+    case "field.b":
+      return a.from || c;
+    case "field.c":
+      return a.author || c;
+    case "field.d":
+      return a.text || c;
+    default:
+      return a.hasOwnProperty(b), a[b];
+  }
+};
+ArtikelController.prototype.fetchAll = function() {
+  var a = this;
+  return this.trelloApi.cards("id", "closed").filter(function(a) {
+    return !a.closed;
+  }).each(function(b) {
+    return a.trelloApi.get(b.id, "shared", ArtikelController.SHARED_NAME).then(function(c) {
+      a.insert(Artikel.create(c), b);
+    });
+  }).then(function() {
+    console.log("Fetch complete: " + a.size() + " article(s) to process");
+  });
+};
+ArtikelController.prototype.list = function() {
+  return this._repository.all();
+};
+ArtikelController.prototype.size = function() {
+  return Object.keys(this.list()).length;
+};
+ArtikelController.prototype.isManaged = function(a) {
+  return null !== a.id;
+};
+ArtikelController.prototype.manage = function(a) {
+  a.id = uuid();
+  return a;
+};
+ArtikelController.prototype.update = function() {
+  var a = this;
+  this._window.clientManager.isArticleModuleEnabled().then(function(b) {
+    if (!b) {
+      throw "Module is not enabled";
+    }
+    a._entity.total = a.getTotalPageCount();
+    a._binding.update(a._entity);
+    return !0;
+  });
+};
+ArtikelController.prototype.getTotalPageCount = function() {
+  return Object.values(this._repository.all()).map(function(a, b) {
+    a = parseInt(a.layout);
+    return isNaN(a) ? 0 : a;
+  }).reduce(function(a, b) {
+    return parseInt(a) + parseInt(b);
+  }, 0);
+};
+ArtikelController.prototype.render = function(a, b) {
+  this._entity = a ? a : Artikel.create();
+  this._binding = this._binding ? this._binding.update(this._entity, b) : (new ArtikelBinding(this.document, this._entity, this.onEvent, this, b)).bind();
+};
+ArtikelController.prototype.onEvent = function(a, b) {
+  switch(b.hasOwnProperty("event") ? b.event : "change") {
+    case "focus":
+      b.context._onFocus.call(b.context, a, b);
+      break;
+    default:
+      b.context._onChange.call(b.context, a, b);
+  }
+};
+ArtikelController.prototype._onFocus = function(a, b) {
+};
+ArtikelController.prototype._onChange = function(a, b) {
+  a.setProperty();
+  this.persist.call(this, a.getBinding());
+};
+ArtikelController.prototype.persist = function(a, b) {
+  return this.trelloApi.set(b || "card", "shared", ArtikelController.SHARED_NAME, a);
+};
+$jscomp.global.Object.defineProperties(ArtikelController, {VERSION:{configurable:!0, enumerable:!0, get:function() {
+  return 1;
+}}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.Artikel";
+}}, SHARED_META:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.Meta";
+}}});
 // Input 23
+var ModuleController = function(a, b, c) {
+  Controller.call(this, a, new BeteiligtRepository);
+  this.document = a.document;
+  this.trelloApi = b;
+  this._entity = this._beteiligtBinding = null;
+  this._propertyBag = {};
+  this._telephone = c;
+  this._telephone.onmessage = this._onMessage();
+  this.setVersionInfo();
+  this.readPropertyBag();
+};
+$jscomp.inherits(ModuleController, Controller);
+ModuleController.getInstance = function(a, b, c) {
+  b.hasOwnProperty("moduleController") || (b.moduleController = new ModuleController(b, a, c));
+  return b.moduleController;
+};
+ModuleController.prototype._onMessage = function() {
+  var a = this;
+  return function(b) {
+    Object.values(b.data.get).forEach(function(a) {
+      switch(a) {
+        case "fee:current":
+          this._sendResponse(a, this.getTotalFee());
+          break;
+        case "fee:overall":
+          this._sendResponse(a, this.getOverallTotalFee());
+          break;
+        case "charge:current":
+          this._sendResponse(a, this.getTotalCharges());
+          break;
+        case "charge:overall":
+          this._sendResponse(a, this.getOverallTotalCharges());
+          break;
+        case "costs:overall":
+          this._sendResponse(a, this.getOverallCosts());
+      }
+    }, a);
+  };
+};
+ModuleController.prototype._sendResponse = function(a, b) {
+  var c = {};
+  c[a] = b;
+  this._telephone.postMessage({result:[c]});
+};
+ModuleController.prototype.setVersionInfo = function() {
+  this.trelloApi.set("card", "shared", ModuleController.SHARED_META, this.getVersionInfo());
+};
+ModuleController.prototype.getVersionInfo = function() {
+  return {version:ModuleController.VERSION};
+};
+ModuleController.prototype.render = function(a, b) {
+  this._entity = a;
+  this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(a, b) : this._createBinding(a, b);
+};
+ModuleController.prototype._createBinding = function(a, b) {
+  return (new BeteiligtBinding(this.document, a, this.onEvent, this, b)).bind();
+};
+ModuleController.prototype.hide = function() {
+  this.document.getElementById("panta.module").addClass("hidden");
+};
+ModuleController.prototype.update = function() {
+  if (!this._window.clientManager.isBeteiligtModuleEnabled()) {
+    throw "Module is not enabled";
+  }
+  var a = this.getTotalPrice();
+  Object.values(this._entity.sections).filter(function(a) {
+    return a instanceof AdBeteiligt;
+  }).forEach(function(b) {
+    b.total = a;
+  });
+  var b = this.getTotalProject(), c = this.getCapOnDepenses();
+  Object.values(this._entity.sections).filter(function(a) {
+    return a instanceof OtherBeteiligt;
+  }).forEach(function(a) {
+    a.project = b;
+    a.capOnDepenses = c;
+  });
+  this._beteiligtBinding.update(this._entity);
+};
+ModuleController.prototype.onEvent = function(a, b) {
+  switch(b.hasOwnProperty("event") ? b.event : "change") {
+    case "focus":
+      b.context._onFocus.call(b.context, a, b);
+      break;
+    case "blur":
+      b.context._onLooseFocus.call(b.context);
+      break;
+    default:
+      b.context._onChange.call(b.context, a, b);
+  }
+};
+ModuleController.prototype._onFocus = function(a, b) {
+  this._beteiligtBinding.enterEditing();
+};
+ModuleController.prototype._onLooseFocus = function() {
+  this._beteiligtBinding.leaveEditing();
+};
+ModuleController.prototype._onChange = function(a, b) {
+  a.setProperty();
+  b.config.sections[b.valueHolder["involved-in"]] = a.getBinding();
+  this._beteiligtBinding.rememberFocus(a);
+  this.persist.call(this, b.config).then(function() {
+    console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue(), b.config);
+  });
+};
+ModuleController.prototype.getTotalPrice = function() {
+  return Object.values(this._repository.all()).flatMap(function(a) {
+    return Object.values(a && a.sections ? a.sections : {}).filter(function(a) {
+      return a instanceof AdBeteiligt;
+    });
+  }).filter(function(a) {
+    return a instanceof AdBeteiligt && !isNaN(parseFloat(a.price));
+  }).map(function(a) {
+    return a.price;
+  }).reduce(function(a, b) {
+    return parseFloat(a) + parseFloat(b);
+  }, 0.0);
+};
+ModuleController.prototype.getTotalProjectCosts = function() {
+  return Object.values(this._repository.all()).map(function(a) {
+    return Object.values(a && a.sections ? a.sections : {});
+  }).flat().filter(function(a) {
+    return a instanceof OtherBeteiligt;
+  }).map(function(a) {
+    return [isNumber(a.fee) ? a.fee : 0, isNumber(a.charges) ? a.charges : 0];
+  }).flat().reduce(function(a, b) {
+    return parseFloat(a) + parseFloat(b);
+  }, 0.0);
+};
+ModuleController.prototype.getOverallTotalFee = function() {
+  return Object.values(this._repository.all()).map(function(a) {
+    return Object.values(a && a.sections ? a.sections : {});
+  }).flat().filter(function(a) {
+    return a instanceof OtherBeteiligt;
+  }).map(function(a) {
+    return isNumber(a.fee) ? a.fee : 0.0;
+  }).reduce(function(a, b) {
+    return parseFloat(a) + parseFloat(b);
+  }, 0.0);
+};
+ModuleController.prototype.getTotalFee = function() {
+  return Object.values(this._entity && this._entity.sections ? this._entity.sections : {}).filter(function(a) {
+    return a instanceof OtherBeteiligt;
+  }).map(function(a) {
+    return isNumber(a.fee) ? a.fee : 0.0;
+  }).reduce(function(a, b) {
+    return parseFloat(a) + parseFloat(b);
+  }, 0.0);
+};
+ModuleController.prototype.getTotalCharges = function() {
+  return Object.values(this._entity && this._entity.sections ? this._entity.sections : {}).filter(function(a) {
+    return a instanceof OtherBeteiligt;
+  }).map(function(a) {
+    return isNumber(a.charges) ? a.charges : 0.0;
+  }).reduce(function(a, b) {
+    return parseFloat(a) + parseFloat(b);
+  }, 0.0);
+};
+ModuleController.prototype.getTotalProject = function() {
+  return Object.values(this._entity && this._entity.sections ? this._entity.sections : {}).filter(function(a) {
+    return a instanceof OtherBeteiligt;
+  }).map(function(a) {
+    return [isNumber(a.fee) ? a.fee : 0, isNumber(a.charges) ? a.charges : 0];
+  }).flat().reduce(function(a, b) {
+    return parseFloat(a) + parseFloat(b);
+  }, 0.0);
+};
+ModuleController.prototype.getOverallTotalCharges = function() {
+  return Object.values(this._repository.all()).map(function(a) {
+    return Object.values(a && a.sections ? a.sections : {});
+  }).flat().filter(function(a) {
+    return a instanceof OtherBeteiligt;
+  }).map(function(a) {
+    return isNumber(a.charges) ? a.charges : 0.0;
+  }).reduce(function(a, b) {
+    return parseFloat(a) + parseFloat(b);
+  }, 0.0);
+};
+ModuleController.prototype.getOverallCosts = function() {
+  return Object.values(this._repository.all()).map(function(a) {
+    return Object.values(a && a.sections ? a.sections : {});
+  }).flat().filter(function(a) {
+    return a instanceof OtherBeteiligt;
+  }).map(function(a) {
+    return [isNumber(a.charges) ? a.charges : 0.0, isNumber(a.fee) ? a.fee : 0.0];
+  }).flat().reduce(function(a, b) {
+    return parseFloat(a) + parseFloat(b);
+  }, 0.0);
+};
+ModuleController.prototype.getCapOnDepenses = function() {
+  var a = this.getProperty("cap_on_depenses");
+  return isNaN(a) ? 0.0 : parseFloat(a);
+};
+ModuleController.prototype.fetchAll = function(a) {
+  var b = this;
+  return this.trelloApi.cards("id", "closed").filter(function(a) {
+    return !a.closed;
+  }).each(function(a) {
+    return b.trelloApi.get(a.id, "shared", ModuleController.SHARED_NAME).then(function(c) {
+      b.insert(b.create(c), a);
+    });
+  }).then(function() {
+    console.log("Fetch complete: " + b.size() + " module config(s)");
+    a.call(b);
+  });
+};
+ModuleController.prototype.persist = function(a, b) {
+  return this.trelloApi.set(b || "card", "shared", ModuleController.SHARED_NAME, a);
+};
+ModuleController.prototype.setProperty = function(a, b) {
+  this._propertyBag[a] = b;
+  this.trelloApi.set("board", "shared", ModuleController.PROPERTY_BAG_NAME, this._propertyBag);
+};
+ModuleController.prototype.getProperty = function(a, b) {
+  return this._propertyBag[a] || b;
+};
+ModuleController.prototype.readPropertyBag = function() {
+  var a = this;
+  this.trelloApi.get("board", "shared", ModuleController.PROPERTY_BAG_NAME, {}).then(function(b) {
+    a._propertyBag = b;
+  });
+};
+ModuleController.prototype.removePropertyBag = function() {
+  return this.trelloApi.remove("board", "shared", ModuleController.PROPERTY_BAG_NAME);
+};
+ModuleController.prototype.clear = function() {
+  Object.keys(this._repository.all()).forEach(function(a) {
+    this.trelloApi.remove(a, "shared", ModuleController.SHARED_NAME);
+  }, this);
+  this._repository.clearAll();
+};
+ModuleController.prototype.create = function(a, b) {
+  return ModuleConfig.create(a, b || this._beteiligtBinding.configuration);
+};
+$jscomp.global.Object.defineProperties(ModuleController, {VERSION:{configurable:!0, enumerable:!0, get:function() {
+  return 1;
+}}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.Beteiligt";
+}}, SHARED_META:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.Beteiligt.Meta";
+}}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.Beteiligt.PropertyBag";
+}}});
+// Input 24
 var ModuleSettingsController = function(a, b, c, d, e, f) {
   this.trello = a;
   this.pluginController = b;
@@ -2498,264 +2639,123 @@ ModuleSettingsController.prototype.hideVersion = function() {
     a.addClass("hidden");
   });
 };
-// Input 24
-var ModuleController = function(a, b, c) {
-  Controller.call(this, a, new BeteiligtRepository);
-  this.document = a.document;
-  this.trelloApi = b;
-  this._entity = this._beteiligtBinding = null;
-  this._propertyBag = {};
-  this._telephone = c;
-  this._telephone.onmessage = this._onMessage();
-  this.setVersionInfo();
-  this.readPropertyBag();
-};
-$jscomp.inherits(ModuleController, Controller);
-ModuleController.getInstance = function(a, b, c) {
-  b.hasOwnProperty("moduleController") || (b.moduleController = new ModuleController(b, a, c));
-  return b.moduleController;
-};
-ModuleController.prototype._onMessage = function() {
-  var a = this;
-  return function(b) {
-    Object.values(b.data.get).forEach(function(a) {
-      switch(a) {
-        case "fee:current":
-          this._sendResponse(a, this.getTotalFee());
-          break;
-        case "fee:overall":
-          this._sendResponse(a, this.getOverallTotalFee());
-          break;
-        case "charge:current":
-          this._sendResponse(a, this.getTotalCharges());
-          break;
-        case "charge:overall":
-          this._sendResponse(a, this.getOverallTotalCharges());
-          break;
-        case "costs:overall":
-          this._sendResponse(a, this.getOverallCosts());
-      }
-    }, a);
-  };
-};
-ModuleController.prototype._sendResponse = function(a, b) {
-  var c = {};
-  c[a] = b;
-  this._telephone.postMessage({result:[c]});
-};
-ModuleController.prototype.setVersionInfo = function() {
-  this.trelloApi.set("card", "shared", ModuleController.SHARED_META, this.getVersionInfo());
-};
-ModuleController.prototype.getVersionInfo = function() {
-  return {version:ModuleController.VERSION};
-};
-ModuleController.prototype.render = function(a, b) {
-  this._entity = a;
-  this._beteiligtBinding = this._beteiligtBinding ? this._beteiligtBinding.update(a, b) : this._createBinding(a, b);
-};
-ModuleController.prototype._createBinding = function(a, b) {
-  return (new BeteiligtBinding(this.document, a, this.onEvent, this, b)).bind();
-};
-ModuleController.prototype.hide = function() {
-  this.document.getElementById("panta.module").addClass("hidden");
-};
-ModuleController.prototype.update = function() {
-  if (!this._window.clientManager.isBeteiligtModuleEnabled()) {
-    throw "Module is not enabled";
-  }
-  var a = this.getTotalPrice();
-  Object.values(this._entity.sections).filter(function(a) {
-    return a instanceof AdBeteiligt;
-  }).forEach(function(b) {
-    b.total = a;
-  });
-  var b = this.getTotalProject(), c = this.getCapOnDepenses();
-  Object.values(this._entity.sections).filter(function(a) {
-    return a instanceof OtherBeteiligt;
-  }).forEach(function(a) {
-    a.project = b;
-    a.capOnDepenses = c;
-  });
-  this._beteiligtBinding.update(this._entity);
-};
-ModuleController.prototype.onEvent = function(a, b) {
-  switch(b.hasOwnProperty("event") ? b.event : "change") {
-    case "focus":
-      b.context._onFocus.call(b.context, a, b);
-      break;
-    case "blur":
-      b.context._onLooseFocus.call(b.context);
-      break;
-    default:
-      b.context._onChange.call(b.context, a, b);
-  }
-};
-ModuleController.prototype._onFocus = function(a, b) {
-  this._beteiligtBinding.enterEditing();
-};
-ModuleController.prototype._onLooseFocus = function() {
-  this._beteiligtBinding.leaveEditing();
-};
-ModuleController.prototype._onChange = function(a, b) {
-  a.setProperty();
-  b.config.sections[b.valueHolder["involved-in"]] = a.getBinding();
-  this._beteiligtBinding.rememberFocus(a);
-  this.persist.call(this, b.config).then(function() {
-    console.log("Stored: " + a.getBoundProperty() + " = " + a.getValue(), b.config);
-  });
-};
-ModuleController.prototype.getTotalPrice = function() {
-  return Object.values(this._repository.all()).flatMap(function(a) {
-    return Object.values(a && a.sections ? a.sections : {}).filter(function(a) {
-      return a instanceof AdBeteiligt;
-    });
-  }).filter(function(a) {
-    return a instanceof AdBeteiligt && !isNaN(parseFloat(a.price));
-  }).map(function(a) {
-    return a.price;
-  }).reduce(function(a, b) {
-    return parseFloat(a) + parseFloat(b);
-  }, 0.0);
-};
-ModuleController.prototype.getTotalProjectCosts = function() {
-  return Object.values(this._repository.all()).map(function(a) {
-    return Object.values(a && a.sections ? a.sections : {});
-  }).flat().filter(function(a) {
-    return a instanceof OtherBeteiligt;
-  }).map(function(a) {
-    return [isNumber(a.fee) ? a.fee : 0, isNumber(a.charges) ? a.charges : 0];
-  }).flat().reduce(function(a, b) {
-    return parseFloat(a) + parseFloat(b);
-  }, 0.0);
-};
-ModuleController.prototype.getOverallTotalFee = function() {
-  return Object.values(this._repository.all()).map(function(a) {
-    return Object.values(a && a.sections ? a.sections : {});
-  }).flat().filter(function(a) {
-    return a instanceof OtherBeteiligt;
-  }).map(function(a) {
-    return isNumber(a.fee) ? a.fee : 0.0;
-  }).reduce(function(a, b) {
-    return parseFloat(a) + parseFloat(b);
-  }, 0.0);
-};
-ModuleController.prototype.getTotalFee = function() {
-  return Object.values(this._entity && this._entity.sections ? this._entity.sections : {}).filter(function(a) {
-    return a instanceof OtherBeteiligt;
-  }).map(function(a) {
-    return isNumber(a.fee) ? a.fee : 0.0;
-  }).reduce(function(a, b) {
-    return parseFloat(a) + parseFloat(b);
-  }, 0.0);
-};
-ModuleController.prototype.getTotalCharges = function() {
-  return Object.values(this._entity && this._entity.sections ? this._entity.sections : {}).filter(function(a) {
-    return a instanceof OtherBeteiligt;
-  }).map(function(a) {
-    return isNumber(a.charges) ? a.charges : 0.0;
-  }).reduce(function(a, b) {
-    return parseFloat(a) + parseFloat(b);
-  }, 0.0);
-};
-ModuleController.prototype.getTotalProject = function() {
-  return Object.values(this._entity && this._entity.sections ? this._entity.sections : {}).filter(function(a) {
-    return a instanceof OtherBeteiligt;
-  }).map(function(a) {
-    return [isNumber(a.fee) ? a.fee : 0, isNumber(a.charges) ? a.charges : 0];
-  }).flat().reduce(function(a, b) {
-    return parseFloat(a) + parseFloat(b);
-  }, 0.0);
-};
-ModuleController.prototype.getOverallTotalCharges = function() {
-  return Object.values(this._repository.all()).map(function(a) {
-    return Object.values(a && a.sections ? a.sections : {});
-  }).flat().filter(function(a) {
-    return a instanceof OtherBeteiligt;
-  }).map(function(a) {
-    return isNumber(a.charges) ? a.charges : 0.0;
-  }).reduce(function(a, b) {
-    return parseFloat(a) + parseFloat(b);
-  }, 0.0);
-};
-ModuleController.prototype.getOverallCosts = function() {
-  return Object.values(this._repository.all()).map(function(a) {
-    return Object.values(a && a.sections ? a.sections : {});
-  }).flat().filter(function(a) {
-    return a instanceof OtherBeteiligt;
-  }).map(function(a) {
-    return [isNumber(a.charges) ? a.charges : 0.0, isNumber(a.fee) ? a.fee : 0.0];
-  }).flat().reduce(function(a, b) {
-    return parseFloat(a) + parseFloat(b);
-  }, 0.0);
-};
-ModuleController.prototype.getCapOnDepenses = function() {
-  var a = this.getProperty("cap_on_depenses");
-  return isNaN(a) ? 0.0 : parseFloat(a);
-};
-ModuleController.prototype.fetchAll = function(a) {
-  var b = this;
-  return this.trelloApi.cards("id", "closed").filter(function(a) {
-    return !a.closed;
-  }).each(function(a) {
-    return b.trelloApi.get(a.id, "shared", ModuleController.SHARED_NAME).then(function(c) {
-      b.insert(b.create(c), a);
-    });
-  }).then(function() {
-    console.log("Fetch complete: " + b.size() + " module config(s)");
-    a.call(b);
-  });
-};
-ModuleController.prototype.persist = function(a, b) {
-  return this.trelloApi.set(b || "card", "shared", ModuleController.SHARED_NAME, a);
-};
-ModuleController.prototype.setProperty = function(a, b) {
-  this._propertyBag[a] = b;
-  this.trelloApi.set("board", "shared", ModuleController.PROPERTY_BAG_NAME, this._propertyBag);
-};
-ModuleController.prototype.getProperty = function(a, b) {
-  return this._propertyBag[a] || b;
-};
-ModuleController.prototype.readPropertyBag = function() {
-  var a = this;
-  this.trelloApi.get("board", "shared", ModuleController.PROPERTY_BAG_NAME, {}).then(function(b) {
-    a._propertyBag = b;
-  });
-};
-ModuleController.prototype.removePropertyBag = function() {
-  return this.trelloApi.remove("board", "shared", ModuleController.PROPERTY_BAG_NAME);
-};
-ModuleController.prototype.clear = function() {
-  Object.keys(this._repository.all()).forEach(function(a) {
-    this.trelloApi.remove(a, "shared", ModuleController.SHARED_NAME);
-  }, this);
-  this._repository.clearAll();
-};
-ModuleController.prototype.create = function(a, b) {
-  return ModuleConfig.create(a, b || this._beteiligtBinding.configuration);
-};
-$jscomp.global.Object.defineProperties(ModuleController, {VERSION:{configurable:!0, enumerable:!0, get:function() {
-  return 1;
-}}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
-  return "panta.Beteiligt";
-}}, SHARED_META:{configurable:!0, enumerable:!0, get:function() {
-  return "panta.Beteiligt.Meta";
-}}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
-  return "panta.Beteiligt.PropertyBag";
-}}});
 // Input 25
-var ArtikelRepository = function() {
-  Repository.call(this);
+var PluginController = function(a, b) {
+  this._window = b;
+  this._trelloApi = a;
+  this._upgrading = !1;
+  this._upgrades = {1:this._upgrade_1, 2:this._upgrade_2};
+  this._repository = PluginRepository.INSTANCE;
 };
-$jscomp.inherits(ArtikelRepository, Repository);
-ArtikelRepository.prototype.add = function(a, b) {
-  Repository.prototype.add.call(this, a, b);
+PluginController.getInstance = function(a, b) {
+  b.hasOwnProperty("pluginController") || (b.pluginController = new PluginController(a, b));
+  return b.pluginController;
 };
-ArtikelRepository.prototype.isNew = function(a) {
-  var b = this;
-  return null === Object.keys(this._repository).find(function(c, d) {
-    return b._repository[c].id === a.id;
+PluginController.prototype.init = function() {
+  var a = this;
+  this._trelloApi.get("board", "shared", PluginController.SHARED_NAME, 1).then(function(b) {
+    PluginController.VERSION > b && (a._upgrading = !0, a.update.call(a, b, PluginController.VERSION));
   });
 };
+PluginController.prototype.getPluginConfiguration = function() {
+  var a = this;
+  return this._trelloApi.get("board", "shared", PluginController.CONFIGURATION_NAME, null).then(function(b) {
+    return b ? (b = JSON.parse(LZString.decompress(b)), PluginConfiguration.create(b)) : new PluginConfiguration("1.0.0", "Panta.Card Power-Up", null, a.getAvailableModules());
+  });
+};
+PluginController.prototype.setPluginModuleConfig = function(a, b) {
+  var c = this;
+  return this.getPluginConfiguration().then(function(d) {
+    if (d instanceof PluginConfiguration) {
+      return d.card = b || d.card, d.modules.find(function(b) {
+        return b.id === a.id;
+      }).config = a.config, c._trelloApi.set("board", "shared", PluginController.CONFIGURATION_NAME, LZString.compress(JSON.stringify(d))), d;
+    }
+    throw "Invalid plugin configuration";
+  });
+};
+PluginController.prototype.findPluginModuleConfigByModuleId = function(a) {
+  return this.getPluginConfiguration().then(function(a) {
+    return a.modules;
+  }).filter(function(b) {
+    return b.id === a;
+  }).reduce(function(a, c) {
+    return c;
+  }, null);
+};
+PluginController.prototype.getAvailableModules = function() {
+  return Object.values(PluginRepository.INSTANCE.all()).sort(function(a, b) {
+    return a.config.sort - b.config.sort;
+  });
+};
+PluginController.prototype.remove = function() {
+  return this._trelloApi.remove("board", "shared", PluginController.SHARED_NAME);
+};
+PluginController.prototype.update = function(a, b) {
+  this._update(a, b);
+};
+PluginController.prototype._update = function(a, b) {
+  var c = this;
+  a < b ? (console.log("Applying upgrade %d ...", a), c._upgrades[a].call(this).then(function() {
+    console.log("... upgrade %d is successfully applied", a);
+    c._trelloApi.set("board", "shared", PluginController.SHARED_NAME, a + 1).then(function() {
+      c._update(a + 1, b);
+    });
+  })) : (console.log("No upgrades pending"), setTimeout(function() {
+    c._upgrading = !1;
+  }, 2000));
+};
+PluginController.prototype._upgrade_1 = function() {
+  var a = this, b = this._window.clientManager.getArticleController(), c = this._window.clientManager.getModuleController();
+  return b.fetchAll.call(b).then(function() {
+    a._upgradeAllArticleToModuleConfig.call(a, b, c);
+  }).then(function() {
+    return !0;
+  });
+};
+PluginController.prototype._upgrade_2 = function() {
+  return Promise.resolve(!0);
+};
+PluginController.prototype._upgradeAllArticleToModuleConfig = function(a, b) {
+  this._upgradeArticleToModuleConfig.call(this, a, b, Object.entries(a.list()), 0);
+};
+PluginController.prototype._upgradeArticleToModuleConfig = function(a, b, c, d) {
+  if (d < c.length) {
+    var e = this, f = c[d], h = f[0], g = f[1];
+    if (1 === g.version) {
+      if (g.involved) {
+        f = Object.entries(g.involved).reduce(function(a, b) {
+          a.sections[b[0]] = b[1];
+          return a;
+        }, ModuleConfig.create()), b.persist.call(b, f, h).then(function() {
+          g.version = Artikel.VERSION;
+          "function" === typeof g.clearInvolved && g.clearInvolved();
+          return a.persist.call(a, g, h);
+        }).then(function() {
+          e._upgradeArticleToModuleConfig.call(e, a, b, c, d + 1, h);
+        });
+      } else {
+        return console.log("The article does not have any involved data. Just update the version of the article and proceed to the next item."), g.version = Artikel.VERSION, a.persist.call(a, g, h).then(function() {
+          e._upgradeArticleToModuleConfig.call(e, a, b, c, d + 1, h);
+        });
+      }
+    } else {
+      console.log("Skipping article because its at version %d", g.version), this._upgradeArticleToModuleConfig.call(this, a, b, c, d + 1, h);
+    }
+  } else {
+    console.log("All articles updated");
+  }
+};
+$jscomp.global.Object.defineProperties(PluginController.prototype, {upgrading:{configurable:!0, enumerable:!0, get:function() {
+  return this._upgrading;
+}}});
+$jscomp.global.Object.defineProperties(PluginController, {VERSION:{configurable:!0, enumerable:!0, get:function() {
+  return 3;
+}}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.App";
+}}, CONFIGURATION_NAME:{configurable:!0, enumerable:!0, get:function() {
+  return "panta.App.Configuration";
+}}});
 // Input 26
 var ModulePlanRepository = function() {
   Repository.call(this);
@@ -2952,271 +2952,6 @@ $jscomp.global.Object.defineProperties(PluginModuleConfig.prototype, {config:{co
   this._id = a;
 }}});
 // Input 30
-var Artikel = function(a, b, c, d, e, f, h, g, k, l, m, q, n, p) {
-  this._id = a || uuid();
-  this._topic = b;
-  this._pagina = c;
-  this._from = d;
-  this._layout = e;
-  this._total = f;
-  this._tags = h;
-  this._form = n;
-  this._visual = g;
-  this._region = k;
-  this._season = l;
-  this._location = p;
-  this._author = m;
-  this._text = q;
-  this._involved = {};
-  this._version = Artikel.VERSION;
-  this.putInvolved("onsite", new OtherBeteiligt);
-  this.putInvolved("text", new OtherBeteiligt);
-  this.putInvolved("photo", new OtherBeteiligt);
-  this.putInvolved("video", new OtherBeteiligt);
-  this.putInvolved("illu", new OtherBeteiligt);
-  this.putInvolved("ad", new AdBeteiligt);
-};
-Artikel.create = function(a) {
-  return this._create(a);
-};
-Artikel._create = function(a) {
-  if (a) {
-    var b = JsonSerialization.getProperty(a, "region");
-    "nord" === b && (b = "north");
-    b = new Artikel(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "topic"), JsonSerialization.getProperty(a, "pagina"), JsonSerialization.getProperty(a, "from"), JsonSerialization.getProperty(a, "layout"), JsonSerialization.getProperty(a, "total"), JsonSerialization.getProperty(a, "tags"), JsonSerialization.getProperty(a, "visual"), b, JsonSerialization.getProperty(a, "season"), JsonSerialization.getProperty(a, "author"), JsonSerialization.getProperty(a, "text"), JsonSerialization.getProperty(a, 
-    "form"), JsonSerialization.getProperty(a, "location"));
-    b.involved = JsonSerialization.getProperty(a, "involved");
-    b.version = JsonSerialization.getProperty(a, "version");
-    return b;
-  }
-  return new Artikel;
-};
-Artikel.prototype.isEmpty = function() {
-  return isBlank(this.topic) && isBlank(this.pagina) && isBlank(this.from) && isBlank(this.layout) && isBlank(this.tags) && isBlank(this.visual) && isBlank(this.region) && isBlank(this.season) && isBlank(this.location) && isBlank(this.author) && isBlank(this.text);
-};
-Artikel.prototype.getInvolvedFor = function(a) {
-  return this._involved[a];
-};
-Artikel.prototype.putInvolved = function(a, b) {
-  this._involved[a] = b;
-};
-Artikel.prototype.getInvolvedCount = function() {
-  var a = this, b = 0;
-  Object.keys(this._involved).forEach(function(c) {
-    a.getInvolvedFor(c).isEmpty() || b++;
-  });
-  return b;
-};
-Artikel.prototype.clearInvolved = function() {
-  this._involved = {};
-};
-$jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, enumerable:!0, get:function() {
-  return this._id;
-}, set:function(a) {
-  this._id = a;
-}}, involved:{configurable:!0, enumerable:!0, get:function() {
-  return this._involved;
-}, set:function(a) {
-  for (var b in a) {
-    if (a.hasOwnProperty(b)) {
-      switch(b) {
-        case "onsite":
-        case "text":
-        case "photo":
-        case "video":
-        case "illu":
-          this.putInvolved(b, OtherBeteiligt.create(a[b]));
-          break;
-        case "ad":
-          this.putInvolved(b, AdBeteiligt.create(a[b]));
-          break;
-        default:
-          console.log("Unknown involved part: " + b);
-      }
-    }
-  }
-}}, from:{configurable:!0, enumerable:!0, get:function() {
-  return this._from;
-}, set:function(a) {
-  this._from = a;
-}}, location:{configurable:!0, enumerable:!0, get:function() {
-  return this._location;
-}, set:function(a) {
-  this._location = a;
-}}, topic:{configurable:!0, enumerable:!0, get:function() {
-  return this._topic;
-}, set:function(a) {
-  this._topic = a;
-}}, pagina:{configurable:!0, enumerable:!0, get:function() {
-  return this._pagina;
-}, set:function(a) {
-  this._pagina = a;
-}}, layout:{configurable:!0, enumerable:!0, get:function() {
-  return this._layout;
-}, set:function(a) {
-  this._layout = a;
-}}, total:{configurable:!0, enumerable:!0, get:function() {
-  return this._total;
-}, set:function(a) {
-  this._total = a;
-}}, tags:{configurable:!0, enumerable:!0, get:function() {
-  return this._tags;
-}, set:function(a) {
-  this._tags = a;
-}}, form:{configurable:!0, enumerable:!0, get:function() {
-  return this._form;
-}, set:function(a) {
-  this._form = a;
-}}, visual:{configurable:!0, enumerable:!0, get:function() {
-  return this._visual;
-}, set:function(a) {
-  this._visual = a;
-}}, region:{configurable:!0, enumerable:!0, get:function() {
-  return this._region;
-}, set:function(a) {
-  this._region = a;
-}}, season:{configurable:!0, enumerable:!0, get:function() {
-  return this._season;
-}, set:function(a) {
-  this._season = a;
-}}, author:{configurable:!0, enumerable:!0, get:function() {
-  return this._author;
-}, set:function(a) {
-  this._author = a;
-}}, text:{configurable:!0, enumerable:!0, get:function() {
-  return this._text;
-}, set:function(a) {
-  this._text = a;
-}}, version:{configurable:!0, enumerable:!0, get:function() {
-  return this._version;
-}, set:function(a) {
-  this._version = a;
-}}});
-$jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enumerable:!0, get:function() {
-  return 3;
-}}});
-// Input 31
-var Plan = function(a, b, c, d, e, f, h, g, k, l, m, q, n, p, r) {
-  this._id = a || uuid();
-  this._fee = d;
-  this._projectFee = e;
-  this._thirdPartyCharges = f;
-  this._thirdPartyTotalCosts = h;
-  this._capOnDepenses = g;
-  this._totalCosts = k;
-  this._visual = l;
-  this._form = m;
-  this._online = q;
-  this._season = n;
-  this._region = p;
-  this._place = r;
-  this._measures = b;
-  this._description = c;
-  this._version = Plan.VERSION;
-};
-Plan.create = function(a) {
-  return this._create(a);
-};
-Plan._create = function(a) {
-  if (a) {
-    var b = new Plan(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "measures"), JsonSerialization.getProperty(a, "description"), JsonSerialization.getProperty(a, "fee"), JsonSerialization.getProperty(a, "projectFee"), JsonSerialization.getProperty(a, "thirdPartyCharges"), JsonSerialization.getProperty(a, "thirdPartyTotalCosts"), 0.0, JsonSerialization.getProperty(a, "totalCosts"), JsonSerialization.getProperty(a, "visual"), JsonSerialization.getProperty(a, "form"), JsonSerialization.getProperty(a, 
-    "online"), JsonSerialization.getProperty(a, "season"), JsonSerialization.getProperty(a, "region"), JsonSerialization.getProperty(a, "place"));
-    b.version = JsonSerialization.getProperty(a, "version");
-    return b;
-  }
-  return new Plan;
-};
-Plan.prototype.isEmpty = function() {
-  return isBlank(this._fee) && isBlank(this._charges) && isBlank(this._thirdPartyCharges) && isBlank(this._capOnDepenses) && isBlank(this._visual) && isBlank(this._form) && isBlank(this._online) && isBlank(this._season) && isBlank(this._region) && isBlank(this._place) && isBlank(this._measures) && isBlank(this._description);
-};
-$jscomp.global.Object.defineProperties(Plan.prototype, {id:{configurable:!0, enumerable:!0, get:function() {
-  return this._id;
-}, set:function(a) {
-  this._id = a;
-}}, measures:{configurable:!0, enumerable:!0, get:function() {
-  return this._measures;
-}, set:function(a) {
-  this._measures = a;
-}}, description:{configurable:!0, enumerable:!0, get:function() {
-  return this._description;
-}, set:function(a) {
-  this._description = a;
-}}, fee:{configurable:!0, enumerable:!0, get:function() {
-  return this._fee;
-}, set:function(a) {
-  this._fee = a;
-}}, projectFee:{configurable:!0, enumerable:!0, get:function() {
-  return this._projectFee;
-}, set:function(a) {
-  this._projectFee = a;
-}}, thirdPartyCharges:{configurable:!0, enumerable:!0, get:function() {
-  return this._thirdPartyCharges;
-}, set:function(a) {
-  this._thirdPartyCharges = a;
-}}, thirdPartyTotalCosts:{configurable:!0, enumerable:!0, get:function() {
-  return this._thirdPartyTotalCosts;
-}, set:function(a) {
-  this._thirdPartyTotalCosts = a;
-}}, capOnDepenses:{configurable:!0, enumerable:!0, get:function() {
-  return this._capOnDepenses;
-}, set:function(a) {
-  this._capOnDepenses = a;
-}}, totalCosts:{configurable:!0, enumerable:!0, get:function() {
-  return this._totalCosts;
-}, set:function(a) {
-  this._totalCosts = a;
-}}, visual:{configurable:!0, enumerable:!0, get:function() {
-  return this._visual;
-}, set:function(a) {
-  this._visual = a;
-}}, form:{configurable:!0, enumerable:!0, get:function() {
-  return this._form;
-}, set:function(a) {
-  this._form = a;
-}}, online:{configurable:!0, enumerable:!0, get:function() {
-  return this._online;
-}, set:function(a) {
-  this._online = a;
-}}, season:{configurable:!0, enumerable:!0, get:function() {
-  return this._season;
-}, set:function(a) {
-  this._season = a;
-}}, region:{configurable:!0, enumerable:!0, get:function() {
-  return this._region;
-}, set:function(a) {
-  this._region = a;
-}}, place:{configurable:!0, enumerable:!0, get:function() {
-  return this._place;
-}, set:function(a) {
-  this._place = a;
-}}, version:{configurable:!0, enumerable:!0, get:function() {
-  return this._version;
-}, set:function(a) {
-  this._version = a;
-}}});
-$jscomp.global.Object.defineProperties(Plan, {VERSION:{configurable:!0, enumerable:!0, get:function() {
-  return 1;
-}}});
-// Input 32
-var PluginCardConfig = function(a, b, c) {
-  this._title = a;
-  this._icon = b;
-  this._content = c;
-};
-$jscomp.global.Object.defineProperties(PluginCardConfig.prototype, {title:{configurable:!0, enumerable:!0, get:function() {
-  return this._title;
-}, set:function(a) {
-  this._title = a;
-}}, icon:{configurable:!0, enumerable:!0, get:function() {
-  return this._icon;
-}, set:function(a) {
-  this._icon = a;
-}}, content:{configurable:!0, enumerable:!0, get:function() {
-  return this._content;
-}, set:function(a) {
-  this._content = a;
-}}});
-// Input 33
 var ModuleConfig = function(a, b) {
   this._id = a || uuid();
   this._sections = b;
@@ -3372,6 +3107,271 @@ $jscomp.global.Object.defineProperties(AdBeteiligt.prototype, {format:{configura
   return this._total;
 }, set:function(a) {
   this._total = a;
+}}});
+// Input 31
+var Plan = function(a, b, c, d, e, f, h, g, k, l, m, q, n, p, r) {
+  this._id = a || uuid();
+  this._fee = d;
+  this._projectFee = e;
+  this._thirdPartyCharges = f;
+  this._thirdPartyTotalCosts = h;
+  this._capOnDepenses = g;
+  this._totalCosts = k;
+  this._visual = l;
+  this._form = m;
+  this._online = q;
+  this._season = n;
+  this._region = p;
+  this._place = r;
+  this._measures = b;
+  this._description = c;
+  this._version = Plan.VERSION;
+};
+Plan.create = function(a) {
+  return this._create(a);
+};
+Plan._create = function(a) {
+  if (a) {
+    var b = new Plan(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "measures"), JsonSerialization.getProperty(a, "description"), JsonSerialization.getProperty(a, "fee"), JsonSerialization.getProperty(a, "projectFee"), JsonSerialization.getProperty(a, "thirdPartyCharges"), JsonSerialization.getProperty(a, "thirdPartyTotalCosts"), 0.0, JsonSerialization.getProperty(a, "totalCosts"), JsonSerialization.getProperty(a, "visual"), JsonSerialization.getProperty(a, "form"), JsonSerialization.getProperty(a, 
+    "online"), JsonSerialization.getProperty(a, "season"), JsonSerialization.getProperty(a, "region"), JsonSerialization.getProperty(a, "place"));
+    b.version = JsonSerialization.getProperty(a, "version");
+    return b;
+  }
+  return new Plan;
+};
+Plan.prototype.isEmpty = function() {
+  return isBlank(this._fee) && isBlank(this._charges) && isBlank(this._thirdPartyCharges) && isBlank(this._capOnDepenses) && isBlank(this._visual) && isBlank(this._form) && isBlank(this._online) && isBlank(this._season) && isBlank(this._region) && isBlank(this._place) && isBlank(this._measures) && isBlank(this._description);
+};
+$jscomp.global.Object.defineProperties(Plan.prototype, {id:{configurable:!0, enumerable:!0, get:function() {
+  return this._id;
+}, set:function(a) {
+  this._id = a;
+}}, measures:{configurable:!0, enumerable:!0, get:function() {
+  return this._measures;
+}, set:function(a) {
+  this._measures = a;
+}}, description:{configurable:!0, enumerable:!0, get:function() {
+  return this._description;
+}, set:function(a) {
+  this._description = a;
+}}, fee:{configurable:!0, enumerable:!0, get:function() {
+  return this._fee;
+}, set:function(a) {
+  this._fee = a;
+}}, projectFee:{configurable:!0, enumerable:!0, get:function() {
+  return this._projectFee;
+}, set:function(a) {
+  this._projectFee = a;
+}}, thirdPartyCharges:{configurable:!0, enumerable:!0, get:function() {
+  return this._thirdPartyCharges;
+}, set:function(a) {
+  this._thirdPartyCharges = a;
+}}, thirdPartyTotalCosts:{configurable:!0, enumerable:!0, get:function() {
+  return this._thirdPartyTotalCosts;
+}, set:function(a) {
+  this._thirdPartyTotalCosts = a;
+}}, capOnDepenses:{configurable:!0, enumerable:!0, get:function() {
+  return this._capOnDepenses;
+}, set:function(a) {
+  this._capOnDepenses = a;
+}}, totalCosts:{configurable:!0, enumerable:!0, get:function() {
+  return this._totalCosts;
+}, set:function(a) {
+  this._totalCosts = a;
+}}, visual:{configurable:!0, enumerable:!0, get:function() {
+  return this._visual;
+}, set:function(a) {
+  this._visual = a;
+}}, form:{configurable:!0, enumerable:!0, get:function() {
+  return this._form;
+}, set:function(a) {
+  this._form = a;
+}}, online:{configurable:!0, enumerable:!0, get:function() {
+  return this._online;
+}, set:function(a) {
+  this._online = a;
+}}, season:{configurable:!0, enumerable:!0, get:function() {
+  return this._season;
+}, set:function(a) {
+  this._season = a;
+}}, region:{configurable:!0, enumerable:!0, get:function() {
+  return this._region;
+}, set:function(a) {
+  this._region = a;
+}}, place:{configurable:!0, enumerable:!0, get:function() {
+  return this._place;
+}, set:function(a) {
+  this._place = a;
+}}, version:{configurable:!0, enumerable:!0, get:function() {
+  return this._version;
+}, set:function(a) {
+  this._version = a;
+}}});
+$jscomp.global.Object.defineProperties(Plan, {VERSION:{configurable:!0, enumerable:!0, get:function() {
+  return 1;
+}}});
+// Input 32
+var PluginCardConfig = function(a, b, c) {
+  this._title = a;
+  this._icon = b;
+  this._content = c;
+};
+$jscomp.global.Object.defineProperties(PluginCardConfig.prototype, {title:{configurable:!0, enumerable:!0, get:function() {
+  return this._title;
+}, set:function(a) {
+  this._title = a;
+}}, icon:{configurable:!0, enumerable:!0, get:function() {
+  return this._icon;
+}, set:function(a) {
+  this._icon = a;
+}}, content:{configurable:!0, enumerable:!0, get:function() {
+  return this._content;
+}, set:function(a) {
+  this._content = a;
+}}});
+// Input 33
+var Artikel = function(a, b, c, d, e, f, h, g, k, l, m, q, n, p) {
+  this._id = a || uuid();
+  this._topic = b;
+  this._pagina = c;
+  this._from = d;
+  this._layout = e;
+  this._total = f;
+  this._tags = h;
+  this._form = n;
+  this._visual = g;
+  this._region = k;
+  this._season = l;
+  this._location = p;
+  this._author = m;
+  this._text = q;
+  this._involved = {};
+  this._version = Artikel.VERSION;
+  this.putInvolved("onsite", new OtherBeteiligt);
+  this.putInvolved("text", new OtherBeteiligt);
+  this.putInvolved("photo", new OtherBeteiligt);
+  this.putInvolved("video", new OtherBeteiligt);
+  this.putInvolved("illu", new OtherBeteiligt);
+  this.putInvolved("ad", new AdBeteiligt);
+};
+Artikel.create = function(a) {
+  return this._create(a);
+};
+Artikel._create = function(a) {
+  if (a) {
+    var b = JsonSerialization.getProperty(a, "region");
+    "nord" === b && (b = "north");
+    b = new Artikel(JsonSerialization.getProperty(a, "id"), JsonSerialization.getProperty(a, "topic"), JsonSerialization.getProperty(a, "pagina"), JsonSerialization.getProperty(a, "from"), JsonSerialization.getProperty(a, "layout"), JsonSerialization.getProperty(a, "total"), JsonSerialization.getProperty(a, "tags"), JsonSerialization.getProperty(a, "visual"), b, JsonSerialization.getProperty(a, "season"), JsonSerialization.getProperty(a, "author"), JsonSerialization.getProperty(a, "text"), JsonSerialization.getProperty(a, 
+    "form"), JsonSerialization.getProperty(a, "location"));
+    b.involved = JsonSerialization.getProperty(a, "involved");
+    b.version = JsonSerialization.getProperty(a, "version");
+    return b;
+  }
+  return new Artikel;
+};
+Artikel.prototype.isEmpty = function() {
+  return isBlank(this.topic) && isBlank(this.pagina) && isBlank(this.from) && isBlank(this.layout) && isBlank(this.tags) && isBlank(this.visual) && isBlank(this.region) && isBlank(this.season) && isBlank(this.location) && isBlank(this.author) && isBlank(this.text);
+};
+Artikel.prototype.getInvolvedFor = function(a) {
+  return this._involved[a];
+};
+Artikel.prototype.putInvolved = function(a, b) {
+  this._involved[a] = b;
+};
+Artikel.prototype.getInvolvedCount = function() {
+  var a = this, b = 0;
+  Object.keys(this._involved).forEach(function(c) {
+    a.getInvolvedFor(c).isEmpty() || b++;
+  });
+  return b;
+};
+Artikel.prototype.clearInvolved = function() {
+  this._involved = {};
+};
+$jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, enumerable:!0, get:function() {
+  return this._id;
+}, set:function(a) {
+  this._id = a;
+}}, involved:{configurable:!0, enumerable:!0, get:function() {
+  return this._involved;
+}, set:function(a) {
+  for (var b in a) {
+    if (a.hasOwnProperty(b)) {
+      switch(b) {
+        case "onsite":
+        case "text":
+        case "photo":
+        case "video":
+        case "illu":
+          this.putInvolved(b, OtherBeteiligt.create(a[b]));
+          break;
+        case "ad":
+          this.putInvolved(b, AdBeteiligt.create(a[b]));
+          break;
+        default:
+          console.log("Unknown involved part: " + b);
+      }
+    }
+  }
+}}, from:{configurable:!0, enumerable:!0, get:function() {
+  return this._from;
+}, set:function(a) {
+  this._from = a;
+}}, location:{configurable:!0, enumerable:!0, get:function() {
+  return this._location;
+}, set:function(a) {
+  this._location = a;
+}}, topic:{configurable:!0, enumerable:!0, get:function() {
+  return this._topic;
+}, set:function(a) {
+  this._topic = a;
+}}, pagina:{configurable:!0, enumerable:!0, get:function() {
+  return this._pagina;
+}, set:function(a) {
+  this._pagina = a;
+}}, layout:{configurable:!0, enumerable:!0, get:function() {
+  return this._layout;
+}, set:function(a) {
+  this._layout = a;
+}}, total:{configurable:!0, enumerable:!0, get:function() {
+  return this._total;
+}, set:function(a) {
+  this._total = a;
+}}, tags:{configurable:!0, enumerable:!0, get:function() {
+  return this._tags;
+}, set:function(a) {
+  this._tags = a;
+}}, form:{configurable:!0, enumerable:!0, get:function() {
+  return this._form;
+}, set:function(a) {
+  this._form = a;
+}}, visual:{configurable:!0, enumerable:!0, get:function() {
+  return this._visual;
+}, set:function(a) {
+  this._visual = a;
+}}, region:{configurable:!0, enumerable:!0, get:function() {
+  return this._region;
+}, set:function(a) {
+  this._region = a;
+}}, season:{configurable:!0, enumerable:!0, get:function() {
+  return this._season;
+}, set:function(a) {
+  this._season = a;
+}}, author:{configurable:!0, enumerable:!0, get:function() {
+  return this._author;
+}, set:function(a) {
+  this._author = a;
+}}, text:{configurable:!0, enumerable:!0, get:function() {
+  return this._text;
+}, set:function(a) {
+  this._text = a;
+}}, version:{configurable:!0, enumerable:!0, get:function() {
+  return this._version;
+}, set:function(a) {
+  this._version = a;
+}}});
+$jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enumerable:!0, get:function() {
+  return 3;
 }}});
 // Input 34
 HTMLElement.prototype.addClass = function(a) {
