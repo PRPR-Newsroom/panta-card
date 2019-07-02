@@ -9,6 +9,7 @@ const TEXTS = {
     "module.settings.hint": "Folgende MODULE sind für dieses BOARD verfügbar:<br/>" +
         "Sobald mindestens ein MODUL aktiviert ist, wird dieses in jeder CARD auf dem BOARD dargestellt.",
 
+    'module.artikel.label.desc': "Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.",
     'module.artikel.desc': "ARTIKEL-Eingabefelder und LISTEN für dieses BOARD konfigurieren:<br/>" +
         "Für jedes Feld kann eine Farbe definiert werden.<br/>" +
         "Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf der CARD Vorderseite – ansonsten wird es nur auf der CARD Innenseite dargestellt.",
@@ -38,6 +39,7 @@ const TEXTS = {
     'module.beteiligt.regular.desc': "Standard-Layout",
     'module.beteiligt.special.desc': "Spezial-Layout",
 
+    'module.plan.label.desc': "Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.",
     'module.plan.desc': "PLAN-Eingabefelder und Auswahllisten für das BOARD konfigurieren:<br/>" +
         "Für jedes Feld kann eine Farbe definiert werden.<br/>" +
         "Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf " +
