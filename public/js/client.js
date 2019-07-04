@@ -6,8 +6,10 @@ TrelloPowerUp.initialize({
             text: 'Panta.Card.Setup',
             callback: function (t) {
                 return t.member('all')
-                    .then(function(member) {
-                        if (POWERUP_ADMINS.find(function(admin) { return member.username === admin; } )) {
+                    .then(function (member) {
+                        if (POWERUP_ADMINS.find(function (admin) {
+                            return member.username === admin;
+                        })) {
                             return t.popup({
                                 title: "Einstellungen",
                                 url: "settings.html",
@@ -101,8 +103,19 @@ TrelloPowerUp.initialize({
         return pc.getPluginConfiguration()
             .then(function (config) {
                 if (config && config.hasActiveModules()) {
+                    let modules = config.getActiveModules();
+                    let title = modules.length > 0 ? modules[0].config.editables
+                        .filter(function (editable) {
+                            return editable.id === "title";
+                        })
+                        .map(function (editable) {
+                            return editable.label;
+                        })
+                        .find(function (label) {
+                            return label && label.length > 0;
+                        }) : config.card.title;
                     return {
-                        title: config.card.title,
+                        title: title,
                         icon: config.card.icon,
                         content: {
                             type: 'iframe',
@@ -112,7 +125,7 @@ TrelloPowerUp.initialize({
                     };
                 } else {
                     return {
-                        title: 'Panta Plugin',
+                        title: 'Panta.Card',
                         icon: "./assets/ic_artikel.png",
                         content: {
                             type: 'iframe',

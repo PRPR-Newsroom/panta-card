@@ -202,13 +202,10 @@ class BeteiligtBinding extends Binding {
             .bind(this._entity, 'ad')
             .render());
 
-        // get the first visible tab
+        // TODO get the first tab with content and activate it
         let first = Object.values(this).filter(function (property) {
             return property instanceof PModuleConfig && property.valueHolder.show;
         })[0];
-        // activate the first tab when rendering this layout. when the layout was already rendered then it will not call bind() but update
-        // we set the activated manually here but is actually also set when rendering the layout which is triggered by activate() on the PModuleConfig but this is not obvious
-        // and therefore we set it here manually
         first.activate();
         this._activated = first;
         return this;
@@ -396,7 +393,10 @@ class BeteiligtBinding extends Binding {
      * @private
      */
     _switchContent(forms, templ) {
+        let that = this;
         let content = this.document.getElementById("pa.tab.content");
+        // remember the scroll position
+        let scrolltop = this.document.getElementsByTagName("body")[0].scrollTop;
         content.removeChildren();
         this._onsite.valueHolder.tab.removeClasses(["selected", 'editing']);
         this._text.valueHolder.tab.removeClasses(["selected", 'editing']);
@@ -407,6 +407,11 @@ class BeteiligtBinding extends Binding {
 
         content.appendChild(templ);
         this._activated = forms;
+
+        // restore the scroll position but the layout will flicker a lil
+        setTimeout(function () {
+            that.document.getElementsByTagName("body")[0].scrollTop = scrolltop;
+        });
     }
 
     /**

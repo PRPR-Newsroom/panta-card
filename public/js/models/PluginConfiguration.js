@@ -1,4 +1,8 @@
+/**
+ * This class represents the configuration of a module
+ */
 class PluginConfiguration {
+
     get card() {
         return this._card;
     }
@@ -93,6 +97,8 @@ class PluginConfiguration {
     getActiveModules() {
         return Object.values(this._modules).filter(function(value) {
             return value && value.config && value.config.enabled;
+        }).sort(function(lhs, rhs) {
+            return lhs.config.sort - rhs.config.sort;
         });
     }
 

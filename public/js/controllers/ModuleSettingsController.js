@@ -1,3 +1,6 @@
+/**
+ * Controller to view/edit the module settings
+ */
 class ModuleSettingsController {
 
     /**
@@ -450,10 +453,7 @@ class ModuleSettingsController {
                                 .then(function(pc) {
                                     if (pc instanceof PluginConfiguration) {
                                         // and after the module is disabled/enabled we can update the card info with the current main module
-                                        let actives = pc.getActiveModules()
-                                            .sort(function(lhs, rhs) {
-                                                return lhs.config.sort - rhs.config.sort;
-                                            });
+                                        let actives = pc.getActiveModules();
                                         if (actives && actives.length > 0) {
                                             let active = actives[0];
                                             config.card = {
