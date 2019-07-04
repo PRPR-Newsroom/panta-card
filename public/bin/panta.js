@@ -1117,6 +1117,9 @@ PModuleConfig.prototype.beginEditing = function() {
 PModuleConfig.prototype.endEditing = function() {
   this.valueHolder.tab.removeClass("editing");
 };
+PModuleConfig.prototype.hasContent = function() {
+  return this._entity.sections[this._property];
+};
 // Input 13
 var ModuleEditableItem = function(a, b) {
   AbstractItem.call(this);
@@ -1429,7 +1432,10 @@ BeteiligtBinding.prototype.bind = function() {
   this._ad = null !== this._ad ? this._ad.update(this._entity) : this._ad = (new PModuleConfig(this.document, this._involvements.ad)).bind(this._entity, "ad").render();
   var a = Object.values(this).filter(function(a) {
     return a instanceof PModuleConfig && a.valueHolder.show;
-  })[0];
+  });
+  a = a.find(function(a) {
+    return !a.valueHolder.data.isEmpty();
+  }) || a[0];
   a.activate();
   this._activated = a;
   return this;
