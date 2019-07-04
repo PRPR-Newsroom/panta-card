@@ -125,7 +125,7 @@ TrelloPowerUp.initialize({
                     };
                 } else {
                     return {
-                        title: 'Panta Plugin',
+                        title: 'Panta.Card',
                         icon: "./assets/ic_artikel.png",
                         content: {
                             type: 'iframe',
