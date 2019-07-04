@@ -203,11 +203,14 @@ class BeteiligtBinding extends Binding {
             .render());
 
         // TODO get the first tab with content and activate it
-        let first = Object.values(this).filter(function (property) {
+        let tabs = Object.values(this).filter(function (property) {
             return property instanceof PModuleConfig && property.valueHolder.show;
-        })[0];
-        first.activate();
-        this._activated = first;
+        });
+        let tab = tabs.find(function(item) {
+            return !item.valueHolder.data.isEmpty()
+        }) || tabs[0];
+        tab.activate();
+        this._activated = tab;
         return this;
     }
 

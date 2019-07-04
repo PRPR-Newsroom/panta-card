@@ -118,4 +118,7 @@ class PModuleConfig {
         this.valueHolder.tab.removeClass('editing');
     }
 
+    hasContent() {
+        return this._entity.sections[this._property]
+    }
 }
