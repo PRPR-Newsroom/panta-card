@@ -1536,16 +1536,19 @@ BeteiligtBinding.prototype._updateTab = function(a, b) {
   a.setTabName(b.editable.label);
 };
 BeteiligtBinding.prototype._switchContent = function(a, b) {
-  var c = this.document.getElementById("pa.tab.content");
-  c.removeChildren();
+  var c = this, d = this.document.getElementById("pa.tab.content"), e = this.document.getElementsByTagName("body")[0].scrollTop;
+  d.removeChildren();
   this._onsite.valueHolder.tab.removeClasses(["selected", "editing"]);
   this._text.valueHolder.tab.removeClasses(["selected", "editing"]);
   this._photo.valueHolder.tab.removeClasses(["selected", "editing"]);
   this._video.valueHolder.tab.removeClasses(["selected", "editing"]);
   this._illu.valueHolder.tab.removeClasses(["selected", "editing"]);
   this._ad.valueHolder.tab.removeClasses(["selected", "editing"]);
-  c.appendChild(b);
+  d.appendChild(b);
   this._activated = a;
+  setTimeout(function() {
+    c.document.getElementsByTagName("body")[0].scrollTop = e;
+  });
 };
 BeteiligtBinding.prototype.enterEditing = function() {
   this._activated.beginEditing();
