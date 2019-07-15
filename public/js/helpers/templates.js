@@ -329,7 +329,12 @@ let template_settings_editable = '<div class="row module-editable-container">' +
     '       </div>' +
     '    </div>' +
     '    <div class="col-8 module-editable-name"></div>' +
-    '    <div class="col-2 module-editable-color"><button class="panta-btn panta-btn-dot panta-js-button"></button> </div>' +
+    '    <div class="col-1 module-editable-color">' +
+    '       <button class="panta-btn panta-btn-dot panta-js-button"></button>' +
+    '    </div>' +
+    '    <div class="col-1 module-helper-sortable">' +
+    '       <button class="panta-btn panta-btn-dot panta-js-button" title="Dieses Feld kann für die Sortierung verwendet werden">S</button>' +
+    '    </div>' +
     '</div>';
 
 let template_settings_editable_select = '<div class="row module-editable-select-container">' +

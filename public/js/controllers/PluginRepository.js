@@ -9,6 +9,7 @@ class PluginRepository extends Repository {
      * @returns {PluginRepository}
      */
     static get INSTANCE() {
+        // TODO move the config of PluginModuleConfig to a concrete type
         if (!PluginRepository.instance) {
             PluginRepository.instance = new PluginRepository();
             PluginRepository.instance.add(new PluginModuleConfig("module.artikel", "Artikel", {
