@@ -1,4 +1,3 @@
-
 class ModuleEditableItem extends AbstractItem {
     get module() {
         return this._module;
@@ -7,6 +6,7 @@ class ModuleEditableItem extends AbstractItem {
     set module(value) {
         this._module = value;
     }
+
     get editable() {
         return this._editable;
     }
@@ -15,6 +15,11 @@ class ModuleEditableItem extends AbstractItem {
         this._editable = value;
     }
 
+    /**
+     *
+     * @param module
+     * @param {} editable (s. PluginModuleConfig#config)
+     */
     constructor(module, editable) {
         super();
         this._module = module;
@@ -57,22 +62,48 @@ class ModuleEditableItem extends AbstractItem {
             }
         });
 
-        template.setEventListener('click', function() {
+        template.setEventListener('click', function () {
             that._onEnterHandler(that.module, that.editable);
         });
         let container = template.getClosestChildByClassName("panta-checkbox-container");
         let checkmark = container.getClosestChildByClassName("panta-js-checkbox");
         checkmark.checked = that.editable.show === true;
-        container.setEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                let checkbox = e.srcElement
-                    .getClosestParentByClassName("panta-checkbox-container")
-                    .getClosestChildByClassName("panta-js-checkbox");
-                checkbox.checked = !checkbox.checked;
-                that._onActivationHandler(that.module, that.editable, checkbox.checked);
-            });
+        container.setEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            let checkbox = e.srcElement
+                .getClosestParentByClassName("panta-checkbox-container")
+                .getClosestChildByClassName("panta-js-checkbox");
+            checkbox.checked = !checkbox.checked;
+            that._onActivationHandler(that.module, that.editable, checkbox.checked);
+        });
 
+        this._renderColor(template);
+        this._renderSortable(template);
+
+        return template;
+    }
+
+    _renderSortable(template) {
+        let that = this;
+        let btnSortable = template
+            .getClosestChildByClassName("module-helper-sortable")
+            .getClosestChildByClassName("panta-js-button");
+
+        btnSortable.addClass("hidden");
+        if (that.editable.type === "select" && that.editable.sortable === true) {
+            btnSortable.removeClass("hidden");
+        }
+
+        // disable clicks
+        btnSortable.setEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+    }
+
+    _renderColor(template) {
+        let that = this;
         let btnColor = template
             .getClosestChildByClassName("module-editable-color")
             .getClosestChildByClassName("panta-js-button");
@@ -86,7 +117,7 @@ class ModuleEditableItem extends AbstractItem {
                 btnColor
                     .addClass("panta-bgcolor-" + that.editable.color)
                     .removeClass("hidden")
-                    .setEventListener('click', function(e) {
+                    .setEventListener('click', function (e) {
                         e.preventDefault();
                         e.stopPropagation();
                         // open color picker
@@ -94,10 +125,6 @@ class ModuleEditableItem extends AbstractItem {
                     });
                 break;
         }
-
-
-
-        return template;
     }
 
 }

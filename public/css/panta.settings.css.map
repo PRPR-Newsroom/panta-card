@@ -1,1 +1,1 @@
-{"version":3,"sourceRoot":"","sources":["panta.settings.scss","variables.scss"],"names":[],"mappings":"AAEA;EACE;;;AAGF;EACE;EACA,kBCNS;EDOT;EACA;EACA,eCNc;EDOd;;AACA;EACE,kBCXe;;;ADenB;EACE;EACA;;;AAGF;EACE;EACA;EACA","file":"panta.settings.css"}
+{"version":3,"sourceRoot":"","sources":["panta.settings.scss","variables.scss"],"names":[],"mappings":"AAEA;EACE;;;AAGF;EACE;EACA,kBCNS;EDOT;EACA;EACA,eCNc;EDOd;;AACA;EACE,kBCXe;;;ADenB;EACE;EACA;;;AAGF;EACE;EACA;EACA;;;AAGF;EACE","file":"panta.settings.css"}
