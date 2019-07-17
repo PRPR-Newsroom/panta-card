@@ -105,6 +105,22 @@ class PModuleConfig {
     }
 
     /**
+     * Show or hide the field depending on the visible parameter
+     * @param key
+     * @param visible
+     */
+    showHideField(key, visible) {
+        let field = this.inputFields[key];
+        if (field && field instanceof PInput) {
+            if (visible === false) {
+                field.hide();
+            } else {
+                field.show();
+            }
+        }
+    }
+
+    /**
      * Enter editing mode by setting the editing marker class on the tab
      */
     beginEditing() {

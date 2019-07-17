@@ -370,7 +370,7 @@ class BeteiligtBinding extends Binding {
     updateConfiguration(configuration) {
         this._configuration = configuration;
         this.doLabels();
-        
+
         this._updateTab(this._onsite, "onsite");
         this._updateTab(this._text, "text");
         this._updateTab(this._photo, "photo");
@@ -387,6 +387,30 @@ class BeteiligtBinding extends Binding {
     _updateTab(tab, id) {
         let config = this.getConfigurationFor(id);
         tab.setTabName(config.editable.label);
+
+        let fconfig = this.getLayoutConfigurationFor("regular", "field.name");
+        tab.showHideField("name", fconfig.editable.visible);
+
+        fconfig = this.getLayoutConfigurationFor("regular", "field.social");
+        tab.showHideField("social", fconfig.editable.visible);
+
+        fconfig = this.getLayoutConfigurationFor("regular", "field.address");
+        tab.showHideField("address", fconfig.editable.visible);
+
+        fconfig = this.getLayoutConfigurationFor("regular", "field.notes");
+        tab.showHideField("notes", fconfig.editable.visible);
+
+        fconfig = this.getLayoutConfigurationFor("regular", "field.deadline");
+        tab.showHideField("duedate", fconfig.editable.visible);
+
+        fconfig = this.getLayoutConfigurationFor("regular", "field.a");
+        tab.showHideField("fee", fconfig.editable.visible);
+
+        fconfig = this.getLayoutConfigurationFor("regular", "field.b");
+        tab.showHideField("charges", fconfig.editable.visible);
+
+        fconfig = this.getLayoutConfigurationFor("regular", "field.c");
+        tab.showHideField("project", fconfig.editable.visible);
     }
 
     /**

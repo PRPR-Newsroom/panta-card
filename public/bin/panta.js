@@ -1167,6 +1167,9 @@ PModuleConfig.prototype.setField = function(a, b) {
 PModuleConfig.prototype.setFieldValue = function(a, b, c) {
   (a = this.inputFields[a]) && a instanceof PInput && a.bind(b, c);
 };
+PModuleConfig.prototype.showHideField = function(a, b) {
+  (a = this.inputFields[a]) && a instanceof PInput && (!1 === b ? a.hide() : a.show());
+};
 PModuleConfig.prototype.beginEditing = function() {
   this.valueHolder.tab.addClass("editing");
 };
@@ -1631,6 +1634,22 @@ BeteiligtBinding.prototype.updateConfiguration = function(a) {
 BeteiligtBinding.prototype._updateTab = function(a, b) {
   b = this.getConfigurationFor(b);
   a.setTabName(b.editable.label);
+  b = this.getLayoutConfigurationFor("regular", "field.name");
+  a.showHideField("name", b.editable.visible);
+  b = this.getLayoutConfigurationFor("regular", "field.social");
+  a.showHideField("social", b.editable.visible);
+  b = this.getLayoutConfigurationFor("regular", "field.address");
+  a.showHideField("address", b.editable.visible);
+  b = this.getLayoutConfigurationFor("regular", "field.notes");
+  a.showHideField("notes", b.editable.visible);
+  b = this.getLayoutConfigurationFor("regular", "field.deadline");
+  a.showHideField("duedate", b.editable.visible);
+  b = this.getLayoutConfigurationFor("regular", "field.a");
+  a.showHideField("fee", b.editable.visible);
+  b = this.getLayoutConfigurationFor("regular", "field.b");
+  a.showHideField("charges", b.editable.visible);
+  b = this.getLayoutConfigurationFor("regular", "field.c");
+  a.showHideField("project", b.editable.visible);
 };
 BeteiligtBinding.prototype._switchContent = function(a, b) {
   var c = this, d = this.document.getElementById("pa.tab.content"), e = this.document.getElementsByTagName("body")[0].scrollTop;
