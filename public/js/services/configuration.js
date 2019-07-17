@@ -1,3 +1,6 @@
+// SEE ALSO VERSION FILE
+const VERSION = "1.3.5-STAGING";
+
 const PLUGIN_CONFIGURATION = {
     'module.artikel.enabled': false, // 1
     'module.beteiligt.enabled': true, // 2

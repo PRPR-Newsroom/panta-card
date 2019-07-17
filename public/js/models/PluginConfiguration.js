@@ -56,13 +56,13 @@ class PluginConfiguration {
     static _create(json) {
         if (json) {
             return new PluginConfiguration(
-                JsonSerialization.getProperty(json, 'version') || '1.0.0',
+                VERSION,
                 JsonSerialization.getProperty(json, 'description') || 'Dieses Panta.Card Power-Up umfasst das Modul:',
                 JsonSerialization.getProperty(json, 'card'),
                 this._readModules(json)
             )
         } else {
-            return new PluginConfiguration("1.0.0", "Panta.Card Power-Up", null, []);
+            return new PluginConfiguration(VERSION, "Panta.Card Power-Up", null, []);
         }
     }
 

@@ -92,7 +92,7 @@ class PluginController {
                 return PluginConfiguration.create(json);
             } else {
                 return new PluginConfiguration(
-                    "1.0.0",
+                    VERSION,
                     "Panta.Card Power-Up",
                     null,
                     that.getAvailableModules()

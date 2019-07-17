@@ -534,7 +534,7 @@ DI.prototype.getTabIndexProvider = function() {
 };
 DI.INSTANCE = null;
 // Input 2
-var PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.settings.hint":"Folgende MODULE sind f\u00fcr dieses BOARD verf\u00fcgbar:<br/>Sobald mindestens ein MODUL aktiviert ist, wird dieses in jeder CARD auf dem BOARD dargestellt.", "module.artikel.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.", "module.artikel.desc":"ARTIKEL-Eingabefelder und LISTEN f\u00fcr dieses BOARD konfigurieren:<br/>F\u00fcr jedes Feld kann eine Farbe definiert werden.<br/>Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf der CARD Vorderseite \u2013 ansonsten wird es nur auf der CARD Innenseite dargestellt.", 
+var VERSION = "1.3.5-STAGING", PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.settings.hint":"Folgende MODULE sind f\u00fcr dieses BOARD verf\u00fcgbar:<br/>Sobald mindestens ein MODUL aktiviert ist, wird dieses in jeder CARD auf dem BOARD dargestellt.", "module.artikel.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.", "module.artikel.desc":"ARTIKEL-Eingabefelder und LISTEN f\u00fcr dieses BOARD konfigurieren:<br/>F\u00fcr jedes Feld kann eine Farbe definiert werden.<br/>Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf der CARD Vorderseite \u2013 ansonsten wird es nur auf der CARD Innenseite dargestellt.", 
 "module.artikel.editable.desc":"Beschriftung und Stichworte der maximal sechs LISTEN definieren:<br/>Die Reihenfolge der Stichwort muss fix erfasst werden.<br/>Die Zahl der Stichwort ist NICHT begrenzt.<br/>Maximal vier der sechs LISTEN lassen sich sortieren.<br/>LISTEN ohne Beschriftung werden auf der CARD nicht dargestellt.", "module.artikel.field-a.desc":"Das Textfeld \u00abA\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-b.desc":"Das Textfeld \u00abB\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
 "module.artikel.field-c.desc":"Das Textfeld \u00abC\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-d.desc":"Das Textfeld \u00abD\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-e.desc":"Das Textfeld \u00abE\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-f.desc":"Das Textfeld \u00abF\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
 "module.artikel.field-g.desc":"Das Textfeld \u00abG\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.beteiligt.desc":"BETEILIGT kann als Erg\u00e4nzung zum ARTIKEL oder PLAN aktiviert werden.<br/>Hier die Eingabefelder und LISTEN f\u00fcr das ganze BOARD konfigurieren:", "module.beteiligt.label.desc":"Dieser Titel wird oberhalb des Modul BETEILIGT auf jeder CARD sichtbar.", "module.beteiligt.layout.onsite":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", 
@@ -2807,7 +2807,7 @@ PluginController.prototype.init = function() {
 PluginController.prototype.getPluginConfiguration = function() {
   var a = this;
   return this._trelloApi.get("board", "shared", PluginController.CONFIGURATION_NAME, null).then(function(b) {
-    return b ? (b = JSON.parse(LZString.decompress(b)), PluginConfiguration.create(b)) : new PluginConfiguration("1.0.0", "Panta.Card Power-Up", null, a.getAvailableModules());
+    return b ? (b = JSON.parse(LZString.decompress(b)), PluginConfiguration.create(b)) : new PluginConfiguration(VERSION, "Panta.Card Power-Up", null, a.getAvailableModules());
   });
 };
 PluginController.prototype.setPluginModuleConfig = function(a, b) {
@@ -3018,7 +3018,7 @@ PluginConfiguration.create = function(a) {
   return this._create(a);
 };
 PluginConfiguration._create = function(a) {
-  return a ? new PluginConfiguration(JsonSerialization.getProperty(a, "version") || "1.0.0", JsonSerialization.getProperty(a, "description") || "Dieses Panta.Card Power-Up umfasst das Modul:", JsonSerialization.getProperty(a, "card"), this._readModules(a)) : new PluginConfiguration("1.0.0", "Panta.Card Power-Up", null, []);
+  return a ? new PluginConfiguration(VERSION, JsonSerialization.getProperty(a, "description") || "Dieses Panta.Card Power-Up umfasst das Modul:", JsonSerialization.getProperty(a, "card"), this._readModules(a)) : new PluginConfiguration(VERSION, "Panta.Card Power-Up", null, []);
 };
 PluginConfiguration._readModules = function(a) {
   a = JsonSerialization.getProperty(a, "modules") || {1:JSON.stringify(new PluginModuleConfig("module.artikel", "Artikel", {}))};
