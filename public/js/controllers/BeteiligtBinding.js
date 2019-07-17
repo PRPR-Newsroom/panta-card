@@ -197,7 +197,6 @@ class BeteiligtBinding extends Binding {
             .bind(this._entity, 'ad')
             .render());
 
-        // TODO get the first tab with content and activate it
         let tabs = Object.values(this).filter(function (property) {
             return property instanceof PModuleConfig && property.valueHolder.show;
         });
@@ -216,7 +215,7 @@ class BeteiligtBinding extends Binding {
      * @param valueHolder
      */
     onLayoutUpdate(forms, valueHolder) {
-        // common fields (both KONTAKT and INSERAT)
+        // common fields (both KONTAKT and INSERAT and BLOG)
         forms.setFieldValue("name", valueHolder.data, "name");
         forms.setFieldValue("social", valueHolder.data, "social");
         forms.setFieldValue("address", valueHolder.data, "address");
@@ -233,6 +232,9 @@ class BeteiligtBinding extends Binding {
         forms.setFieldValue("format", valueHolder.data, "format");
         forms.setFieldValue("placement", valueHolder.data, "placement");
         forms.setFieldValue("total", valueHolder.data, "total");
+
+        // BLOG Layout
+        forms.setFieldValue("date", valueHolder.data, "date");
     }
 
     /**
@@ -250,6 +252,9 @@ class BeteiligtBinding extends Binding {
             switch (valueHolder.layout) {
                 case "ad":
                     this.onAdLayout(forms, valueHolder);
+                    break;
+                case "blog":
+                    this.onBlogLayout(forms, valueHolder);
                     break;
                 case "regular":
                 default:
@@ -342,6 +347,34 @@ class BeteiligtBinding extends Binding {
     }
 
     /**
+     * Called when a blog layout is request by clicking on a section tab (s. _involvements)
+     * @param forms
+     * @param valueHolder
+     */
+    onBlogLayout(forms, valueHolder) {
+        let virtual = this.document.createElement('div');
+        virtual.innerHTML = template_blog;
+        let templ = virtual.cloneNode(true);
+
+        this._switchContent(forms, templ);
+
+        if (valueHolder.show) {
+            let params = {'context': this._context, 'valueHolder': valueHolder, 'config': this._entity};
+            let config = this.getLayoutConfigurationFor("blog", "field.link");
+            forms.setField("address", this.document.newSingleLineInput(valueHolder, ".pa.link", 'address', config.label, params, this._action, config.placeholder, "text", false, config.visible));
+
+            config = this.getLayoutConfigurationFor("blog", "field.notes");
+            forms.setField("notes", this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", config.label, params, this._action, 6, config.placeholder, config.visible));
+
+            config = this.getLayoutConfigurationFor("blog", "field.follower");
+            forms.setField("social", this.document.newSingleLineInput(valueHolder, ".pa.follower", 'social', config.label, params, this._action, config.placeholder, "text", false, config.visible));
+
+            config = this.getLayoutConfigurationFor("blog", "field.date");
+            forms.setField("date", this.document.newSingleLineInput(valueHolder, ".pa.date", "date", config.label, params, this._action, config.placeholder, "text", false, config.visible));
+        }
+    }
+
+    /**
      * Update the tab labels
      */
     doLabels() {
@@ -389,28 +422,28 @@ class BeteiligtBinding extends Binding {
         tab.setTabName(config.editable.label);
 
         let fconfig = this.getLayoutConfigurationFor("regular", "field.name");
-        tab.showHideField("name", fconfig.editable.visible);
+        tab.showHideField("name", !fconfig || !fconfig.editable || fconfig.editable.visible);
 
         fconfig = this.getLayoutConfigurationFor("regular", "field.social");
-        tab.showHideField("social", fconfig.editable.visible);
+        tab.showHideField("social", !fconfig || !fconfig.editable || fconfig.editable.visible);
 
         fconfig = this.getLayoutConfigurationFor("regular", "field.address");
-        tab.showHideField("address", fconfig.editable.visible);
+        tab.showHideField("address", !fconfig || !fconfig.editable || fconfig.editable.visible);
 
         fconfig = this.getLayoutConfigurationFor("regular", "field.notes");
-        tab.showHideField("notes", fconfig.editable.visible);
+        tab.showHideField("notes", !fconfig || !fconfig.editable || fconfig.editable.visible);
 
         fconfig = this.getLayoutConfigurationFor("regular", "field.deadline");
-        tab.showHideField("duedate", fconfig.editable.visible);
+        tab.showHideField("duedate", !fconfig || !fconfig.editable || fconfig.editable.visible);
 
         fconfig = this.getLayoutConfigurationFor("regular", "field.a");
-        tab.showHideField("fee", fconfig.editable.visible);
+        tab.showHideField("fee", !fconfig || !fconfig.editable || fconfig.editable.visible);
 
         fconfig = this.getLayoutConfigurationFor("regular", "field.b");
-        tab.showHideField("charges", fconfig.editable.visible);
+        tab.showHideField("charges", !fconfig || !fconfig.editable || fconfig.editable.visible);
 
         fconfig = this.getLayoutConfigurationFor("regular", "field.c");
-        tab.showHideField("project", fconfig.editable.visible);
+        tab.showHideField("project", !fconfig || !fconfig.editable || fconfig.editable.visible);
     }
 
     /**

@@ -43,8 +43,12 @@ class ModuleConfig {
                 return editable.id === id;
             })[0];
         if (editable.layout === 'regular') {
-            return function(jsonObj) {
+            return function (jsonObj) {
                 return OtherBeteiligt.create(jsonObj);
+            };
+        } else if (editable.layout === "blog") {
+            return function(jsonObj) {
+                return BlogBeteiligt.create(jsonObj);
             };
         } else {
             return function(jsonObj) {
@@ -330,6 +334,56 @@ class AdBeteiligt extends CommonBeteiligt {
 
     isEmpty() {
         return super.isEmpty() && !this.format && !this.placement && !this.price;
+    }
+}
+
+class BlogBeteiligt extends CommonBeteiligt {
+
+    /**
+     * @param jsonObj
+     * @returns {CommonBeteiligt}
+     */
+    static create(jsonObj) {
+        return this._create(jsonObj);
+    }
+
+    /**
+     *
+     * @param jsonObj
+     * @returns {BlogBeteiligt}
+     * @private
+     */
+    static _create(jsonObj) {
+        if (jsonObj) {
+            let model = new BlogBeteiligt(
+                JsonSerialization.getProperty(jsonObj, 'id'),
+                JsonSerialization.getProperty(jsonObj, 'social'),
+                JsonSerialization.getProperty(jsonObj, 'address'),
+                JsonSerialization.getProperty(jsonObj, 'notes'),
+                JsonSerialization.getProperty(jsonObj, 'date')
+            );
+            return model;
+        } else {
+            return new BlogBeteiligt();
+        }
+    }
+
+    constructor(id, social, address, notes, date) {
+        super(id, "", social, address, notes);
+        this._date = date;
+        this.type = "blog";
+    }
+
+    get date() {
+        return this._date;
+    }
+
+    set date(value) {
+        this._date = value;
+    }
+
+    isEmpty() {
+        return super.isEmpty() && isBlank(this.date);
     }
 }
 
