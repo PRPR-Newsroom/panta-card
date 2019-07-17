@@ -15,6 +15,7 @@
 
 # Fixes
 
+* Fixed: Restore scroll position when user changes tabs
 * Fixed: Wrong fields are displayed as badges
 
 [1.3.4]
