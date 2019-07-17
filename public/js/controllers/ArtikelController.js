@@ -140,6 +140,12 @@ class ArtikelController extends Controller {
                 return entity.author || defaultValue;
             case "field.d":
                 return entity.text || defaultValue;
+            case "field.e":
+                return entity.pagina || defaultValue;
+            case "field.f":
+                return entity.layout || defaultValue;
+            case "field.g":
+                return entity.total || defaultValue;
             default:
                 if (entity.hasOwnProperty(name)) {
                     return entity[name];

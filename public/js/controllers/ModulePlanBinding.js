@@ -14,12 +14,7 @@ class ModulePlanBinding extends Binding {
      * @param configuration
      */
     constructor(document, entity, action, context, configuration) {
-        super(document, entity, action, context);
-
-        /**
-         * @type {PluginModuleConfig}
-         */
-        this._configuration = configuration;
+        super(document, entity, action, context, configuration);
     }
 
     /**
@@ -48,10 +43,7 @@ class ModulePlanBinding extends Binding {
         this._entity = entity;
 
         if (configuration) {
-            console.log("Update configuration", configuration);
-            this._updateConfiguration(configuration);
-        } else {
-            console.log("No new configuration");
+            this.updateConfiguration(configuration);
         }
 
         return this;
@@ -82,28 +74,36 @@ class ModulePlanBinding extends Binding {
         /**
          * @type {MultiLineInput}
          */
-        this._measures = this.document.newMultiLineInput(valueHolder, '.pa.plan.measures', 'measures', aconfig.label, params, this._action, 2, aconfig.editable.placeholder)
+        this._measures = this.document.newMultiLineInput(valueHolder, '.pa.plan.measures', 'measures', aconfig.label, params, this._action, 2, aconfig.editable.placeholder, aconfig.editable.visible)
             .addClass("multiline");
 
         let bconfig = this.getConfigurationFor("field.b");
-        this._description = this.document.newMultiLineInput(valueHolder, '.pa.plan.description', 'description', bconfig.label, params, this._action, 3, bconfig.editable.placeholder)
+        this._description = this.document.newMultiLineInput(valueHolder, '.pa.plan.description', 'description', bconfig.label, params, this._action, 3, bconfig.editable.placeholder, bconfig.editable.visible)
             .addClass("rows-2");
-        this._fee = this.document.newSingleLineInput(valueHolder, '.pa.plan.fee', 'fee', 'Total Honorar Beteiligte', params, this._action, '', 'money', true)
+        let cconfig = this.getConfigurationFor("field.c");
+        this._fee = this.document.newSingleLineInput(valueHolder, '.pa.plan.fee', 'fee', cconfig.label, params, this._action, cconfig.editable.placeholder, 'money', true, cconfig.editable.visible)
             .addClass('multiline', true);
-        this._charges = this.document.newSingleLineInput(valueHolder, '.pa.plan.projectFee', 'projectFee', 'Total Honorar Projekt', params, this._action, '', 'money', true)
+
+        let dconfig = this.getConfigurationFor("field.d");
+        this._charges = this.document.newSingleLineInput(valueHolder, '.pa.plan.projectFee', 'projectFee', dconfig.label, params, this._action, dconfig.editable.placeholder, 'money', true, dconfig.editable.visible)
             .addClass('multiline', true)
             .addClass('bold');
 
-        this._thirdPartyCharges = this.document.newSingleLineInput(valueHolder, '.pa.plan.thirdPartyCharges', 'thirdPartyCharges', 'Total Spesen Beteiligte', params, this._action, '', 'money', true)
+        let econfig = this.getConfigurationFor("field.e");
+        this._thirdPartyCharges = this.document.newSingleLineInput(valueHolder, '.pa.plan.thirdPartyCharges', 'thirdPartyCharges', econfig.label, params, this._action, econfig.editable.placeholder, 'money', true, econfig.editable.visible)
             .addClass('multiline', true);
-        this._thirdPartyTotalCosts = this.document.newSingleLineInput(valueHolder, '.pa.plan.thirdPartyTotalCosts', 'thirdPartyTotalCosts', 'Total Spesen Projekt', params, this._action, '', 'money', true)
+
+        let fconfig = this.getConfigurationFor("field.f");
+        this._thirdPartyTotalCosts = this.document.newSingleLineInput(valueHolder, '.pa.plan.thirdPartyTotalCosts', 'thirdPartyTotalCosts', fconfig.label, params, this._action, fconfig.editable.placeholder, 'money', true, fconfig.editable.visible)
             .addClass('bold')
             .addClass('multiline', true);
 
-        this._capOnDepenses = this.document.newSingleLineInput(valueHolder, '.pa.plan.capOnDepenses', 'capOnDepenses', 'Kostendach Projekt…', params, this._action, 'Betrag…', 'money', false)
+        let gconfig = this.getConfigurationFor("field.g");
+        this._capOnDepenses = this.document.newSingleLineInput(valueHolder, '.pa.plan.capOnDepenses', 'capOnDepenses', gconfig.label, params, this._action, gconfig.editable.placeholder, 'money', false, gconfig.editable.visible)
             .addClass('multiline', true);
 
-        this._totalCosts = this.document.newSingleLineInput(valueHolder, '.pa.plan.totalCosts', 'totalCosts', 'Total Projekt', params, this._action, 'Betrag…', 'money', true)
+        let hconfig = this.getConfigurationFor("field.h");
+        this._totalCosts = this.document.newSingleLineInput(valueHolder, '.pa.plan.totalCosts', 'totalCosts', hconfig.label, params, this._action, hconfig.editable.placeholder, 'money', true, hconfig.editable.visible)
             .addClass('bold')
             .addClass('multiline', true)
             .addConditionalFormatting(function (entity) {
@@ -170,74 +170,27 @@ class ModulePlanBinding extends Binding {
     doLayout(target, id, valueHolder, params, configurationId) {
         let configuration = this.getConfigurationFor(configurationId || id);
         return this.document.newSingleSelect(valueHolder, target, id, configuration.label, params, this._action, 'Liste-Tag',
-            newOption('-1', '…'), configuration.options);
+            newOption('-1', '…'), configuration.options, configuration.editable.visible);
     }
 
-    // TODO duplicate code here
-    /**
-     * @param {PInput} text
-     * @param id
-     */
-    updateText(text, id) {
-        let config = this.getConfigurationFor(id);
-        text.setLabel(config.editable.label);
-        text.setPlaceholder(config.editable.placeholder);
-    }
-
-    updateSelect(select, id) {
-        let oc = this.getConfigurationFor(id);
-        select.clear();
-        select.setLabel(oc.label);
-        select.addOption("-1", "…");
-        select.addOptions(oc.options);
-        select.invalidate();
-    }
-
-    _updateConfiguration(configuration) {
+    updateConfiguration(configuration) {
         this._configuration = configuration;
 
-        this.updateText(this._measures, "field.a");
-        this.updateText(this._description, "field.b");
+        this.updateField(this._measures, "field.a");
+        this.updateField(this._description, "field.b");
+        this.updateField(this._fee, "field.c");
+        this.updateField(this._charges, "field.d");
+        this.updateField(this._thirdPartyCharges, "field.e");
+        this.updateField(this._thirdPartyTotalCosts, "field.f");
+        this.updateField(this._capOnDepenses, "field.g");
+        this.updateField(this._totalCosts, "field.h");
 
-        this.updateSelect(this._online, "online");
-        this.updateSelect(this._visual, "visual");
-        this.updateSelect(this._region, "region");
-        this.updateSelect(this._season, "season");
-        this.updateSelect(this._form, "form");
-        this.updateSelect(this._place, "place");
-    }
-
-    /**
-     * TODO dup code
-     * @param id
-     * @return {{label, options: number | Array | T, editable: *}}
-     */
-    getConfigurationFor(id) {
-        let editable = this._configuration.config.editables
-            .filter(function (editable) {
-                return editable.id === id;
-            });
-
-        let label = editable[0].label;
-
-        let options = editable
-            .map(function (editable) {
-                return editable.values;
-            })
-            .flat()
-            .map(function (value, index) {
-                return newOption(index, value);
-            })
-            .reduce(function (prev, cur) {
-                prev.push(cur);
-                return prev;
-            }, []);
-
-        return {
-            "label": label,
-            "options": options,
-            "editable": editable[0]
-        };
+        this.updateField(this._online, "online");
+        this.updateField(this._visual, "visual");
+        this.updateField(this._region, "region");
+        this.updateField(this._season, "season");
+        this.updateField(this._form, "form");
+        this.updateField(this._place, "place");
     }
 
     /**

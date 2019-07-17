@@ -25,6 +25,7 @@ class PluginRepository extends Repository {
                     "type": "label",
                     "placeholder": "",
                     "label": "Artikel",
+                    "visible": true,
                     "title": "Modul-Titel",
                 }, {
                     "id": "visual",
@@ -32,9 +33,9 @@ class PluginRepository extends Repository {
                     "type": "select",
                     "label": "1.Liste",
                     "color": "blue",
-                    "active": true,
                     "show": false,
                     "sortable": false,
+                    "visible": true,
                     "values": [
                         "1.Begriff",
                         "2.Begriff",
@@ -48,9 +49,9 @@ class PluginRepository extends Repository {
                     "type": "select",
                     "label": "2.Liste",
                     "color": "green",
-                    "active": true,
                     "show": false,
                     "sortable": false,
+                    "visible": true,
                     "values": [
                         "1.Begriff",
                         "2.Begriff",
@@ -64,9 +65,9 @@ class PluginRepository extends Repository {
                     "type": "select",
                     "label": "3.Liste",
                     "color": "yellow",
-                    "active": true,
                     "show": false,
                     "sortable": false,
+                    "visible": true,
                     "values": [
                         "1.Begriff",
                         "2.Begriff",
@@ -80,9 +81,9 @@ class PluginRepository extends Repository {
                     "type": "select",
                     "label": "4.Liste",
                     "color": "sky",
-                    "active": true,
                     "show": false,
                     "sortable": false,
+                    "visible": true,
                     "values": [
                         "1.Begriff",
                         "2.Begriff",
@@ -96,9 +97,9 @@ class PluginRepository extends Repository {
                     "type": "select",
                     "label": "5.Liste",
                     "color": "lime",
-                    "active": true,
                     "show": false,
                     "sortable": false,
+                    "visible": true,
                     "values": [
                         "1.Begriff",
                         "2.Begriff",
@@ -112,9 +113,9 @@ class PluginRepository extends Repository {
                     "type": "select",
                     "label": "6.Liste",
                     "color": "orange",
-                    "active": true,
                     "show": false,
                     "sortable": false,
+                    "visible": true,
                     "values": [
                         "1.Begriff",
                         "2.Begriff",
@@ -130,6 +131,7 @@ class PluginRepository extends Repository {
                     "placeholder": "Lauftext",
                     "show": false,
                     "sortable": false,
+                    "visible": true,
                     "color": "shades"
                 }, {
                     "id": "field.b",
@@ -139,6 +141,7 @@ class PluginRepository extends Repository {
                     "placeholder": "Name",
                     "show": false,
                     "sortable": false,
+                    "visible": true,
                     "color": "shades"
                 }, {
                     "id": "field.c",
@@ -148,6 +151,7 @@ class PluginRepository extends Repository {
                     "placeholder": "Name",
                     "show": false,
                     "sortable": false,
+                    "visible": true,
                     "color": "shades"
                 }, {
                     "id": "field.d",
@@ -157,6 +161,37 @@ class PluginRepository extends Repository {
                     "placeholder": "Lauftext",
                     "show": false,
                     "sortable": false,
+                    "visible": true,
+                    "color": "shades"
+                }, {
+                    "id": "field.e",
+                    "desc": "module.artikel.field-e.desc",
+                    "type": "text",
+                    "label": "Pagina",
+                    "placeholder": "Zahl",
+                    "show": false,
+                    "sortable": false,
+                    "visible": true,
+                    "color": "shades"
+                }, {
+                    "id": "field.f",
+                    "desc": "module.artikel.field-f.desc",
+                    "type": "text",
+                    "label": "Seiten Layout",
+                    "placeholder": "Zahl",
+                    "show": false,
+                    "sortable": false,
+                    "visible": true,
+                    "color": "shades"
+                }, {
+                    "id": "field.g",
+                    "desc": "module.artikel.field-g.desc",
+                    "type": "calc",
+                    "label": "Seiten Total",
+                    "placeholder": "Summe",
+                    "show": false,
+                    "sortable": false,
+                    "visible": true,
                     "color": "shades"
                 }]
             }), {"id": 1});
@@ -236,6 +271,7 @@ class PluginRepository extends Repository {
                             "placeholder": "eintippen…",
                             "show": false,
                             "sortable": false,
+                            "visible": true,
                             "color": "shades"
                         }, {
                             "id": "field.social",
@@ -245,6 +281,7 @@ class PluginRepository extends Repository {
                             "placeholder": "notieren…",
                             "show": false,
                             "sortable": false,
+                            "visible": true,
                             "color": "shades"
                         }, {
                             "id": "field.address",
@@ -254,6 +291,7 @@ class PluginRepository extends Repository {
                             "placeholder": "festhalten…",
                             "show": false,
                             "sortable": false,
+                            "visible": true,
                             "color": "shades"
                         }, {
                             "id": "field.notes",
@@ -263,6 +301,7 @@ class PluginRepository extends Repository {
                             "placeholder": "formulieren…",
                             "show": false,
                             "sortable": false,
+                            "visible": true,
                             "color": "shades"
                         }, {
                             "id": "field.deadline",
@@ -272,6 +311,37 @@ class PluginRepository extends Repository {
                             "placeholder": "bestimmen…",
                             "show": false,
                             "sortable": false,
+                            "visible": true,
+                            "color": "shades"
+                        }, {
+                            "id": "field.a",
+                            "desc": "module.beteiligt.field-a.desc",
+                            "type": "text",
+                            "label": "Honorar Massnahme",
+                            "placeholder": "Betrag…",
+                            "show": false,
+                            "sortable": false,
+                            "visible": true,
+                            "color": "shades"
+                        }, {
+                            "id": "field.b",
+                            "desc": "module.beteiligt.field-b.desc",
+                            "type": "text",
+                            "label": "Spesen Massnahme",
+                            "placeholder": "Betrag…",
+                            "show": false,
+                            "sortable": false,
+                            "visible": true,
+                            "color": "shades"
+                        }, {
+                            "id": "field.c",
+                            "desc": "module.beteiligt.field-c.desc",
+                            "type": "calc",
+                            "label": "Total Beteiligte",
+                            "placeholder": "Betrag…",
+                            "show": false,
+                            "sortable": false,
+                            "visible": true,
                             "color": "shades"
                         }]
                     },
@@ -286,6 +356,7 @@ class PluginRepository extends Repository {
                             "placeholder": "Name.Stichwort…",
                             "show": false,
                             "sortable": false,
+                            "visible": true,
                             "color": "shades"
                         }, {
                             "id": "field.format",
@@ -295,6 +366,7 @@ class PluginRepository extends Repository {
                             "placeholder": "festhalten…",
                             "show": false,
                             "sortable": false,
+                            "visible": true,
                             "color": "shades"
                         }, {
                             "id": "field.placement",
@@ -304,6 +376,7 @@ class PluginRepository extends Repository {
                             "placeholder": "vormerken…",
                             "show": false,
                             "sortable": false,
+                            "visible": true,
                             "color": "shades"
                         }, {
                             "id": "field.price",
@@ -313,6 +386,7 @@ class PluginRepository extends Repository {
                             "placeholder": "bestimmen…",
                             "show": false,
                             "sortable": false,
+                            "visible": true,
                             "color": "shades"
                         }, {
                             "id": "field.total",
@@ -322,6 +396,7 @@ class PluginRepository extends Repository {
                             "placeholder": "",
                             "show": false,
                             "sortable": false,
+                            "visible": true,
                             "color": "shades"
                         }, {
                             "id": "field.name",
@@ -331,6 +406,7 @@ class PluginRepository extends Repository {
                             "placeholder": "eintippen…",
                             "show": false,
                             "sortable": false,
+                            "visible": true,
                             "color": "shades"
                         }, {
                             "id": "field.social",
@@ -349,6 +425,7 @@ class PluginRepository extends Repository {
                             "placeholder": "festhalten…",
                             "show": false,
                             "sortable": false,
+                            "visible": true,
                             "color": "shades"
                         }]
                     }
@@ -366,6 +443,7 @@ class PluginRepository extends Repository {
                     "placeholder": "",
                     "label": "Plan",
                     "title": "Modul-Titel",
+                    "visible": true
                 }, {
                     "id": "visual",
                     "desc": "module.plan.editable.desc",
@@ -374,6 +452,7 @@ class PluginRepository extends Repository {
                     "color": "blue",
                     "show": false,
                     "sortable": false,
+                    "visible": true,
                     "values": [
                         "1.Begriff",
                         "2.Begriff",
@@ -389,6 +468,7 @@ class PluginRepository extends Repository {
                     "color": "green",
                     "show": false,
                     "sortable": false,
+                    "visible": true,
                     "values": [
                         "1.Begriff",
                         "2.Begriff",
@@ -402,6 +482,7 @@ class PluginRepository extends Repository {
                     "color": "yellow",
                     "show": false,
                     "sortable": false,
+                    "visible": true,
                     "values": [
                         "1.Begriff",
                         "2.Begriff",
@@ -419,6 +500,7 @@ class PluginRepository extends Repository {
                     "color": "sky",
                     "show": false,
                     "sortable": false,
+                    "visible": true,
                     "values": [
                         "1.Begriff",
                         "2.Begriff",
@@ -431,6 +513,7 @@ class PluginRepository extends Repository {
                     "color": "lime",
                     "show": false,
                     "sortable": false,
+                    "visible": true,
                     "values": [
                         "1.Begriff",
                         "2.Begriff",
@@ -443,6 +526,7 @@ class PluginRepository extends Repository {
                     "color": "orange",
                     "show": false,
                     "sortable": false,
+                    "visible": true,
                     "values": [
                         "1.Begriff",
                         "2.Begriff",
@@ -460,6 +544,7 @@ class PluginRepository extends Repository {
                     "placeholder": "notieren…",
                     "show": false,
                     "sortable": false,
+                    "visible": true,
                     "color": "shades"
                 }, {
                     "id": "field.b",
@@ -469,8 +554,69 @@ class PluginRepository extends Repository {
                     "placeholder": "notieren…",
                     "show": false,
                     "sortable": false,
+                    "visible": true,
                     "color": "shades"
-                }]
+                }, {
+                    "id": "field.c",
+                    "desc": "module.plan.field-c.desc",
+                    "type": "calc",
+                    "label": "Total Honorar Beteiligte",
+                    "placeholder": "",
+                    "show": false,
+                    "sortable": false,
+                    "visible": true,
+                    "color": "shades"
+                }, {
+                    "id": "field.d",
+                    "desc": "module.plan.field-d.desc",
+                    "type": "calc",
+                    "label": "Total Honorar Projekt",
+                    "placeholder": "",
+                    "show": false,
+                    "sortable": false,
+                    "visible": true,
+                    "color": "shades"
+                }, {
+                    "id": "field.e",
+                    "desc": "module.plan.field-e.desc",
+                    "type": "calc",
+                    "label": "Total Spesen Beteiligte",
+                    "placeholder": "",
+                    "show": false,
+                    "sortable": false,
+                    "visible": true,
+                    "color": "shades"
+                }, {
+                    "id": "field.f",
+                    "desc": "module.plan.field-f.desc",
+                    "type": "calc",
+                    "label": "Total Spesen Projekt",
+                    "placeholder": "",
+                    "show": false,
+                    "sortable": false,
+                    "visible": true,
+                    "color": "shades"
+                }, {
+                    "id": "field.g",
+                    "desc": "module.plan.field-g.desc",
+                    "type": "text",
+                    "label": "Kostendach Projekt…",
+                    "placeholder": "Betrag…",
+                    "show": false,
+                    "sortable": false,
+                    "visible": true,
+                    "color": "shades"
+                }, {
+                    "id": "field.h",
+                    "desc": "module.plan.field-h.desc",
+                    "type": "calc",
+                    "label": "Total Projekt",
+                    "placeholder": "Betrag…",
+                    "show": false,
+                    "sortable": false,
+                    "visible": true,
+                    "color": "shades"
+                }, ]
             }), {"id": 3});
         }
         return PluginRepository.instance;

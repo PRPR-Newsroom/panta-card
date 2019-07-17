@@ -15,8 +15,9 @@ class PInput {
      * @param placeholder a placeholder
      * @param type the type of input which can be one of 'input', 'textarea' or 'select'. this is used to create the input element
      * @param readonly flag to tell if this is a read-only element or not
+     * @param visible flag to make the field visible or not
      */
-    constructor(document, label, value, targetId, placeholder, type, readonly) {
+    constructor(document, label, value, targetId, placeholder, type, readonly, visible) {
         this._document = document;
         this._label = (label.length === 0 ? "" : label);
         this._value = value;
@@ -33,6 +34,10 @@ class PInput {
         this._labelInput = null;
         this._property = null;
         this._propertyType = "text";
+        /**
+         * A flag if the field should be rendered/shown or not
+         */
+        this._visible = visible;
     }
 
     get propertyType() {
@@ -119,6 +124,11 @@ class PInput {
      */
     render() {
         let container = this._document.createElement("div");
+        if (!this._visible) {
+            container.addClass("invisible");
+        } else {
+            container.removeClass("invisible");
+        }
 
         this._input.setAttribute("name", this._name);
         this.setPlaceholder();
@@ -142,9 +152,11 @@ class PInput {
         this._labelInput = this.setLabel();
 
         if (this._label.length === 0) {
-            container.setAttribute("class", "field hidden");
+            container
+                .addClass("field")
+                .addClass("hidden");
         } else {
-            container.setAttribute("class", "field");
+            container.addClass("field");
         }
 
         container.appendChild(this._labelInput);
@@ -247,6 +259,24 @@ class PInput {
         return this;
     }
 
+    hide() {
+        if (this._target) {
+            this._target.children.forEach(function(child) {
+                child.addClass("invisible");
+            })
+        }
+        return this;
+    }
+
+    show() {
+        if (this._target) {
+            this._target.children.forEach(function(child) {
+                child.removeClass("invisible");
+            })
+        }
+        return this;
+    }
+
     addConditionalFormatting(rule, addToLabel) {
         if (addToLabel === true) {
             this._labelInput.addConditionalFormatting(rule);
@@ -275,7 +305,7 @@ class PInput {
      */
     onChange(func, ctx) {
         let that = this;
-        this._input.onchange = function() {
+        this._input.onchange = function () {
             ctx['event'] = 'change';
             func(that, ctx);
         };
@@ -290,7 +320,7 @@ class PInput {
      */
     onFocus(func, ctx) {
         let that = this;
-        this._input.onfocus = function() {
+        this._input.onfocus = function () {
             ctx['event'] = 'focus';
             func(that, ctx);
         }
@@ -298,16 +328,16 @@ class PInput {
     }
 
     /**
-     * Configure editing event handler respectively it will set the onblur handler because we also want to know when 
+     * Configure editing event handler respectively it will set the onblur handler because we also want to know when
      * an element looses focus
-     * 
+     *
      * @param func callback to be called when this element looses focus
      * @param ctx the context to be passed along the callback
      * @returns {PInput}
      */
     onEnterEditing(func, ctx) {
         let that = this;
-        this._input.onblur = function() {
+        this._input.onblur = function () {
             ctx['event'] = 'blur';
             func(that, ctx);
         }
@@ -403,7 +433,7 @@ class PInput {
             return null;
         }
         let decimal = 1.23.toLocaleString();
-        let sep = decimal.substr(1,1);
+        let sep = decimal.substr(1, 1);
         let re = new RegExp("[^\\d" + sep + "]");
         let parsed = parseFloat(number.replace(re, '').replace(sep, '.'));
         return isNaN(parsed) ? null : parsed;
@@ -416,8 +446,8 @@ class PInput {
  */
 class MultiLineInput extends PInput {
 
-    constructor(document, label, value, targetId, placeholder, rows, readonly) {
-        super(document, label, value, targetId, placeholder, "textarea", !!readonly);
+    constructor(document, label, value, targetId, placeholder, rows, readonly, visible) {
+        super(document, label, value, targetId, placeholder, "textarea", !!readonly, visible);
         this._rows = rows;
     }
 
@@ -450,8 +480,8 @@ class MultiLineInput extends PInput {
  * output is different than the MultiLineInput (height) and thus does not look nicely.
  */
 class SingleLineInput extends PInput {
-    constructor(document, label, value, targetId, placeholder, readonly) {
-        super(document, label, value, targetId, placeholder, "textarea", !!readonly);
+    constructor(document, label, value, targetId, placeholder, readonly, visible) {
+        super(document, label, value, targetId, placeholder, "textarea", !!readonly, visible);
     }
 
     /**
@@ -488,10 +518,9 @@ class SingleLineInput extends PInput {
  * A single select element resp. a drop-down list
  */
 class SingleSelectInput extends PInput {
-    constructor(document, label, value, targetId, placeholder, readonly) {
-        super(document, label, value, targetId, placeholder, "select", !!readonly);
+    constructor(document, label, value, targetId, placeholder, readonly, visible) {
+        super(document, label, value, targetId, placeholder, "select", !!readonly, visible);
         this._options = [];
-        this._active = true;
     }
 
     /**
@@ -518,7 +547,7 @@ class SingleSelectInput extends PInput {
      */
     addOptions(options) {
         let that = this;
-        options.forEach(function(option) {
+        options.forEach(function (option) {
             that.addOption(option.value, option.text);
         });
     }
@@ -538,14 +567,6 @@ class SingleSelectInput extends PInput {
         return this;
     }
 
-    setActive(active) {
-        this._active = active;
-    }
-
-    isActive() {
-        return this._active;
-    }
-
     /**
      * Creates the HTML list/drop-down and also selects the option that matches the currently set value
      * @param element
@@ -554,7 +575,7 @@ class SingleSelectInput extends PInput {
      */
     doCustomization(element, label) {
         let that = this;
-        this._options.forEach(function(item, index) {
+        this._options.forEach(function (item, index) {
             let opt = document.createElement("option");
             opt.value = item.value;
             opt.text = item.text;
@@ -571,16 +592,6 @@ class SingleSelectInput extends PInput {
     invalidate() {
         this._input.removeChildren();
         this.doCustomization(this._input, this._labelInput);
-        //this.updateVisualState();
     }
 
-    updateVisualState() {
-        if (this.isActive()) {
-            this._input.removeClass("hidden");
-            this._labelInput.removeClass("hidden");
-        } else {
-            this._input.addClass("hidden");
-            this._labelInput.addClass("hidden");
-        }
-    }
 }

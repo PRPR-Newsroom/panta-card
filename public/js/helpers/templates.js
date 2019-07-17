@@ -316,20 +316,23 @@ let template_settings_module = '<div class="row module-container">' +
     '       </div>' +
     '    </div>' +
     '    <div class="col-8 module-title"></div>' +
-    '    <div class="col-2 module-icon"><img src="/assets/ic_pantarhei.png" class="panta-js-icon" width="16px" height="16px"/></div>' +
+    '    <div class="col-2 module-icon"><img src="assets/ic_pantarhei.png" class="panta-js-icon" width="16px" height="16px"/></div>' +
     '</div>';
 
 let template_settings_editable = '<div class="row module-editable-container">' +
-    '    <div class="col-2 module-editable-show">' +
+    '    <div class="col-1 module-editable-show">' +
     '       <div class="panta-module-enabled">' +
-    '           <label class="panta-checkbox-container">' +
+    '           <label class="panta-checkbox-container hidden">' +
     '               <input class="panta-js-checkbox" type="checkbox" checked="checked">' +
     '               <span class="panta-checkbox-checkmark elevate"></span>' +
     '           </label>' +
     '       </div>' +
     '    </div>' +
     '    <div class="col-8 module-editable-name"></div>' +
-    '    <div class="col-1 module-editable-color">' +
+    '    <div class="col-1 module-helper-visible">' +
+    '       <button class="panta-btn panta-btn-dot panta-js-button hidden" title="Dieses Feld ist sichtbar"><img src="assets/ic_visible.png" width="12px" height="12px"/></button>' +
+    '    </div>' +
+    '    <div class="col-1 module-editable-color invisible">' +
     '       <button class="panta-btn panta-btn-dot panta-js-button"></button>' +
     '    </div>' +
     '    <div class="col-1 module-helper-sortable">' +
@@ -346,7 +349,8 @@ let template_settings_editable_option = '<div class="row module-editable-option-
     '       <input type="text" class="panta-js-name"/>' +
     '    </div>' +
     '    <div class="col-2 module-editable-option-actions">' +
-    '       <button class="panta-btn panta-btn-icon panta-js-delete"><img src="/assets/ic_trash.svg" width="16px" height="16px"/></button>' +
+    '       <button class="panta-btn panta-btn-icon panta-js-delete"><img src="assets/ic_trash.svg" width="16px" height="16px"/></button>' +
+    '       <button class="panta-btn panta-btn-icon panta-js-visible hidden"><img src="assets/ic_visible.png" width="16px" height="16px"/></button>' +
     '    </div>' +
     '</div>';
 

@@ -30,11 +30,7 @@ class ArtikelBinding extends Binding {
     }
 
     constructor(document, entity, action, context, configuration) {
-        super(document, entity, action, context);
-        /**
-         * @type {PluginModuleConfig}
-         */
-        this._configuration = configuration;
+        super(document, entity, action, context, configuration);
     }
 
 
@@ -62,7 +58,7 @@ class ArtikelBinding extends Binding {
 
         // if there's a configuration change apply it after all property updates
         if (configuration) {
-            this._updateConfiguration(configuration);
+            this.updateConfiguration(configuration);
         }
         return this;
     }
@@ -85,30 +81,33 @@ class ArtikelBinding extends Binding {
         this._switchContent(templ);
 
         let aconfig = this.getConfigurationFor("field.a");
-        this._topic = this.document.newMultiLineInput(valueHolder, "pa.topic", 'topic', aconfig.label, params, this._action, 2, aconfig.editable.placeholder);
+        this._topic = this.document.newMultiLineInput(valueHolder, "pa.topic", 'topic', aconfig.label, params, this._action, 2, aconfig.editable.placeholder, aconfig.editable.visible);
         // this is a beschiss because the order of the elements matter to correctly compute height
-        this._layout = this.document.newSingleLineInput(valueHolder, 'pa.layout', 'layout', 'Seiten Layout', params, this._action, 'Zahl', 'number', false);
+        let fconfig = this.getConfigurationFor("field.f");
+        this._layout = this.document.newSingleLineInput(valueHolder, 'pa.layout', 'layout', fconfig.label, params, this._action, fconfig.editable.placeholder, 'number', false, aconfig.editable.visible);
 
         // from is a dynamic field (field.a)
         let bconfig = this.getConfigurationFor("field.b");
-        this._from = this.document.newSingleLineInput(valueHolder, 'pa.input-from', 'from', bconfig.label, params, this._action, bconfig.editable.placeholder);
+        this._from = this.document.newSingleLineInput(valueHolder, 'pa.input-from', 'from', bconfig.label, params, this._action, bconfig.editable.placeholder, "text", false, bconfig.editable.visible);
 
         // author is a dynamic field: (field.b)
         let cconfig = this.getConfigurationFor("field.c");
-        this._author = this.document.newSingleLineInput(valueHolder, 'pa.author', 'author', cconfig.label, params, this._action, cconfig.editable.placeholder);
+        this._author = this.document.newSingleLineInput(valueHolder, 'pa.author', 'author', cconfig.label, params, this._action, cconfig.editable.placeholder, "text", false, cconfig.editable.visible);
 
-        this._total = this.document.newSingleLineInput(valueHolder, 'pa.total', 'total', 'Seiten Total', params, this._action, 'Summe', 'number', true)
+        let gconfig = this.getConfigurationFor("field.g");
+        this._total = this.document.newSingleLineInput(valueHolder, 'pa.total', 'total', gconfig.label, params, this._action, gconfig.editable.placeholder, 'number', true, gconfig.editable.visible)
             .addClass('bold');
 
         // text is a dynamic field: (field.c)
         let dconfig = this.getConfigurationFor("field.d");
-        this._text = this.document.newMultiLineInput(valueHolder, 'pa.text', 'text', dconfig.label, params, this._action, 2, dconfig.editable.placeholder);
+        this._text = this.document.newMultiLineInput(valueHolder, 'pa.text', 'text', dconfig.label, params, this._action, 2, dconfig.editable.placeholder, dconfig.editable.visible);
 
         /**
          * @type {HTMLElement|PInput}
          * @private
          */
-        this._pagina = this.document.newSingleLineInput(valueHolder, 'pa.pagina', 'pagina', 'Pagina', params, this._action, 'Zahl', 'number', false)
+        let econfig = this.getConfigurationFor("field.e");
+        this._pagina = this.document.newSingleLineInput(valueHolder, 'pa.pagina', 'pagina', econfig.label, params, this._action, econfig.editable.placeholder, 'number', false, econfig.editable.visible)
             .addClass('pagina')
             .addClass('bold');
 
@@ -193,71 +192,25 @@ class ArtikelBinding extends Binding {
     doLayout(target, id, valueHolder, params, configurationId) {
         let configuration = this.getConfigurationFor(configurationId || id);
         return this.document.newSingleSelect(valueHolder, target, id, configuration.label, params, this._action, 'Liste-Tag',
-            newOption("-1", "…"), configuration.options);
+            newOption("-1", "…"), configuration.options, configuration.editable.visible);
     }
 
-    /**
-     * @param {PInput} text
-     * @param id
-     */
-    updateText(text, id) {
-        let config = this.getConfigurationFor(id);
-        text.setLabel(config.editable.label);
-        text.setPlaceholder(config.editable.placeholder);
-    }
-
-    updateSelect(select, id) {
-        let oc = this.getConfigurationFor(id);
-        select.clear();
-        select.setLabel(oc.label);
-        select.addOption("-1", "…");
-        select.addOptions(oc.options);
-        select.setActive(oc.active);
-        select.invalidate();
-    }
-
-    _updateConfiguration(configuration) {
+    updateConfiguration(configuration) {
         this._configuration = configuration;
 
-        this.updateText(this._topic, "field.a");
-        this.updateText(this._from, "field.b");
-        this.updateText(this._author, "field.c");
-        this.updateText(this._text, "field.d");
+        this.updateField(this._topic, "field.a");
+        this.updateField(this._from, "field.b");
+        this.updateField(this._author, "field.c");
+        this.updateField(this._text, "field.d");
+        this.updateField(this._pagina, "field.e");
+        this.updateField(this._layout, "field.f");
+        this.updateField(this._total, "field.g");
 
-        this.updateSelect(this._tags, "online");
-        this.updateSelect(this._visual, "visual");
-        this.updateSelect(this._region, "region");
-        this.updateSelect(this._season, "season");
-        this.updateSelect(this._form, "form");
-        this.updateSelect(this._location, "place");
+        this.updateField(this._tags, "online");
+        this.updateField(this._visual, "visual");
+        this.updateField(this._region, "region");
+        this.updateField(this._season, "season");
+        this.updateField(this._form, "form");
+        this.updateField(this._location, "place");
     }
-
-    getConfigurationFor(id) {
-        let editable = this._configuration.config.editables
-            .filter(function (editable) {
-                return editable.id === id;
-            });
-
-        let label = editable[0].label;
-
-        let options = editable
-            .map(function (editable) {
-                return editable.values;
-            })
-            .flat()
-            .map(function (value, index) {
-                return newOption(index, value);
-            })
-            .reduce(function (prev, cur) {
-                prev.push(cur);
-                return prev;
-            }, []);
-
-        return {
-            "label": label,
-            "options": options,
-            "editable": editable[0]
-        };
-    }
-
 }

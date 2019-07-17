@@ -12,7 +12,7 @@ class BeteiligtBinding extends Binding {
      * @param {PluginModuleConfig} configuration
      */
     constructor(document, config, action, context, configuration) {
-        super(document, config, action, context);
+        super(document, config, action, context, configuration);
 
         /**
          * @type {PModuleConfig}
@@ -58,11 +58,6 @@ class BeteiligtBinding extends Binding {
 
         this._currentTabIndex = -1;
 
-        /**
-         * @type {PluginModuleConfig}
-         * @private
-         */
-        this._configuration = configuration;
     }
 
     /**
@@ -163,7 +158,7 @@ class BeteiligtBinding extends Binding {
         this._entity = entity;
 
         if (configuration) {
-            this._updateConfiguration(configuration);
+            this.updateConfiguration(configuration);
         }
 
         return this;
@@ -277,25 +272,31 @@ class BeteiligtBinding extends Binding {
         if (valueHolder.show) {
             let params = {'context': this._context, 'valueHolder': valueHolder, 'config': this._entity};
             let config = this.getLayoutConfigurationFor("regular", "field.name");
-            forms.setField("name", this.document.newSingleLineInput(valueHolder, ".pa.name", "name", config.label, params, this._action, config.placeholder, "text", false));
+            forms.setField("name", this.document.newSingleLineInput(valueHolder, ".pa.name", "name", config.label, params, this._action, config.placeholder, "text", false, config.visible));
 
             config = this.getLayoutConfigurationFor("regular", "field.social");
-            forms.setField("social", this.document.newSingleLineInput(valueHolder, ".pa.social", "social", config.label, params, this._action, config.placeholder));
+            forms.setField("social", this.document.newSingleLineInput(valueHolder, ".pa.social", "social", config.label, params, this._action, config.placeholder, "text", false, config.visible));
 
             config = this.getLayoutConfigurationFor("regular", "field.address");
-            forms.setField("address", this.document.newMultiLineInput(valueHolder, ".pa.address", "address", config.label, params, this._action, 2, config.placeholder));
+            forms.setField("address", this.document.newMultiLineInput(valueHolder, ".pa.address", "address", config.label, params, this._action, 2, config.placeholder, config.visible));
 
             config = this.getLayoutConfigurationFor("regular", "field.notes");
-            forms.setField("notes", this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", config.label, params, this._action, 6, config.placeholder));
+            forms.setField("notes", this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", config.label, params, this._action, 6, config.placeholder, config.visible));
 
             config = this.getLayoutConfigurationFor("regular", "field.deadline");
-            forms.setField("duedate", this.document.newSingleLineInput(valueHolder, ".pa.duedate", "duedate", config.label, params, this._action, config.placeholder, "text", false));
+            forms.setField("duedate", this.document.newSingleLineInput(valueHolder, ".pa.duedate", "duedate", config.label, params, this._action, config.placeholder, "text", false, config.visible));
 
-            forms.setField("fee", this.document.newSingleLineInput(valueHolder, ".pa.fee", "fee", "Honorar Massnahme", params, this._action, "Betrag…", "money", false));
-            forms.setField("charges", this.document.newSingleLineInput(valueHolder, ".pa.charges", "charges", "Spesen Massnahme", params, this._action, "Betrag…", "money", false));
-            forms.setField("project", this.document.newSingleLineInput(valueHolder, ".pa.project", "project", "Total Beteiligte", params, this._action, "Betrag…", "money", true)
+            config = this.getLayoutConfigurationFor("regular", "field.a");
+            forms.setField("fee", this.document.newSingleLineInput(valueHolder, ".pa.fee", "fee", config.label, params, this._action, config.placeholder, "money", false, config.visible));
+
+            config = this.getLayoutConfigurationFor("regular", "field.b");
+            forms.setField("charges", this.document.newSingleLineInput(valueHolder, ".pa.charges", "charges", config.label, params, this._action, config.placeholder, "money", false, config.visible));
+
+            config = this.getLayoutConfigurationFor("regular", "field.c");
+            forms.setField("project", this.document.newSingleLineInput(valueHolder, ".pa.project", "project", config.label, params, this._action, config.placeholder, "money", true, config.visible)
                 .addClass("bold"));
-            forms.setField("capOnDepenses", this.document.newSingleLineInput(valueHolder, ".pa.cap_on_depenses", "capOnDepenses", "Kostendach Total Projekt", params, this._action, "Betrag…", "money", false));
+
+            // forms.setField("capOnDepenses", this.document.newSingleLineInput(valueHolder, ".pa.cap_on_depenses", "capOnDepenses", "Kostendach Total Projekt", params, this._action, "Betrag…", "money", false));
         }
     }
 
@@ -314,28 +315,28 @@ class BeteiligtBinding extends Binding {
         if (valueHolder.show) {
             let params = {'context': this._context, 'valueHolder': valueHolder, 'config': this._entity};
             let config = this.getLayoutConfigurationFor("ad", "field.name");
-            forms.setField("name", this.document.newSingleLineInput(valueHolder, ".pa.name", 'name', config.label, params, this._action, config.placeholder, "text", false));
+            forms.setField("name", this.document.newSingleLineInput(valueHolder, ".pa.name", 'name', config.label, params, this._action, config.placeholder, "text", false, config.visible));
 
             config = this.getLayoutConfigurationFor("ad", "field.social");
-            forms.setField("social", this.document.newSingleLineInput(valueHolder, ".pa.social", 'social', config.label, params, this._action, config.placeholder));
+            forms.setField("social", this.document.newSingleLineInput(valueHolder, ".pa.social", 'social', config.label, params, this._action, config.placeholder, "text", false, config.visible));
 
             config = this.getLayoutConfigurationFor("ad", "field.address");
-            forms.setField("address", this.document.newMultiLineInput(valueHolder, ".pa.address", 'address', config.label, params, this._action, 2, config.placeholder));
+            forms.setField("address", this.document.newMultiLineInput(valueHolder, ".pa.address", 'address', config.label, params, this._action, 2, config.placeholder, config.visible));
 
             config = this.getLayoutConfigurationFor("ad", "field.format");
-            forms.setField("format", this.document.newSingleLineInput(valueHolder, ".pa.format", 'format', config.label, params, this._action, config.placeholder, "text", false));
+            forms.setField("format", this.document.newSingleLineInput(valueHolder, ".pa.format", 'format', config.label, params, this._action, config.placeholder, "text", false, config.visible));
 
             config = this.getLayoutConfigurationFor("ad", "field.placement");
-            forms.setField("placement", this.document.newSingleLineInput(valueHolder, ".pa.placement", "placement", config.label, params, this._action, config.placeholder, "text", false));
+            forms.setField("placement", this.document.newSingleLineInput(valueHolder, ".pa.placement", "placement", config.label, params, this._action, config.placeholder, "text", false, config.visible));
 
             config = this.getLayoutConfigurationFor("ad", "field.sujet");
-            forms.setField("notes", this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", config.label, params, this._action, 2, config.placeholder));
+            forms.setField("notes", this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", config.label, params, this._action, 2, config.placeholder, config.visible));
 
             config = this.getLayoutConfigurationFor("ad", "field.price");
-            forms.setField("price", this.document.newSingleLineInput(valueHolder, ".pa.price", "price", config.label, params, this._action, config.placeholder, "money", false));
+            forms.setField("price", this.document.newSingleLineInput(valueHolder, ".pa.price", "price", config.label, params, this._action, config.placeholder, "money", false, config.visible));
 
             config = this.getLayoutConfigurationFor("ad", "field.total");
-            forms.setField("total", this.document.newSingleLineInput(valueHolder, ".pa.total", "total", config.label, params, this._action, config.placeholder, "money", true)
+            forms.setField("total", this.document.newSingleLineInput(valueHolder, ".pa.total", "total", config.label, params, this._action, config.placeholder, "money", true, config.visible)
                 .addClass("bold"));
         }
     }
@@ -365,12 +366,11 @@ class BeteiligtBinding extends Binding {
      * Update all elements that are configured by this configuration
      *
      * @param configuration
-     * @private
      */
-    _updateConfiguration(configuration) {
+    updateConfiguration(configuration) {
         this._configuration = configuration;
         this.doLabels();
-
+        
         this._updateTab(this._onsite, "onsite");
         this._updateTab(this._text, "text");
         this._updateTab(this._photo, "photo");
@@ -451,34 +451,6 @@ class BeteiligtBinding extends Binding {
             .find(function (field) {
                 return field.id === id;
             });
-    }
-
-    getConfigurationFor(id) {
-        let editable = this._configuration.config.editables
-            .filter(function (editable) {
-                return editable.id === id;
-            });
-
-        let label = editable[0].label;
-
-        let options = editable
-            .map(function (editable) {
-                return editable.values;
-            })
-            .flat()
-            .map(function (value, index) {
-                return newOption(index, value);
-            })
-            .reduce(function (prev, cur) {
-                prev.push(cur);
-                return prev;
-            }, []);
-
-        return {
-            "label": label,
-            "options": options,
-            "editable": editable[0]
-        };
     }
 
 }

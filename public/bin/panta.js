@@ -350,13 +350,6 @@ $jscomp.iteratorFromArray = function(a, b) {
   };
   return d;
 };
-$jscomp.polyfill("Array.prototype.keys", function(a) {
-  return a ? a : function() {
-    return $jscomp.iteratorFromArray(this, function(a) {
-      return a;
-    });
-  };
-}, "es6", "es3");
 $jscomp.polyfill("Array.prototype.values", function(a) {
   return a ? a : function() {
     return $jscomp.iteratorFromArray(this, function(a, c) {
@@ -364,6 +357,23 @@ $jscomp.polyfill("Array.prototype.values", function(a) {
     });
   };
 }, "es8", "es3");
+$jscomp.polyfill("Array.prototype.flat", function(a) {
+  return a ? a : function(a) {
+    a = void 0 === a ? 1 : Number(a);
+    for (var b = [], d = 0; d < this.length; d++) {
+      var e = this[d];
+      Array.isArray(e) && 0 < a ? (e = Array.prototype.flat.call(e, a - 1), b.push.apply(b, e)) : b.push(e);
+    }
+    return b;
+  };
+}, "es9", "es5");
+$jscomp.polyfill("Array.prototype.keys", function(a) {
+  return a ? a : function() {
+    return $jscomp.iteratorFromArray(this, function(a) {
+      return a;
+    });
+  };
+}, "es6", "es3");
 $jscomp.checkStringArgs = function(a, b, c) {
   if (null == a) {
     throw new TypeError("The 'this' value for String.prototype." + c + " must not be null or undefined");
@@ -408,16 +418,6 @@ $jscomp.polyfill("Object.entries", function(a) {
     return b;
   };
 }, "es8", "es3");
-$jscomp.polyfill("Array.prototype.flat", function(a) {
-  return a ? a : function(a) {
-    a = void 0 === a ? 1 : Number(a);
-    for (var b = [], d = 0; d < this.length; d++) {
-      var e = this[d];
-      Array.isArray(e) && 0 < a ? (e = Array.prototype.flat.call(e, a - 1), b.push.apply(b, e)) : b.push(e);
-    }
-    return b;
-  };
-}, "es9", "es5");
 $jscomp.findInternal = function(a, b, c) {
   a instanceof String && (a = String(a));
   for (var d = a.length, e = 0; e < d; e++) {
@@ -442,12 +442,13 @@ $jscomp.polyfill("Array.prototype.flatMap", function(a) {
     return b;
   };
 }, "es9", "es5");
-var Binding = function(a, b, c, d) {
+var Binding = function(a, b, c, d, e) {
   this.document = a;
   this._entity = b;
   this._action = c;
   this._context = d;
   this._autoUpdater = null;
+  this._configuration = e;
 };
 Binding.prototype.update = function(a, b) {
 };
@@ -473,6 +474,38 @@ Binding.prototype.unblock = function() {
     a.parentNode.removeChild(a);
   });
   this._autoUpdater && clearInterval(this._autoUpdater);
+};
+Binding.prototype.updateConfiguration = function(a) {
+};
+Binding.prototype.updateField = function(a, b) {
+  !1 === this.getConfigurationFor(b).editable.visible ? a.hide() : a.show();
+  a instanceof SingleLineInput ? this._updateText(a, b) : a instanceof MultiLineInput ? this._updateText(a, b) : a instanceof SingleSelectInput && this._updateSelect(a, b);
+};
+Binding.prototype._updateText = function(a, b) {
+  b = this.getConfigurationFor(b);
+  a.setLabel(b.editable.label);
+  a.setPlaceholder(b.editable.placeholder);
+};
+Binding.prototype._updateSelect = function(a, b) {
+  b = this.getConfigurationFor(b);
+  a.clear();
+  a.setLabel(b.label);
+  a.addOption("-1", "\u2026");
+  a.addOptions(b.options);
+  a.invalidate();
+};
+Binding.prototype.getConfigurationFor = function(a) {
+  var b = this._configuration.config.editables.filter(function(b) {
+    return b.id === a;
+  }), c = b[0].label, d = b.map(function(a) {
+    return a.values;
+  }).flat().map(function(a, b) {
+    return newOption(b, a);
+  }).reduce(function(a, b) {
+    a.push(b);
+    return a;
+  }, []);
+  return {label:c, options:d, editable:b[0]};
 };
 // Input 1
 var DI = function() {
@@ -503,13 +536,16 @@ DI.INSTANCE = null;
 // Input 2
 var PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.settings.hint":"Folgende MODULE sind f\u00fcr dieses BOARD verf\u00fcgbar:<br/>Sobald mindestens ein MODUL aktiviert ist, wird dieses in jeder CARD auf dem BOARD dargestellt.", "module.artikel.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.", "module.artikel.desc":"ARTIKEL-Eingabefelder und LISTEN f\u00fcr dieses BOARD konfigurieren:<br/>F\u00fcr jedes Feld kann eine Farbe definiert werden.<br/>Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf der CARD Vorderseite \u2013 ansonsten wird es nur auf der CARD Innenseite dargestellt.", 
 "module.artikel.editable.desc":"Beschriftung und Stichworte der maximal sechs LISTEN definieren:<br/>Die Reihenfolge der Stichwort muss fix erfasst werden.<br/>Die Zahl der Stichwort ist NICHT begrenzt.<br/>Maximal vier der sechs LISTEN lassen sich sortieren.<br/>LISTEN ohne Beschriftung werden auf der CARD nicht dargestellt.", "module.artikel.field-a.desc":"Das Textfeld \u00abA\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-b.desc":"Das Textfeld \u00abB\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
-"module.artikel.field-c.desc":"Das Textfeld \u00abC\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-d.desc":"Das Textfeld \u00abD\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.beteiligt.desc":"BETEILIGT kann als Erg\u00e4nzung zum ARTIKEL oder PLAN aktiviert werden.<br/>Hier die Eingabefelder und LISTEN f\u00fcr das ganze BOARD konfigurieren:", "module.beteiligt.label.desc":"Dieser Titel wird oberhalb des Modul BETEILIGT auf jeder CARD sichtbar.", 
-"module.beteiligt.layout.onsite":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.layout.text":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.layout.photo":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.layout.video":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.layout.illu":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.layout.ad":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.regular.desc":"Standard-Layout", 
-"module.beteiligt.special.desc":"Spezial-Layout", "module.plan.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.", "module.plan.desc":"PLAN-Eingabefelder und Auswahllisten f\u00fcr das BOARD konfigurieren:<br/>F\u00fcr jedes Feld kann eine Farbe definiert werden.<br/>Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf der CARD Vorderseite \u2013 ansonsten wird es nur auf der CARD Innenseite dargestellt.", "module.plan.editable.desc":"Beschriftung und Stichworte der maximal sechs LISTEN definieren:<br/>Die Reihenfolge der Stichwort muss fix erfasst werden.<br/>Die Zahl der Stichwort ist NICHT begrenzt.<br/>Maximal vier der sechs LISTEN lassen sich sortieren.<br/>LISTEN ohne Beschriftung werden auf der CARD nicht dargestellt.", 
-"module.plan.field-a.desc":"Das Textfeld \u00abA\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.plan.field-b.desc":"Das Textfeld \u00abB\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.beteiligt.layout-regular.desc":"Das Kontakt-Formular hat folgende Felder, die individualisert werden k\u00f6nnen", "module.beteiligt.layout-ad.desc":"Das Inserat-Formular hat folgende Felder, die individualisert werden k\u00f6nnen", 
-"module.beteiligt.field-name.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-social.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-address.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-notes.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
-"module.beteiligt.field-deadline.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-total.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-price.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-placement.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
-"module.beteiligt.field-format.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-sujet.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an."}, POWERUP_ADMINS = ["manu29494020", "koni_nordmann", "ray2505"];
+"module.artikel.field-c.desc":"Das Textfeld \u00abC\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-d.desc":"Das Textfeld \u00abD\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-e.desc":"Das Textfeld \u00abE\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-f.desc":"Das Textfeld \u00abF\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
+"module.artikel.field-g.desc":"Das Textfeld \u00abG\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.beteiligt.desc":"BETEILIGT kann als Erg\u00e4nzung zum ARTIKEL oder PLAN aktiviert werden.<br/>Hier die Eingabefelder und LISTEN f\u00fcr das ganze BOARD konfigurieren:", "module.beteiligt.label.desc":"Dieser Titel wird oberhalb des Modul BETEILIGT auf jeder CARD sichtbar.", "module.beteiligt.layout.onsite":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", 
+"module.beteiligt.layout.text":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.layout.photo":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.layout.video":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.layout.illu":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.layout.ad":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.regular.desc":"Standard-Layout", "module.beteiligt.special.desc":"Spezial-Layout", "module.plan.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.", 
+"module.plan.desc":"PLAN-Eingabefelder und Auswahllisten f\u00fcr das BOARD konfigurieren:<br/>F\u00fcr jedes Feld kann eine Farbe definiert werden.<br/>Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf der CARD Vorderseite \u2013 ansonsten wird es nur auf der CARD Innenseite dargestellt.", "module.plan.editable.desc":"Beschriftung und Stichworte der maximal sechs LISTEN definieren:<br/>Die Reihenfolge der Stichwort muss fix erfasst werden.<br/>Die Zahl der Stichwort ist NICHT begrenzt.<br/>Maximal vier der sechs LISTEN lassen sich sortieren.<br/>LISTEN ohne Beschriftung werden auf der CARD nicht dargestellt.", 
+"module.plan.field-a.desc":"Das Textfeld \u00abA\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.plan.field-b.desc":"Das Textfeld \u00abB\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.plan.field-c.desc":"Das Textfeld \u00abC\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.plan.field-d.desc":"Das Textfeld \u00abD\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
+"module.plan.field-e.desc":"Das Textfeld \u00abE\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.plan.field-f.desc":"Das Textfeld \u00abF\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.plan.field-g.desc":"Das Textfeld \u00abG\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.plan.field-h.desc":"Das Textfeld \u00abH\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
+"module.beteiligt.layout-regular.desc":"Das Kontakt-Formular hat folgende Felder, die individualisert werden k\u00f6nnen", "module.beteiligt.layout-ad.desc":"Das Inserat-Formular hat folgende Felder, die individualisert werden k\u00f6nnen", "module.beteiligt.field-name.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-social.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
+"module.beteiligt.field-address.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-notes.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-deadline.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-a.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
+"module.beteiligt.field-b.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-c.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-total.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-price.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
+"module.beteiligt.field-placement.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-format.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-sujet.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an."}, POWERUP_ADMINS = ["manu29494020", "koni_nordmann", "ray2505"];
 // Input 3
 var Repository = function() {
   this._repository = {};
@@ -712,10 +748,11 @@ $jscomp.global.Object.defineProperties(SwitchItem.prototype, {enabled:{configura
   return this._document;
 }}});
 // Input 9
-var ModuleEditableTextItem = function(a, b) {
+var ModuleEditableTextItem = function(a, b, c) {
   AbstractItem.call(this);
   this._value = a;
   this._deletable = b;
+  this._visibleSwitch = c;
 };
 $jscomp.inherits(ModuleEditableTextItem, AbstractItem);
 ModuleEditableTextItem.prototype.setOnTextChangeListener = function(a) {
@@ -724,6 +761,14 @@ ModuleEditableTextItem.prototype.setOnTextChangeListener = function(a) {
 };
 ModuleEditableTextItem.prototype.setOnDeleteListener = function(a) {
   this._onDeleteListener = a;
+  return this;
+};
+ModuleEditableTextItem.prototype.setOnVisibleToggleListener = function(a) {
+  this._onVisibleToggleListener = a;
+  return this;
+};
+ModuleEditableTextItem.prototype.setOnReadyListener = function(a) {
+  this._onReadyListener = a;
   return this;
 };
 ModuleEditableTextItem.prototype.render = function() {
@@ -738,6 +783,13 @@ ModuleEditableTextItem.prototype.render = function() {
       a._onDeleteListener(a.value);
     })) : b.addClass("hidden"));
   });
+  b.getElementsByClassName("panta-js-visible").forEach(function(b) {
+    b instanceof HTMLElement && (a._visibleSwitch ? (b.removeClass("hidden"), b.setEventListener("click", function(b) {
+      a._onVisibleToggleListener();
+    })) : b.addClass("hidden"));
+    b.getClosestChildByTagName("img").setAttribute("src", "assets/ic_invisible.png");
+  });
+  a._onReadyListener && a._onReadyListener(b);
   return b;
 };
 $jscomp.global.Object.defineProperties(ModuleEditableTextItem.prototype, {value:{configurable:!0, enumerable:!0, get:function() {
@@ -746,7 +798,7 @@ $jscomp.global.Object.defineProperties(ModuleEditableTextItem.prototype, {value:
   this._value = a;
 }}});
 // Input 10
-var PInput = function(a, b, c, d, e, f, h) {
+var PInput = function(a, b, c, d, e, f, h, g) {
   this._document = a;
   this._label = 0 === b.length ? "" : b;
   this._value = c;
@@ -758,6 +810,7 @@ var PInput = function(a, b, c, d, e, f, h) {
   this._input = this._document.createElement(this._type);
   this._property = this._labelInput = null;
   this._propertyType = "text";
+  this._visible = g;
 };
 PInput.prototype.setPropertyType = function(a) {
   this.propertyType = a;
@@ -798,6 +851,7 @@ PInput.prototype.update = function(a) {
 };
 PInput.prototype.render = function() {
   var a = this._document.createElement("div");
+  this._visible ? a.removeClass("invisible") : a.addClass("invisible");
   this._input.setAttribute("name", this._name);
   this.setPlaceholder();
   this._input.setAttribute("title", this._label);
@@ -809,7 +863,7 @@ PInput.prototype.render = function() {
   this._input.addClass("u-border");
   this.setupEvents();
   this._labelInput = this.setLabel();
-  0 === this._label.length ? a.setAttribute("class", "field hidden") : a.setAttribute("class", "field");
+  0 === this._label.length ? a.addClass("field").addClass("hidden") : a.addClass("field");
   a.appendChild(this._labelInput);
   a.appendChild(this._input);
   this._target && this._target.appendChild(a);
@@ -865,6 +919,18 @@ PInput.prototype._setClassWhenEvent = function(a, b, c, d) {
 };
 PInput.prototype.addClass = function(a, b) {
   !0 === b ? this._labelInput.addClass(a) : this._input.addClass(a);
+  return this;
+};
+PInput.prototype.hide = function() {
+  this._target && this._target.children.forEach(function(a) {
+    a.addClass("invisible");
+  });
+  return this;
+};
+PInput.prototype.show = function() {
+  this._target && this._target.children.forEach(function(a) {
+    a.removeClass("invisible");
+  });
   return this;
 };
 PInput.prototype.addConditionalFormatting = function(a, b) {
@@ -945,8 +1011,8 @@ $jscomp.global.Object.defineProperties(PInput.prototype, {propertyType:{configur
 }, set:function(a) {
   this._propertyType = a;
 }}});
-var MultiLineInput = function(a, b, c, d, e, f, h) {
-  PInput.call(this, a, b, c, d, e, "textarea", !!h);
+var MultiLineInput = function(a, b, c, d, e, f, h, g) {
+  PInput.call(this, a, b, c, d, e, "textarea", !!h, g);
   this._rows = f;
 };
 $jscomp.inherits(MultiLineInput, PInput);
@@ -964,8 +1030,8 @@ MultiLineInput.prototype.doCustomization = function(a, b) {
   }
   return PInput.prototype.doCustomization.call(this, a);
 };
-var SingleLineInput = function(a, b, c, d, e, f) {
-  PInput.call(this, a, b, c, d, e, "textarea", !!f);
+var SingleLineInput = function(a, b, c, d, e, f, h) {
+  PInput.call(this, a, b, c, d, e, "textarea", !!f, h);
 };
 $jscomp.inherits(SingleLineInput, PInput);
 SingleLineInput.prototype.doCustomization = function(a, b) {
@@ -984,10 +1050,9 @@ SingleLineInput.prototype.doCustomization = function(a, b) {
   a.style.paddingTop = Math.max(0, a.offsetHeight - 23) + "px";
   return PInput.prototype.doCustomization.call(this, a, b);
 };
-var SingleSelectInput = function(a, b, c, d, e, f) {
-  PInput.call(this, a, b, c, d, e, "select", !!f);
+var SingleSelectInput = function(a, b, c, d, e, f, h) {
+  PInput.call(this, a, b, c, d, e, "select", !!f, h);
   this._options = [];
-  this._active = !0;
 };
 $jscomp.inherits(SingleSelectInput, PInput);
 SingleSelectInput.prototype.setEmpty = function(a, b) {
@@ -1007,12 +1072,6 @@ SingleSelectInput.prototype.addOption = function(a, b) {
   this._options.push({value:a, text:b, empty:!1});
   return this;
 };
-SingleSelectInput.prototype.setActive = function(a) {
-  this._active = a;
-};
-SingleSelectInput.prototype.isActive = function() {
-  return this._active;
-};
 SingleSelectInput.prototype.doCustomization = function(a, b) {
   var c = this;
   this._options.forEach(function(b, e) {
@@ -1028,9 +1087,6 @@ SingleSelectInput.prototype.doCustomization = function(a, b) {
 SingleSelectInput.prototype.invalidate = function() {
   this._input.removeChildren();
   this.doCustomization(this._input, this._labelInput);
-};
-SingleSelectInput.prototype.updateVisualState = function() {
-  this.isActive() ? (this._input.removeClass("hidden"), this._labelInput.removeClass("hidden")) : (this._input.addClass("hidden"), this._labelInput.addClass("hidden"));
 };
 // Input 11
 var ModuleEditableSelectItem = function(a) {
@@ -1149,17 +1205,25 @@ ModuleEditableItem.prototype.render = function() {
     a._onEnterHandler(a.module, a.editable);
   });
   var c = b.getClosestChildByClassName("panta-checkbox-container");
-  c.getClosestChildByClassName("panta-js-checkbox").checked = !0 === a.editable.show;
-  c.setEventListener("click", function(b) {
+  "calc" !== this.editable.type && (c.removeClass("hidden").getClosestChildByClassName("panta-js-checkbox").checked = !0 === a.editable.show, c.setEventListener("click", function(b) {
     b.preventDefault();
     b.stopPropagation();
     b = b.srcElement.getClosestParentByClassName("panta-checkbox-container").getClosestChildByClassName("panta-js-checkbox");
     b.checked = !b.checked;
     a._onActivationHandler(a.module, a.editable, b.checked);
-  });
-  this._renderColor(b);
+  }), this._renderColor(b));
   this._renderSortable(b);
+  this._renderVisible(b);
   return b;
+};
+ModuleEditableItem.prototype._renderVisible = function(a) {
+  a = a.getClosestChildByClassName("module-helper-visible").getClosestChildByClassName("panta-js-button");
+  a.addClass("hidden");
+  !0 === this.editable.visible && a.removeClass("hidden");
+  a.setEventListener("click", function(a) {
+    a.preventDefault();
+    a.stopPropagation();
+  });
 };
 ModuleEditableItem.prototype._renderSortable = function(a) {
   a = a.getClosestChildByClassName("module-helper-sortable").getClosestChildByClassName("panta-js-button");
@@ -1172,7 +1236,7 @@ ModuleEditableItem.prototype._renderSortable = function(a) {
 };
 ModuleEditableItem.prototype._renderColor = function(a) {
   var b = this;
-  a = a.getClosestChildByClassName("module-editable-color").getClosestChildByClassName("panta-js-button");
+  a = a.getClosestChildByClassName("module-editable-color").removeClass("invisible").getClosestChildByClassName("panta-js-button");
   switch(b.editable.type) {
     case "label":
     case "layout":
@@ -1279,6 +1343,18 @@ ModulePlanController.prototype.getPropertyByName = function(a, b, c) {
       return a.measures || c;
     case "field.b":
       return a.description || c;
+    case "field.c":
+      return a.fee || c;
+    case "field.d":
+      return a.projectFee || c;
+    case "field.e":
+      return a.thirdPartyCharges || c;
+    case "field.f":
+      return a.thirdPartyTotalCosts || c;
+    case "field.g":
+      return a = this.getCapOnDepenses(), isBlank(a) ? c : a;
+    case "field.h":
+      return a.totalCosts || c;
     case "visual":
       return a.visual || c;
     case "form":
@@ -1392,10 +1468,9 @@ ArtikelRepository.prototype.isNew = function(a) {
 };
 // Input 18
 var BeteiligtBinding = function(a, b, c, d, e) {
-  Binding.call(this, a, b, c, d);
+  Binding.call(this, a, b, c, d, e);
   this._activated = this._ad = this._illu = this._video = this._photo = this._text = this._onsite = null;
   this._currentTabIndex = -1;
-  this._configuration = e;
 };
 $jscomp.inherits(BeteiligtBinding, Binding);
 BeteiligtBinding.prototype.initLayouts = function() {
@@ -1432,7 +1507,7 @@ BeteiligtBinding.prototype.update = function(a, b) {
     b.update(a);
   });
   this._entity = a;
-  b && this._updateConfiguration(b);
+  b && this.updateConfiguration(b);
   return this;
 };
 BeteiligtBinding.prototype.bind = function() {
@@ -1490,19 +1565,21 @@ BeteiligtBinding.prototype.onRegularLayout = function(a, b) {
   if (b.show) {
     c = {context:this._context, valueHolder:b, config:this._entity};
     var d = this.getLayoutConfigurationFor("regular", "field.name");
-    a.setField("name", this.document.newSingleLineInput(b, ".pa.name", "name", d.label, c, this._action, d.placeholder, "text", !1));
+    a.setField("name", this.document.newSingleLineInput(b, ".pa.name", "name", d.label, c, this._action, d.placeholder, "text", !1, d.visible));
     d = this.getLayoutConfigurationFor("regular", "field.social");
-    a.setField("social", this.document.newSingleLineInput(b, ".pa.social", "social", d.label, c, this._action, d.placeholder));
+    a.setField("social", this.document.newSingleLineInput(b, ".pa.social", "social", d.label, c, this._action, d.placeholder, "text", !1, d.visible));
     d = this.getLayoutConfigurationFor("regular", "field.address");
-    a.setField("address", this.document.newMultiLineInput(b, ".pa.address", "address", d.label, c, this._action, 2, d.placeholder));
+    a.setField("address", this.document.newMultiLineInput(b, ".pa.address", "address", d.label, c, this._action, 2, d.placeholder, d.visible));
     d = this.getLayoutConfigurationFor("regular", "field.notes");
-    a.setField("notes", this.document.newMultiLineInput(b, ".pa.notes", "notes", d.label, c, this._action, 6, d.placeholder));
+    a.setField("notes", this.document.newMultiLineInput(b, ".pa.notes", "notes", d.label, c, this._action, 6, d.placeholder, d.visible));
     d = this.getLayoutConfigurationFor("regular", "field.deadline");
-    a.setField("duedate", this.document.newSingleLineInput(b, ".pa.duedate", "duedate", d.label, c, this._action, d.placeholder, "text", !1));
-    a.setField("fee", this.document.newSingleLineInput(b, ".pa.fee", "fee", "Honorar Massnahme", c, this._action, "Betrag\u2026", "money", !1));
-    a.setField("charges", this.document.newSingleLineInput(b, ".pa.charges", "charges", "Spesen Massnahme", c, this._action, "Betrag\u2026", "money", !1));
-    a.setField("project", this.document.newSingleLineInput(b, ".pa.project", "project", "Total Beteiligte", c, this._action, "Betrag\u2026", "money", !0).addClass("bold"));
-    a.setField("capOnDepenses", this.document.newSingleLineInput(b, ".pa.cap_on_depenses", "capOnDepenses", "Kostendach Total Projekt", c, this._action, "Betrag\u2026", "money", !1));
+    a.setField("duedate", this.document.newSingleLineInput(b, ".pa.duedate", "duedate", d.label, c, this._action, d.placeholder, "text", !1, d.visible));
+    d = this.getLayoutConfigurationFor("regular", "field.a");
+    a.setField("fee", this.document.newSingleLineInput(b, ".pa.fee", "fee", d.label, c, this._action, d.placeholder, "money", !1, d.visible));
+    d = this.getLayoutConfigurationFor("regular", "field.b");
+    a.setField("charges", this.document.newSingleLineInput(b, ".pa.charges", "charges", d.label, c, this._action, d.placeholder, "money", !1, d.visible));
+    d = this.getLayoutConfigurationFor("regular", "field.c");
+    a.setField("project", this.document.newSingleLineInput(b, ".pa.project", "project", d.label, c, this._action, d.placeholder, "money", !0, d.visible).addClass("bold"));
   }
 };
 BeteiligtBinding.prototype.onAdLayout = function(a, b) {
@@ -1513,21 +1590,21 @@ BeteiligtBinding.prototype.onAdLayout = function(a, b) {
   if (b.show) {
     c = {context:this._context, valueHolder:b, config:this._entity};
     var d = this.getLayoutConfigurationFor("ad", "field.name");
-    a.setField("name", this.document.newSingleLineInput(b, ".pa.name", "name", d.label, c, this._action, d.placeholder, "text", !1));
+    a.setField("name", this.document.newSingleLineInput(b, ".pa.name", "name", d.label, c, this._action, d.placeholder, "text", !1, d.visible));
     d = this.getLayoutConfigurationFor("ad", "field.social");
-    a.setField("social", this.document.newSingleLineInput(b, ".pa.social", "social", d.label, c, this._action, d.placeholder));
+    a.setField("social", this.document.newSingleLineInput(b, ".pa.social", "social", d.label, c, this._action, d.placeholder, "text", !1, d.visible));
     d = this.getLayoutConfigurationFor("ad", "field.address");
-    a.setField("address", this.document.newMultiLineInput(b, ".pa.address", "address", d.label, c, this._action, 2, d.placeholder));
+    a.setField("address", this.document.newMultiLineInput(b, ".pa.address", "address", d.label, c, this._action, 2, d.placeholder, d.visible));
     d = this.getLayoutConfigurationFor("ad", "field.format");
-    a.setField("format", this.document.newSingleLineInput(b, ".pa.format", "format", d.label, c, this._action, d.placeholder, "text", !1));
+    a.setField("format", this.document.newSingleLineInput(b, ".pa.format", "format", d.label, c, this._action, d.placeholder, "text", !1, d.visible));
     d = this.getLayoutConfigurationFor("ad", "field.placement");
-    a.setField("placement", this.document.newSingleLineInput(b, ".pa.placement", "placement", d.label, c, this._action, d.placeholder, "text", !1));
+    a.setField("placement", this.document.newSingleLineInput(b, ".pa.placement", "placement", d.label, c, this._action, d.placeholder, "text", !1, d.visible));
     d = this.getLayoutConfigurationFor("ad", "field.sujet");
-    a.setField("notes", this.document.newMultiLineInput(b, ".pa.notes", "notes", d.label, c, this._action, 2, d.placeholder));
+    a.setField("notes", this.document.newMultiLineInput(b, ".pa.notes", "notes", d.label, c, this._action, 2, d.placeholder, d.visible));
     d = this.getLayoutConfigurationFor("ad", "field.price");
-    a.setField("price", this.document.newSingleLineInput(b, ".pa.price", "price", d.label, c, this._action, d.placeholder, "money", !1));
+    a.setField("price", this.document.newSingleLineInput(b, ".pa.price", "price", d.label, c, this._action, d.placeholder, "money", !1, d.visible));
     d = this.getLayoutConfigurationFor("ad", "field.total");
-    a.setField("total", this.document.newSingleLineInput(b, ".pa.total", "total", d.label, c, this._action, d.placeholder, "money", !0).addClass("bold"));
+    a.setField("total", this.document.newSingleLineInput(b, ".pa.total", "total", d.label, c, this._action, d.placeholder, "money", !0, d.visible).addClass("bold"));
   }
 };
 BeteiligtBinding.prototype.doLabels = function() {
@@ -1541,7 +1618,7 @@ BeteiligtBinding.prototype.doLabels = function() {
     }));
   });
 };
-BeteiligtBinding.prototype._updateConfiguration = function(a) {
+BeteiligtBinding.prototype.updateConfiguration = function(a) {
   this._configuration = a;
   this.doLabels();
   this._updateTab(this._onsite, "onsite");
@@ -1587,19 +1664,6 @@ BeteiligtBinding.prototype.getLayoutConfigurationFor = function(a, b) {
     return a.id === b;
   });
 };
-BeteiligtBinding.prototype.getConfigurationFor = function(a) {
-  var b = this._configuration.config.editables.filter(function(b) {
-    return b.id === a;
-  }), c = b[0].label, d = b.map(function(a) {
-    return a.values;
-  }).flat().map(function(a, b) {
-    return newOption(b, a);
-  }).reduce(function(a, b) {
-    a.push(b);
-    return a;
-  }, []);
-  return {label:c, options:d, editable:b[0]};
-};
 $jscomp.global.Object.defineProperties(BeteiligtBinding.prototype, {configuration:{configurable:!0, enumerable:!0, get:function() {
   return this._configuration;
 }}});
@@ -1609,28 +1673,31 @@ var PluginRepository = function() {
 };
 $jscomp.inherits(PluginRepository, Repository);
 $jscomp.global.Object.defineProperties(PluginRepository, {INSTANCE:{configurable:!0, enumerable:!0, get:function() {
-  PluginRepository.instance || (PluginRepository.instance = new PluginRepository, PluginRepository.instance.add(new PluginModuleConfig("module.artikel", "Artikel", {sort:1, enabled:!1, icon:"ic_artikel.png", desc:"module.artikel.desc", editables:[{id:"title", desc:"module.artikel.label.desc", type:"label", placeholder:"", label:"Artikel", title:"Modul-Titel"}, {id:"visual", desc:"module.artikel.editable.desc", type:"select", label:"1.Liste", color:"blue", active:!0, show:!1, sortable:!1, values:["1.Begriff", 
-  "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"form", desc:"module.artikel.editable.desc", type:"select", label:"2.Liste", color:"green", active:!0, show:!1, sortable:!1, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"online", desc:"module.artikel.editable.desc", type:"select", label:"3.Liste", color:"yellow", active:!0, show:!1, sortable:!1, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"season", desc:"module.artikel.editable.desc", 
-  type:"select", label:"4.Liste", color:"sky", active:!0, show:!1, sortable:!1, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"region", desc:"module.artikel.editable.desc", type:"select", label:"5.Liste", color:"lime", active:!0, show:!1, sortable:!1, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"place", desc:"module.artikel.editable.desc", type:"select", label:"6.Liste", color:"orange", active:!0, show:!1, sortable:!1, values:["1.Begriff", 
-  "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"field.a", desc:"module.artikel.field-a.desc", type:"text", label:"Thema", placeholder:"Lauftext", show:!1, sortable:!1, color:"shades"}, {id:"field.b", desc:"module.artikel.field-b.desc", type:"text", label:"Input von", placeholder:"Name", show:!1, sortable:!1, color:"shades"}, {id:"field.c", desc:"module.artikel.field-c.desc", type:"text", label:"Textautor*in", placeholder:"Name", show:!1, sortable:!1, color:"shades"}, {id:"field.d", desc:"module.artikel.field-d.desc", 
-  type:"text", label:"Textbox", placeholder:"Lauftext", show:!1, sortable:!1, color:"shades"}]}), {id:1}), PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", "Beteiligt", {sort:3, enabled:!1, icon:"ic_beteiligt.png", desc:"module.beteiligt.desc", editables:[{id:"title", desc:"module.beteiligt.label.desc", type:"label", placeholder:"", label:"Beteiligt", title:"Modul-Titel"}, {id:"onsite", desc:"module.beteiligt.layout.onsite", type:"layout", label:"1.Reiter", container:"pa.involved.onsite", 
-  layout:"regular", show:!0, title:"Reiter-Titel"}, {id:"text", desc:"module.beteiligt.layout.text", type:"layout", label:"2.Reiter", container:"pa.involved.text", layout:"regular", show:!0}, {id:"photo", desc:"module.beteiligt.layout.photo", type:"layout", label:"3.Reiter", container:"pa.involved.photo", layout:"regular", show:!0}, {id:"video", desc:"module.beteiligt.layout.video", type:"layout", label:"4.Reiter", container:"pa.involved.video", layout:"regular", show:!0}, {id:"illu", desc:"module.beteiligt.layout.illu", 
-  type:"layout", label:"5.Reiter", container:"pa.involved.illu", layout:"regular", show:!0}, {id:"ad", desc:"module.beteiligt.layout.ad", type:"layout", label:"6.Reiter", container:"pa.involved.ad", layout:"regular", show:!0}], layouts:{regular:{desc:"module.beteiligt.regular.desc", label:"Kontakt", fields:[{id:"field.name", desc:"module.beteiligt.field-name.desc", type:"text", label:"Name", placeholder:"eintippen\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.social", desc:"module.beteiligt.field-social.desc", 
-  type:"text", label:"Telefon.Mail.Webseite", placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.address", desc:"module.beteiligt.field-address.desc", type:"text", label:"Adresse", placeholder:"festhalten\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.notes", desc:"module.beteiligt.field-notes.desc", type:"text", label:"Notizen", placeholder:"formulieren\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.deadline", desc:"module.beteiligt.field-deadline.desc", 
-  type:"text", label:"Deadline", placeholder:"bestimmen\u2026", show:!1, sortable:!1, color:"shades"}]}, ad:{desc:"module.beteiligt.special.desc", label:"Inserat", fields:[{id:"field.sujet", desc:"module.beteiligt.field-sujet.desc", type:"text", label:"Kunde.Sujet", placeholder:"Name.Stichwort\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.format", desc:"module.beteiligt.field-format.desc", type:"text", label:"Format", placeholder:"festhalten\u2026", show:!1, sortable:!1, color:"shades"}, 
-  {id:"field.placement", desc:"module.beteiligt.field-placement.desc", type:"text", label:"Platzierung", placeholder:"vormerken\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.price", desc:"module.beteiligt.field-price.desc", type:"text", label:"Preis CHF", placeholder:"bestimmen\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.total", desc:"module.beteiligt.field-total.desc", type:"text", label:"Total", placeholder:"", show:!1, sortable:!1, color:"shades"}, {id:"field.name", desc:"module.beteiligt.field-name.desc", 
-  type:"text", label:"Kontakt", placeholder:"eintippen\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.social", desc:"module.beteiligt.field-social.desc", type:"text", label:"Telefon.Mail.Webseite", placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.address", desc:"module.beteiligt.field-address.desc", type:"text", label:"Adresse", placeholder:"festhalten\u2026", show:!1, sortable:!1, color:"shades"}]}}}), {id:2}), PluginRepository.instance.add(new PluginModuleConfig("module.plan", 
-  "Plan", {sort:2, enabled:!1, icon:"ic_plan.png", desc:"module.plan.desc", editables:[{id:"title", desc:"module.plan.label.desc", type:"label", placeholder:"", label:"Plan", title:"Modul-Titel"}, {id:"visual", desc:"module.plan.editable.desc", type:"select", label:"1.Liste", color:"blue", show:!1, sortable:!1, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"form", desc:"module.plan.editable.desc", type:"select", label:"2.Liste", color:"green", show:!1, sortable:!1, 
-  values:["1.Begriff", "2.Begriff", "3.Begriff"]}, {id:"online", desc:"module.plan.editable.desc", type:"select", label:"3.Liste", color:"yellow", show:!1, sortable:!1, values:"1.Begriff 2.Begriff 3.Begriff 4.Begriff 5.Begriff 6.Begriff 7.Begriff".split(" ")}, {id:"season", desc:"module.plan.editable.desc", type:"select", label:"4.Liste", color:"sky", show:!1, sortable:!1, values:["1.Begriff", "2.Begriff"]}, {id:"region", desc:"module.plan.editable.desc", type:"select", label:"5.Liste", color:"lime", 
-  show:!1, sortable:!1, values:["1.Begriff", "2.Begriff"]}, {id:"place", desc:"module.plan.editable.desc", type:"select", label:"6.Liste", color:"orange", show:!1, sortable:!1, values:"1.Begriff 2.Begriff 3.Begriff 4.Begriff 5.Begriff 6.Begriff 7.Begriff".split(" ")}, {id:"field.a", desc:"module.plan.field-a.desc", type:"text", label:"Massnahmen", placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}, {id:"field.b", desc:"module.plan.field-b.desc", type:"text", label:"Beschreibung", 
-  placeholder:"notieren\u2026", show:!1, sortable:!1, color:"shades"}]}), {id:3}));
+  PluginRepository.instance || (PluginRepository.instance = new PluginRepository, PluginRepository.instance.add(new PluginModuleConfig("module.artikel", "Artikel", {sort:1, enabled:!1, icon:"ic_artikel.png", desc:"module.artikel.desc", editables:[{id:"title", desc:"module.artikel.label.desc", type:"label", placeholder:"", label:"Artikel", visible:!0, title:"Modul-Titel"}, {id:"visual", desc:"module.artikel.editable.desc", type:"select", label:"1.Liste", color:"blue", show:!1, sortable:!1, visible:!0, 
+  values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"form", desc:"module.artikel.editable.desc", type:"select", label:"2.Liste", color:"green", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"online", desc:"module.artikel.editable.desc", type:"select", label:"3.Liste", color:"yellow", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"season", 
+  desc:"module.artikel.editable.desc", type:"select", label:"4.Liste", color:"sky", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"region", desc:"module.artikel.editable.desc", type:"select", label:"5.Liste", color:"lime", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"place", desc:"module.artikel.editable.desc", type:"select", label:"6.Liste", color:"orange", show:!1, 
+  sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"field.a", desc:"module.artikel.field-a.desc", type:"text", label:"Thema", placeholder:"Lauftext", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.b", desc:"module.artikel.field-b.desc", type:"text", label:"Input von", placeholder:"Name", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.c", desc:"module.artikel.field-c.desc", type:"text", label:"Textautor*in", placeholder:"Name", 
+  show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.d", desc:"module.artikel.field-d.desc", type:"text", label:"Textbox", placeholder:"Lauftext", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.e", desc:"module.artikel.field-e.desc", type:"text", label:"Pagina", placeholder:"Zahl", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.f", desc:"module.artikel.field-f.desc", type:"text", label:"Seiten Layout", placeholder:"Zahl", show:!1, sortable:!1, visible:!0, 
+  color:"shades"}, {id:"field.g", desc:"module.artikel.field-g.desc", type:"calc", label:"Seiten Total", placeholder:"Summe", show:!1, sortable:!1, visible:!0, color:"shades"}]}), {id:1}), PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", "Beteiligt", {sort:3, enabled:!1, icon:"ic_beteiligt.png", desc:"module.beteiligt.desc", editables:[{id:"title", desc:"module.beteiligt.label.desc", type:"label", placeholder:"", label:"Beteiligt", title:"Modul-Titel"}, {id:"onsite", desc:"module.beteiligt.layout.onsite", 
+  type:"layout", label:"1.Reiter", container:"pa.involved.onsite", layout:"regular", show:!0, title:"Reiter-Titel"}, {id:"text", desc:"module.beteiligt.layout.text", type:"layout", label:"2.Reiter", container:"pa.involved.text", layout:"regular", show:!0}, {id:"photo", desc:"module.beteiligt.layout.photo", type:"layout", label:"3.Reiter", container:"pa.involved.photo", layout:"regular", show:!0}, {id:"video", desc:"module.beteiligt.layout.video", type:"layout", label:"4.Reiter", container:"pa.involved.video", 
+  layout:"regular", show:!0}, {id:"illu", desc:"module.beteiligt.layout.illu", type:"layout", label:"5.Reiter", container:"pa.involved.illu", layout:"regular", show:!0}, {id:"ad", desc:"module.beteiligt.layout.ad", type:"layout", label:"6.Reiter", container:"pa.involved.ad", layout:"regular", show:!0}], layouts:{regular:{desc:"module.beteiligt.regular.desc", label:"Kontakt", fields:[{id:"field.name", desc:"module.beteiligt.field-name.desc", type:"text", label:"Name", placeholder:"eintippen\u2026", 
+  show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.social", desc:"module.beteiligt.field-social.desc", type:"text", label:"Telefon.Mail.Webseite", placeholder:"notieren\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.address", desc:"module.beteiligt.field-address.desc", type:"text", label:"Adresse", placeholder:"festhalten\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.notes", desc:"module.beteiligt.field-notes.desc", type:"text", label:"Notizen", 
+  placeholder:"formulieren\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.deadline", desc:"module.beteiligt.field-deadline.desc", type:"text", label:"Deadline", placeholder:"bestimmen\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.a", desc:"module.beteiligt.field-a.desc", type:"text", label:"Honorar Massnahme", placeholder:"Betrag\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.b", desc:"module.beteiligt.field-b.desc", type:"text", 
+  label:"Spesen Massnahme", placeholder:"Betrag\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.c", desc:"module.beteiligt.field-c.desc", type:"calc", label:"Total Beteiligte", placeholder:"Betrag\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}]}, ad:{desc:"module.beteiligt.special.desc", label:"Inserat", fields:[{id:"field.sujet", desc:"module.beteiligt.field-sujet.desc", type:"text", label:"Kunde.Sujet", placeholder:"Name.Stichwort\u2026", show:!1, sortable:!1, visible:!0, 
+  color:"shades"}, {id:"field.format", desc:"module.beteiligt.field-format.desc", type:"text", label:"Format", placeholder:"festhalten\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.placement", desc:"module.beteiligt.field-placement.desc", type:"text", label:"Platzierung", placeholder:"vormerken\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.price", desc:"module.beteiligt.field-price.desc", type:"text", label:"Preis CHF", placeholder:"bestimmen\u2026", 
+  show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.total", desc:"module.beteiligt.field-total.desc", type:"text", label:"Total", placeholder:"", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.name", desc:"module.beteiligt.field-name.desc", type:"text", label:"Kontakt", placeholder:"eintippen\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.social", desc:"module.beteiligt.field-social.desc", type:"text", label:"Telefon.Mail.Webseite", placeholder:"notieren\u2026", 
+  show:!1, sortable:!1, color:"shades"}, {id:"field.address", desc:"module.beteiligt.field-address.desc", type:"text", label:"Adresse", placeholder:"festhalten\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}]}}}), {id:2}), PluginRepository.instance.add(new PluginModuleConfig("module.plan", "Plan", {sort:2, enabled:!1, icon:"ic_plan.png", desc:"module.plan.desc", editables:[{id:"title", desc:"module.plan.label.desc", type:"label", placeholder:"", label:"Plan", title:"Modul-Titel", visible:!0}, 
+  {id:"visual", desc:"module.plan.editable.desc", type:"select", label:"1.Liste", color:"blue", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"form", desc:"module.plan.editable.desc", type:"select", label:"2.Liste", color:"green", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff"]}, {id:"online", desc:"module.plan.editable.desc", type:"select", label:"3.Liste", color:"yellow", show:!1, sortable:!1, visible:!0, 
+  values:"1.Begriff 2.Begriff 3.Begriff 4.Begriff 5.Begriff 6.Begriff 7.Begriff".split(" ")}, {id:"season", desc:"module.plan.editable.desc", type:"select", label:"4.Liste", color:"sky", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff"]}, {id:"region", desc:"module.plan.editable.desc", type:"select", label:"5.Liste", color:"lime", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff"]}, {id:"place", desc:"module.plan.editable.desc", type:"select", label:"6.Liste", color:"orange", 
+  show:!1, sortable:!1, visible:!0, values:"1.Begriff 2.Begriff 3.Begriff 4.Begriff 5.Begriff 6.Begriff 7.Begriff".split(" ")}, {id:"field.a", desc:"module.plan.field-a.desc", type:"text", label:"Massnahmen", placeholder:"notieren\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.b", desc:"module.plan.field-b.desc", type:"text", label:"Beschreibung", placeholder:"notieren\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.c", desc:"module.plan.field-c.desc", 
+  type:"calc", label:"Total Honorar Beteiligte", placeholder:"", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.d", desc:"module.plan.field-d.desc", type:"calc", label:"Total Honorar Projekt", placeholder:"", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.e", desc:"module.plan.field-e.desc", type:"calc", label:"Total Spesen Beteiligte", placeholder:"", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.f", desc:"module.plan.field-f.desc", type:"calc", label:"Total Spesen Projekt", 
+  placeholder:"", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.g", desc:"module.plan.field-g.desc", type:"text", label:"Kostendach Projekt\u2026", placeholder:"Betrag\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.h", desc:"module.plan.field-h.desc", type:"calc", label:"Total Projekt", placeholder:"Betrag\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}]}), {id:3}));
   return PluginRepository.instance;
 }}});
 PluginRepository.instance = null;
 // Input 20
 var ArtikelBinding = function(a, b, c, d, e) {
-  Binding.call(this, a, b, c, d);
-  this._configuration = e;
+  Binding.call(this, a, b, c, d, e);
 };
 $jscomp.inherits(ArtikelBinding, Binding);
 ArtikelBinding.getRegionMapping = function(a) {
@@ -1661,7 +1728,7 @@ ArtikelBinding.prototype.update = function(a, b) {
   this._season.update(a);
   this._form.update(a);
   this._location.update(a);
-  b && this._updateConfiguration(b);
+  b && this.updateConfiguration(b);
   return this;
 };
 ArtikelBinding.prototype.bind = function() {
@@ -1674,16 +1741,19 @@ ArtikelBinding.prototype.onLayout = function(a, b) {
   c = c.cloneNode(!0);
   this._switchContent(c);
   c = this.getConfigurationFor("field.a");
-  this._topic = this.document.newMultiLineInput(a, "pa.topic", "topic", c.label, b, this._action, 2, c.editable.placeholder);
-  this._layout = this.document.newSingleLineInput(a, "pa.layout", "layout", "Seiten Layout", b, this._action, "Zahl", "number", !1);
+  this._topic = this.document.newMultiLineInput(a, "pa.topic", "topic", c.label, b, this._action, 2, c.editable.placeholder, c.editable.visible);
+  var d = this.getConfigurationFor("field.f");
+  this._layout = this.document.newSingleLineInput(a, "pa.layout", "layout", d.label, b, this._action, d.editable.placeholder, "number", !1, c.editable.visible);
   c = this.getConfigurationFor("field.b");
-  this._from = this.document.newSingleLineInput(a, "pa.input-from", "from", c.label, b, this._action, c.editable.placeholder);
+  this._from = this.document.newSingleLineInput(a, "pa.input-from", "from", c.label, b, this._action, c.editable.placeholder, "text", !1, c.editable.visible);
   c = this.getConfigurationFor("field.c");
-  this._author = this.document.newSingleLineInput(a, "pa.author", "author", c.label, b, this._action, c.editable.placeholder);
-  this._total = this.document.newSingleLineInput(a, "pa.total", "total", "Seiten Total", b, this._action, "Summe", "number", !0).addClass("bold");
+  this._author = this.document.newSingleLineInput(a, "pa.author", "author", c.label, b, this._action, c.editable.placeholder, "text", !1, c.editable.visible);
+  c = this.getConfigurationFor("field.g");
+  this._total = this.document.newSingleLineInput(a, "pa.total", "total", c.label, b, this._action, c.editable.placeholder, "number", !0, c.editable.visible).addClass("bold");
   c = this.getConfigurationFor("field.d");
-  this._text = this.document.newMultiLineInput(a, "pa.text", "text", c.label, b, this._action, 2, c.editable.placeholder);
-  this._pagina = this.document.newSingleLineInput(a, "pa.pagina", "pagina", "Pagina", b, this._action, "Zahl", "number", !1).addClass("pagina").addClass("bold");
+  this._text = this.document.newMultiLineInput(a, "pa.text", "text", c.label, b, this._action, 2, c.editable.placeholder, c.editable.visible);
+  c = this.getConfigurationFor("field.e");
+  this._pagina = this.document.newSingleLineInput(a, "pa.pagina", "pagina", c.label, b, this._action, c.editable.placeholder, "number", !1, c.editable.visible).addClass("pagina").addClass("bold");
   this._tags = this.doLayout("pa.tags", "tags", a, b, "online");
   this._visual = this.doLayout("pa.visual", "visual", a, b);
   this._region = this.doLayout("pa.region", "region", a, b);
@@ -1714,47 +1784,23 @@ ArtikelBinding.prototype._initLayout = function() {
 };
 ArtikelBinding.prototype.doLayout = function(a, b, c, d, e) {
   e = this.getConfigurationFor(e || b);
-  return this.document.newSingleSelect(c, a, b, e.label, d, this._action, "Liste-Tag", newOption("-1", "\u2026"), e.options);
+  return this.document.newSingleSelect(c, a, b, e.label, d, this._action, "Liste-Tag", newOption("-1", "\u2026"), e.options, e.editable.visible);
 };
-ArtikelBinding.prototype.updateText = function(a, b) {
-  b = this.getConfigurationFor(b);
-  a.setLabel(b.editable.label);
-  a.setPlaceholder(b.editable.placeholder);
-};
-ArtikelBinding.prototype.updateSelect = function(a, b) {
-  b = this.getConfigurationFor(b);
-  a.clear();
-  a.setLabel(b.label);
-  a.addOption("-1", "\u2026");
-  a.addOptions(b.options);
-  a.setActive(b.active);
-  a.invalidate();
-};
-ArtikelBinding.prototype._updateConfiguration = function(a) {
+ArtikelBinding.prototype.updateConfiguration = function(a) {
   this._configuration = a;
-  this.updateText(this._topic, "field.a");
-  this.updateText(this._from, "field.b");
-  this.updateText(this._author, "field.c");
-  this.updateText(this._text, "field.d");
-  this.updateSelect(this._tags, "online");
-  this.updateSelect(this._visual, "visual");
-  this.updateSelect(this._region, "region");
-  this.updateSelect(this._season, "season");
-  this.updateSelect(this._form, "form");
-  this.updateSelect(this._location, "place");
-};
-ArtikelBinding.prototype.getConfigurationFor = function(a) {
-  var b = this._configuration.config.editables.filter(function(b) {
-    return b.id === a;
-  }), c = b[0].label, d = b.map(function(a) {
-    return a.values;
-  }).flat().map(function(a, b) {
-    return newOption(b, a);
-  }).reduce(function(a, b) {
-    a.push(b);
-    return a;
-  }, []);
-  return {label:c, options:d, editable:b[0]};
+  this.updateField(this._topic, "field.a");
+  this.updateField(this._from, "field.b");
+  this.updateField(this._author, "field.c");
+  this.updateField(this._text, "field.d");
+  this.updateField(this._pagina, "field.e");
+  this.updateField(this._layout, "field.f");
+  this.updateField(this._total, "field.g");
+  this.updateField(this._tags, "online");
+  this.updateField(this._visual, "visual");
+  this.updateField(this._region, "region");
+  this.updateField(this._season, "season");
+  this.updateField(this._form, "form");
+  this.updateField(this._location, "place");
 };
 // Input 21
 var ClientManager = function(a, b, c) {
@@ -1771,8 +1817,8 @@ ClientManager.assertClientManager = function(a, b, c) {
   ClientManager.getOrCreateClientManager(a, b, c).init();
 };
 ClientManager.getOrCreateClientManager = function(a, b, c) {
-  a.hasOwnProperty("clientManager") || (a.clientManager = new ClientManager(a, b, c), a.addEventListener("beforeunload", function(a) {
-    a.target.defaultView instanceof Window && a.target.defaultView.clientManager && (a.target.defaultView.clientManager.onUnload(), delete a.target.defaultView.clientManager);
+  a.hasOwnProperty("clientManager") || (a.clientManager = new ClientManager(a, b, c), a.addEventListener("beforeunload", function(b) {
+    b.target.defaultView instanceof Window && b.target.defaultView.clientManager && (b.target.defaultView.clientManager.onUnload(), a._manager = b.target.defaultView.clientManager, delete a._manager);
   }), a.addEventListener("keypress", function(b) {
     127 === b.keyCode ? a.clientManager.flushKeyBuffer.call(a.clientManager) : 13 === b.keyCode || 10 === b.keyCode ? "remove" === a.clientManager.readKeyBuffer.call(a.clientManager) && (a.clientManager.removePluginData.call(a.clientManager), a.clientManager.flushKeyBuffer.call(a.clientManager)) : a.clientManager.appendKeyBuffer.call(a.clientManager, b.key);
   }));
@@ -1968,13 +2014,14 @@ ClientManager.prototype.getPlanModuleContext = function(a) {
   var b = this;
   return {id:"module.plan", shared:ModulePlanController.SHARED_NAME, card:a, configuration:b.getModuleConfiguration("module.plan"), condition:b.isPlanModuleEnabled(), on:function() {
     var c = [], d = b.getPlanController().getByCard(a);
+    console.log("getPlanModuleContext's entity", d);
     b.getPlanController().hasContent(d) && c.push({text:"", icon:"./assets/ic_plan.png"});
     return b.getModuleConfiguration("module.plan").then(function(a) {
       return a.config.editables;
     }).filter(function(a) {
-      return b.getPlanController().getMapping(a, d, null) && !0 === a.show;
+      return null !== b.getPlanController().getMapping(a, d, null) && !0 === a.show;
     }).map(function(a) {
-      return {text:a.label + ": " + b.getPlanController().getMapping(a, d, ""), color:a.color};
+      return {text:a.label + ": " + b.getPlanController().getMapping(a, d, "-"), color:a.color};
     }).reduce(function(a, b) {
       a.push(b);
       return a;
@@ -2080,6 +2127,12 @@ ArtikelController.prototype.getPropertyByName = function(a, b, c) {
       return a.author || c;
     case "field.d":
       return a.text || c;
+    case "field.e":
+      return a.pagina || c;
+    case "field.f":
+      return a.layout || c;
+    case "field.g":
+      return a.total || c;
     default:
       return a.hasOwnProperty(b), a[b];
   }
@@ -2441,6 +2494,7 @@ ModuleSettingsController.prototype.view = function(a) {
       c.appendChild(d);
       b.renderFieldGroup(a, "label", c, "Beschriftungen");
       b.renderFieldGroup(a, "text", c, "Eingabefelder");
+      b.renderFieldGroup(a, "calc", c, "Berechnete Felder");
       b.renderFieldGroup(a, "select", c, "Auswahllisten");
       b.renderFieldGroup(a, "layout", c, "Layouts");
     });
@@ -2453,6 +2507,7 @@ ModuleSettingsController.prototype.renderEditable = function(a, b, c) {
     case "select":
       this.renderEditableSelect(a, b, c, "Stichworte");
       break;
+    case "calc":
     case "text":
       this.renderEditableText(a, b, c, "Platzhalter");
       break;
@@ -2501,6 +2556,7 @@ ModuleSettingsController.prototype.renderLayoutForm = function(a, b, c) {
     e.fields.forEach(function(b) {
       d.renderEditableLabel(a, c, b, "Beschriftung");
       d.renderEditable(a, b, c);
+      d.hr(c);
     });
   });
 };
@@ -2513,13 +2569,19 @@ ModuleSettingsController.prototype.renderEditableText = function(a, b, c, d) {
   var e = this, f = this.document.createElement("span");
   f.innerHTML = "<strong>" + d + "</strong>";
   c.appendChild(f);
-  d = new ModuleEditableTextItem(b.placeholder, !1);
+  d = new ModuleEditableTextItem(b.placeholder, !1, !1);
   c.appendChild(d.setOnTextChangeListener(function(c, d) {
     if (b.placeholder !== d) {
       return b.placeholder = d, e.pluginController.setPluginModuleConfig(a).then(function() {
         console.log("Values updated");
       }), d;
     }
+  }).setOnVisibleToggleListener(function() {
+    b.visible = !b.visible;
+    e.pluginController.setPluginModuleConfig(a).then(function() {
+      console.log("Values updated");
+    });
+    return b.visible;
   }).render());
 };
 ModuleSettingsController.prototype.renderEditableSelect = function(a, b, c, d) {
@@ -2527,7 +2589,7 @@ ModuleSettingsController.prototype.renderEditableSelect = function(a, b, c, d) {
   f.innerHTML = "<strong>" + d + "</strong>";
   c.appendChild(f);
   b.values.map(function(c) {
-    c = new ModuleEditableTextItem(c, !0);
+    c = new ModuleEditableTextItem(c, !0, !1);
     c.setOnDeleteListener(function(c) {
       confirm("Feld l\u00f6schen", "M\u00f6chten Sie das Feld endg\u00fcltig l\u00f6schen?") && (c = b.values.indexOf(c), -1 !== c && b.values.splice(c, 1), e.pluginController.setPluginModuleConfig(a).then(function() {
         console.log("Field deleted");
@@ -2540,6 +2602,12 @@ ModuleSettingsController.prototype.renderEditableSelect = function(a, b, c, d) {
         console.log("Values updated");
       });
       return d;
+    });
+    c.setOnVisibleToggleListener(function() {
+      b.visible = !b.visible;
+      e.pluginController.setPluginModuleConfig(a).then(function() {
+        console.log("Values updated");
+      });
     });
     return c.render();
   }).reduce(function(a, b) {
@@ -2577,11 +2645,22 @@ ModuleSettingsController.prototype.renderEditableLabel = function(a, b, c, d) {
   var e = this, f = e.document.createElement("span");
   f.innerHTML = "<strong>" + d + "</strong>";
   b.appendChild(f);
-  d = new ModuleEditableTextItem(c.label, !1);
+  d = new ModuleEditableTextItem(c.label, !1, !0);
   d.setOnTextChangeListener(function(b, d) {
     c.label = d;
     e.pluginController.setPluginModuleConfig(a).then(function() {
       console.log("Label updated");
+    });
+  });
+  d.setOnVisibleToggleListener(function() {
+    c.visible = !c.visible;
+    e.pluginController.setPluginModuleConfig(a).then(function() {
+      console.log("Values updated. Visible: " + c.visible);
+    });
+  });
+  d.setOnReadyListener(function(a) {
+    a.getElementsByClassName("panta-js-visible").forEach(function(a) {
+      a.getClosestChildByTagName("img").setAttribute("src", c.visible ? "assets/ic_visible.png" : "assets/ic_invisible.png");
     });
   });
   b.appendChild(d.render());
@@ -2594,7 +2673,7 @@ ModuleSettingsController.prototype.renderFieldGroup = function(a, b, c, d) {
   f.innerHTML = "<strong>" + d + "</strong>";
   c.appendChild(f);
   h.map(function(b) {
-    return (new ModuleEditableItem(a, b, e.trello)).setOnEnterListener(function(a, b) {
+    return (new ModuleEditableItem(a, b)).setOnEnterListener(function(a, b) {
       e.trello.popup({title:b.label, url:"settings.html", height:184, args:{module:a.id, editable:b.id}});
     }).setOnActivationListener(function(a, b, c) {
       b.show = c;
@@ -2655,6 +2734,9 @@ ModuleSettingsController.prototype.clearContent = function() {
 };
 ModuleSettingsController.prototype.nl = function(a) {
   a.appendChild(this.document.createElement("br"));
+};
+ModuleSettingsController.prototype.hr = function(a) {
+  a.appendChild(this.document.createElement("hr"));
 };
 ModuleSettingsController.prototype.hideVersion = function() {
   this.document.getElementsByClassName("plugin-version-container").forEach(function(a) {
@@ -2785,8 +2867,7 @@ var ModulePlanRepository = function() {
 $jscomp.inherits(ModulePlanRepository, Repository);
 // Input 27
 var ModulePlanBinding = function(a, b, c, d, e) {
-  Binding.call(this, a, b, c, d);
-  this._configuration = e;
+  Binding.call(this, a, b, c, d, e);
 };
 $jscomp.inherits(ModulePlanBinding, Binding);
 ModulePlanBinding.prototype.update = function(a, b) {
@@ -2805,7 +2886,7 @@ ModulePlanBinding.prototype.update = function(a, b) {
   this._season.update(a);
   this._place.update(a);
   this._entity = a;
-  b ? (console.log("Update configuration", b), this._updateConfiguration(b)) : console.log("No new configuration");
+  b && this.updateConfiguration(b);
   return this;
 };
 ModulePlanBinding.prototype.bind = function() {
@@ -2817,15 +2898,21 @@ ModulePlanBinding.prototype.onLayout = function(a) {
   this._switchContent(b);
   b = {context:this._context, valueHolder:a, entity:this._entity};
   var c = this.getConfigurationFor("field.a");
-  this._measures = this.document.newMultiLineInput(a, ".pa.plan.measures", "measures", c.label, b, this._action, 2, c.editable.placeholder).addClass("multiline");
+  this._measures = this.document.newMultiLineInput(a, ".pa.plan.measures", "measures", c.label, b, this._action, 2, c.editable.placeholder, c.editable.visible).addClass("multiline");
   c = this.getConfigurationFor("field.b");
-  this._description = this.document.newMultiLineInput(a, ".pa.plan.description", "description", c.label, b, this._action, 3, c.editable.placeholder).addClass("rows-2");
-  this._fee = this.document.newSingleLineInput(a, ".pa.plan.fee", "fee", "Total Honorar Beteiligte", b, this._action, "", "money", !0).addClass("multiline", !0);
-  this._charges = this.document.newSingleLineInput(a, ".pa.plan.projectFee", "projectFee", "Total Honorar Projekt", b, this._action, "", "money", !0).addClass("multiline", !0).addClass("bold");
-  this._thirdPartyCharges = this.document.newSingleLineInput(a, ".pa.plan.thirdPartyCharges", "thirdPartyCharges", "Total Spesen Beteiligte", b, this._action, "", "money", !0).addClass("multiline", !0);
-  this._thirdPartyTotalCosts = this.document.newSingleLineInput(a, ".pa.plan.thirdPartyTotalCosts", "thirdPartyTotalCosts", "Total Spesen Projekt", b, this._action, "", "money", !0).addClass("bold").addClass("multiline", !0);
-  this._capOnDepenses = this.document.newSingleLineInput(a, ".pa.plan.capOnDepenses", "capOnDepenses", "Kostendach Projekt\u2026", b, this._action, "Betrag\u2026", "money", !1).addClass("multiline", !0);
-  this._totalCosts = this.document.newSingleLineInput(a, ".pa.plan.totalCosts", "totalCosts", "Total Projekt", b, this._action, "Betrag\u2026", "money", !0).addClass("bold").addClass("multiline", !0).addConditionalFormatting(function(a) {
+  this._description = this.document.newMultiLineInput(a, ".pa.plan.description", "description", c.label, b, this._action, 3, c.editable.placeholder, c.editable.visible).addClass("rows-2");
+  c = this.getConfigurationFor("field.c");
+  this._fee = this.document.newSingleLineInput(a, ".pa.plan.fee", "fee", c.label, b, this._action, c.editable.placeholder, "money", !0, c.editable.visible).addClass("multiline", !0);
+  c = this.getConfigurationFor("field.d");
+  this._charges = this.document.newSingleLineInput(a, ".pa.plan.projectFee", "projectFee", c.label, b, this._action, c.editable.placeholder, "money", !0, c.editable.visible).addClass("multiline", !0).addClass("bold");
+  c = this.getConfigurationFor("field.e");
+  this._thirdPartyCharges = this.document.newSingleLineInput(a, ".pa.plan.thirdPartyCharges", "thirdPartyCharges", c.label, b, this._action, c.editable.placeholder, "money", !0, c.editable.visible).addClass("multiline", !0);
+  c = this.getConfigurationFor("field.f");
+  this._thirdPartyTotalCosts = this.document.newSingleLineInput(a, ".pa.plan.thirdPartyTotalCosts", "thirdPartyTotalCosts", c.label, b, this._action, c.editable.placeholder, "money", !0, c.editable.visible).addClass("bold").addClass("multiline", !0);
+  c = this.getConfigurationFor("field.g");
+  this._capOnDepenses = this.document.newSingleLineInput(a, ".pa.plan.capOnDepenses", "capOnDepenses", c.label, b, this._action, c.editable.placeholder, "money", !1, c.editable.visible).addClass("multiline", !0);
+  c = this.getConfigurationFor("field.h");
+  this._totalCosts = this.document.newSingleLineInput(a, ".pa.plan.totalCosts", "totalCosts", c.label, b, this._action, c.editable.placeholder, "money", !0, c.editable.visible).addClass("bold").addClass("multiline", !0).addConditionalFormatting(function(a) {
     return {name:"rule-costs-exceeded", active:a.capOnDepenses < a.totalCosts};
   }, !1);
   this._visual = this.doLayout("pa.plan.visual", "visual", a, b);
@@ -2841,44 +2928,24 @@ ModulePlanBinding.prototype.detach = function() {
 };
 ModulePlanBinding.prototype.doLayout = function(a, b, c, d, e) {
   e = this.getConfigurationFor(e || b);
-  return this.document.newSingleSelect(c, a, b, e.label, d, this._action, "Liste-Tag", newOption("-1", "\u2026"), e.options);
+  return this.document.newSingleSelect(c, a, b, e.label, d, this._action, "Liste-Tag", newOption("-1", "\u2026"), e.options, e.editable.visible);
 };
-ModulePlanBinding.prototype.updateText = function(a, b) {
-  b = this.getConfigurationFor(b);
-  a.setLabel(b.editable.label);
-  a.setPlaceholder(b.editable.placeholder);
-};
-ModulePlanBinding.prototype.updateSelect = function(a, b) {
-  b = this.getConfigurationFor(b);
-  a.clear();
-  a.setLabel(b.label);
-  a.addOption("-1", "\u2026");
-  a.addOptions(b.options);
-  a.invalidate();
-};
-ModulePlanBinding.prototype._updateConfiguration = function(a) {
+ModulePlanBinding.prototype.updateConfiguration = function(a) {
   this._configuration = a;
-  this.updateText(this._measures, "field.a");
-  this.updateText(this._description, "field.b");
-  this.updateSelect(this._online, "online");
-  this.updateSelect(this._visual, "visual");
-  this.updateSelect(this._region, "region");
-  this.updateSelect(this._season, "season");
-  this.updateSelect(this._form, "form");
-  this.updateSelect(this._place, "place");
-};
-ModulePlanBinding.prototype.getConfigurationFor = function(a) {
-  var b = this._configuration.config.editables.filter(function(b) {
-    return b.id === a;
-  }), c = b[0].label, d = b.map(function(a) {
-    return a.values;
-  }).flat().map(function(a, b) {
-    return newOption(b, a);
-  }).reduce(function(a, b) {
-    a.push(b);
-    return a;
-  }, []);
-  return {label:c, options:d, editable:b[0]};
+  this.updateField(this._measures, "field.a");
+  this.updateField(this._description, "field.b");
+  this.updateField(this._fee, "field.c");
+  this.updateField(this._charges, "field.d");
+  this.updateField(this._thirdPartyCharges, "field.e");
+  this.updateField(this._thirdPartyTotalCosts, "field.f");
+  this.updateField(this._capOnDepenses, "field.g");
+  this.updateField(this._totalCosts, "field.h");
+  this.updateField(this._online, "online");
+  this.updateField(this._visual, "visual");
+  this.updateField(this._region, "region");
+  this.updateField(this._season, "season");
+  this.updateField(this._form, "form");
+  this.updateField(this._place, "place");
 };
 ModulePlanBinding.prototype._switchContent = function(a) {
   var b = this._initContent();
@@ -3496,13 +3563,13 @@ function uuid() {
     return ("x" === b ? c : c & 3 | 8).toString(16);
   });
 }
-HTMLDocument.prototype.newMultiLineInput = function(a, b, c, d, e, f, h, g) {
-  return (new MultiLineInput(this, d, null, b, void 0 === g ? "" : g, void 0 === h ? 2 : h, !1)).bind(a.data, c).onFocus(f, e).onEnterEditing(f, e).onChange(f, e).render();
+HTMLDocument.prototype.newMultiLineInput = function(a, b, c, d, e, f, h, g, k) {
+  return (new MultiLineInput(this, d, null, b, void 0 === g ? "" : g, void 0 === h ? 2 : h, !1, void 0 === k ? !0 : k)).bind(a.data, c).onFocus(f, e).onEnterEditing(f, e).onChange(f, e).render();
 };
-HTMLDocument.prototype.newSingleLineInput = function(a, b, c, d, e, f, h, g, k) {
+HTMLDocument.prototype.newSingleLineInput = function(a, b, c, d, e, f, h, g, k, l) {
   g = void 0 === g ? "text" : g;
   k = void 0 === k ? !1 : k;
-  b = new SingleLineInput(this, d, null, b, void 0 === h ? "" : h, k);
+  b = new SingleLineInput(this, d, null, b, void 0 === h ? "" : h, k, void 0 === l ? !0 : l);
   b.propertyType = g || "text";
   null !== c && b.bind(a.data, c);
   a = function() {
@@ -3510,13 +3577,13 @@ HTMLDocument.prototype.newSingleLineInput = function(a, b, c, d, e, f, h, g, k) 
   b.onFocus(f, e).onEnterEditing(f, e).onChange(k ? a : f, e).render();
   return b;
 };
-HTMLDocument.prototype.newSingleSelect = function(a, b, c, d, e, f, h, g, k) {
-  var l = (new SingleSelectInput(this, d, null, b, void 0 === h ? "" : h)).bind(a.data, c).onFocus(f, e).onEnterEditing(f, e).onChange(f, e);
+HTMLDocument.prototype.newSingleSelect = function(a, b, c, d, e, f, h, g, k, l) {
+  var m = (new SingleSelectInput(this, d, null, b, void 0 === h ? "" : h, !1, void 0 === l ? !0 : l)).bind(a.data, c).onFocus(f, e).onEnterEditing(f, e).onChange(f, e);
   k.forEach(function(a, b) {
-    l.addOption(a.value, a.text);
+    m.addOption(a.value, a.text);
   });
-  l.setEmpty(g.value, g.text);
-  return l.render();
+  m.setEmpty(g.value, g.text);
+  return m.render();
 };
 HTMLDocument.prototype.createStylesheet = function(a) {
   var b = this.createElement("link");
@@ -3565,6 +3632,9 @@ function isNumber(a) {
 function __(a) {
   return TEXTS[a];
 }
+function isSet(a) {
+  return !("undefined" === typeof a || null === a);
+}
 ;
 // Input 35
 var template_regular = '<div id="template">    <div class="row">        <div class="col-6 col-phone-12">            <div class="row">                <div class="col-12 col-phone-12">                    <div class="pa.name"></div>                </div>                <div class="col-12 col-phone-12">                    <div class="pa.social"></div>                </div>            </div>        </div>        <div class="col-6 col-phone-12 line-4 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-6 col-phone-12">            <div class="pa.address"></div>        </div>        <div class="col-6 col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-12 col-phone-12">            <div class="row">                <div class="col-4 col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
@@ -3573,9 +3643,9 @@ template_ad = '<div id="template" class="row">    <div class="col-6 col-phone-12
 template_plan = '<div id="template">    <div class="row">        <div class="col-6 line-2">            <div class="pa.plan.measures"></div>        </div>        <div class="col-3">            <div class="pa.plan.fee"></div>        </div>        <div class="col-3">            <div class="pa.plan.projectFee"></div>        </div>    </div>    <div class="row">        <div class="col-6 line-6">            <div class="pa.plan.description"></div>        </div>        <div class="col-6">            <div class="row">                <div class="col-6">                    <div class="pa.plan.thirdPartyCharges"></div>                </div>                <div class="col-6">                    <div class="pa.plan.thirdPartyTotalCosts"></div>                </div>                <div class="col-6">                    <div class="pa.plan.capOnDepenses"></div>                </div>                <div class="col-6 line-2">                    <div class="pa.plan.totalCosts"></div>                </div>            </div>        </div>    </div>    <div class="row">        <div class="col-2">            <div id="pa.plan.visual"></div>        </div>        <div class="col-2">            <div id="pa.plan.form"></div>        </div>        <div class="col-2">            <div id="pa.plan.online"></div>        </div>        <div class="col-2">            <div id="pa.plan.season"></div>        </div>        <div class="col-2">            <div id="pa.plan.region"></div>        </div>        <div class="col-2">            <div id="pa.plan.place"></div>        </div>    </div></div>', 
 template_artikel = '<div id="template">    <div class="row">        <div class="col-9 col-phone-9">            <div id="pa.topic"></div>        </div>        <div class="col-3 col-phone-3">            <div id="pa.pagina"></div>        </div>    </div>    <div class="row mobile-row">        <div class="col-9 col-phone-9">            <div class="row">                <div class="col-6 col-phone-6">                    <div id="pa.input-from"></div>                </div>                <div class="col-6 col-phone-6">                    <div id="pa.author"></div>                </div>            </div>        </div>        <div class="col-3 col-phone-3">            <div id="pa.layout"></div>        </div>    </div>    <div class="row mobile-row">        <div class="col-9 col-phone-9">            <div id="pa.text"></div>        </div>        <div class="col-3 col-phone-3">            <div id="pa.total"></div>        </div>    </div>    <div class="col-12 col-phone-12">        <div class="row">            <div class="col-2 col-phone-4">                <div id="pa.visual"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.form"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.tags"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.season"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.region"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.location"></div>            </div>        </div>    </div></div>', 
 template_plan_mobile = '<div id="template">    <div class="row">        <div class="col-phone-12 line-phone-2">            <div class="pa.plan.measures"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12 line-phone-4">            <div class="pa.plan.description"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.fee"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.projectFee"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.thirdPartyCharges"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.thirdPartyTotalCosts"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.capOnDepenses"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.totalCosts"></div>        </div>    </div>    <div class="row">        <div class=" col-phone-4">            <div id="pa.plan.visual"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.form"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.online"></div>        </div>    </div>    <div class="row">        <div class=" col-phone-4">            <div id="pa.plan.season"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.region"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.place"></div>        </div>    </div></div>', 
-template_settings_switch = '<div class="row module-switch-container">    <div class="col-2">       <div class="panta-module-enabled">           <label class="panta-checkbox-container">              <input class="panta-js-checkbox" type="checkbox" checked="checked">               <span class="panta-checkbox-checkmark elevate"></span>           </label>       </div>    </div>    <div class="col-10 switch-title"></div></div>', template_settings_module = '<div class="row module-container">    <div class="col-2">       <div class="panta-module-enabled">           <label class="panta-checkbox-container">              <input class="panta-js-checkbox" type="checkbox" checked="checked">               <span class="panta-checkbox-checkmark elevate"></span>           </label>       </div>    </div>    <div class="col-8 module-title"></div>    <div class="col-2 module-icon"><img src="/assets/ic_pantarhei.png" class="panta-js-icon" width="16px" height="16px"/></div></div>', 
-template_settings_editable = '<div class="row module-editable-container">    <div class="col-2 module-editable-show">       <div class="panta-module-enabled">           <label class="panta-checkbox-container">               <input class="panta-js-checkbox" type="checkbox" checked="checked">               <span class="panta-checkbox-checkmark elevate"></span>           </label>       </div>    </div>    <div class="col-8 module-editable-name"></div>    <div class="col-1 module-editable-color">       <button class="panta-btn panta-btn-dot panta-js-button"></button>    </div>    <div class="col-1 module-helper-sortable">       <button class="panta-btn panta-btn-dot panta-js-button" title="Dieses Feld kann f\u00fcr die Sortierung verwendet werden">S</button>    </div></div>', 
-template_settings_editable_select = '<div class="row module-editable-select-container">   <select class="panta-js-select"></select></div>', template_settings_editable_option = '<div class="row module-editable-option-container">    <div class="col-10 module-editable-option-name">       <input type="text" class="panta-js-name"/>    </div>    <div class="col-2 module-editable-option-actions">       <button class="panta-btn panta-btn-icon panta-js-delete"><img src="/assets/ic_trash.svg" width="16px" height="16px"/></button>    </div></div>', 
+template_settings_switch = '<div class="row module-switch-container">    <div class="col-2">       <div class="panta-module-enabled">           <label class="panta-checkbox-container">              <input class="panta-js-checkbox" type="checkbox" checked="checked">               <span class="panta-checkbox-checkmark elevate"></span>           </label>       </div>    </div>    <div class="col-10 switch-title"></div></div>', template_settings_module = '<div class="row module-container">    <div class="col-2">       <div class="panta-module-enabled">           <label class="panta-checkbox-container">              <input class="panta-js-checkbox" type="checkbox" checked="checked">               <span class="panta-checkbox-checkmark elevate"></span>           </label>       </div>    </div>    <div class="col-8 module-title"></div>    <div class="col-2 module-icon"><img src="assets/ic_pantarhei.png" class="panta-js-icon" width="16px" height="16px"/></div></div>', 
+template_settings_editable = '<div class="row module-editable-container">    <div class="col-1 module-editable-show">       <div class="panta-module-enabled">           <label class="panta-checkbox-container hidden">               <input class="panta-js-checkbox" type="checkbox" checked="checked">               <span class="panta-checkbox-checkmark elevate"></span>           </label>       </div>    </div>    <div class="col-8 module-editable-name"></div>    <div class="col-1 module-helper-visible">       <button class="panta-btn panta-btn-dot panta-js-button hidden" title="Dieses Feld ist sichtbar"><img src="assets/ic_visible.png" width="12px" height="12px"/></button>    </div>    <div class="col-1 module-editable-color invisible">       <button class="panta-btn panta-btn-dot panta-js-button"></button>    </div>    <div class="col-1 module-helper-sortable">       <button class="panta-btn panta-btn-dot panta-js-button" title="Dieses Feld kann f\u00fcr die Sortierung verwendet werden">S</button>    </div></div>', 
+template_settings_editable_select = '<div class="row module-editable-select-container">   <select class="panta-js-select"></select></div>', template_settings_editable_option = '<div class="row module-editable-option-container">    <div class="col-10 module-editable-option-name">       <input type="text" class="panta-js-name"/>    </div>    <div class="col-2 module-editable-option-actions">       <button class="panta-btn panta-btn-icon panta-js-delete"><img src="assets/ic_trash.svg" width="16px" height="16px"/></button>       <button class="panta-btn panta-btn-icon panta-js-visible hidden"><img src="assets/ic_visible.png" width="16px" height="16px"/></button>    </div></div>', 
 template_beteiligt = '<form id="panta.module">    <div class="js-panta-editable-title">        <div class="row min"><div class="col-12">\u00a0</div></div>        <div class="row min">           <div class="col-12">                <h3 class="js-panta-module js-panta-label"></h3>           </div>        </div>    </div>    <div class="row min navigation-bar">        <div id="pa.involved.onsite" class="col-2 col-phone-4 tab" data-label="vor.Ort" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.text" class="col-2 col-phone-4 tab" data-label="Journalist" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.photo" class="col-phone-4 col-2 tab" data-label="Visual" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.video" class="col-phone-4 col-2 tab" data-label="Event" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.illu" class="col-phone-4 col-2 tab" data-label="MC/Host" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.ad" class="col-phone-4 col-2 tab" data-label="weitere" data-layout="regular"><span>Placeholder</span></div>    </div>    <span id="pa.tab.content"></span></form>';
 // Input 36
 var JsonSerialization = function() {

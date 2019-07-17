@@ -102,6 +102,7 @@ class ModuleSettingsController {
 
                     that.renderFieldGroup(mc, "label", element, "Beschriftungen");
                     that.renderFieldGroup(mc, "text", element, "Eingabefelder");
+                    that.renderFieldGroup(mc, "calc", element, "Berechnete Felder");
                     that.renderFieldGroup(mc, "select", element, "Auswahllisten");
                     that.renderFieldGroup(mc, "layout", element, "Layouts");
                 });
@@ -120,6 +121,7 @@ class ModuleSettingsController {
             case "select":
                 this.renderEditableSelect(mc, editable, element, "Stichworte");
                 break;
+            case "calc":
             case "text":
                 this.renderEditableText(mc, editable, element, "Platzhalter");
                 break;
@@ -159,7 +161,7 @@ class ModuleSettingsController {
                 return prev;
             }, new ModuleEditableSelectItem(editable.layout));
 
-        chooser.setOnTextChangeListener(function(prev, cur) {
+        chooser.setOnTextChangeListener(function (prev, cur) {
             editable.layout = cur;
             // add layout form
             switch (editable.layout) {
@@ -172,7 +174,7 @@ class ModuleSettingsController {
                     break;
             }
             that.pluginController.setPluginModuleConfig(mc)
-                .then(function() {
+                .then(function () {
                     console.log("Updated");
                 });
         });
@@ -195,16 +197,17 @@ class ModuleSettingsController {
 
         let holders = this.createLayoutFormHolder(element);
 
-        holders.forEach(function(holder) {
+        holders.forEach(function (holder) {
             holder.removeChildren();
 
             let hint = that.document.createElement("p");
             hint.innerHTML = __("module.beteiligt.layout-" + layout + ".desc");
             holder.appendChild(hint);
 
-            layoutConfig.fields.forEach(function(field) {
+            layoutConfig.fields.forEach(function (field) {
                 that.renderEditableLabel(mc, holder, field, "Beschriftung");
                 that.renderEditable(mc, field, holder);
+                that.hr(holder);
             });
         });
 
@@ -226,17 +229,25 @@ class ModuleSettingsController {
         group.innerHTML = "<strong>" + label + "</strong>";
         element.appendChild(group);
 
-        let meti = new ModuleEditableTextItem(editable.placeholder, false);
-        element.appendChild(meti.setOnTextChangeListener(function (previous, updated) {
-            if (editable.placeholder !== updated) {
-                editable.placeholder = updated;
+        let meti = new ModuleEditableTextItem(editable.placeholder, false, false);
+        element.appendChild(
+            meti.setOnTextChangeListener(function (previous, updated) {
+                if (editable.placeholder !== updated) {
+                    editable.placeholder = updated;
+                    that.pluginController.setPluginModuleConfig(mc)
+                        .then(function () {
+                            console.log("Values updated");
+                        });
+                    return updated;
+                }
+            }).setOnVisibleToggleListener(function () {
+                editable.visible = !editable.visible;
                 that.pluginController.setPluginModuleConfig(mc)
                     .then(function () {
                         console.log("Values updated");
                     });
-                return updated;
-            }
-        }).render());
+                return editable.visible;
+            }).render());
     }
 
     renderEditableSelect(mc, editable, element, label) {
@@ -247,7 +258,7 @@ class ModuleSettingsController {
 
         editable.values
             .map(function (item) {
-                let meti = new ModuleEditableTextItem(item, true);
+                let meti = new ModuleEditableTextItem(item, true, false);
                 meti.setOnDeleteListener(function (value) {
                     if (confirm("Feld löschen", "Möchten Sie das Feld endgültig löschen?")) {
                         let index = editable.values.indexOf(value);
@@ -273,6 +284,13 @@ class ModuleSettingsController {
                         });
                     return updated;
                 });
+                meti.setOnVisibleToggleListener(function() {
+                    editable.visible = !editable.visible;
+                    that.pluginController.setPluginModuleConfig(mc)
+                        .then(function() {
+                            console.log("Values updated");
+                        })
+                });
                 return meti.render();
             })
             .reduce(function (prev, curr) {
@@ -281,10 +299,10 @@ class ModuleSettingsController {
             }, element);
 
         let sorter = new SwitchItem(that.document, "Sortierbar", editable.sortable)
-        sorter.setOnActivationListener(function(previous, updated) {
+        sorter.setOnActivationListener(function (previous, updated) {
             editable.sortable = updated;
             return that.pluginController.setPluginModuleConfig(mc)
-                .then(function() {
+                .then(function () {
                     return updated;
                 });
         });
@@ -326,13 +344,26 @@ class ModuleSettingsController {
         let name = that.document.createElement("span");
         name.innerHTML = "<strong>" + label + "</strong>";
         element.appendChild(name);
-        let editableName = new ModuleEditableTextItem(editable.label, false);
+        let editableName = new ModuleEditableTextItem(editable.label, false, true);
         editableName.setOnTextChangeListener(function (previous, updated) {
             editable.label = updated;
             that.pluginController.setPluginModuleConfig(mc)
                 .then(function () {
                     console.log("Label updated");
                 });
+        });
+        editableName.setOnVisibleToggleListener(function() {
+            editable.visible = !editable.visible;
+            that.pluginController.setPluginModuleConfig(mc)
+                .then(function() {
+                    console.log("Values updated. Visible: " + editable.visible);
+                })
+        });
+        editableName.setOnReadyListener(function(el) {
+            el.getElementsByClassName("panta-js-visible").forEach(function (item) {
+                let ico = item.getClosestChildByTagName("img");
+                ico.setAttribute("src", editable.visible ? "assets/ic_visible.png" : "assets/ic_invisible.png");
+            });
         });
         element.appendChild(editableName.render());
     }
@@ -356,39 +387,39 @@ class ModuleSettingsController {
         element.appendChild(group);
 
         typed.map(function (editable) {
-                return new ModuleEditableItem(mc, editable, that.trello)
-                    .setOnEnterListener(function (module, editable) {
-                        that.trello.popup({
-                            title: editable.label,
-                            url: "settings.html",
-                            height: 184,
-                            args: {
-                                "module": module.id,
-                                "editable": editable.id,
-                            },
+            return new ModuleEditableItem(mc, editable)
+                .setOnEnterListener(function (module, editable) {
+                    that.trello.popup({
+                        title: editable.label,
+                        url: "settings.html",
+                        height: 184,
+                        args: {
+                            "module": module.id,
+                            "editable": editable.id,
+                        },
+                    });
+                })
+                .setOnActivationListener(function (module, editable, showOnFront) {
+                    editable.show = showOnFront;
+                    that.pluginController.setPluginModuleConfig(module)
+                        .then(function (pc) {
+                            console.log("PluginConfiguration updated", pc);
                         });
-                    })
-                    .setOnActivationListener(function (module, editable, showOnFront) {
-                        editable.show = showOnFront;
-                        that.pluginController.setPluginModuleConfig(module)
-                            .then(function (pc) {
-                                console.log("PluginConfiguration updated", pc);
-                            });
-                    })
-                    .setOnColorPickerClick(function (module, editable) {
-                        that.trello.popup({
-                            title: "Farbe wählen",
-                            url: "color-picker.html",
-                            height: 184,
-                            args: {
-                                "module": module.id,
-                                "editable": editable.id,
-                                "color": editable.color
-                            }
-                        });
-                    })
-                    .render();
-            })
+                })
+                .setOnColorPickerClick(function (module, editable) {
+                    that.trello.popup({
+                        title: "Farbe wählen",
+                        url: "color-picker.html",
+                        height: 184,
+                        args: {
+                            "module": module.id,
+                            "editable": editable.id,
+                            "color": editable.color
+                        }
+                    });
+                })
+                .render();
+        })
             .reduce(function (prev, curr) {
                 prev.appendChild(curr);
                 return prev;
@@ -428,7 +459,7 @@ class ModuleSettingsController {
                 header.innerHTML = "<strong>Module</strong>";
 
                 let hint = that.document.createElement("p");
-                hint.innerHTML =  __("module.settings.hint");
+                hint.innerHTML = __("module.settings.hint");
 
                 element.appendChild(hint);
                 element.appendChild(header);
@@ -450,7 +481,7 @@ class ModuleSettingsController {
                             module.config.enabled = enabled;
                             // first we need to update the module (without card info)
                             that.pluginController.setPluginModuleConfig(module)
-                                .then(function(pc) {
+                                .then(function (pc) {
                                     if (pc instanceof PluginConfiguration) {
                                         // and after the module is disabled/enabled we can update the card info with the current main module
                                         let actives = pc.getActiveModules();
@@ -465,7 +496,7 @@ class ModuleSettingsController {
                                             };
                                         }
                                         that.pluginController.setPluginModuleConfig(module, config.card)
-                                            .then(function(pc) {
+                                            .then(function (pc) {
                                                 console.log("Main module set as card configuration");
                                             });
                                     }
@@ -499,6 +530,14 @@ class ModuleSettingsController {
      */
     nl(element) {
         element.appendChild(this.document.createElement("br"));
+    }
+
+    /**
+     * Append a thematic break
+     * @param element
+     */
+    hr(element) {
+        element.appendChild(this.document.createElement("hr"));
     }
 
     /**

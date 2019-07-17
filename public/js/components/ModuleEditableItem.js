@@ -66,22 +66,45 @@ class ModuleEditableItem extends AbstractItem {
             that._onEnterHandler(that.module, that.editable);
         });
         let container = template.getClosestChildByClassName("panta-checkbox-container");
-        let checkmark = container.getClosestChildByClassName("panta-js-checkbox");
-        checkmark.checked = that.editable.show === true;
-        container.setEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            let checkbox = e.srcElement
-                .getClosestParentByClassName("panta-checkbox-container")
+        if (this.editable.type !== "calc") {
+            let checkmark = container
+                .removeClass("hidden")
                 .getClosestChildByClassName("panta-js-checkbox");
-            checkbox.checked = !checkbox.checked;
-            that._onActivationHandler(that.module, that.editable, checkbox.checked);
-        });
+            checkmark.checked = that.editable.show === true;
+            container.setEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                let checkbox = e.srcElement
+                    .getClosestParentByClassName("panta-checkbox-container")
+                    .getClosestChildByClassName("panta-js-checkbox");
+                checkbox.checked = !checkbox.checked;
+                that._onActivationHandler(that.module, that.editable, checkbox.checked);
+            });
+            this._renderColor(template);
+        }
 
-        this._renderColor(template);
         this._renderSortable(template);
+        this._renderVisible(template);
 
         return template;
+    }
+
+    _renderVisible(template) {
+        let that = this;
+        let btnVisible = template
+            .getClosestChildByClassName("module-helper-visible")
+            .getClosestChildByClassName("panta-js-button");
+
+        btnVisible.addClass("hidden");
+        if (that.editable.visible === true) {
+            btnVisible.removeClass("hidden");
+        }
+
+        // disable clicks
+        btnVisible.setEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        });
     }
 
     _renderSortable(template) {
@@ -104,8 +127,11 @@ class ModuleEditableItem extends AbstractItem {
 
     _renderColor(template) {
         let that = this;
-        let btnColor = template
+        let container = template
             .getClosestChildByClassName("module-editable-color")
+            .removeClass("invisible");
+
+        let btnColor = container
             .getClosestChildByClassName("panta-js-button");
 
         switch (that.editable.type) {
