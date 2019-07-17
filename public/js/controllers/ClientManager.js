@@ -25,8 +25,8 @@ class ClientManager {
             windowManager.addEventListener('beforeunload', function (e) {
                 if (e.target.defaultView instanceof Window && e.target.defaultView.clientManager) {
                     e.target.defaultView.clientManager.onUnload();
-                    // TODO check this error/warning
-                    delete e.target.defaultView.clientManager;
+                    windowManager._manager = e.target.defaultView.clientManager;
+                    delete windowManager._manager;
                 }
             });
             windowManager.addEventListener('keypress', function (e) {
@@ -444,6 +444,7 @@ class ClientManager {
             "on": function () {
                 let badges = [];
                 let entity = that.getPlanController().getByCard(card);
+                console.log("getPlanModuleContext's entity", entity);
                 if (that.getPlanController().hasContent(entity)) {
                     badges.push({
                         text: "",
@@ -456,12 +457,12 @@ class ClientManager {
                     })
                     .filter(function(editable) {
                         let val = that.getPlanController().getMapping(editable, entity, null);
-                        return val && editable.show === true;
+                        return val !== null && editable.show === true;
                     })
                     .map(function(editable) {
 
                         return {
-                            "text": editable.label + ": " + that.getPlanController().getMapping(editable, entity, ""),
+                            "text": editable.label + ": " + that.getPlanController().getMapping(editable, entity, "-"),
                             "color": editable.color
                         };
                     })

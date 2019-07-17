@@ -92,7 +92,7 @@ HTMLElement.prototype.removeChildren = function () {
 /**
  * Remove this element itself from the DOM
  */
-HTMLElement.prototype.removeSelf = function() {
+HTMLElement.prototype.removeSelf = function () {
     this.parentElement.removeChild(this);
 };
 
@@ -110,7 +110,7 @@ HTMLElement.prototype.setEventListener = function (event, callback) {
  * Get the margin bottom of the element
  * @returns {number}
  */
-HTMLElement.prototype.getMarginBottom = function() {
+HTMLElement.prototype.getMarginBottom = function () {
     let style = getComputedStyle(this);
     return parseFloat(style.marginBottom);
 };
@@ -122,15 +122,15 @@ HTMLElement.prototype.getMarginBottom = function() {
  * @returns {*}
  */
 HTMLElement.prototype.getClosestChildByTagName = function (tagName) {
-    let found = Object.values(this.children).find(function(child) {
+    let found = Object.values(this.children).find(function (child) {
         return child.tagName.toLowerCase() === tagName.toLowerCase();
     }, this);
     if (found !== null) {
         return found;
     } else {
-        for (let i = 0;i<this.children.length;i++) {
+        for (let i = 0; i < this.children.length; i++) {
             let child = this.children.item(i).getClosestChildByTagName(tagName);
-            if (child!==null) {
+            if (child !== null) {
                 return child;
             }
         }
@@ -144,15 +144,15 @@ HTMLElement.prototype.getClosestChildByTagName = function (tagName) {
  * @returns {*}
  */
 HTMLElement.prototype.getClosestChildByClassName = function (className) {
-    let found = Object.values(this.children).find(function(child) {
+    let found = Object.values(this.children).find(function (child) {
         return child.hasClass(className);
     }, this);
     if (found != null) {
         return found;
     } else {
-        for (let i = 0;i<this.children.length;i++) {
+        for (let i = 0; i < this.children.length; i++) {
             let child = this.children.item(i).getClosestChildByClassName(className);
-            if (child!==null) {
+            if (child !== null) {
                 return child;
             }
         }
@@ -210,12 +210,12 @@ function uuid() {
  * @param actionCallback
  * @param rows
  * @param placeholder
+ * @param visible if the field should be visible or not (default: true)
  * @returns {PInput}
  */
 // TODO extract similar parts for all Input creations (such as event handlers)
-
-HTMLDocument.prototype.newMultiLineInput = function (valueHolder, targetId, property, label, actionParameters, actionCallback, rows = 2, placeholder = "") {
-    return new MultiLineInput(this, label, null, targetId, placeholder, rows, false)
+HTMLDocument.prototype.newMultiLineInput = function (valueHolder, targetId, property, label, actionParameters, actionCallback, rows = 2, placeholder = "", visible = true) {
+    return new MultiLineInput(this, label, null, targetId, placeholder, rows, false, visible)
         .bind(valueHolder.data, property)
         .onFocus(actionCallback, actionParameters)
         .onEnterEditing(actionCallback, actionParameters)
@@ -231,8 +231,9 @@ HTMLDocument.prototype.newSingleLineInput = function (valueHolder,
                                                       actionCallback,
                                                       placeholder = "",
                                                       propertyType = "text",
-                                                      readonly = false) {
-    let sli = new SingleLineInput(this, label, null, targetId, placeholder, readonly);
+                                                      readonly = false,
+                                                      visible = true) {
+    let sli = new SingleLineInput(this, label, null, targetId, placeholder, readonly, visible);
     sli.propertyType = propertyType || "text";
 
     if (property !== null) {
@@ -259,10 +260,11 @@ HTMLDocument.prototype.newSingleLineInput = function (valueHolder,
  * @param placeholder
  * @param empty an object with 'value' and 'text' that is used when the user did not select anything
  * @param options an array of {value/text} options
+ * @param visible if visible or not (default: visible)
  * @returns {SingleSelectInput|PInput}
  */
-HTMLDocument.prototype.newSingleSelect = function (valueHolder, targetId, property, label, actionParameters, actionCallback, placeholder = "", empty, options) {
-    let ssi = new SingleSelectInput(this, label, null, targetId, placeholder)
+HTMLDocument.prototype.newSingleSelect = function (valueHolder, targetId, property, label, actionParameters, actionCallback, placeholder = "", empty, options, visible = true) {
+    let ssi = new SingleSelectInput(this, label, null, targetId, placeholder, false, visible)
         .bind(valueHolder.data, property)
         .onFocus(actionCallback, actionParameters)
         .onEnterEditing(actionCallback, actionParameters)
@@ -292,7 +294,7 @@ Window.prototype.isBlank = function (totest) {
     return (!totest || 0 === (totest + "").trim().length);
 };
 
-String.prototype.toHTML = function() {
+String.prototype.toHTML = function () {
     var txt = document.createElement('textarea');
     txt.innerHTML = this;
     return txt.value;
@@ -302,8 +304,8 @@ String.prototype.toHTML = function() {
  * Convert a string to an escaped HTML version
  * @return {string}
  */
-String.prototype.toHtmlEntities = function() {
-    return this.replace(/[\u00A0-\u9999<>\&]/gim, function(i) {
+String.prototype.toHtmlEntities = function () {
+    return this.replace(/[\u00A0-\u9999<>\&]/gim, function (i) {
         return '&#' + i.charCodeAt(0) + ';';
     });
 };
@@ -312,8 +314,8 @@ String.prototype.toHtmlEntities = function() {
  * Add a CSS by its file name
  * @param filename
  */
-Window.prototype.addCss = function(filename) {
-    let head  = document.getElementsByTagName('head')[0];
+Window.prototype.addCss = function (filename) {
+    let head = document.getElementsByTagName('head')[0];
     head.appendChild(document.createStylesheet(filename));
 };
 
@@ -322,7 +324,7 @@ Window.prototype.addCss = function(filename) {
  *
  * @returns {boolean}
  */
-Window.prototype.useDefaultSelectStyle = function() {
+Window.prototype.useDefaultSelectStyle = function () {
     return this.navigator.userAgent.match(/(iPhone|iPod|Android|BlackBerry|iPad|Windows Phone)/) !== null;
 };
 
@@ -337,7 +339,7 @@ Window.prototype.isMobileBrowser = function () {
 /**
  * Get the next tab index
  */
-Window.prototype.autoTabIndex = function() {
+Window.prototype.autoTabIndex = function () {
     return DI.getInstance().getTabIndexProvider().getAndIncrement();
 };
 
@@ -347,7 +349,7 @@ Window.prototype.autoTabIndex = function() {
  * @param mobile_template
  * @returns {Node}
  */
-Window.prototype.createByTemplate = function(desktop_template, mobile_template) {
+Window.prototype.createByTemplate = function (desktop_template, mobile_template) {
     let virtual = this.document.createElement('div');
     virtual.innerHTML = isMobileBrowser() ? mobile_template : desktop_template;
     return virtual.cloneNode(true);
@@ -377,4 +379,13 @@ function isNumber(number) {
  */
 function __(id) {
     return TEXTS[id];
+}
+
+/**
+ * Check if the variable is set and not null
+ * @param variable
+ * @returns {boolean}
+ */
+function isSet(variable) {
+    return !(typeof variable === 'undefined' || variable === null);
 }

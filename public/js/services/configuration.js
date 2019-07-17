@@ -25,6 +25,13 @@ const TEXTS = {
     'module.artikel.field-c.desc': "Das Textfeld «C» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
     'module.artikel.field-d.desc': "Das Textfeld «D» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
 
+    // pagina
+    'module.artikel.field-e.desc': "Das Textfeld «E» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
+    // seiten layout
+    'module.artikel.field-f.desc': "Das Textfeld «F» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
+    // total seiten
+    'module.artikel.field-g.desc': "Das Textfeld «G» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
+
     'module.beteiligt.desc': "BETEILIGT kann als Ergänzung zum ARTIKEL oder PLAN aktiviert werden.<br/>" +
         "Hier die Eingabefelder und LISTEN für das ganze BOARD konfigurieren:",
     'module.beteiligt.label.desc': "Dieser Titel wird oberhalb des Modul BETEILIGT auf jeder CARD sichtbar.",
@@ -54,6 +61,12 @@ const TEXTS = {
 
     'module.plan.field-a.desc': "Das Textfeld «A» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
     'module.plan.field-b.desc': "Das Textfeld «B» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
+    'module.plan.field-c.desc': "Das Textfeld «C» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
+    'module.plan.field-d.desc': "Das Textfeld «D» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
+    'module.plan.field-e.desc': "Das Textfeld «E» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
+    'module.plan.field-f.desc': "Das Textfeld «F» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
+    'module.plan.field-g.desc': "Das Textfeld «G» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
+    'module.plan.field-h.desc': "Das Textfeld «H» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
 
     "module.beteiligt.layout-regular.desc": "Das Kontakt-Formular hat folgende Felder, die individualisert werden können",
     "module.beteiligt.layout-ad.desc": "Das Inserat-Formular hat folgende Felder, die individualisert werden können",
@@ -63,6 +76,13 @@ const TEXTS = {
     "module.beteiligt.field-address.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
     "module.beteiligt.field-notes.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
     "module.beteiligt.field-deadline.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+    // honorar massnahmen
+    "module.beteiligt.field-a.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+    // spesen massnahmen
+    "module.beteiligt.field-b.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+    // total beteiligt
+    "module.beteiligt.field-c.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+
     "module.beteiligt.field-total.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
     "module.beteiligt.field-price.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
     "module.beteiligt.field-placement.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",

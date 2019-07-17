@@ -4,7 +4,7 @@
  */
 class Binding {
 
-    constructor(document, entity, action, context) {
+    constructor(document, entity, action, context, configuration) {
         /**
          * @type {HTMLDocument}
          */
@@ -25,6 +25,11 @@ class Binding {
         this._context = context;
 
         this._autoUpdater = null;
+
+        /**
+         * @type {PluginModuleConfig}
+         */
+        this._configuration = configuration;
     }
 
     /**
@@ -87,5 +92,86 @@ class Binding {
         if (this._autoUpdater) {
             clearInterval(this._autoUpdater);
         }
+    }
+
+    /**
+     *
+     * @param configuration
+     * @abstract
+     */
+    updateConfiguration(configuration) {}
+
+    /**
+     * @param {PInput} field
+     * @param id
+     */
+    updateField(field, id) {
+        let config = this.getConfigurationFor(id);
+        if (config.editable.visible === false) {
+            field.hide();
+        } else {
+            field.show();
+        }
+
+        if (field instanceof SingleLineInput) {
+            this._updateText(field, id);
+        } else if (field instanceof MultiLineInput) {
+            this._updateText(field, id);
+        } else if (field instanceof SingleSelectInput) {
+            this._updateSelect(field, id);
+        }
+    }
+
+    /**
+     * @param {SingleLineInput|MultiLineInput} text
+     * @param id
+     * @private
+     */
+    _updateText(text, id) {
+        let config = this.getConfigurationFor(id);
+        text.setLabel(config.editable.label);
+        text.setPlaceholder(config.editable.placeholder);
+    }
+
+    /**
+     * @param {SingleSelectInput} select
+     * @param id
+     * @private
+     */
+    _updateSelect(select, id) {
+        let oc = this.getConfigurationFor(id);
+        select.clear();
+        select.setLabel(oc.label);
+        select.addOption("-1", "…");
+        select.addOptions(oc.options);
+        select.invalidate();
+    }
+
+    getConfigurationFor(id) {
+        let editable = this._configuration.config.editables
+            .filter(function (editable) {
+                return editable.id === id;
+            });
+
+        let label = editable[0].label;
+
+        let options = editable
+            .map(function (editable) {
+                return editable.values;
+            })
+            .flat()
+            .map(function (value, index) {
+                return newOption(index, value);
+            })
+            .reduce(function (prev, cur) {
+                prev.push(cur);
+                return prev;
+            }, []);
+
+        return {
+            "label": label,
+            "options": options,
+            "editable": editable[0]
+        };
     }
 }

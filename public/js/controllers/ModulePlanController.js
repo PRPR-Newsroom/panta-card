@@ -37,7 +37,7 @@ class ModulePlanController extends Controller {
                     return Object.entries(item);
                 })
                 .flat()
-                .reduce(function(previous, propertyItem) {
+                .reduce(function (previous, propertyItem) {
                     let property = propertyItem[0];
                     let value = propertyItem[1];
                     switch (property) {
@@ -45,16 +45,16 @@ class ModulePlanController extends Controller {
                             previous |= that._entity.fee !== value ? (that._entity.fee = value, true) : false;
                             break;
                         case "fee:overall":
-                            previous |=  that._entity.projectFee !== value ? (that._entity.projectFee = value, true) : false;
+                            previous |= that._entity.projectFee !== value ? (that._entity.projectFee = value, true) : false;
                             break;
                         case "charge:current":
-                            previous |=  that._entity.thirdPartyCharges !== value ? (that._entity.thirdPartyCharges = value, true) : false;
+                            previous |= that._entity.thirdPartyCharges !== value ? (that._entity.thirdPartyCharges = value, true) : false;
                             break;
                         case "charge:overall":
-                            previous |=  that._entity.thirdPartyTotalCosts !== value ? (that._entity.thirdPartyTotalCosts = value, true) : false;
+                            previous |= that._entity.thirdPartyTotalCosts !== value ? (that._entity.thirdPartyTotalCosts = value, true) : false;
                             break;
                         case "costs:overall":
-                            previous |=  that._entity.totalCosts !== value ? (that._entity.totalCosts = value, true) : false;
+                            previous |= that._entity.totalCosts !== value ? (that._entity.totalCosts = value, true) : false;
                             break;
                     }
                     return previous;
@@ -175,11 +175,29 @@ class ModulePlanController extends Controller {
      * @return {*}
      */
     getPropertyByName(entity, name, defaultValue) {
+        // TODO calculated fields cannot yet be shown as card badges because the value is actually not really stored on the entity
         switch (name) {
             case "field.a":
                 return entity.measures || defaultValue;
             case "field.b":
                 return entity.description || defaultValue;
+            case "field.c":
+                return entity.fee || defaultValue;
+            case "field.d":
+                return entity.projectFee || defaultValue;
+            case "field.e":
+                return entity.thirdPartyCharges || defaultValue;
+            case "field.f":
+                return entity.thirdPartyTotalCosts || defaultValue;
+            case "field.g":
+                let cod = this.getCapOnDepenses();
+                if (!isBlank(cod)) {
+                    return cod;
+                } else {
+                    return defaultValue;
+                }
+            case "field.h":
+                return entity.totalCosts || defaultValue;
             case "visual":
                 return entity.visual || defaultValue;
             case "form":
@@ -208,7 +226,7 @@ class ModulePlanController extends Controller {
     remove() {
         let that = this;
         return this._trello.remove('board', 'shared', ModulePlanController.SHARED_NAME)
-            .then(function() {
+            .then(function () {
                 return that._trello.remove('board', 'shared', ModulePlanController.PROPERTY_BAG_NAME);
             });
     }
