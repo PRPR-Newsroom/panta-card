@@ -122,6 +122,33 @@ let template_ad = '<div id="template" class="row">' +
     '    </div>' +
     '</div>';
 
+let template_blog = '<div id="template" class="row">' +
+    '    <div class="col-12 col-phone-12">' +
+    '        <div class="row">' +
+    '            <div class="col-12 col-phone-12">' +
+    '                <div class="pa.link"></div>' +
+    '            </div>' +
+    '        </div>' +
+    '    </div>' +
+    '    <div class="col-6 col-phone-12">' +
+    '        <div class="row">' +
+    '            <div class="col-12 col-phone-12 line-4 line-phone-4">' +
+    '                <div class="pa.notes"></div>' +
+    '            </div>' +
+    '        </div>' +
+    '    </div>' +
+    '    <div class="col-6 col-phone-12">' +
+    '        <div class="row">' +
+    '            <div class="col-12 col-phone-12">' +
+    '                <div class="pa.follower"></div>' +
+    '            </div>' +
+    '            <div class="col-12 col-phone-12">' +
+    '                <div class="pa.date"></div>' +
+    '            </div>' +
+    '        </div>' +
+    '    </div>' +
+    '</div>';
+
 let template_plan = '<div id="template">' +
     '    <div class="row">' +
     '        <div class="col-6 line-2">' +

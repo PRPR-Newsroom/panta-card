@@ -44,7 +44,8 @@ const TEXTS = {
     'module.beteiligt.layout.ad': "TAB-Titel tippen und LAYOUT auswählen.",
 
     'module.beteiligt.regular.desc': "Standard-Layout",
-    'module.beteiligt.special.desc': "Spezial-Layout",
+    'module.beteiligt.special.desc': "Inserat-Layout",
+    'module.beteiligt.blog.desc': "Blog-Layout",
 
     'module.plan.label.desc': "Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.",
     'module.plan.desc': "PLAN-Eingabefelder und Auswahllisten für das BOARD konfigurieren:<br/>" +
@@ -68,8 +69,10 @@ const TEXTS = {
     'module.plan.field-g.desc': "Das Textfeld «G» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
     'module.plan.field-h.desc': "Das Textfeld «H» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
 
+    // the description text for the layouts
     "module.beteiligt.layout-regular.desc": "Das Kontakt-Formular hat folgende Felder, die individualisert werden können",
     "module.beteiligt.layout-ad.desc": "Das Inserat-Formular hat folgende Felder, die individualisert werden können",
+    "module.beteiligt.layout-blog.desc": "Das Blog-Formular hat folgende Felder, die individualisert werden können",
 
     "module.beteiligt.field-name.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
     "module.beteiligt.field-social.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
@@ -88,6 +91,10 @@ const TEXTS = {
     "module.beteiligt.field-placement.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
     "module.beteiligt.field-format.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
     "module.beteiligt.field-sujet.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+
+    "module.beteiligt.field-link.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+    "module.beteiligt.field-follower.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
+    "module.beteiligt.field-date.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
 
 };
 

@@ -428,6 +428,51 @@ class PluginRepository extends Repository {
                             "visible": true,
                             "color": "shades"
                         }]
+                    },
+                    "blog": {
+                        "desc": "module.beteiligt.blog.desc",
+                        "label": "Blog",
+                        "fields": [{
+                            "id": "field.link",
+                            "desc": "module.beteiligt.field-link.desc",
+                            "type": "text",
+                            "label": "Link",
+                            "placeholder": "hinterlegen…",
+                            "show": false,
+                            "sortable": false,
+                            "visible": true,
+                            "color": "shades"
+                        }, {
+                            "id": "field.notes",
+                            "desc": "module.beteiligt.field-notes.desc",
+                            "type": "text",
+                            "label": "Notiz",
+                            "placeholder": "hinterlegen…",
+                            "show": false,
+                            "sortable": false,
+                            "visible": true,
+                            "color": "shades"
+                        }, {
+                            "id": "field.follower",
+                            "desc": "module.beteiligt.field-follower.desc",
+                            "type": "text",
+                            "label": "Follower.Fans.Abos",
+                            "placeholder": "eintippen…",
+                            "show": false,
+                            "sortable": false,
+                            "visible": true,
+                            "color": "shades"
+                        }, {
+                            "id": "field.date",
+                            "desc": "module.beteiligt.field-date.desc",
+                            "type": "text",
+                            "label": "Stand.Datum",
+                            "placeholder": "notieren…",
+                            "show": false,
+                            "sortable": false,
+                            "visible": true,
+                            "color": "shades"
+                        }]
                     }
                 },
             }), {"id": 2});

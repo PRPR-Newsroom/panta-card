@@ -166,6 +166,7 @@ class ModuleSettingsController {
             // add layout form
             switch (editable.layout) {
                 case "regular":
+                case "blog":
                 case "ad":
                     that.renderLayoutForm(mc, editable.layout, element);
                     break;
@@ -175,7 +176,6 @@ class ModuleSettingsController {
             }
             that.pluginController.setPluginModuleConfig(mc)
                 .then(function () {
-                    console.log("Updated");
                 });
         });
         let column = that.document.createElement("div");
