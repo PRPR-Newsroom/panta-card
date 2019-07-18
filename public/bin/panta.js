@@ -3718,8 +3718,9 @@ function isSet(a) {
   return !("undefined" === typeof a || null === a);
 }
 function extend(a, b) {
+  console.debug("Extending obj with src", a, b);
   for (var c in b) {
-    b.hasOwnProperty(c) && (a[c] = "object" === typeof b[c] ? extend(a[c] || {}, b[c]) : b[c]);
+    a.hasOwnProperty(c) ? a[c] = "object" === typeof b[c] ? extend(a[c] || {}, b[c]) : b[c] : a[c] = b[c];
   }
   return a;
 }
