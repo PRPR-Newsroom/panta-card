@@ -71,8 +71,17 @@ class PluginConfiguration {
             "1": JSON.stringify(new PluginModuleConfig("module.artikel", "Artikel", {}))
         };
         return Object.values(modules).map(function(module) {
-
-            return PluginModuleConfig.create(module);
+            let moduleConfig = PluginModuleConfig.create(module);
+            let pmc = PluginRepository.INSTANCE.find(function(config) {
+                return config.id === moduleConfig.id;
+            });
+            if (isSet(pmc) && pmc instanceof PluginModuleConfig) {
+                let newconfig = JSON.parse(JSON.stringify(pmc.config));
+                let currentconfig = JSON.parse(JSON.stringify(moduleConfig.config));
+                const merged = extend(newconfig, currentconfig);
+                moduleConfig.config = merged;
+            }
+            return moduleConfig;
         })
 
     }

@@ -71,3 +71,7 @@ Das entsprechende Modul kann mit der Checkbox (rundes Kästchen) (de-)aktiviert 
 geklickt wird, dann wird die Modul-Konfiguration geöffnet.
 
 Die Konfigurations-Möglichkeiten werden in den einzelnen Seiten erklärt.
+
+# Debugging
+
+Evtl. in `utils.js` ein Breakpoint im `tryCatcher` setzen, da der Fehler in diesem Block geschluckt wird

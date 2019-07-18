@@ -104,6 +104,9 @@ TrelloPowerUp.initialize({
             .then(function (config) {
                 if (config && config.hasActiveModules()) {
                     let modules = config.getActiveModules();
+                    let defaults = {
+                        "title": config.card.title
+                    };
                     let title = modules.length > 0 ? modules[0].config.editables
                         .filter(function (editable) {
                             return editable.id === "title";
@@ -112,10 +115,14 @@ TrelloPowerUp.initialize({
                             return editable.label;
                         })
                         .find(function (label) {
-                            return label && label.length > 0;
-                        }) : config.card.title;
+                            return !isBlank(label);
+                        }) : null;
+
+                    let options = extend(defaults, {
+                        "title": title
+                    });
                     return {
-                        title: title,
+                        title: options.title,
                         icon: config.card.icon,
                         content: {
                             type: 'iframe',

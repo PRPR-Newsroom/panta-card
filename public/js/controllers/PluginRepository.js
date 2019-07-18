@@ -20,14 +20,6 @@ class PluginRepository extends Repository {
                 "desc": 'module.artikel.desc',
 
                 "editables": [{
-                    "id": "title",
-                    "desc": "module.artikel.label.desc",
-                    "type": "label",
-                    "placeholder": "",
-                    "label": "Artikel",
-                    "visible": true,
-                    "title": "Modul-Titel",
-                }, {
                     "id": "visual",
                     "desc": "module.artikel.editable.desc",
                     "type": "select",
@@ -163,6 +155,14 @@ class PluginRepository extends Repository {
                     "sortable": false,
                     "visible": true,
                     "color": "shades"
+                }, {
+                    "id": "title",
+                    "desc": "module.artikel.label.desc",
+                    "type": "label",
+                    "placeholder": "",
+                    "label": "Artikel",
+                    "visible": true,
+                    "title": "Modul-Titel",
                 }, {
                     "id": "field.e",
                     "desc": "module.artikel.field-e.desc",
@@ -482,14 +482,6 @@ class PluginRepository extends Repository {
                 "icon": "ic_plan.png",
                 "desc": "module.plan.desc",
                 "editables": [{
-                    "id": "title",
-                    "desc": "module.plan.label.desc",
-                    "type": "label",
-                    "placeholder": "",
-                    "label": "Plan",
-                    "title": "Modul-Titel",
-                    "visible": true
-                }, {
                     "id": "visual",
                     "desc": "module.plan.editable.desc",
                     "type": "select",
@@ -602,6 +594,14 @@ class PluginRepository extends Repository {
                     "visible": true,
                     "color": "shades"
                 }, {
+                    "id": "title",
+                    "desc": "module.plan.label.desc",
+                    "type": "label",
+                    "placeholder": "",
+                    "label": "Plan",
+                    "title": "Modul-Titel",
+                    "visible": true
+                }, {
                     "id": "field.c",
                     "desc": "module.plan.field-c.desc",
                     "type": "calc",
@@ -661,7 +661,7 @@ class PluginRepository extends Repository {
                     "sortable": false,
                     "visible": true,
                     "color": "shades"
-                }, ]
+                }]
             }), {"id": 3});
         }
         return PluginRepository.instance;

@@ -53,6 +53,15 @@ class Repository {
     }
 
     /**
+     * @param predicate
+     * @returns {any}
+     */
+    find(predicate) {
+        return Object.values(this._repository)
+            .find(predicate);
+    }
+
+    /**
      * Check if the passed entity is already in this repository or not
      * @param {{}} entity
      * @returns {boolean}

@@ -389,3 +389,29 @@ function __(id) {
 function isSet(variable) {
     return !(typeof variable === 'undefined' || variable === null);
 }
+
+/**
+ * This extends the target object with all properties from the source object
+ * @param obj
+ * @param src
+ * @returns {*}
+ */
+function extend(obj, src) {
+    console.debug("Extending obj with src", obj, src);
+    for (const key in src) {
+        if (!obj.hasOwnProperty(key)) {
+            // the target object does not have the property yet so just assign the property
+            obj[key] = src[key];
+        } else {
+            // the target does already have this property... if it's an object type we must jump into this property
+            if (typeof src[key] === "object") {
+                obj[key] = extend(obj[key] || {}, src[key]);
+            } else {
+                // simple type
+                obj[key] = src[key];
+            }
+        }
+    }
+    return obj;
+}
+

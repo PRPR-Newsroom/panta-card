@@ -374,6 +374,33 @@ $jscomp.polyfill("Array.prototype.keys", function(a) {
     });
   };
 }, "es6", "es3");
+$jscomp.owns = function(a, b) {
+  return Object.prototype.hasOwnProperty.call(a, b);
+};
+$jscomp.polyfill("Object.values", function(a) {
+  return a ? a : function(a) {
+    var b = [], d;
+    for (d in a) {
+      $jscomp.owns(a, d) && b.push(a[d]);
+    }
+    return b;
+  };
+}, "es8", "es3");
+$jscomp.findInternal = function(a, b, c) {
+  a instanceof String && (a = String(a));
+  for (var d = a.length, e = 0; e < d; e++) {
+    var f = a[e];
+    if (b.call(c, f, e, a)) {
+      return {i:e, v:f};
+    }
+  }
+  return {i:-1, v:void 0};
+};
+$jscomp.polyfill("Array.prototype.find", function(a) {
+  return a ? a : function(a, c) {
+    return $jscomp.findInternal(this, a, c).v;
+  };
+}, "es6", "es3");
 $jscomp.checkStringArgs = function(a, b, c) {
   if (null == a) {
     throw new TypeError("The 'this' value for String.prototype." + c + " must not be null or undefined");
@@ -397,18 +424,6 @@ $jscomp.polyfill("String.prototype.startsWith", function(a) {
     return h >= f;
   };
 }, "es6", "es3");
-$jscomp.owns = function(a, b) {
-  return Object.prototype.hasOwnProperty.call(a, b);
-};
-$jscomp.polyfill("Object.values", function(a) {
-  return a ? a : function(a) {
-    var b = [], d;
-    for (d in a) {
-      $jscomp.owns(a, d) && b.push(a[d]);
-    }
-    return b;
-  };
-}, "es8", "es3");
 $jscomp.polyfill("Object.entries", function(a) {
   return a ? a : function(a) {
     var b = [], d;
@@ -418,21 +433,6 @@ $jscomp.polyfill("Object.entries", function(a) {
     return b;
   };
 }, "es8", "es3");
-$jscomp.findInternal = function(a, b, c) {
-  a instanceof String && (a = String(a));
-  for (var d = a.length, e = 0; e < d; e++) {
-    var f = a[e];
-    if (b.call(c, f, e, a)) {
-      return {i:e, v:f};
-    }
-  }
-  return {i:-1, v:void 0};
-};
-$jscomp.polyfill("Array.prototype.find", function(a) {
-  return a ? a : function(a, c) {
-    return $jscomp.findInternal(this, a, c).v;
-  };
-}, "es6", "es3");
 $jscomp.polyfill("Array.prototype.flatMap", function(a) {
   return a ? a : function(a, c) {
     for (var b = [], e = 0; e < this.length; e++) {
@@ -568,6 +568,9 @@ Repository.prototype.clearAll = function() {
 };
 Repository.prototype.get = function(a) {
   return this._repository[a.id];
+};
+Repository.prototype.find = function(a) {
+  return Object.values(this._repository).find(a);
 };
 Repository.prototype.isNew = function(a) {
 };
@@ -1714,12 +1717,12 @@ var PluginRepository = function() {
 };
 $jscomp.inherits(PluginRepository, Repository);
 $jscomp.global.Object.defineProperties(PluginRepository, {INSTANCE:{configurable:!0, enumerable:!0, get:function() {
-  PluginRepository.instance || (PluginRepository.instance = new PluginRepository, PluginRepository.instance.add(new PluginModuleConfig("module.artikel", "Artikel", {sort:1, enabled:!1, icon:"ic_artikel.png", desc:"module.artikel.desc", editables:[{id:"title", desc:"module.artikel.label.desc", type:"label", placeholder:"", label:"Artikel", visible:!0, title:"Modul-Titel"}, {id:"visual", desc:"module.artikel.editable.desc", type:"select", label:"1.Liste", color:"blue", show:!1, sortable:!1, visible:!0, 
-  values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"form", desc:"module.artikel.editable.desc", type:"select", label:"2.Liste", color:"green", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"online", desc:"module.artikel.editable.desc", type:"select", label:"3.Liste", color:"yellow", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"season", 
-  desc:"module.artikel.editable.desc", type:"select", label:"4.Liste", color:"sky", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"region", desc:"module.artikel.editable.desc", type:"select", label:"5.Liste", color:"lime", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"place", desc:"module.artikel.editable.desc", type:"select", label:"6.Liste", color:"orange", show:!1, 
-  sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"field.a", desc:"module.artikel.field-a.desc", type:"text", label:"Thema", placeholder:"Lauftext", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.b", desc:"module.artikel.field-b.desc", type:"text", label:"Input von", placeholder:"Name", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.c", desc:"module.artikel.field-c.desc", type:"text", label:"Textautor*in", placeholder:"Name", 
-  show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.d", desc:"module.artikel.field-d.desc", type:"text", label:"Textbox", placeholder:"Lauftext", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.e", desc:"module.artikel.field-e.desc", type:"text", label:"Pagina", placeholder:"Zahl", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.f", desc:"module.artikel.field-f.desc", type:"text", label:"Seiten Layout", placeholder:"Zahl", show:!1, sortable:!1, visible:!0, 
-  color:"shades"}, {id:"field.g", desc:"module.artikel.field-g.desc", type:"calc", label:"Seiten Total", placeholder:"Summe", show:!1, sortable:!1, visible:!0, color:"shades"}]}), {id:1}), PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", "Beteiligt", {sort:3, enabled:!1, icon:"ic_beteiligt.png", desc:"module.beteiligt.desc", editables:[{id:"title", desc:"module.beteiligt.label.desc", type:"label", placeholder:"", label:"Beteiligt", title:"Modul-Titel"}, {id:"onsite", desc:"module.beteiligt.layout.onsite", 
+  PluginRepository.instance || (PluginRepository.instance = new PluginRepository, PluginRepository.instance.add(new PluginModuleConfig("module.artikel", "Artikel", {sort:1, enabled:!1, icon:"ic_artikel.png", desc:"module.artikel.desc", editables:[{id:"visual", desc:"module.artikel.editable.desc", type:"select", label:"1.Liste", color:"blue", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"form", desc:"module.artikel.editable.desc", 
+  type:"select", label:"2.Liste", color:"green", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"online", desc:"module.artikel.editable.desc", type:"select", label:"3.Liste", color:"yellow", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"season", desc:"module.artikel.editable.desc", type:"select", label:"4.Liste", color:"sky", show:!1, sortable:!1, visible:!0, values:["1.Begriff", 
+  "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"region", desc:"module.artikel.editable.desc", type:"select", label:"5.Liste", color:"lime", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"place", desc:"module.artikel.editable.desc", type:"select", label:"6.Liste", color:"orange", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"field.a", desc:"module.artikel.field-a.desc", 
+  type:"text", label:"Thema", placeholder:"Lauftext", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.b", desc:"module.artikel.field-b.desc", type:"text", label:"Input von", placeholder:"Name", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.c", desc:"module.artikel.field-c.desc", type:"text", label:"Textautor*in", placeholder:"Name", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.d", desc:"module.artikel.field-d.desc", type:"text", label:"Textbox", placeholder:"Lauftext", 
+  show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"title", desc:"module.artikel.label.desc", type:"label", placeholder:"", label:"Artikel", visible:!0, title:"Modul-Titel"}, {id:"field.e", desc:"module.artikel.field-e.desc", type:"text", label:"Pagina", placeholder:"Zahl", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.f", desc:"module.artikel.field-f.desc", type:"text", label:"Seiten Layout", placeholder:"Zahl", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.g", 
+  desc:"module.artikel.field-g.desc", type:"calc", label:"Seiten Total", placeholder:"Summe", show:!1, sortable:!1, visible:!0, color:"shades"}]}), {id:1}), PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", "Beteiligt", {sort:3, enabled:!1, icon:"ic_beteiligt.png", desc:"module.beteiligt.desc", editables:[{id:"title", desc:"module.beteiligt.label.desc", type:"label", placeholder:"", label:"Beteiligt", title:"Modul-Titel"}, {id:"onsite", desc:"module.beteiligt.layout.onsite", 
   type:"layout", label:"1.Reiter", container:"pa.involved.onsite", layout:"regular", show:!0, title:"Reiter-Titel"}, {id:"text", desc:"module.beteiligt.layout.text", type:"layout", label:"2.Reiter", container:"pa.involved.text", layout:"regular", show:!0}, {id:"photo", desc:"module.beteiligt.layout.photo", type:"layout", label:"3.Reiter", container:"pa.involved.photo", layout:"regular", show:!0}, {id:"video", desc:"module.beteiligt.layout.video", type:"layout", label:"4.Reiter", container:"pa.involved.video", 
   layout:"regular", show:!0}, {id:"illu", desc:"module.beteiligt.layout.illu", type:"layout", label:"5.Reiter", container:"pa.involved.illu", layout:"regular", show:!0}, {id:"ad", desc:"module.beteiligt.layout.ad", type:"layout", label:"6.Reiter", container:"pa.involved.ad", layout:"regular", show:!0}], layouts:{regular:{desc:"module.beteiligt.regular.desc", label:"Kontakt", fields:[{id:"field.name", desc:"module.beteiligt.field-name.desc", type:"text", label:"Name", placeholder:"eintippen\u2026", 
   show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.social", desc:"module.beteiligt.field-social.desc", type:"text", label:"Telefon.Mail.Webseite", placeholder:"notieren\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.address", desc:"module.beteiligt.field-address.desc", type:"text", label:"Adresse", placeholder:"festhalten\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.notes", desc:"module.beteiligt.field-notes.desc", type:"text", label:"Notizen", 
@@ -1729,10 +1732,10 @@ $jscomp.global.Object.defineProperties(PluginRepository, {INSTANCE:{configurable
   show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.total", desc:"module.beteiligt.field-total.desc", type:"text", label:"Total", placeholder:"", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.name", desc:"module.beteiligt.field-name.desc", type:"text", label:"Kontakt", placeholder:"eintippen\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.social", desc:"module.beteiligt.field-social.desc", type:"text", label:"Telefon.Mail.Webseite", placeholder:"notieren\u2026", 
   show:!1, sortable:!1, color:"shades"}, {id:"field.address", desc:"module.beteiligt.field-address.desc", type:"text", label:"Adresse", placeholder:"festhalten\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}]}, blog:{desc:"module.beteiligt.blog.desc", label:"Blog", fields:[{id:"field.link", desc:"module.beteiligt.field-link.desc", type:"text", label:"Link", placeholder:"hinterlegen\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.notes", desc:"module.beteiligt.field-notes.desc", 
   type:"text", label:"Notiz", placeholder:"hinterlegen\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.follower", desc:"module.beteiligt.field-follower.desc", type:"text", label:"Follower.Fans.Abos", placeholder:"eintippen\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.date", desc:"module.beteiligt.field-date.desc", type:"text", label:"Stand.Datum", placeholder:"notieren\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}]}}}), {id:2}), PluginRepository.instance.add(new PluginModuleConfig("module.plan", 
-  "Plan", {sort:2, enabled:!1, icon:"ic_plan.png", desc:"module.plan.desc", editables:[{id:"title", desc:"module.plan.label.desc", type:"label", placeholder:"", label:"Plan", title:"Modul-Titel", visible:!0}, {id:"visual", desc:"module.plan.editable.desc", type:"select", label:"1.Liste", color:"blue", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"form", desc:"module.plan.editable.desc", type:"select", label:"2.Liste", color:"green", 
-  show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff"]}, {id:"online", desc:"module.plan.editable.desc", type:"select", label:"3.Liste", color:"yellow", show:!1, sortable:!1, visible:!0, values:"1.Begriff 2.Begriff 3.Begriff 4.Begriff 5.Begriff 6.Begriff 7.Begriff".split(" ")}, {id:"season", desc:"module.plan.editable.desc", type:"select", label:"4.Liste", color:"sky", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff"]}, {id:"region", desc:"module.plan.editable.desc", 
-  type:"select", label:"5.Liste", color:"lime", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff"]}, {id:"place", desc:"module.plan.editable.desc", type:"select", label:"6.Liste", color:"orange", show:!1, sortable:!1, visible:!0, values:"1.Begriff 2.Begriff 3.Begriff 4.Begriff 5.Begriff 6.Begriff 7.Begriff".split(" ")}, {id:"field.a", desc:"module.plan.field-a.desc", type:"text", label:"Massnahmen", placeholder:"notieren\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, 
-  {id:"field.b", desc:"module.plan.field-b.desc", type:"text", label:"Beschreibung", placeholder:"notieren\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.c", desc:"module.plan.field-c.desc", type:"calc", label:"Total Honorar Beteiligte", placeholder:"", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.d", desc:"module.plan.field-d.desc", type:"calc", label:"Total Honorar Projekt", placeholder:"", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.e", 
+  "Plan", {sort:2, enabled:!1, icon:"ic_plan.png", desc:"module.plan.desc", editables:[{id:"visual", desc:"module.plan.editable.desc", type:"select", label:"1.Liste", color:"blue", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"form", desc:"module.plan.editable.desc", type:"select", label:"2.Liste", color:"green", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff"]}, {id:"online", desc:"module.plan.editable.desc", 
+  type:"select", label:"3.Liste", color:"yellow", show:!1, sortable:!1, visible:!0, values:"1.Begriff 2.Begriff 3.Begriff 4.Begriff 5.Begriff 6.Begriff 7.Begriff".split(" ")}, {id:"season", desc:"module.plan.editable.desc", type:"select", label:"4.Liste", color:"sky", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff"]}, {id:"region", desc:"module.plan.editable.desc", type:"select", label:"5.Liste", color:"lime", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff"]}, 
+  {id:"place", desc:"module.plan.editable.desc", type:"select", label:"6.Liste", color:"orange", show:!1, sortable:!1, visible:!0, values:"1.Begriff 2.Begriff 3.Begriff 4.Begriff 5.Begriff 6.Begriff 7.Begriff".split(" ")}, {id:"field.a", desc:"module.plan.field-a.desc", type:"text", label:"Massnahmen", placeholder:"notieren\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.b", desc:"module.plan.field-b.desc", type:"text", label:"Beschreibung", placeholder:"notieren\u2026", show:!1, 
+  sortable:!1, visible:!0, color:"shades"}, {id:"title", desc:"module.plan.label.desc", type:"label", placeholder:"", label:"Plan", title:"Modul-Titel", visible:!0}, {id:"field.c", desc:"module.plan.field-c.desc", type:"calc", label:"Total Honorar Beteiligte", placeholder:"", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.d", desc:"module.plan.field-d.desc", type:"calc", label:"Total Honorar Projekt", placeholder:"", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.e", 
   desc:"module.plan.field-e.desc", type:"calc", label:"Total Spesen Beteiligte", placeholder:"", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.f", desc:"module.plan.field-f.desc", type:"calc", label:"Total Spesen Projekt", placeholder:"", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.g", desc:"module.plan.field-g.desc", type:"text", label:"Kostendach Projekt\u2026", placeholder:"Betrag\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.h", desc:"module.plan.field-h.desc", 
   type:"calc", label:"Total Projekt", placeholder:"Betrag\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}]}), {id:3}));
   return PluginRepository.instance;
@@ -1883,7 +1886,7 @@ ClientManager.prototype.init = function() {
 ClientManager.prototype._createMessageChannel = function() {
   var a = this, b = new MessageChannel;
   b.port1.onmessage = function(b) {
-    console.log("Received data from sub-module: " + JSON.stringify(b.data));
+    console.debug("Received data from sub-module: " + JSON.stringify(b.data));
     b = b.data;
     Object.values(b.get || []).forEach(function(b) {
       switch(b) {
@@ -2057,7 +2060,6 @@ ClientManager.prototype.getPlanModuleContext = function(a) {
   var b = this;
   return {id:"module.plan", shared:ModulePlanController.SHARED_NAME, card:a, configuration:b.getModuleConfiguration("module.plan"), condition:b.isPlanModuleEnabled(), on:function() {
     var c = [], d = b.getPlanController().getByCard(a);
-    console.log("getPlanModuleContext's entity", d);
     b.getPlanController().hasContent(d) && c.push({text:"", icon:"./assets/ic_plan.png"});
     return b.getModuleConfiguration("module.plan").then(function(a) {
       return a.config.editables;
@@ -3023,7 +3025,17 @@ PluginConfiguration._create = function(a) {
 PluginConfiguration._readModules = function(a) {
   a = JsonSerialization.getProperty(a, "modules") || {1:JSON.stringify(new PluginModuleConfig("module.artikel", "Artikel", {}))};
   return Object.values(a).map(function(a) {
-    return PluginModuleConfig.create(a);
+    var b = PluginModuleConfig.create(a);
+    a = PluginRepository.INSTANCE.find(function(a) {
+      return a.id === b.id;
+    });
+    if (isSet(a) && a instanceof PluginModuleConfig) {
+      a = JSON.parse(JSON.stringify(a.config));
+      var d = JSON.parse(JSON.stringify(b.config));
+      a = extend(a, d);
+      b.config = a;
+    }
+    return b;
   });
 };
 PluginConfiguration.prototype.getActiveModules = function() {
@@ -3703,6 +3715,13 @@ function __(a) {
 }
 function isSet(a) {
   return !("undefined" === typeof a || null === a);
+}
+function extend(a, b) {
+  console.debug("Extending obj with src", a, b);
+  for (var c in b) {
+    a.hasOwnProperty(c) ? a[c] = "object" === typeof b[c] ? extend(a[c] || {}, b[c]) : b[c] : a[c] = b[c];
+  }
+  return a;
 }
 ;
 // Input 35
