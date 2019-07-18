@@ -79,9 +79,6 @@ class PluginConfiguration {
                 let newconfig = JSON.parse(JSON.stringify(pmc.config));
                 let currentconfig = JSON.parse(JSON.stringify(moduleConfig.config));
                 const merged = extend(newconfig, currentconfig);
-                // console.log("PluginRepository config", pmc.config);
-                // console.log("moduleConfig config", moduleConfig.config);
-                // console.log("merged config", merged);
                 moduleConfig.config = merged;
             }
             return moduleConfig;

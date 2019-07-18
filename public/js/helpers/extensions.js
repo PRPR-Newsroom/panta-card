@@ -390,6 +390,12 @@ function isSet(variable) {
     return !(typeof variable === 'undefined' || variable === null);
 }
 
+/**
+ * This extends the target object with all properties from the source object
+ * @param obj
+ * @param src
+ * @returns {*}
+ */
 function extend(obj, src) {
     for (const key in src) {
         if (src.hasOwnProperty(key)) {
