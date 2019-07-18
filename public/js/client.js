@@ -103,19 +103,24 @@ TrelloPowerUp.initialize({
         return pc.getPluginConfiguration()
             .then(function (config) {
                 if (config && config.hasActiveModules()) {
-                    let modules = config.getActiveModules();
-                    let title = modules.length > 0 ? modules[0].config.editables
-                        .filter(function (editable) {
-                            return editable.id === "title";
-                        })
-                        .map(function (editable) {
-                            return editable.label;
-                        })
-                        .find(function (label) {
-                            return label && label.length > 0;
-                        }) : config.card.title;
+                    const modules = config.getActiveModules();
+                    const defaults = {
+                        "title": config.card.title
+                    };
+                    const options = extend({
+                        "title": (modules.length > 0 ? modules[0].config.editables
+                            .filter(function (editable) {
+                                return editable.id === "title";
+                            })
+                            .map(function (editable) {
+                                return editable.label;
+                            })
+                            .find(function (label) {
+                                return label && label.length > 0;
+                            }) : config.card.title)
+                    }, defaults);
                     return {
-                        title: title,
+                        title: options.title,
                         icon: config.card.icon,
                         content: {
                             type: 'iframe',

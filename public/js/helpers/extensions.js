@@ -389,3 +389,16 @@ function __(id) {
 function isSet(variable) {
     return !(typeof variable === 'undefined' || variable === null);
 }
+
+function extend(obj, src) {
+    for (const key in src) {
+        if (src.hasOwnProperty(key)) {
+            if (typeof src[key] === "object") {
+                obj[key] = extend(obj[key] || {}, src[key]);
+            } else {
+                obj[key] = src[key];
+            }
+        }
+    }
+    return obj;
+}

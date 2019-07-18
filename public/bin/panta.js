@@ -374,6 +374,33 @@ $jscomp.polyfill("Array.prototype.keys", function(a) {
     });
   };
 }, "es6", "es3");
+$jscomp.owns = function(a, b) {
+  return Object.prototype.hasOwnProperty.call(a, b);
+};
+$jscomp.polyfill("Object.values", function(a) {
+  return a ? a : function(a) {
+    var b = [], d;
+    for (d in a) {
+      $jscomp.owns(a, d) && b.push(a[d]);
+    }
+    return b;
+  };
+}, "es8", "es3");
+$jscomp.findInternal = function(a, b, c) {
+  a instanceof String && (a = String(a));
+  for (var d = a.length, e = 0; e < d; e++) {
+    var f = a[e];
+    if (b.call(c, f, e, a)) {
+      return {i:e, v:f};
+    }
+  }
+  return {i:-1, v:void 0};
+};
+$jscomp.polyfill("Array.prototype.find", function(a) {
+  return a ? a : function(a, c) {
+    return $jscomp.findInternal(this, a, c).v;
+  };
+}, "es6", "es3");
 $jscomp.checkStringArgs = function(a, b, c) {
   if (null == a) {
     throw new TypeError("The 'this' value for String.prototype." + c + " must not be null or undefined");
@@ -397,18 +424,6 @@ $jscomp.polyfill("String.prototype.startsWith", function(a) {
     return h >= f;
   };
 }, "es6", "es3");
-$jscomp.owns = function(a, b) {
-  return Object.prototype.hasOwnProperty.call(a, b);
-};
-$jscomp.polyfill("Object.values", function(a) {
-  return a ? a : function(a) {
-    var b = [], d;
-    for (d in a) {
-      $jscomp.owns(a, d) && b.push(a[d]);
-    }
-    return b;
-  };
-}, "es8", "es3");
 $jscomp.polyfill("Object.entries", function(a) {
   return a ? a : function(a) {
     var b = [], d;
@@ -418,21 +433,6 @@ $jscomp.polyfill("Object.entries", function(a) {
     return b;
   };
 }, "es8", "es3");
-$jscomp.findInternal = function(a, b, c) {
-  a instanceof String && (a = String(a));
-  for (var d = a.length, e = 0; e < d; e++) {
-    var f = a[e];
-    if (b.call(c, f, e, a)) {
-      return {i:e, v:f};
-    }
-  }
-  return {i:-1, v:void 0};
-};
-$jscomp.polyfill("Array.prototype.find", function(a) {
-  return a ? a : function(a, c) {
-    return $jscomp.findInternal(this, a, c).v;
-  };
-}, "es6", "es3");
 $jscomp.polyfill("Array.prototype.flatMap", function(a) {
   return a ? a : function(a, c) {
     for (var b = [], e = 0; e < this.length; e++) {
@@ -568,6 +568,9 @@ Repository.prototype.clearAll = function() {
 };
 Repository.prototype.get = function(a) {
   return this._repository[a.id];
+};
+Repository.prototype.find = function(a) {
+  return Object.values(this._repository).find(a);
 };
 Repository.prototype.isNew = function(a) {
 };
@@ -3023,7 +3026,17 @@ PluginConfiguration._create = function(a) {
 PluginConfiguration._readModules = function(a) {
   a = JsonSerialization.getProperty(a, "modules") || {1:JSON.stringify(new PluginModuleConfig("module.artikel", "Artikel", {}))};
   return Object.values(a).map(function(a) {
-    return PluginModuleConfig.create(a);
+    var b = PluginModuleConfig.create(a);
+    a = PluginRepository.INSTANCE.find(function(a) {
+      return a.id === b.id;
+    });
+    if (isSet(a) && a instanceof PluginModuleConfig) {
+      a = JSON.parse(JSON.stringify(a.config));
+      var d = JSON.parse(JSON.stringify(b.config));
+      a = extend(a, d);
+      b.config = a;
+    }
+    return b;
   });
 };
 PluginConfiguration.prototype.getActiveModules = function() {
@@ -3703,6 +3716,12 @@ function __(a) {
 }
 function isSet(a) {
   return !("undefined" === typeof a || null === a);
+}
+function extend(a, b) {
+  for (var c in b) {
+    b.hasOwnProperty(c) && (a[c] = "object" === typeof b[c] ? extend(a[c] || {}, b[c]) : b[c]);
+  }
+  return a;
 }
 ;
 // Input 35
