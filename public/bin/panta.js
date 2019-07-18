@@ -1886,7 +1886,7 @@ ClientManager.prototype.init = function() {
 ClientManager.prototype._createMessageChannel = function() {
   var a = this, b = new MessageChannel;
   b.port1.onmessage = function(b) {
-    console.log("Received data from sub-module: " + JSON.stringify(b.data));
+    console.debug("Received data from sub-module: " + JSON.stringify(b.data));
     b = b.data;
     Object.values(b.get || []).forEach(function(b) {
       switch(b) {
@@ -2060,7 +2060,6 @@ ClientManager.prototype.getPlanModuleContext = function(a) {
   var b = this;
   return {id:"module.plan", shared:ModulePlanController.SHARED_NAME, card:a, configuration:b.getModuleConfiguration("module.plan"), condition:b.isPlanModuleEnabled(), on:function() {
     var c = [], d = b.getPlanController().getByCard(a);
-    console.log("getPlanModuleContext's entity", d);
     b.getPlanController().hasContent(d) && c.push({text:"", icon:"./assets/ic_plan.png"});
     return b.getModuleConfiguration("module.plan").then(function(a) {
       return a.config.editables;

@@ -118,7 +118,7 @@ class ClientManager {
         let that = this;
         let mc = new MessageChannel();
         mc.port1.onmessage = function (ev) {
-            console.log("Received data from sub-module: " + JSON.stringify(ev.data));
+            console.debug("Received data from sub-module: " + JSON.stringify(ev.data));
             let req = ev.data;
             // handle GET requests
             Object.values(req.get || []).forEach(function (item) {
@@ -444,7 +444,6 @@ class ClientManager {
             "on": function () {
                 let badges = [];
                 let entity = that.getPlanController().getByCard(card);
-                console.log("getPlanModuleContext's entity", entity);
                 if (that.getPlanController().hasContent(entity)) {
                     badges.push({
                         text: "",
