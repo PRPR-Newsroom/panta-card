@@ -17,6 +17,9 @@
 
 * Fixed: Restore scroll position when user changes tabs
 * Fixed: Wrong fields are displayed as badges
+* Fixed: "Schwarzer Balken" for active tabs
+* Fixed: Font-style for labels in settings as the labels on the card-back section of the input fields
+* Fixed: List elements in settings cannot be deleted
 
 [1.3.4]
 
