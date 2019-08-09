@@ -2818,7 +2818,7 @@ PluginController.prototype.setPluginModuleConfig = function(a, b) {
     if (d instanceof PluginConfiguration) {
       return d.card = b || d.card, d.modules.find(function(b) {
         return b.id === a.id;
-      }).config = a.config, c._trelloApi.set("board", "shared", PluginController.CONFIGURATION_NAME, LZString.compress(JSON.stringify(d))), d;
+      }).config = a.config, console.debug("Set new plugin configuration", d), c._trelloApi.set("board", "shared", PluginController.CONFIGURATION_NAME, LZString.compress(JSON.stringify(d))), d;
     }
     throw "Invalid plugin configuration";
   });
@@ -3717,9 +3717,8 @@ function isSet(a) {
   return !("undefined" === typeof a || null === a);
 }
 function extend(a, b) {
-  console.debug("Extending obj with src", a, b);
   for (var c in b) {
-    a.hasOwnProperty(c) ? a[c] = "object" === typeof b[c] ? extend(a[c] || {}, b[c]) : b[c] : a[c] = b[c];
+    a.hasOwnProperty(c) ? "object" === typeof b[c] ? b.hasOwnProperty("type") && "select" === b.type ? b.hasOwnProperty("type") && "select" === b.type && (a[c] = b[c]) : a[c] = extend(a[c] || {}, b[c]) : a[c] = b[c] : a[c] = b[c];
   }
   return a;
 }
