@@ -2562,7 +2562,7 @@ ModuleSettingsController.prototype.renderEditable = function(a, b, c) {
 };
 ModuleSettingsController.prototype.renderEditableLayout = function(a, b, c, d) {
   var e = this, f = this.document.createElement("span");
-  f.innerHTML = "<strong>" + d + "</strong>";
+  f.innerHTML = e._createLabel(d);
   c.appendChild(f);
   d = Object.keys(a.config.layouts).reduce(function(c, d) {
     var f = a.config.layouts[d], g = e.document.createElement("option");
@@ -2612,7 +2612,7 @@ ModuleSettingsController.prototype.createLayoutFormHolder = function(a) {
 };
 ModuleSettingsController.prototype.renderEditableText = function(a, b, c, d) {
   var e = this, f = this.document.createElement("span");
-  f.innerHTML = "<strong>" + d + "</strong>";
+  f.innerHTML = e._createLabel(d);
   c.appendChild(f);
   d = new ModuleEditableTextItem(b.placeholder, !1, !1);
   c.appendChild(d.setOnTextChangeListener(function(c, d) {
@@ -2631,7 +2631,7 @@ ModuleSettingsController.prototype.renderEditableText = function(a, b, c, d) {
 };
 ModuleSettingsController.prototype.renderEditableSelect = function(a, b, c, d) {
   var e = this, f = this.document.createElement("span");
-  f.innerHTML = "<strong>" + d + "</strong>";
+  f.innerHTML = e._createLabel(d);
   c.appendChild(f);
   b.values.map(function(c) {
     c = new ModuleEditableTextItem(c, !0, !1);
@@ -2688,7 +2688,7 @@ ModuleSettingsController.prototype.renderEditableHint = function(a, b) {
 };
 ModuleSettingsController.prototype.renderEditableLabel = function(a, b, c, d) {
   var e = this, f = e.document.createElement("span");
-  f.innerHTML = "<strong>" + d + "</strong>";
+  f.innerHTML = e._createLabel(d);
   b.appendChild(f);
   d = new ModuleEditableTextItem(c.label, !1, !0);
   d.setOnTextChangeListener(function(b, d) {
@@ -2715,7 +2715,7 @@ ModuleSettingsController.prototype.renderFieldGroup = function(a, b, c, d) {
     return a.type === b;
   });
   f.addClass(0 < h.length ? "show" : "hidden");
-  f.innerHTML = "<strong>" + d + "</strong>";
+  f.innerHTML = e._createLabel(d);
   c.appendChild(f);
   h.map(function(b) {
     return (new ModuleEditableItem(a, b)).setOnEnterListener(function(a, b) {
@@ -2748,7 +2748,7 @@ ModuleSettingsController.prototype.index = function(a) {
     b.setAttribute("data-name", "description");
   }), this.document.getElementsByClassName("settings-content").forEach(function(c) {
     var d = b.document.createElement("span");
-    d.innerHTML = "<strong>Module</strong>";
+    d.innerHTML = b._createLabel("Module");
     var e = b.document.createElement("p");
     e.innerHTML = __("module.settings.hint");
     c.appendChild(e);
@@ -2771,6 +2771,9 @@ ModuleSettingsController.prototype.index = function(a) {
     c.appendChild(d);
   }));
   return Promise.resolve(!0);
+};
+ModuleSettingsController.prototype._createLabel = function(a) {
+  return "<strong class='label'>" + a + "</strong>";
 };
 ModuleSettingsController.prototype.clearContent = function() {
   this.document.getElementsByClassName("settings-content").forEach(function(a) {
