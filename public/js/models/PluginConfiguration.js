@@ -78,6 +78,7 @@ class PluginConfiguration {
             if (isSet(pmc) && pmc instanceof PluginModuleConfig) {
                 let newconfig = JSON.parse(JSON.stringify(pmc.config));
                 let currentconfig = JSON.parse(JSON.stringify(moduleConfig.config));
+                // console.log("Merging newconfig and currentconfig", newconfig, currentconfig);
                 const merged = extend(newconfig, currentconfig);
                 moduleConfig.config = merged;
             }
