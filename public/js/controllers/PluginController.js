@@ -117,6 +117,7 @@ class PluginController {
                     });
                     item.config = pmc.config;
 
+                    console.debug("Set new plugin configuration", pc);
                     that._trelloApi.set('board', 'shared', PluginController.CONFIGURATION_NAME, LZString.compress(JSON.stringify(pc)));
                     return pc;
                 } else {

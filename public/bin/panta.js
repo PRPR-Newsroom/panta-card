@@ -534,7 +534,7 @@ DI.prototype.getTabIndexProvider = function() {
 };
 DI.INSTANCE = null;
 // Input 2
-var VERSION = "1.3.5-STAGING", PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.settings.hint":"Folgende MODULE sind f\u00fcr dieses BOARD verf\u00fcgbar:<br/>Sobald mindestens ein MODUL aktiviert ist, wird dieses in jeder CARD auf dem BOARD dargestellt.", "module.artikel.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.", "module.artikel.desc":"ARTIKEL-Eingabefelder und LISTEN f\u00fcr dieses BOARD konfigurieren:<br/>F\u00fcr jedes Feld kann eine Farbe definiert werden.<br/>Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf der CARD Vorderseite \u2013 ansonsten wird es nur auf der CARD Innenseite dargestellt.", 
+var VERSION = "1.3.5_1", PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.settings.hint":"Folgende MODULE sind f\u00fcr dieses BOARD verf\u00fcgbar:<br/>Sobald mindestens ein MODUL aktiviert ist, wird dieses in jeder CARD auf dem BOARD dargestellt.", "module.artikel.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.", "module.artikel.desc":"ARTIKEL-Eingabefelder und LISTEN f\u00fcr dieses BOARD konfigurieren:<br/>F\u00fcr jedes Feld kann eine Farbe definiert werden.<br/>Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf der CARD Vorderseite \u2013 ansonsten wird es nur auf der CARD Innenseite dargestellt.", 
 "module.artikel.editable.desc":"Beschriftung und Stichworte der maximal sechs LISTEN definieren:<br/>Die Reihenfolge der Stichwort muss fix erfasst werden.<br/>Die Zahl der Stichwort ist NICHT begrenzt.<br/>Maximal vier der sechs LISTEN lassen sich sortieren.<br/>LISTEN ohne Beschriftung werden auf der CARD nicht dargestellt.", "module.artikel.field-a.desc":"Das Textfeld \u00abA\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-b.desc":"Das Textfeld \u00abB\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
 "module.artikel.field-c.desc":"Das Textfeld \u00abC\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-d.desc":"Das Textfeld \u00abD\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-e.desc":"Das Textfeld \u00abE\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-f.desc":"Das Textfeld \u00abF\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
 "module.artikel.field-g.desc":"Das Textfeld \u00abG\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.beteiligt.desc":"BETEILIGT kann als Erg\u00e4nzung zum ARTIKEL oder PLAN aktiviert werden.<br/>Hier die Eingabefelder und LISTEN f\u00fcr das ganze BOARD konfigurieren:", "module.beteiligt.label.desc":"Dieser Titel wird oberhalb des Modul BETEILIGT auf jeder CARD sichtbar.", "module.beteiligt.layout.onsite":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", 
@@ -2562,7 +2562,7 @@ ModuleSettingsController.prototype.renderEditable = function(a, b, c) {
 };
 ModuleSettingsController.prototype.renderEditableLayout = function(a, b, c, d) {
   var e = this, f = this.document.createElement("span");
-  f.innerHTML = "<strong>" + d + "</strong>";
+  f.innerHTML = e._createLabel(d);
   c.appendChild(f);
   d = Object.keys(a.config.layouts).reduce(function(c, d) {
     var f = a.config.layouts[d], g = e.document.createElement("option");
@@ -2612,7 +2612,7 @@ ModuleSettingsController.prototype.createLayoutFormHolder = function(a) {
 };
 ModuleSettingsController.prototype.renderEditableText = function(a, b, c, d) {
   var e = this, f = this.document.createElement("span");
-  f.innerHTML = "<strong>" + d + "</strong>";
+  f.innerHTML = e._createLabel(d);
   c.appendChild(f);
   d = new ModuleEditableTextItem(b.placeholder, !1, !1);
   c.appendChild(d.setOnTextChangeListener(function(c, d) {
@@ -2631,7 +2631,7 @@ ModuleSettingsController.prototype.renderEditableText = function(a, b, c, d) {
 };
 ModuleSettingsController.prototype.renderEditableSelect = function(a, b, c, d) {
   var e = this, f = this.document.createElement("span");
-  f.innerHTML = "<strong>" + d + "</strong>";
+  f.innerHTML = e._createLabel(d);
   c.appendChild(f);
   b.values.map(function(c) {
     c = new ModuleEditableTextItem(c, !0, !1);
@@ -2688,7 +2688,7 @@ ModuleSettingsController.prototype.renderEditableHint = function(a, b) {
 };
 ModuleSettingsController.prototype.renderEditableLabel = function(a, b, c, d) {
   var e = this, f = e.document.createElement("span");
-  f.innerHTML = "<strong>" + d + "</strong>";
+  f.innerHTML = e._createLabel(d);
   b.appendChild(f);
   d = new ModuleEditableTextItem(c.label, !1, !0);
   d.setOnTextChangeListener(function(b, d) {
@@ -2715,7 +2715,7 @@ ModuleSettingsController.prototype.renderFieldGroup = function(a, b, c, d) {
     return a.type === b;
   });
   f.addClass(0 < h.length ? "show" : "hidden");
-  f.innerHTML = "<strong>" + d + "</strong>";
+  f.innerHTML = e._createLabel(d);
   c.appendChild(f);
   h.map(function(b) {
     return (new ModuleEditableItem(a, b)).setOnEnterListener(function(a, b) {
@@ -2748,7 +2748,7 @@ ModuleSettingsController.prototype.index = function(a) {
     b.setAttribute("data-name", "description");
   }), this.document.getElementsByClassName("settings-content").forEach(function(c) {
     var d = b.document.createElement("span");
-    d.innerHTML = "<strong>Module</strong>";
+    d.innerHTML = b._createLabel("Module");
     var e = b.document.createElement("p");
     e.innerHTML = __("module.settings.hint");
     c.appendChild(e);
@@ -2771,6 +2771,9 @@ ModuleSettingsController.prototype.index = function(a) {
     c.appendChild(d);
   }));
   return Promise.resolve(!0);
+};
+ModuleSettingsController.prototype._createLabel = function(a) {
+  return "<strong class='label'>" + a + "</strong>";
 };
 ModuleSettingsController.prototype.clearContent = function() {
   this.document.getElementsByClassName("settings-content").forEach(function(a) {
@@ -2818,7 +2821,7 @@ PluginController.prototype.setPluginModuleConfig = function(a, b) {
     if (d instanceof PluginConfiguration) {
       return d.card = b || d.card, d.modules.find(function(b) {
         return b.id === a.id;
-      }).config = a.config, c._trelloApi.set("board", "shared", PluginController.CONFIGURATION_NAME, LZString.compress(JSON.stringify(d))), d;
+      }).config = a.config, console.debug("Set new plugin configuration", d), c._trelloApi.set("board", "shared", PluginController.CONFIGURATION_NAME, LZString.compress(JSON.stringify(d))), d;
     }
     throw "Invalid plugin configuration";
   });
@@ -3717,9 +3720,8 @@ function isSet(a) {
   return !("undefined" === typeof a || null === a);
 }
 function extend(a, b) {
-  console.debug("Extending obj with src", a, b);
   for (var c in b) {
-    a.hasOwnProperty(c) ? a[c] = "object" === typeof b[c] ? extend(a[c] || {}, b[c]) : b[c] : a[c] = b[c];
+    a.hasOwnProperty(c) ? "object" === typeof b[c] ? b.hasOwnProperty("type") && "select" === b.type ? b.hasOwnProperty("type") && "select" === b.type && (a[c] = b[c]) : a[c] = extend(a[c] || {}, b[c]) : a[c] = b[c] : a[c] = b[c];
   }
   return a;
 }

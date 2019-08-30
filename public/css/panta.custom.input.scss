@@ -1,6 +1,12 @@
+.label {
+  color: #B2B3B3;
+  font-weight: normal;
+}
+
 form {
 
   label {
+    @extend .label;
     border-radius: 3px 3px 0 0;
     background: rgba(0, 0, 0, .03);
     margin-bottom: 0;
@@ -9,9 +15,9 @@ form {
     border-right: 1px solid #798d99;
     border-top: 1px solid #798d99;
     border-bottom: 0;
-    color: #B2B3B3;
-    font-weight: normal;
+
   }
+
   .u-border, .u-border:focus {
     overflow: auto;
     border-top: none;
@@ -26,6 +32,7 @@ form {
     box-shadow: none !important;
     margin-bottom: 4px;
   }
+
   select.u-border, select.u-border:focus {
     margin: 0 0 5px 0;
     background: rgba(0, 0, 0, .03);

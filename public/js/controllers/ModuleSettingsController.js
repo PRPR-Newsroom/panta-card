@@ -140,7 +140,7 @@ class ModuleSettingsController {
     renderEditableLayout(mc, editable, element, label) {
         let that = this;
         let group = this.document.createElement("span");
-        group.innerHTML = "<strong>" + label + "</strong>";
+        group.innerHTML = that._createLabel(label);
         element.appendChild(group);
 
         /**
@@ -226,7 +226,7 @@ class ModuleSettingsController {
     renderEditableText(mc, editable, element, label) {
         let that = this;
         let group = this.document.createElement("span");
-        group.innerHTML = "<strong>" + label + "</strong>";
+        group.innerHTML = that._createLabel(label);
         element.appendChild(group);
 
         let meti = new ModuleEditableTextItem(editable.placeholder, false, false);
@@ -253,7 +253,7 @@ class ModuleSettingsController {
     renderEditableSelect(mc, editable, element, label) {
         let that = this;
         let group = this.document.createElement("span");
-        group.innerHTML = "<strong>" + label + "</strong>";
+        group.innerHTML = that._createLabel(label);
         element.appendChild(group);
 
         editable.values
@@ -342,7 +342,7 @@ class ModuleSettingsController {
     renderEditableLabel(mc, element, editable, label) {
         let that = this;
         let name = that.document.createElement("span");
-        name.innerHTML = "<strong>" + label + "</strong>";
+        name.innerHTML = that._createLabel(label);
         element.appendChild(name);
         let editableName = new ModuleEditableTextItem(editable.label, false, true);
         editableName.setOnTextChangeListener(function (previous, updated) {
@@ -383,7 +383,7 @@ class ModuleSettingsController {
             });
 
         group.addClass(typed.length > 0 ? 'show' : 'hidden');
-        group.innerHTML = "<strong>" + section + "</strong>";
+        group.innerHTML = that._createLabel(section);
         element.appendChild(group);
 
         typed.map(function (editable) {
@@ -456,7 +456,7 @@ class ModuleSettingsController {
 
             this.document.getElementsByClassName("settings-content").forEach(function (element) {
                 let header = that.document.createElement("span");
-                header.innerHTML = "<strong>Module</strong>";
+                header.innerHTML = that._createLabel("Module");
 
                 let hint = that.document.createElement("p");
                 hint.innerHTML = __("module.settings.hint");
@@ -511,6 +511,16 @@ class ModuleSettingsController {
             });
         }
         return Promise.resolve(true);
+    }
+
+    /**
+     * Create a styled label
+     * @param label
+     * @returns {string}
+     * @private
+     */
+    _createLabel(label) {
+        return "<strong class='label'>" + label + "</strong>";
     }
 
     /**

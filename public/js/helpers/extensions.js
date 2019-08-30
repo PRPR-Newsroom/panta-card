@@ -397,7 +397,6 @@ function isSet(variable) {
  * @returns {*}
  */
 function extend(obj, src) {
-    console.debug("Extending obj with src", obj, src);
     for (const key in src) {
         if (!obj.hasOwnProperty(key)) {
             // the target object does not have the property yet so just assign the property
@@ -405,7 +404,12 @@ function extend(obj, src) {
         } else {
             // the target does already have this property... if it's an object type we must jump into this property
             if (typeof src[key] === "object") {
-                obj[key] = extend(obj[key] || {}, src[key]);
+                if (!src.hasOwnProperty("type") || src.type !== "select") {
+                    obj[key] = extend(obj[key] || {}, src[key]);
+                } else if (src.hasOwnProperty("type") && src.type === "select") {
+                    // CHECKME: use the source in this case but this is not really nice
+                    obj[key] = src[key];
+                }
             } else {
                 // simple type
                 obj[key] = src[key];
