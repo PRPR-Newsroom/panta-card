@@ -1,5 +1,9 @@
 [UNRELEASED]
 
+# Fixes
+
+* Trello changed their stylesheets. This changes made the Panta Power-Up look strange because some properties were changed. To fix this the Panta Power-Up either overrides or sets those properties now
+
 [1.3.5_1]
 
 # Features
