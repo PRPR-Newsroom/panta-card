@@ -3,6 +3,7 @@
 # Fixes
 
 * Trello changed their stylesheets. This changes made the Panta Power-Up look strange because some properties were changed. To fix this the Panta Power-Up either overrides or sets those properties now
+* Active tab must have a black bar no matter if it has content or not
 
 [1.3.5_1]
 
