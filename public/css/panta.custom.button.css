@@ -11,6 +11,7 @@
   border-radius: 8px;
   width: 16px;
   height: 16px;
+  line-height: 0;
 }
 .panta-btn.panta-btn-icon {
   width: 32px;
