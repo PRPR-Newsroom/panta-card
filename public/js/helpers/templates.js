@@ -132,13 +132,19 @@ let template_blog = '<div id="template" class="row">' +
     '    </div>' +
     '    <div class="col-6 col-phone-12">' +
     '        <div class="row">' +
-    '            <div class="col-12 col-phone-12 line-4 line-phone-4">' +
+    '            <div class="col-12 col-phone-12 line-7 line-phone-7">' +
     '                <div class="pa.notes"></div>' +
     '            </div>' +
     '        </div>' +
     '    </div>' +
     '    <div class="col-6 col-phone-12">' +
     '        <div class="row">' +
+    '            <div class="col-12 col-phone-12 phone-hidden">' +
+    '                <div class="empty-cell"><div class="field">' +
+    '                   <label class="invisible prop-textarea" for="empty-cell1">Empty</label> <textarea id="empty-cell1" class="invisible text u-border"></textarea>' +
+    '               </div>' +
+    '            </div>' +
+    '            </div>' +
     '            <div class="col-12 col-phone-12">' +
     '                <div class="pa.follower"></div>' +
     '            </div>' +
