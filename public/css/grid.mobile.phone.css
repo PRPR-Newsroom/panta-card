@@ -104,4 +104,8 @@ form .line-phone-8 textarea {
   width: 100%;
 }
 
+.phone-hidden {
+  display: none !important;
+}
+
 /*# sourceMappingURL=grid.mobile.phone.css.map */
