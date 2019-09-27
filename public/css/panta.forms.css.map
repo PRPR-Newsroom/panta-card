@@ -1,7 +1,1 @@
-{
-"version": 3,
-"mappings": "AAAA,+BAA+B;AAC/B,IAAK;EACH,WAAW,EAAE,GAAG;EAEhB,aAAS;IACP,MAAM,EAAE,QAAQ;IAChB,KAAK,EAAE,IAAI;IACX,4CAA4C;IAC5C,UAAU,EAAE,IAAI;IAChB,cAAc,EAAE,GAAG;EAGrB,wBAAoB;IAClB,MAAM,EAAE,IAAI;IACZ,aAAa,EAAE,MAAM;EAGvB,gCAA4B;IAC1B,QAAQ,EAAE,MAAM;EAGlB,sBAAkB;IAChB,YAAY,EAAE,OAAO;EAGvB,oCAAgC;IAC9B,YAAY,EAAE,OAAO;EAGvB,oCAAgC;IAC9B,YAAY,EAAE,OAAO",
-"sources": ["panta.forms.scss"],
-"names": [],
-"file": "panta.forms.css"
-}
+{"version":3,"sourceRoot":"","sources":["panta.forms.scss"],"names":[],"mappings":"AAAA;AACA;EACE;;AAEA;EACE;EACA;AACA;EACA;EACA;;AAGF;EACE;EACA;;AAGF;EACE;;AAGF;EACE;;AAGF;EACE;;AAGF;EACE","file":"panta.forms.css"}

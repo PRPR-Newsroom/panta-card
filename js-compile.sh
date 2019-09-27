@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-java -jar /home/manuel/dev/google-compiler/closure-compiler-v20190325.jar \
+java -jar ~/dev/google-compiler/closure-compiler-v20190325.jar \
     --js_output_file=public/bin/panta.js \
     --language_in=ECMASCRIPT6 \
     --formatting=PRETTY_PRINT \

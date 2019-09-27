@@ -300,6 +300,12 @@ String.prototype.toHTML = function () {
     return txt.value;
 };
 
+String.prototype.htmlify = function() {
+    return this.replace(/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/g, function(match) {
+        return "<a href=\"" + match + "\" target=\"_blank\">" + match + "</a>";
+    });
+};
+
 /**
  * Convert a string to an escaped HTML version
  * @return {string}

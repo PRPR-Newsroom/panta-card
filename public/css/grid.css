@@ -6,10 +6,10 @@
 
 [class*=col-] {
   float: left;
-  padding: 0px;
-  border: 0px solid red;
+  padding: 0;
+  border: 0 solid red;
 }
-[class*=col-] textarea {
+[class*=col-] textarea, [class*=col-] .input-overlay {
   height: 26px;
 }
 
@@ -31,35 +31,35 @@
   display: table;
 }
 
-.line-1 textarea {
+.line-1 textarea, .line-1 .input-overlay {
   height: 26px;
 }
 
-.line-2 textarea {
+.line-2 textarea, .line-2 .input-overlay {
   height: 44px;
 }
 
-.line-3 textarea {
+.line-3 textarea, .line-3 .input-overlay {
   height: 62px;
 }
 
-.line-4 textarea {
+.line-4 textarea, .line-4 .input-overlay {
   height: 80px;
 }
 
-.line-5 textarea {
+.line-5 textarea, .line-5 .input-overlay {
   height: 98px;
 }
 
-.line-6 textarea {
+.line-6 textarea, .line-6 .input-overlay {
   height: 116px;
 }
 
-.line-7 textarea {
+.line-7 textarea, .line-7 .input-overlay {
   height: 134px;
 }
 
-.line-8 textarea {
+.line-8 textarea, .line-8 .input-overlay {
   height: 152px;
 }
 

@@ -31,6 +31,7 @@ class PInput {
         this._placeholder = placeholder;
         this._readonly = readonly;
         this._input = this._document.createElement(this._type);
+        this._inputOverlay = this._document.createElement('div');
         this._labelInput = null;
         this._property = null;
         this._propertyType = "text";
@@ -100,6 +101,8 @@ class PInput {
     _updateValue(newValue) {
         if (this._input !== null && this._input.value !== newValue) {
             this._input.value = newValue;
+            this._inputOverlay.innerHTML = newValue.htmlify();
+            this._input.setAttribute("data-value", newValue);
         }
     }
 
@@ -144,8 +147,14 @@ class PInput {
             this._input.setAttribute("tabindex", autoTabIndex());
         }
 
-        this._input.addClass(this.propertyType);
-        this._input.addClass("u-border");
+        this._input.addClass(this.propertyType)
+            .addClass("u-border")
+            .addClass("hidden");
+
+        this._inputOverlay
+            .addClass("input-overlay")
+            .addClass(this.propertyType)
+            .addClass("u-border");
 
         this.setupEvents();
 
@@ -160,6 +169,7 @@ class PInput {
         }
 
         container.appendChild(this._labelInput);
+        container.appendChild(this._inputOverlay);
         container.appendChild(this._input);
 
         if (this._target) {
@@ -221,8 +231,27 @@ class PInput {
      * when the user hovers the element resp. remove it when the mouse leaves the element
      */
     setupEvents() {
+        const that = this;
         this._setClassWhenEvent(this._input, 'focus', 'blur', 'focused');
         this._setClassWhenEvent(this._input, 'mouseenter', 'mouseleave', 'hovered');
+        // when user clicks the overlay it must hide the div and show the input element
+        const click = function () {
+            that._inputOverlay.addClass("hidden");
+            that._input.removeClass("hidden");
+            // focus the input element
+            that._input.focus();
+
+            // if the user leaves the input element it must hide the input and show the overlay div again
+            const blur = function () {
+                that._inputOverlay.removeClass("hidden");
+                that._input.addClass("hidden");
+            };
+            that._input.removeEventListener('blur', blur);
+            that._input.addEventListener('blur', blur);
+        };
+        this._inputOverlay.removeEventListener('click', click);
+        this._inputOverlay.addEventListener('click', click);
+
     }
 
     /**
@@ -234,14 +263,18 @@ class PInput {
      * @private
      */
     _setClassWhenEvent(element, eventOn, eventOff, className) {
-        element.setEventListener(eventOn, function (e) {
-            let target = e.currentTarget;
-            target.previousElementSibling.addClass(className);
-        });
-        this._input.setEventListener(eventOff, function (e) {
-            let target = e.currentTarget;
-            target.previousElementSibling.removeClass(className);
-        });
+        if (eventOn) {
+            element.setEventListener(eventOn, function (e) {
+                let target = e.currentTarget;
+                target.previousElementSibling.addClass(className);
+            });
+        }
+        if (eventOff) {
+            this._input.setEventListener(eventOff, function (e) {
+                let target = e.currentTarget;
+                target.previousElementSibling.removeClass(className);
+            });
+        }
     }
 
     /**
@@ -255,13 +288,14 @@ class PInput {
             this._labelInput.addClass(className);
         } else {
             this._input.addClass(className);
+            this._inputOverlay.addClass(className);
         }
         return this;
     }
 
     hide() {
         if (this._target) {
-            this._target.children.forEach(function(child) {
+            this._target.children.forEach(function (child) {
                 child.addClass("invisible");
             })
         }
@@ -270,7 +304,7 @@ class PInput {
 
     show() {
         if (this._target) {
-            this._target.children.forEach(function(child) {
+            this._target.children.forEach(function (child) {
                 child.removeClass("invisible");
             })
         }
@@ -282,6 +316,7 @@ class PInput {
             this._labelInput.addConditionalFormatting(rule);
         } else {
             this._input.addConditionalFormatting(rule);
+            this._inputOverlay.addConditionalFormatting(rule);
         }
         return this;
     }
@@ -289,10 +324,32 @@ class PInput {
     _updateConditionalFormatting() {
         this._labelInput.applyConditionalFormatting(this._entity);
         this._input.applyConditionalFormatting(this._entity);
+        this._inputOverlay.applyConditionalFormatting(this._entity);
     }
 
     setHeight(height) {
         this._input.style.height = height + "px";
+        this._inputOverlay.style.height = height + "px";
+        return this;
+    }
+
+    setPadding(top, right, bottom, left) {
+        if (isNumber(top)) {
+            this._input.style.paddingTop = top + "px";
+            this._inputOverlay.style.paddingTop = top + "px";
+        }
+        if (isNumber(right)) {
+            this._input.style.paddingRight = right + "px";
+            this._inputOverlay.style.paddingRight = right + "px";
+        }
+        if (isNumber(bottom)) {
+            this._input.style.paddingBottom = bottom + "px";
+            this._inputOverlay.style.paddingBottom = bottom + "px";
+        }
+        if (isNumber(left)) {
+            this._input.style.paddingLeft = left + "px";
+            this._inputOverlay.style.paddingLeft = left + "px";
+        }
         return this;
     }
 
@@ -323,7 +380,7 @@ class PInput {
         this._input.onfocus = function () {
             ctx['event'] = 'focus';
             func(that, ctx);
-        }
+        };
         return this;
     }
 
@@ -359,6 +416,9 @@ class PInput {
      * @returns {string | number}
      */
     getValue() {
+        if (this._input.getAttribute("data-value")) {
+            return this._input.getAttribute("data-value");
+        }
         return this._input.value;
     }
 
@@ -415,8 +475,7 @@ class PInput {
     _formatNumber(number, options) {
         let parsed = parseFloat(number);
         if (!isNaN(parsed)) {
-            let formatted = parsed.toLocaleString(undefined, options);
-            return formatted;
+            return parsed.toLocaleString(undefined, options);
         } else {
             return "";
         }
@@ -466,7 +525,7 @@ class MultiLineInput extends PInput {
             if (row) {
                 let style = getComputedStyle(element.getClosestParentByClassName("field"));
                 let paddings = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
-                element.style.height = ((row.offsetHeight - label.offsetHeight - element.getMarginBottom() - paddings) - 1) + "px";
+                this.setHeight(((row.offsetHeight - label.offsetHeight - element.getMarginBottom() - paddings) - 1));
             } else {
                 console.log("Could not find a parent with class «row» or «mobile-row»");
             }
@@ -502,14 +561,14 @@ class SingleLineInput extends PInput {
             if (row) {
                 let style = getComputedStyle(element.getClosestParentByClassName("field"));
                 let paddings = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
-                element.style.height = (row.offsetHeight - label.offsetHeight - element.getMarginBottom() - paddings) + "px";
+                this.setHeight((row.offsetHeight - label.offsetHeight - element.getMarginBottom() - paddings));
             } else {
                 console.log("Could not find a parent with class «row» or «mobile-row»");
             }
         }
 
         // TODO 23px must be computed... not quite sure why 23 pixels :-( but it works so for the moment I'm fine with it
-        element.style.paddingTop = Math.max(0, element.offsetHeight - 23) + "px";
+        this.setPadding(Math.max(0, element.offsetHeight - 26));
         return super.doCustomization(element, label);
     }
 }
@@ -591,6 +650,7 @@ class SingleSelectInput extends PInput {
 
     invalidate() {
         this._input.removeChildren();
+        this._inputOverlay.removeChildren();
         this.doCustomization(this._input, this._labelInput);
     }
 

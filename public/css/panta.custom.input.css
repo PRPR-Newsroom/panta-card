@@ -19,6 +19,15 @@ form label {
   border-top: 1px solid #798d99;
   border-bottom: 0;
 }
+form .input-overlay {
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  padding-right: 12px;
+  padding-left: 12px;
+  transition-property: background-color, border-color, box-shadow;
+  transition-duration: 85ms;
+  transition-timing-function: ease;
+}
 form .u-border, form .u-border:focus {
   overflow: auto;
   border-color: #798d99;

@@ -25,6 +25,16 @@ form {
     border-bottom: 0;
   }
 
+  .input-overlay {
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    padding-right: 12px;
+    padding-left: 12px;
+    transition-property: background-color,border-color,box-shadow;
+    transition-duration: 85ms;
+    transition-timing-function: ease;
+  }
+
   .u-border, .u-border:focus {
     overflow: auto;
     border-color: $border-color;

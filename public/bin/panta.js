@@ -986,6 +986,7 @@ var PInput = function(a, b, c, d, e, f, h, g) {
   this._placeholder = e;
   this._readonly = h;
   this._input = this._document.createElement(this._type);
+  this._inputOverlay = this._document.createElement("div");
   this._property = this._labelInput = null;
   this._propertyType = "text";
   this._visible = g;
@@ -1019,7 +1020,7 @@ PInput.prototype._updateProperty = function() {
   }
 };
 PInput.prototype._updateValue = function(a) {
-  null !== this._input && this._input.value !== a && (this._input.value = a);
+  null !== this._input && this._input.value !== a && (this._input.value = a, this._inputOverlay.innerHTML = a.htmlify(), this._input.setAttribute("data-value", a));
 };
 PInput.prototype.update = function(a) {
   this._entity = a;
@@ -1037,12 +1038,13 @@ PInput.prototype.render = function() {
   this._value && this._updateProperty();
   this._renderType();
   this._readonly ? this._input.setAttribute("readonly", "readonly") : this._input.setAttribute("tabindex", autoTabIndex());
-  this._input.addClass(this.propertyType);
-  this._input.addClass("u-border");
+  this._input.addClass(this.propertyType).addClass("u-border").addClass("hidden");
+  this._inputOverlay.addClass("input-overlay").addClass(this.propertyType).addClass("u-border");
   this.setupEvents();
   this._labelInput = this.setLabel();
   0 === this._label.length ? a.addClass("field").addClass("hidden") : a.addClass("field");
   a.appendChild(this._labelInput);
+  a.appendChild(this._inputOverlay);
   a.appendChild(this._input);
   this._target && this._target.appendChild(a);
   this.doCustomization(this._input, this._labelInput);
@@ -1084,19 +1086,33 @@ PInput.prototype._renderType = function() {
   }
 };
 PInput.prototype.setupEvents = function() {
+  var a = this;
   this._setClassWhenEvent(this._input, "focus", "blur", "focused");
   this._setClassWhenEvent(this._input, "mouseenter", "mouseleave", "hovered");
+  var b = function() {
+    a._inputOverlay.addClass("hidden");
+    a._input.removeClass("hidden");
+    a._input.focus();
+    var b = function() {
+      a._inputOverlay.removeClass("hidden");
+      a._input.addClass("hidden");
+    };
+    a._input.removeEventListener("blur", b);
+    a._input.addEventListener("blur", b);
+  };
+  this._inputOverlay.removeEventListener("click", b);
+  this._inputOverlay.addEventListener("click", b);
 };
 PInput.prototype._setClassWhenEvent = function(a, b, c, d) {
-  a.setEventListener(b, function(a) {
+  b && a.setEventListener(b, function(a) {
     a.currentTarget.previousElementSibling.addClass(d);
   });
-  this._input.setEventListener(c, function(a) {
+  c && this._input.setEventListener(c, function(a) {
     a.currentTarget.previousElementSibling.removeClass(d);
   });
 };
 PInput.prototype.addClass = function(a, b) {
-  !0 === b ? this._labelInput.addClass(a) : this._input.addClass(a);
+  !0 === b ? this._labelInput.addClass(a) : (this._input.addClass(a), this._inputOverlay.addClass(a));
   return this;
 };
 PInput.prototype.hide = function() {
@@ -1112,15 +1128,24 @@ PInput.prototype.show = function() {
   return this;
 };
 PInput.prototype.addConditionalFormatting = function(a, b) {
-  !0 === b ? this._labelInput.addConditionalFormatting(a) : this._input.addConditionalFormatting(a);
+  !0 === b ? this._labelInput.addConditionalFormatting(a) : (this._input.addConditionalFormatting(a), this._inputOverlay.addConditionalFormatting(a));
   return this;
 };
 PInput.prototype._updateConditionalFormatting = function() {
   this._labelInput.applyConditionalFormatting(this._entity);
   this._input.applyConditionalFormatting(this._entity);
+  this._inputOverlay.applyConditionalFormatting(this._entity);
 };
 PInput.prototype.setHeight = function(a) {
   this._input.style.height = a + "px";
+  this._inputOverlay.style.height = a + "px";
+  return this;
+};
+PInput.prototype.setPadding = function(a, b, c, d) {
+  isNumber(a) && (this._input.style.paddingTop = a + "px", this._inputOverlay.style.paddingTop = a + "px");
+  isNumber(b) && (this._input.style.paddingRight = b + "px", this._inputOverlay.style.paddingRight = b + "px");
+  isNumber(c) && (this._input.style.paddingBottom = c + "px", this._inputOverlay.style.paddingBottom = c + "px");
+  isNumber(d) && (this._input.style.paddingLeft = d + "px", this._inputOverlay.style.paddingLeft = d + "px");
   return this;
 };
 PInput.prototype.onChange = function(a, b) {
@@ -1150,7 +1175,7 @@ PInput.prototype.onEnterEditing = function(a, b) {
 PInput.prototype.doCustomization = function(a, b) {
 };
 PInput.prototype.getValue = function() {
-  return this._input.value;
+  return this._input.getAttribute("data-value") ? this._input.getAttribute("data-value") : this._input.value;
 };
 PInput.prototype.getBoundProperty = function() {
   return this._property;
@@ -1201,7 +1226,7 @@ MultiLineInput.prototype.doCustomization = function(a, b) {
     if (c) {
       var d = getComputedStyle(a.getClosestParentByClassName("field"));
       d = parseFloat(d.paddingTop) + parseFloat(d.paddingBottom);
-      a.style.height = c.offsetHeight - b.offsetHeight - a.getMarginBottom() - d - 1 + "px";
+      this.setHeight(c.offsetHeight - b.offsetHeight - a.getMarginBottom() - d - 1);
     } else {
       console.log("Could not find a parent with class \u00abrow\u00bb or \u00abmobile-row\u00bb");
     }
@@ -1220,12 +1245,12 @@ SingleLineInput.prototype.doCustomization = function(a, b) {
     if (c) {
       var d = getComputedStyle(a.getClosestParentByClassName("field"));
       d = parseFloat(d.paddingTop) + parseFloat(d.paddingBottom);
-      a.style.height = c.offsetHeight - b.offsetHeight - a.getMarginBottom() - d + "px";
+      this.setHeight(c.offsetHeight - b.offsetHeight - a.getMarginBottom() - d);
     } else {
       console.log("Could not find a parent with class \u00abrow\u00bb or \u00abmobile-row\u00bb");
     }
   }
-  a.style.paddingTop = Math.max(0, a.offsetHeight - 23) + "px";
+  this.setPadding(Math.max(0, a.offsetHeight - 26));
   return PInput.prototype.doCustomization.call(this, a, b);
 };
 var SingleSelectInput = function(a, b, c, d, e, f, h) {
@@ -1264,6 +1289,7 @@ SingleSelectInput.prototype.doCustomization = function(a, b) {
 };
 SingleSelectInput.prototype.invalidate = function() {
   this._input.removeChildren();
+  this._inputOverlay.removeChildren();
   this.doCustomization(this._input, this._labelInput);
 };
 // Input 14
@@ -3684,6 +3710,11 @@ String.prototype.toHTML = function() {
   var a = document.createElement("textarea");
   a.innerHTML = this;
   return a.value;
+};
+String.prototype.htmlify = function() {
+  return this.replace(/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/g, function(a) {
+    return '<a href="' + a + '" target="_blank">' + a + "</a>";
+  });
 };
 String.prototype.toHtmlEntities = function() {
   return this.replace(/[\u00A0-\u9999<>&]/gim, function(a) {

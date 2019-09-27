@@ -2,7 +2,7 @@ html, body {
     overflow-y: auto;
 }
 
-form textarea {
+form textarea, form .input-overlay {
     /* We need to override the Trello default */
     min-height: 26px;
     padding-bottom: 2px;
