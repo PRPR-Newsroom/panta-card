@@ -25,5 +25,9 @@ form label.hovered:not(.prop-select) {
 form label.focused:not(.prop-select) {
   border-color: #a5acb0;
 }
+form label {
+  margin-top: 0;
+  font-size: 13px;
+}
 
 /*# sourceMappingURL=panta.forms.css.map */

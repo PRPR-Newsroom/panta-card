@@ -1,12 +1,8 @@
 @import "variables";
 
 .label {
-  color: #B2B3B3;
+  color: $color-label;
   font-weight: normal;
-  margin-top: 0;
-}
-
-label {
   margin-top: 0;
 }
 
@@ -33,6 +29,9 @@ form {
     transition-property: background-color,border-color,box-shadow;
     transition-duration: 85ms;
     transition-timing-function: ease;
+    .placeholder {
+      color: $color-label;
+    }
   }
 
   .u-border, .u-border:focus {

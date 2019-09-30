@@ -77,6 +77,7 @@ class PInput {
         let propertyValue = this._entity[this.getBoundProperty()];
         if (propertyValue === null) {
             this._input.value = null;
+            this._inputOverlay.innerHTML = "<span class='placeholder'>" + this._placeholder + "</span>";
         } else {
             switch (this.propertyType) {
                 case "number":
@@ -100,9 +101,18 @@ class PInput {
      */
     _updateValue(newValue) {
         if (this._input !== null && this._input.value !== newValue) {
-            this._input.value = newValue;
-            this._inputOverlay.innerHTML = newValue.htmlify();
-            this._input.setAttribute("data-value", newValue);
+            if (this._type !== "select") {
+                this._input.value = newValue;
+            }
+            if (isBlank(newValue.trim())) {
+                this._inputOverlay.innerHTML = "<span class='placeholder'>" + this._placeholder  + "</span>";
+            } else {
+                this._inputOverlay.innerHTML = newValue.htmlify();
+            }
+        } else {
+            if (isBlank(newValue.trim())) {
+                this._inputOverlay.innerHTML = "<span class='placeholder'>" + this._placeholder  + "</span>";
+            }
         }
     }
 
@@ -113,9 +123,7 @@ class PInput {
      */
     update(artikel) {
         this._entity = artikel;
-        if (this._type !== 'select') {
-            this._updateProperty();
-        }
+        this._updateProperty();
         this._updateConditionalFormatting();
         return this;
     }
@@ -175,7 +183,7 @@ class PInput {
         if (this._target) {
             this._target.appendChild(container);
         }
-        this.doCustomization(this._input, this._labelInput);
+        this.doCustomization(this._input, this._labelInput, this._inputOverlay);
 
         return this;
     }
@@ -405,9 +413,18 @@ class PInput {
      * You can override this function to do custom initialization stuff
      * @param element
      * @param label
+     * @param overlay the overlay element
      */
-    doCustomization(element, label) {
+    doCustomization(element, label, overlay) {
 
+    }
+
+    /**
+     * Get the offset height either from the overlay div or from the input element
+     * @returns {number}
+     */
+    getOffsetHeight() {
+        return Math.max(0, this._input.offsetHeight, this._inputOverlay.offsetHeight);
     }
 
     /**
@@ -416,9 +433,6 @@ class PInput {
      * @returns {string | number}
      */
     getValue() {
-        if (this._input.getAttribute("data-value")) {
-            return this._input.getAttribute("data-value");
-        }
         return this._input.value;
     }
 
@@ -450,10 +464,12 @@ class PInput {
                 let parsed = this._parseNumber(this.getValue());
                 this._entity[this.getBoundProperty()] = parsed;
                 this._value = parsed;
+                this._inputOverlay.innerHTML = parsed;
                 break;
             default:
                 this._entity[this.getBoundProperty()] = this.getValue();
                 this._value = this.getValue();
+                this._inputOverlay.innerHTML = this.getValue().htmlify();
                 break;
         }
 
@@ -514,9 +530,10 @@ class MultiLineInput extends PInput {
      * Set the rows property of that input element (textarea)
      * @param element
      * @param label
+     * @param overlay
      * @returns {*}
      */
-    doCustomization(element, label) {
+    doCustomization(element, label, overlay) {
         element.setAttribute("rows", this._rows);
         if (isMobileBrowser()) {
             // compute the correct height of that input element to match the parent row element
@@ -530,7 +547,7 @@ class MultiLineInput extends PInput {
                 console.log("Could not find a parent with class «row» or «mobile-row»");
             }
         }
-        return super.doCustomization(element);
+        return super.doCustomization(element, label, overlay);
     }
 }
 
@@ -548,9 +565,10 @@ class SingleLineInput extends PInput {
      *
      * @param element
      * @param label
+     * @param overlay
      * @returns {*}
      */
-    doCustomization(element, label) {
+    doCustomization(element, label, overlay) {
         element.setAttribute("rows", 1);
         element.addClass('no-resize');
 
@@ -567,9 +585,9 @@ class SingleLineInput extends PInput {
             }
         }
 
-        // TODO 23px must be computed... not quite sure why 23 pixels :-( but it works so for the moment I'm fine with it
-        this.setPadding(Math.max(0, element.offsetHeight - 26));
-        return super.doCustomization(element, label);
+        // TODO 26px must be computed... not quite sure why 26 pixels :-( but it works so for the moment I'm fine with it
+        this.setPadding(Math.max(0, this.getOffsetHeight() - 26));
+        return super.doCustomization(element, label, overlay);
     }
 }
 
@@ -632,7 +650,7 @@ class SingleSelectInput extends PInput {
      * @param label
      * @returns {*}
      */
-    doCustomization(element, label) {
+    doCustomization(element, label, overlay) {
         let that = this;
         this._options.forEach(function (item, index) {
             let opt = document.createElement("option");
@@ -645,13 +663,15 @@ class SingleSelectInput extends PInput {
         });
 
         label.addClass('focused-fix');
-        return super.doCustomization(element);
+        that._inputOverlay.addClass("hidden");
+        element.removeClass("hidden");
+        return super.doCustomization(element, label, overlay);
     }
 
     invalidate() {
         this._input.removeChildren();
         this._inputOverlay.removeChildren();
-        this.doCustomization(this._input, this._labelInput);
+        this.doCustomization(this._input, this._labelInput, this._inputOverlay);
     }
 
 }

@@ -4,10 +4,6 @@
   margin-top: 0;
 }
 
-label {
-  margin-top: 0;
-}
-
 form label {
   border-radius: 3px 3px 0 0;
   background: rgba(0, 0, 0, 0.03);
@@ -27,6 +23,9 @@ form .input-overlay {
   transition-property: background-color, border-color, box-shadow;
   transition-duration: 85ms;
   transition-timing-function: ease;
+}
+form .input-overlay .placeholder {
+  color: #B2B3B3;
 }
 form .u-border, form .u-border:focus {
   overflow: auto;

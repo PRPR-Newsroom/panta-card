@@ -1005,7 +1005,7 @@ PInput.prototype.bind = function(a, b) {
 PInput.prototype._updateProperty = function() {
   var a = this._entity[this.getBoundProperty()];
   if (null === a) {
-    this._input.value = null;
+    this._input.value = null, this._inputOverlay.innerHTML = "<span class='placeholder'>" + this._placeholder + "</span>";
   } else {
     switch(this.propertyType) {
       case "number":
@@ -1020,11 +1020,11 @@ PInput.prototype._updateProperty = function() {
   }
 };
 PInput.prototype._updateValue = function(a) {
-  null !== this._input && this._input.value !== a && (this._input.value = a, this._inputOverlay.innerHTML = a.htmlify(), this._input.setAttribute("data-value", a));
+  null !== this._input && this._input.value !== a ? ("select" !== this._type && (this._input.value = a), isBlank(a.trim()) ? this._inputOverlay.innerHTML = "<span class='placeholder'>" + this._placeholder + "</span>" : this._inputOverlay.innerHTML = a.htmlify()) : isBlank(a.trim()) && (this._inputOverlay.innerHTML = "<span class='placeholder'>" + this._placeholder + "</span>");
 };
 PInput.prototype.update = function(a) {
   this._entity = a;
-  "select" !== this._type && this._updateProperty();
+  this._updateProperty();
   this._updateConditionalFormatting();
   return this;
 };
@@ -1047,7 +1047,7 @@ PInput.prototype.render = function() {
   a.appendChild(this._inputOverlay);
   a.appendChild(this._input);
   this._target && this._target.appendChild(a);
-  this.doCustomization(this._input, this._labelInput);
+  this.doCustomization(this._input, this._labelInput, this._inputOverlay);
   return this;
 };
 PInput.prototype.setLabel = function(a) {
@@ -1172,10 +1172,13 @@ PInput.prototype.onEnterEditing = function(a, b) {
   };
   return this;
 };
-PInput.prototype.doCustomization = function(a, b) {
+PInput.prototype.doCustomization = function(a, b, c) {
+};
+PInput.prototype.getOffsetHeight = function() {
+  return Math.max(0, this._input.offsetHeight, this._inputOverlay.offsetHeight);
 };
 PInput.prototype.getValue = function() {
-  return this._input.getAttribute("data-value") ? this._input.getAttribute("data-value") : this._input.value;
+  return this._input.value;
 };
 PInput.prototype.getBoundProperty = function() {
   return this._property;
@@ -1189,9 +1192,10 @@ PInput.prototype.setProperty = function() {
     case "number":
       var a = this._parseNumber(this.getValue());
       this._value = this._entity[this.getBoundProperty()] = a;
+      this._inputOverlay.innerHTML = a;
       break;
     default:
-      this._entity[this.getBoundProperty()] = this.getValue(), this._value = this.getValue();
+      this._entity[this.getBoundProperty()] = this.getValue(), this._value = this.getValue(), this._inputOverlay.innerHTML = this.getValue().htmlify();
   }
 };
 PInput.prototype.getTabIndex = function() {
@@ -1219,39 +1223,39 @@ var MultiLineInput = function(a, b, c, d, e, f, h, g) {
   this._rows = f;
 };
 $jscomp.inherits(MultiLineInput, PInput);
-MultiLineInput.prototype.doCustomization = function(a, b) {
+MultiLineInput.prototype.doCustomization = function(a, b, c) {
   a.setAttribute("rows", this._rows);
   if (isMobileBrowser()) {
-    var c = a.getClosestParentByClassName("mobile-row") || a.getClosestParentByClassName("row");
-    if (c) {
-      var d = getComputedStyle(a.getClosestParentByClassName("field"));
-      d = parseFloat(d.paddingTop) + parseFloat(d.paddingBottom);
-      this.setHeight(c.offsetHeight - b.offsetHeight - a.getMarginBottom() - d - 1);
+    var d = a.getClosestParentByClassName("mobile-row") || a.getClosestParentByClassName("row");
+    if (d) {
+      var e = getComputedStyle(a.getClosestParentByClassName("field"));
+      e = parseFloat(e.paddingTop) + parseFloat(e.paddingBottom);
+      this.setHeight(d.offsetHeight - b.offsetHeight - a.getMarginBottom() - e - 1);
     } else {
       console.log("Could not find a parent with class \u00abrow\u00bb or \u00abmobile-row\u00bb");
     }
   }
-  return PInput.prototype.doCustomization.call(this, a);
+  return PInput.prototype.doCustomization.call(this, a, b, c);
 };
 var SingleLineInput = function(a, b, c, d, e, f, h) {
   PInput.call(this, a, b, c, d, e, "textarea", !!f, h);
 };
 $jscomp.inherits(SingleLineInput, PInput);
-SingleLineInput.prototype.doCustomization = function(a, b) {
+SingleLineInput.prototype.doCustomization = function(a, b, c) {
   a.setAttribute("rows", 1);
   a.addClass("no-resize");
   if (isMobileBrowser()) {
-    var c = a.getClosestParentByClassName("mobile-row") || a.getClosestParentByClassName("row");
-    if (c) {
-      var d = getComputedStyle(a.getClosestParentByClassName("field"));
-      d = parseFloat(d.paddingTop) + parseFloat(d.paddingBottom);
-      this.setHeight(c.offsetHeight - b.offsetHeight - a.getMarginBottom() - d);
+    var d = a.getClosestParentByClassName("mobile-row") || a.getClosestParentByClassName("row");
+    if (d) {
+      var e = getComputedStyle(a.getClosestParentByClassName("field"));
+      e = parseFloat(e.paddingTop) + parseFloat(e.paddingBottom);
+      this.setHeight(d.offsetHeight - b.offsetHeight - a.getMarginBottom() - e);
     } else {
       console.log("Could not find a parent with class \u00abrow\u00bb or \u00abmobile-row\u00bb");
     }
   }
-  this.setPadding(Math.max(0, a.offsetHeight - 26));
-  return PInput.prototype.doCustomization.call(this, a, b);
+  this.setPadding(Math.max(0, this.getOffsetHeight() - 26));
+  return PInput.prototype.doCustomization.call(this, a, b, c);
 };
 var SingleSelectInput = function(a, b, c, d, e, f, h) {
   PInput.call(this, a, b, c, d, e, "select", !!f, h);
@@ -1275,22 +1279,24 @@ SingleSelectInput.prototype.addOption = function(a, b) {
   this._options.push({value:a, text:b, empty:!1});
   return this;
 };
-SingleSelectInput.prototype.doCustomization = function(a, b) {
-  var c = this;
-  this._options.forEach(function(b, e) {
-    e = document.createElement("option");
-    e.value = b.value;
-    e.text = b.text;
-    parseInt(b.value) === parseInt(c._value) && e.setAttribute("selected", "selected");
-    a.appendChild(e);
+SingleSelectInput.prototype.doCustomization = function(a, b, c) {
+  var d = this;
+  this._options.forEach(function(b, c) {
+    c = document.createElement("option");
+    c.value = b.value;
+    c.text = b.text;
+    parseInt(b.value) === parseInt(d._value) && c.setAttribute("selected", "selected");
+    a.appendChild(c);
   });
   b.addClass("focused-fix");
-  return PInput.prototype.doCustomization.call(this, a);
+  d._inputOverlay.addClass("hidden");
+  a.removeClass("hidden");
+  return PInput.prototype.doCustomization.call(this, a, b, c);
 };
 SingleSelectInput.prototype.invalidate = function() {
   this._input.removeChildren();
   this._inputOverlay.removeChildren();
-  this.doCustomization(this._input, this._labelInput);
+  this.doCustomization(this._input, this._labelInput, this._inputOverlay);
 };
 // Input 14
 var PluginController = function(a, b) {
@@ -2552,7 +2558,8 @@ ClientManager.prototype.flushKeyBuffer = function() {
 };
 ClientManager.prototype.appendKeyBuffer = function(a) {
   this._keyBuffer += a;
-  console.log("Key Buffer: " + this._keyBuffer);
+  console.debug("Key Buffer: " + this._keyBuffer);
+  256 < this._keyBuffer.length && (this._keyBuffer = "");
 };
 ClientManager.prototype.isArticleModuleEnabled = function() {
   return this._isModuleEnabled("module.artikel");
@@ -3712,8 +3719,17 @@ String.prototype.toHTML = function() {
   return a.value;
 };
 String.prototype.htmlify = function() {
-  return this.replace(/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/g, function(a) {
-    return '<a href="' + a + '" target="_blank">' + a + "</a>";
+  return this.replace(/(@?(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-.][a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?)/g, function(a) {
+    var b = a;
+    if (a.startsWith("@")) {
+      return a;
+    }
+    a.startsWith("http") || (b = "http://" + a);
+    return '<a href="' + b + '" target="_blank" title=\'\u00d6ffne die Webseite \u00ab' + b + "\u00bb in einem neuen Fenster'>" + a + "</a>";
+  }).replace(/([a-z0-9]+([\-.][a-z0-9]+)*@[a-z0-9]+([\-.][a-z0-9]+)*\.[a-z]{2,5})/g, function(a) {
+    return '<a href="mailto:' + a + "\" title='Schreib eine Mail an \u00ab" + a + "\u00bb'>" + a + "</a>";
+  }).replace(/(\r\n|\n|\r)/g, function(a) {
+    return "<br />";
   });
 };
 String.prototype.toHtmlEntities = function() {
@@ -3791,7 +3807,7 @@ var template_regular = '<div id="template">    <div class="row">        <div cla
 template_regular_mobile = '<div id="template">    <div class="row">        <div class="col-phone-12">            <div class="pa.name"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.social"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.address"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="row">                <div class="col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.notes"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.format"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.placement"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.price"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.name"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.social"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.address"></div>            </div>        </div>    </div></div>', 
 template_blog = '<div id="template" class="row">    <div class="col-12 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.link"></div>            </div>        </div>    </div>    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12 line-7 line-phone-7">                <div class="pa.notes"></div>            </div>        </div>    </div>    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12 phone-hidden">                <div class="empty-cell"><div class="field">                   <label class="invisible prop-textarea" for="empty-cell1">Empty</label> <textarea id="empty-cell1" class="invisible text u-border"></textarea>               </div>            </div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.follower"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.date"></div>            </div>        </div>    </div></div>', 
-template_plan = '<div id="template">    <div class="row">        <div class="col-6 line-2">            <div class="pa.plan.measures"></div>        </div>        <div class="col-3">            <div class="pa.plan.fee"></div>        </div>        <div class="col-3">            <div class="pa.plan.projectFee"></div>        </div>    </div>    <div class="row">        <div class="col-6 line-6">            <div class="pa.plan.description"></div>        </div>        <div class="col-6">            <div class="row">                <div class="col-6">                    <div class="pa.plan.thirdPartyCharges"></div>                </div>                <div class="col-6 line-2">                    <div class="pa.plan.thirdPartyTotalCosts"></div>                </div>                <div class="col-6">                    <div class="pa.plan.capOnDepenses"></div>                </div>                <div class="col-6 line-2">                    <div class="pa.plan.totalCosts"></div>                </div>            </div>        </div>    </div>    <div class="row">        <div class="col-2">            <div id="pa.plan.visual"></div>        </div>        <div class="col-2">            <div id="pa.plan.form"></div>        </div>        <div class="col-2">            <div id="pa.plan.online"></div>        </div>        <div class="col-2">            <div id="pa.plan.season"></div>        </div>        <div class="col-2">            <div id="pa.plan.region"></div>        </div>        <div class="col-2">            <div id="pa.plan.place"></div>        </div>    </div></div>', 
+template_plan = '<div id="template">    <div class="row">        <div class="col-6 line-2">            <div class="pa.plan.measures"></div>        </div>        <div class="col-3">            <div class="pa.plan.fee"></div>        </div>        <div class="col-3">            <div class="pa.plan.projectFee"></div>        </div>    </div>    <div class="row">        <div class="col-6 line-6">            <div class="pa.plan.description"></div>        </div>        <div class="col-6">            <div class="row">                <div class="col-6">                    <div class="pa.plan.thirdPartyCharges"></div>                </div>                <div class="col-6">                    <div class="pa.plan.thirdPartyTotalCosts"></div>                </div>                <div class="col-6">                    <div class="pa.plan.capOnDepenses"></div>                </div>                <div class="col-6 line-2">                    <div class="pa.plan.totalCosts"></div>                </div>            </div>        </div>    </div>    <div class="row">        <div class="col-2">            <div id="pa.plan.visual"></div>        </div>        <div class="col-2">            <div id="pa.plan.form"></div>        </div>        <div class="col-2">            <div id="pa.plan.online"></div>        </div>        <div class="col-2">            <div id="pa.plan.season"></div>        </div>        <div class="col-2">            <div id="pa.plan.region"></div>        </div>        <div class="col-2">            <div id="pa.plan.place"></div>        </div>    </div></div>', 
 template_artikel = '<div id="template">    <div class="row">        <div class="col-9 col-phone-9">            <div id="pa.topic"></div>        </div>        <div class="col-3 col-phone-3">            <div id="pa.pagina"></div>        </div>    </div>    <div class="row mobile-row">        <div class="col-9 col-phone-9">            <div class="row">                <div class="col-6 col-phone-6">                    <div id="pa.input-from"></div>                </div>                <div class="col-6 col-phone-6">                    <div id="pa.author"></div>                </div>            </div>        </div>        <div class="col-3 col-phone-3">            <div id="pa.layout"></div>        </div>    </div>    <div class="row mobile-row">        <div class="col-9 col-phone-9">            <div id="pa.text"></div>        </div>        <div class="col-3 col-phone-3">            <div id="pa.total"></div>        </div>    </div>    <div class="col-12 col-phone-12">        <div class="row">            <div class="col-2 col-phone-4">                <div id="pa.visual"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.form"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.tags"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.season"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.region"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.location"></div>            </div>        </div>    </div></div>', 
 template_plan_mobile = '<div id="template">    <div class="row">        <div class="col-phone-12 line-phone-2">            <div class="pa.plan.measures"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12 line-phone-4">            <div class="pa.plan.description"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.fee"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.projectFee"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.thirdPartyCharges"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.thirdPartyTotalCosts"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.capOnDepenses"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.totalCosts"></div>        </div>    </div>    <div class="row">        <div class=" col-phone-4">            <div id="pa.plan.visual"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.form"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.online"></div>        </div>    </div>    <div class="row">        <div class=" col-phone-4">            <div id="pa.plan.season"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.region"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.place"></div>        </div>    </div></div>', 
 template_settings_switch = '<div class="row module-switch-container">    <div class="col-2">       <div class="panta-module-enabled">           <label class="panta-checkbox-container">              <input class="panta-js-checkbox" type="checkbox" checked="checked">               <span class="panta-checkbox-checkmark elevate"></span>           </label>       </div>    </div>    <div class="col-10 switch-title"></div></div>', template_settings_module = '<div class="row module-container">    <div class="col-2 col-phone-2">       <div class="panta-module-enabled">           <label class="panta-checkbox-container">              <input class="panta-js-checkbox" type="checkbox" checked="checked">               <span class="panta-checkbox-checkmark elevate"></span>           </label>       </div>    </div>    <div class="col-8 col-phone-8 module-title"></div>    <div class="col-2 col-phone-2 module-icon"><img src="assets/ic_pantarhei.png" class="panta-js-icon" width="16px" height="16px"/></div></div>', 
