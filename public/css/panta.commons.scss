@@ -120,11 +120,15 @@ html, body {
 }
 
 /* this must be in commons (or maybe a file called conditional.formats.css) and not in panta.forms! */
-textarea.rule-costs-exceeded {
-  color: red;
+textarea, .input-overlay {
+  &.rule-costs-exceeded {
+    color: red;
+  }
 }
-textarea.rule-costs-exceeded-not {
-  color: green;
+textarea, .input-overlay {
+  &.rule-costs-exceeded-not {
+    color: green;
+  }
 }
 
 /* some fixes */

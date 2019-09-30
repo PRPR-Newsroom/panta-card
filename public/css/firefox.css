@@ -1,9 +1,9 @@
 @supports (-moz-appearance:meterbar) {
-    form textarea.u-border:not(.rows-2) {
+    form textarea.u-border:not(.rows-2), form .input-overlay.u-border:not(.rows-2) {
         /* should only be set for FF */
 
     }
-    form textarea.u-border.rows-2 {
+    form textarea.u-border.rows-2, form .input-overlay.u-border.rows-2 {
         height: 100px;
         margin-bottom: 1px;
     }

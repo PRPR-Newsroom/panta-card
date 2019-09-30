@@ -8,9 +8,9 @@
 
 [class*="col-"] {
   float: left;
-  padding: 0px;
-  border: 0px solid red;
-  textarea {
+  padding: 0;
+  border: 0 solid red;
+  textarea, .input-overlay {
     height: $height;
   }
 }

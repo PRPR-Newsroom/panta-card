@@ -31,6 +31,7 @@ class PInput {
         this._placeholder = placeholder;
         this._readonly = readonly;
         this._input = this._document.createElement(this._type);
+        this._inputOverlay = this._document.createElement('div');
         this._labelInput = null;
         this._property = null;
         this._propertyType = "text";
@@ -76,6 +77,7 @@ class PInput {
         let propertyValue = this._entity[this.getBoundProperty()];
         if (propertyValue === null) {
             this._input.value = null;
+            this._inputOverlay.innerHTML = "<span class='placeholder'>" + this._placeholder + "</span>";
         } else {
             switch (this.propertyType) {
                 case "number":
@@ -99,7 +101,18 @@ class PInput {
      */
     _updateValue(newValue) {
         if (this._input !== null && this._input.value !== newValue) {
-            this._input.value = newValue;
+            if (this._type !== "select") {
+                this._input.value = newValue;
+            }
+            if (isBlank(newValue.trim())) {
+                this._inputOverlay.innerHTML = "<span class='placeholder'>" + this._placeholder  + "</span>";
+            } else {
+                this._inputOverlay.innerHTML = newValue.htmlify();
+            }
+        } else {
+            if (isBlank(newValue.trim())) {
+                this._inputOverlay.innerHTML = "<span class='placeholder'>" + this._placeholder  + "</span>";
+            }
         }
     }
 
@@ -110,9 +123,7 @@ class PInput {
      */
     update(artikel) {
         this._entity = artikel;
-        if (this._type !== 'select') {
-            this._updateProperty();
-        }
+        this._updateProperty();
         this._updateConditionalFormatting();
         return this;
     }
@@ -144,8 +155,14 @@ class PInput {
             this._input.setAttribute("tabindex", autoTabIndex());
         }
 
-        this._input.addClass(this.propertyType);
-        this._input.addClass("u-border");
+        this._input.addClass(this.propertyType)
+            .addClass("u-border")
+            .addClass("hidden");
+
+        this._inputOverlay
+            .addClass("input-overlay")
+            .addClass(this.propertyType)
+            .addClass("u-border");
 
         this.setupEvents();
 
@@ -160,12 +177,13 @@ class PInput {
         }
 
         container.appendChild(this._labelInput);
+        container.appendChild(this._inputOverlay);
         container.appendChild(this._input);
 
         if (this._target) {
             this._target.appendChild(container);
         }
-        this.doCustomization(this._input, this._labelInput);
+        this.doCustomization(this._input, this._labelInput, this._inputOverlay);
 
         return this;
     }
@@ -221,8 +239,27 @@ class PInput {
      * when the user hovers the element resp. remove it when the mouse leaves the element
      */
     setupEvents() {
+        const that = this;
         this._setClassWhenEvent(this._input, 'focus', 'blur', 'focused');
         this._setClassWhenEvent(this._input, 'mouseenter', 'mouseleave', 'hovered');
+        // when user clicks the overlay it must hide the div and show the input element
+        const click = function () {
+            that._inputOverlay.addClass("hidden");
+            that._input.removeClass("hidden");
+            // focus the input element
+            that._input.focus();
+
+            // if the user leaves the input element it must hide the input and show the overlay div again
+            const blur = function () {
+                that._inputOverlay.removeClass("hidden");
+                that._input.addClass("hidden");
+            };
+            that._input.removeEventListener('blur', blur);
+            that._input.addEventListener('blur', blur);
+        };
+        this._inputOverlay.removeEventListener('click', click);
+        this._inputOverlay.addEventListener('click', click);
+
     }
 
     /**
@@ -234,14 +271,18 @@ class PInput {
      * @private
      */
     _setClassWhenEvent(element, eventOn, eventOff, className) {
-        element.setEventListener(eventOn, function (e) {
-            let target = e.currentTarget;
-            target.previousElementSibling.addClass(className);
-        });
-        this._input.setEventListener(eventOff, function (e) {
-            let target = e.currentTarget;
-            target.previousElementSibling.removeClass(className);
-        });
+        if (eventOn) {
+            element.setEventListener(eventOn, function (e) {
+                let target = e.currentTarget;
+                target.previousElementSibling.addClass(className);
+            });
+        }
+        if (eventOff) {
+            this._input.setEventListener(eventOff, function (e) {
+                let target = e.currentTarget;
+                target.previousElementSibling.removeClass(className);
+            });
+        }
     }
 
     /**
@@ -255,13 +296,14 @@ class PInput {
             this._labelInput.addClass(className);
         } else {
             this._input.addClass(className);
+            this._inputOverlay.addClass(className);
         }
         return this;
     }
 
     hide() {
         if (this._target) {
-            this._target.children.forEach(function(child) {
+            this._target.children.forEach(function (child) {
                 child.addClass("invisible");
             })
         }
@@ -270,7 +312,7 @@ class PInput {
 
     show() {
         if (this._target) {
-            this._target.children.forEach(function(child) {
+            this._target.children.forEach(function (child) {
                 child.removeClass("invisible");
             })
         }
@@ -282,6 +324,7 @@ class PInput {
             this._labelInput.addConditionalFormatting(rule);
         } else {
             this._input.addConditionalFormatting(rule);
+            this._inputOverlay.addConditionalFormatting(rule);
         }
         return this;
     }
@@ -289,10 +332,32 @@ class PInput {
     _updateConditionalFormatting() {
         this._labelInput.applyConditionalFormatting(this._entity);
         this._input.applyConditionalFormatting(this._entity);
+        this._inputOverlay.applyConditionalFormatting(this._entity);
     }
 
     setHeight(height) {
         this._input.style.height = height + "px";
+        this._inputOverlay.style.height = height + "px";
+        return this;
+    }
+
+    setPadding(top, right, bottom, left) {
+        if (isNumber(top)) {
+            this._input.style.paddingTop = top + "px";
+            this._inputOverlay.style.paddingTop = top + "px";
+        }
+        if (isNumber(right)) {
+            this._input.style.paddingRight = right + "px";
+            this._inputOverlay.style.paddingRight = right + "px";
+        }
+        if (isNumber(bottom)) {
+            this._input.style.paddingBottom = bottom + "px";
+            this._inputOverlay.style.paddingBottom = bottom + "px";
+        }
+        if (isNumber(left)) {
+            this._input.style.paddingLeft = left + "px";
+            this._inputOverlay.style.paddingLeft = left + "px";
+        }
         return this;
     }
 
@@ -323,7 +388,7 @@ class PInput {
         this._input.onfocus = function () {
             ctx['event'] = 'focus';
             func(that, ctx);
-        }
+        };
         return this;
     }
 
@@ -348,9 +413,18 @@ class PInput {
      * You can override this function to do custom initialization stuff
      * @param element
      * @param label
+     * @param overlay the overlay element
      */
-    doCustomization(element, label) {
+    doCustomization(element, label, overlay) {
 
+    }
+
+    /**
+     * Get the offset height either from the overlay div or from the input element
+     * @returns {number}
+     */
+    getOffsetHeight() {
+        return Math.max(0, this._input.offsetHeight, this._inputOverlay.offsetHeight);
     }
 
     /**
@@ -390,10 +464,12 @@ class PInput {
                 let parsed = this._parseNumber(this.getValue());
                 this._entity[this.getBoundProperty()] = parsed;
                 this._value = parsed;
+                this._inputOverlay.innerHTML = parsed;
                 break;
             default:
                 this._entity[this.getBoundProperty()] = this.getValue();
                 this._value = this.getValue();
+                this._inputOverlay.innerHTML = this.getValue().htmlify();
                 break;
         }
 
@@ -415,8 +491,7 @@ class PInput {
     _formatNumber(number, options) {
         let parsed = parseFloat(number);
         if (!isNaN(parsed)) {
-            let formatted = parsed.toLocaleString(undefined, options);
-            return formatted;
+            return parsed.toLocaleString(undefined, options);
         } else {
             return "";
         }
@@ -455,9 +530,10 @@ class MultiLineInput extends PInput {
      * Set the rows property of that input element (textarea)
      * @param element
      * @param label
+     * @param overlay
      * @returns {*}
      */
-    doCustomization(element, label) {
+    doCustomization(element, label, overlay) {
         element.setAttribute("rows", this._rows);
         if (isMobileBrowser()) {
             // compute the correct height of that input element to match the parent row element
@@ -466,12 +542,12 @@ class MultiLineInput extends PInput {
             if (row) {
                 let style = getComputedStyle(element.getClosestParentByClassName("field"));
                 let paddings = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
-                element.style.height = ((row.offsetHeight - label.offsetHeight - element.getMarginBottom() - paddings) - 1) + "px";
+                this.setHeight(((row.offsetHeight - label.offsetHeight - element.getMarginBottom() - paddings) - 1));
             } else {
                 console.log("Could not find a parent with class «row» or «mobile-row»");
             }
         }
-        return super.doCustomization(element);
+        return super.doCustomization(element, label, overlay);
     }
 }
 
@@ -489,9 +565,10 @@ class SingleLineInput extends PInput {
      *
      * @param element
      * @param label
+     * @param overlay
      * @returns {*}
      */
-    doCustomization(element, label) {
+    doCustomization(element, label, overlay) {
         element.setAttribute("rows", 1);
         element.addClass('no-resize');
 
@@ -502,15 +579,15 @@ class SingleLineInput extends PInput {
             if (row) {
                 let style = getComputedStyle(element.getClosestParentByClassName("field"));
                 let paddings = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
-                element.style.height = (row.offsetHeight - label.offsetHeight - element.getMarginBottom() - paddings) + "px";
+                this.setHeight((row.offsetHeight - label.offsetHeight - element.getMarginBottom() - paddings));
             } else {
                 console.log("Could not find a parent with class «row» or «mobile-row»");
             }
         }
 
-        // TODO 23px must be computed... not quite sure why 23 pixels :-( but it works so for the moment I'm fine with it
-        element.style.paddingTop = Math.max(0, element.offsetHeight - 23) + "px";
-        return super.doCustomization(element, label);
+        // TODO 26px must be computed... not quite sure why 26 pixels :-( but it works so for the moment I'm fine with it
+        this.setPadding(Math.max(0, this.getOffsetHeight() - 26));
+        return super.doCustomization(element, label, overlay);
     }
 }
 
@@ -573,7 +650,7 @@ class SingleSelectInput extends PInput {
      * @param label
      * @returns {*}
      */
-    doCustomization(element, label) {
+    doCustomization(element, label, overlay) {
         let that = this;
         this._options.forEach(function (item, index) {
             let opt = document.createElement("option");
@@ -586,12 +663,15 @@ class SingleSelectInput extends PInput {
         });
 
         label.addClass('focused-fix');
-        return super.doCustomization(element);
+        that._inputOverlay.addClass("hidden");
+        element.removeClass("hidden");
+        return super.doCustomization(element, label, overlay);
     }
 
     invalidate() {
         this._input.removeChildren();
-        this.doCustomization(this._input, this._labelInput);
+        this._inputOverlay.removeChildren();
+        this.doCustomization(this._input, this._labelInput, this._inputOverlay);
     }
 
 }

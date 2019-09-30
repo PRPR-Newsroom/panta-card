@@ -1,12 +1,8 @@
 @import "variables";
 
 .label {
-  color: #B2B3B3;
+  color: $color-label;
   font-weight: normal;
-  margin-top: 0;
-}
-
-label {
   margin-top: 0;
 }
 
@@ -23,6 +19,19 @@ form {
     border-right: 1px solid #798d99;
     border-top: 1px solid #798d99;
     border-bottom: 0;
+  }
+
+  .input-overlay {
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    padding-right: 12px;
+    padding-left: 12px;
+    transition-property: background-color,border-color,box-shadow;
+    transition-duration: 85ms;
+    transition-timing-function: ease;
+    .placeholder {
+      color: $color-label;
+    }
   }
 
   .u-border, .u-border:focus {
