@@ -2,6 +2,8 @@
 
 [1.4.3-STAGING]
 
+# Changes
+
 * Show web- and mail addresses as clickable links
 
 [1.4.2-STAGING]
