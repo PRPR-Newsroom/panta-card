@@ -5,6 +5,7 @@
 # Changes
 
 * The blog layout must have the same height as the other layouts to avoid scrollbars when switching betweeen tabs
+* Show web- and mail addresses as clickable links
 
 # Fixes
 

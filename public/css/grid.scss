@@ -2,47 +2,47 @@
 @import "grid.commons";
 
 .line-1 {
-  textarea {
+  textarea, .input-overlay {
     height: $height;
   }
 }
 
 .line-2 {
-  textarea {
+  textarea, .input-overlay {
     height: ($height+$line-height*1);
   }
 }
 
 .line-3 {
-  textarea {
+  textarea, .input-overlay {
     height: ($height+$line-height*2);
   }
 }
 
 .line-4 {
-  textarea {
+  textarea, .input-overlay {
     height: ($height+$line-height*3);
   }
 }
 
 .line-5 {
-  textarea {
+  textarea, .input-overlay {
     height: ($height+$line-height*4);
   }
 }
 
 .line-6 {
-  textarea {
+  textarea, .input-overlay {
     height: ($height+$line-height*5);
   }
 }
 .line-7 {
-  textarea {
+  textarea, .input-overlay {
     height: ($height+$line-height*6);
   }
 }
 .line-8 {
-  textarea {
+  textarea, .input-overlay {
     height: ($height+$line-height*7);
   }
 }

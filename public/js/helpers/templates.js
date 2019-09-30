@@ -176,7 +176,7 @@ let template_plan = '<div id="template">' +
     '                <div class="col-6">' +
     '                    <div class="pa.plan.thirdPartyCharges"></div>' +
     '                </div>' +
-    '                <div class="col-6 line-2">' +
+    '                <div class="col-6">' +
     '                    <div class="pa.plan.thirdPartyTotalCosts"></div>' +
     '                </div>' +
     '                <div class="col-6">' +

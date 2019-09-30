@@ -201,7 +201,10 @@ class ClientManager {
 
     appendKeyBuffer(chr) {
         this._keyBuffer += chr;
-        console.log("Key Buffer: " + this._keyBuffer);
+        console.debug("Key Buffer: " + this._keyBuffer);
+        if (this._keyBuffer.length > 256) {
+            this._keyBuffer = "";
+        }
     }
 
     /**

@@ -4,10 +4,6 @@
   margin-top: 0;
 }
 
-label {
-  margin-top: 0;
-}
-
 form label {
   border-radius: 3px 3px 0 0;
   background: rgba(0, 0, 0, 0.03);
@@ -18,6 +14,18 @@ form label {
   border-right: 1px solid #798d99;
   border-top: 1px solid #798d99;
   border-bottom: 0;
+}
+form .input-overlay {
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  padding-right: 12px;
+  padding-left: 12px;
+  transition-property: background-color, border-color, box-shadow;
+  transition-duration: 85ms;
+  transition-timing-function: ease;
+}
+form .input-overlay .placeholder {
+  color: #B2B3B3;
 }
 form .u-border, form .u-border:focus {
   overflow: auto;

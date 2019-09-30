@@ -1,35 +1,35 @@
 @import "grid.commons";
 
 form {
-  .line-phone-1 textarea.u-border {
+  .line-phone-1 textarea.u-border, .line-phone-1 .input-overlay.u-border {
     height: $height;
   }
 
-  .line-phone-2 textarea.u-border {
+  .line-phone-2 textarea.u-border, .line-phone-2 .input-overlay.u-border {
     height: ($height+$line-height*1);
   }
 
-  .line-phone-3 textarea.u-border {
+  .line-phone-3 textarea.u-border, .line-phone-3 .input-overlay.u-border {
     height: ($height+$line-height*2);
   }
   
-  .line-phone-4 textarea.u-border {
+  .line-phone-4 textarea.u-border, .line-phone-4 .input-overlay.u-border {
     height: ($height+$line-height*3);
   }
 
-  .line-phone-5 textarea.u-border {
+  .line-phone-5 textarea.u-border, .line-phone-5 .input-overlay.u-border {
     height: ($height+$line-height*4);
   }
 
-  .line-phone-6 textarea.u-border {
+  .line-phone-6 textarea.u-border, .line-phone-6 .input-overlay.u-border {
     height: ($height+$line-height*5);
   }
 
-  .line-phone-7 textarea {
+  .line-phone-7 textarea, .line-phone-7 .input-overlay {
     height: ($height+$line-height*6);
   }
 
-  .line-phone-8 textarea {
+  .line-phone-8 textarea, .line-phone-8 .input-overlay {
     height: ($height+$line-height*7);
   }
 }
