@@ -1,11 +1,14 @@
 [UNRELEASED]
 
+[1.4.3-STAGING]
+
+* Show web- and mail addresses as clickable links
+
 [1.4.2-STAGING]
 
 # Changes
 
 * The blog layout must have the same height as the other layouts to avoid scrollbars when switching betweeen tabs
-* Show web- and mail addresses as clickable links
 
 # Fixes
 
