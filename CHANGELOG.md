@@ -8,6 +8,10 @@ Released on 3.10.2019
 
 * Show web- and mail addresses as clickable links
 
+# Fixes
+
+* Fix label height in settings
+
 [1.4.2-STAGING]
 
 # Changes
