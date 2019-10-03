@@ -20,6 +20,11 @@ form label.focused:not(.prop-select) {
     border-color: #a5acb0;
 }
 
+.settings-content label {
+    margin-top: 0;
+    font-size: 13px;
+}
+
 .rows-2 {
     padding-bottom: 8px;
 }
