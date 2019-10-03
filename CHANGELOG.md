@@ -1,6 +1,8 @@
 [UNRELEASED]
 
-[1.4.3-STAGING]
+[1.4.3]
+
+Release on 3.10.2019
 
 # Changes
 
