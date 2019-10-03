@@ -1,8 +1,23 @@
+@import "variables";
+
 /* TODO use this panta.forms */
 form {
   padding-top: 5px;
 
-  textarea {
+  .input-overlay {
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    padding-right: 12px;
+    padding-left: 12px;
+    transition-property: background-color,border-color,box-shadow;
+    transition-duration: 85ms;
+    transition-timing-function: ease;
+    .placeholder {
+      color: $color-label;
+    }
+  }
+
+  textarea, .input-overlay {
     resize: vertical;
     width: 100%;
     /* We need to override the Trello default */
@@ -15,7 +30,7 @@ form {
     overflow-wrap: normal;
   }
 
-  textarea.u-border.no-resize {
+  textarea.u-border.no-resize, .input-overlay.u-border.no-resize {
     overflow: hidden;
   }
 
@@ -31,4 +46,8 @@ form {
     border-color: #a5acb0;
   }
 
+  label {
+    margin-top: 0;
+    font-size: 13px;
+  }
 }

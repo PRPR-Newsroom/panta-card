@@ -1,18 +1,27 @@
-form label {
+.label, form label {
   color: #606565;
   font-weight: normal;
-  max-width: 500px; }
-  form label:not(.prop-select) {
-    border-radius: 3px 3px 0 0;
-    background: rgba(0, 0, 0, 0.03);
-    margin-bottom: 0;
-    padding: 0 0 0 0.4em;
-    border-left: 1px solid #798d99;
-    border-right: 1px solid #798d99;
-    border-top: 1px solid #798d99;
-    border-bottom: 0; }
+  margin-top: 0;
+}
+
+form label {
+  max-width: 500px;
+}
+form label:not(.prop-select) {
+  border-radius: 3px 3px 0 0;
+  background: rgba(0, 0, 0, 0.03);
+  margin-bottom: 0;
+  margin-top: 0;
+  padding: 0 0 0 0.4em;
+  border-left: 1px solid #798d99;
+  border-right: 1px solid #798d99;
+  border-top: 1px solid #798d99;
+  border-bottom: 0;
+}
 form .u-border:not(select), form .u-border:focus:not(select) {
-  border-top: none;
+  border-color: #798d99;
+  border-width: 0 1px 1px 1px;
+  border-style: none solid solid solid;
   overflow: auto;
   outline: none;
   outline: 0 !important;
@@ -23,8 +32,10 @@ form .u-border:not(select), form .u-border:focus:not(select) {
   -webkit-box-shadow: none;
   -moz-box-shadow: none;
   box-shadow: none !important;
-  margin-bottom: 4px; }
+  margin-bottom: 4px;
+}
 form input {
-  height: 48px; }
+  height: 48px;
+}
 
 /*# sourceMappingURL=panta.custom.input.mobile.css.map */

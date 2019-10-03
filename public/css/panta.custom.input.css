@@ -1,12 +1,14 @@
 .label, form label {
   color: #B2B3B3;
   font-weight: normal;
+  margin-top: 0;
 }
 
 form label {
   border-radius: 3px 3px 0 0;
   background: rgba(0, 0, 0, 0.03);
   margin-bottom: 0;
+  margin-top: 0;
   padding: 0 0 0 0.45em;
   border-left: 1px solid #798d99;
   border-right: 1px solid #798d99;
@@ -15,7 +17,9 @@ form label {
 }
 form .u-border, form .u-border:focus {
   overflow: auto;
-  border-top: none;
+  border-color: #798d99;
+  border-width: 0 1px 1px 1px;
+  border-style: none solid solid solid;
   outline: none;
   outline: 0 !important;
   border-radius: 0 0 3px 3px;
@@ -40,6 +44,7 @@ form select.u-border, form select.u-border:focus {
   appearance: none;
   padding: 0.5em;
   line-height: 18px;
+  width: 100%;
 }
 
 /*# sourceMappingURL=panta.custom.input.css.map */

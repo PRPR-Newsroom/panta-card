@@ -1,22 +1,45 @@
 /* TODO use this panta.forms */
 form {
-  padding-top: 5px; }
-  form textarea {
-    resize: vertical;
-    width: 100%;
-    /* We need to override the Trello default */
-    min-height: 26px;
-    padding-bottom: 2px; }
-  form .u-border.no-resize {
-    resize: none;
-    overflow-wrap: normal; }
-  form textarea.u-border.no-resize {
-    overflow: hidden; }
-  form label.focused-fix {
-    border-color: #798d99; }
-  form label.hovered:not(.prop-select) {
-    border-color: #b6bbbf; }
-  form label.focused:not(.prop-select) {
-    border-color: #a5acb0; }
+  padding-top: 5px;
+}
+form .input-overlay {
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  padding-right: 12px;
+  padding-left: 12px;
+  transition-property: background-color, border-color, box-shadow;
+  transition-duration: 85ms;
+  transition-timing-function: ease;
+}
+form .input-overlay .placeholder {
+  color: #B2B3B3;
+}
+form textarea, form .input-overlay {
+  resize: vertical;
+  width: 100%;
+  /* We need to override the Trello default */
+  min-height: 26px;
+  padding-bottom: 2px;
+}
+form .u-border.no-resize {
+  resize: none;
+  overflow-wrap: normal;
+}
+form textarea.u-border.no-resize, form .input-overlay.u-border.no-resize {
+  overflow: hidden;
+}
+form label.focused-fix {
+  border-color: #798d99;
+}
+form label.hovered:not(.prop-select) {
+  border-color: #b6bbbf;
+}
+form label.focused:not(.prop-select) {
+  border-color: #a5acb0;
+}
+form label {
+  margin-top: 0;
+  font-size: 13px;
+}
 
 /*# sourceMappingURL=panta.forms.css.map */

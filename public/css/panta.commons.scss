@@ -25,33 +25,49 @@ html, body {
   margin-bottom: 60px;
 }
 
-.tab span {
-  background-color: #e2e4e6;
-  margin: 0.1em;
-  padding: 0.1em 0.2em;
-  display: block;
-  border-bottom: 0.2em solid transparent;
-  font-weight: 600;
-  font-size: 14px;
-}
+.tab {
+  span {
+    background-color: #e2e4e6;
+    margin: 0.1em;
+    padding: 0.1em 0.2em;
+    display: block;
+    border-bottom: 0.2em solid transparent;
+    font-weight: 600;
+    font-size: 14px;
+  }
 
-/* Mark with 'hasContent' also when the tab is selected. When the user edits the tab then it will apply the 'editing' state */
-.tab.content span, .tab.content.selected span {
-  border-bottom: 0.2em solid #F68712;
-}
+  &.content {
+    /* Mark with 'hasContent' also when the tab is selected. When the user edits the tab then it will apply the 'editing' state */
+    span {
+      border-bottom: 0.2em solid #F68712;
+    }
 
-.tab.selected span {
-  background-color: white;
-  border-bottom: 0.2em solid black;
-}
+    &.selected.editing {
+      span {
+        border-bottom: 0.2em solid #41B23B;
+      }
+    }
+  }
 
-/* When there's content but the user is editing the content then prefer 'editing' state over 'hasContent' */
-.tab.selected.editing span, .tab.selected.editing.content span {
-  border-bottom: 0.2em solid #41B23B;
-}
+  &.selected {
+    span {
+      background-color: white;
+      border-bottom: 0.2em solid black;
+    }
 
-.tab:first-child span {
-  margin-left: 0;
+    &.editing {
+      span {
+        border-bottom: 0.2em solid #41B23B;
+      }
+    }
+  }
+
+  :first-child {
+    span {
+      margin-left: 0;
+    }
+    padding-left: 0;
+  }
 }
 
 .navigation-bar {
@@ -62,10 +78,6 @@ html, body {
 .navigation-bar .tab {
   padding: 0.1em;
   cursor: pointer;
-}
-
-.tab:first-child {
-  padding-left: 0;
 }
 
 .ic-beteiligt {
@@ -108,11 +120,15 @@ html, body {
 }
 
 /* this must be in commons (or maybe a file called conditional.formats.css) and not in panta.forms! */
-textarea.rule-costs-exceeded {
-  color: red;
+textarea, .input-overlay {
+  &.rule-costs-exceeded {
+    color: red;
+  }
 }
-textarea.rule-costs-exceeded-not {
-  color: green;
+textarea, .input-overlay {
+  &.rule-costs-exceeded-not {
+    color: green;
+  }
 }
 
 /* some fixes */

@@ -34,23 +34,26 @@ html, body {
   font-weight: 600;
   font-size: 14px;
 }
-
-/* Mark with 'hasContent' also when the tab is selected. When the user edits the tab then it will apply the 'editing' state */
-.tab.content span, .tab.content.selected span {
+.tab.content {
+  /* Mark with 'hasContent' also when the tab is selected. When the user edits the tab then it will apply the 'editing' state */
+}
+.tab.content span {
   border-bottom: 0.2em solid #F68712;
 }
-
+.tab.content.selected.editing span {
+  border-bottom: 0.2em solid #41B23B;
+}
 .tab.selected span {
   background-color: white;
   border-bottom: 0.2em solid black;
 }
-
-/* When there's content but the user is editing the content then prefer 'editing' state over 'hasContent' */
-.tab.selected.editing span, .tab.selected.editing.content span {
+.tab.selected.editing span {
   border-bottom: 0.2em solid #41B23B;
 }
-
-.tab:first-child span {
+.tab :first-child {
+  padding-left: 0;
+}
+.tab :first-child span {
   margin-left: 0;
 }
 
@@ -63,10 +66,6 @@ html, body {
 .navigation-bar .tab {
   padding: 0.1em;
   cursor: pointer;
-}
-
-.tab:first-child {
-  padding-left: 0;
 }
 
 .ic-beteiligt {
@@ -110,11 +109,11 @@ html, body {
 }
 
 /* this must be in commons (or maybe a file called conditional.formats.css) and not in panta.forms! */
-textarea.rule-costs-exceeded {
+textarea.rule-costs-exceeded, .input-overlay.rule-costs-exceeded {
   color: red;
 }
 
-textarea.rule-costs-exceeded-not {
+textarea.rule-costs-exceeded-not, .input-overlay.rule-costs-exceeded-not {
   color: green;
 }
 

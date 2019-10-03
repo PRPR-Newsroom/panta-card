@@ -1,6 +1,9 @@
+@import "variables";
+
 .label {
-  color: #B2B3B3;
+  color: $color-label;
   font-weight: normal;
+  margin-top: 0;
 }
 
 form {
@@ -10,17 +13,19 @@ form {
     border-radius: 3px 3px 0 0;
     background: rgba(0, 0, 0, .03);
     margin-bottom: 0;
+    margin-top: 0;
     padding: 0 0 0 0.45em;
     border-left: 1px solid #798d99;
     border-right: 1px solid #798d99;
     border-top: 1px solid #798d99;
     border-bottom: 0;
-
   }
 
   .u-border, .u-border:focus {
     overflow: auto;
-    border-top: none;
+    border-color: $border-color;
+    border-width: 0 1px 1px 1px;
+    border-style: none solid solid solid;
     outline: none;
     outline: 0 !important;
     border-radius: 0 0 3px 3px;
@@ -44,8 +49,8 @@ form {
     -moz-appearance: none;
     -webkit-appearance: none;
     appearance: none;
-
     padding: .5em;
     line-height: 18px;
+    width: 100%;
   }
 }

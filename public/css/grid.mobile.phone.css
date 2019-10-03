@@ -6,10 +6,10 @@
 
 [class*=col-] {
   float: left;
-  padding: 0px;
-  border: 0px solid red;
+  padding: 0;
+  border: 0 solid red;
 }
-[class*=col-] textarea {
+[class*=col-] textarea, [class*=col-] .input-overlay {
   height: 26px;
 }
 
@@ -31,28 +31,28 @@
   display: table;
 }
 
-form .line-phone-1 textarea.u-border {
+form .line-phone-1 textarea.u-border, form .line-phone-1 .input-overlay.u-border {
   height: 26px;
 }
-form .line-phone-2 textarea.u-border {
+form .line-phone-2 textarea.u-border, form .line-phone-2 .input-overlay.u-border {
   height: 44px;
 }
-form .line-phone-3 textarea.u-border {
+form .line-phone-3 textarea.u-border, form .line-phone-3 .input-overlay.u-border {
   height: 62px;
 }
-form .line-phone-4 textarea.u-border {
+form .line-phone-4 textarea.u-border, form .line-phone-4 .input-overlay.u-border {
   height: 80px;
 }
-form .line-phone-5 textarea.u-border {
+form .line-phone-5 textarea.u-border, form .line-phone-5 .input-overlay.u-border {
   height: 98px;
 }
-form .line-phone-6 textarea.u-border {
+form .line-phone-6 textarea.u-border, form .line-phone-6 .input-overlay.u-border {
   height: 116px;
 }
-form .line-phone-7 textarea {
+form .line-phone-7 textarea, form .line-phone-7 .input-overlay {
   height: 134px;
 }
-form .line-phone-8 textarea {
+form .line-phone-8 textarea, form .line-phone-8 .input-overlay {
   height: 152px;
 }
 
@@ -102,6 +102,10 @@ form .line-phone-8 textarea {
 
 .col-phone-12 {
   width: 100%;
+}
+
+.phone-hidden {
+  display: none !important;
 }
 
 /*# sourceMappingURL=grid.mobile.phone.css.map */

@@ -132,13 +132,19 @@ let template_blog = '<div id="template" class="row">' +
     '    </div>' +
     '    <div class="col-6 col-phone-12">' +
     '        <div class="row">' +
-    '            <div class="col-12 col-phone-12 line-4 line-phone-4">' +
+    '            <div class="col-12 col-phone-12 line-7 line-phone-7">' +
     '                <div class="pa.notes"></div>' +
     '            </div>' +
     '        </div>' +
     '    </div>' +
     '    <div class="col-6 col-phone-12">' +
     '        <div class="row">' +
+    '            <div class="col-12 col-phone-12 phone-hidden">' +
+    '                <div class="empty-cell"><div class="field">' +
+    '                   <label class="invisible prop-textarea" for="empty-cell1">Empty</label> <textarea id="empty-cell1" class="invisible text u-border"></textarea>' +
+    '               </div>' +
+    '            </div>' +
+    '            </div>' +
     '            <div class="col-12 col-phone-12">' +
     '                <div class="pa.follower"></div>' +
     '            </div>' +
@@ -334,7 +340,7 @@ let template_settings_switch = '<div class="row module-switch-container">' +
     '</div>';
 
 let template_settings_module = '<div class="row module-container">' +
-    '    <div class="col-2">' +
+    '    <div class="col-2 col-phone-2">' +
     '       <div class="panta-module-enabled">' +
     '           <label class="panta-checkbox-container">' +
     '              <input class="panta-js-checkbox" type="checkbox" checked="checked">' +
@@ -342,12 +348,12 @@ let template_settings_module = '<div class="row module-container">' +
     '           </label>' +
     '       </div>' +
     '    </div>' +
-    '    <div class="col-8 module-title"></div>' +
-    '    <div class="col-2 module-icon"><img src="assets/ic_pantarhei.png" class="panta-js-icon" width="16px" height="16px"/></div>' +
+    '    <div class="col-8 col-phone-8 module-title"></div>' +
+    '    <div class="col-2 col-phone-2 module-icon"><img src="assets/ic_pantarhei.png" class="panta-js-icon" width="16px" height="16px"/></div>' +
     '</div>';
 
 let template_settings_editable = '<div class="row module-editable-container">' +
-    '    <div class="col-1 module-editable-show">' +
+    '    <div class="col-1 col-phone-1 module-editable-show">' +
     '       <div class="panta-module-enabled">' +
     '           <label class="panta-checkbox-container hidden">' +
     '               <input class="panta-js-checkbox" type="checkbox" checked="checked">' +
@@ -355,14 +361,14 @@ let template_settings_editable = '<div class="row module-editable-container">' +
     '           </label>' +
     '       </div>' +
     '    </div>' +
-    '    <div class="col-8 module-editable-name"></div>' +
-    '    <div class="col-1 module-helper-visible">' +
+    '    <div class="col-8 col-phone-8 module-editable-name"></div>' +
+    '    <div class="col-1 col-phone-1 module-helper-visible">' +
     '       <button class="panta-btn panta-btn-dot panta-js-button hidden" title="Dieses Feld ist sichtbar"><img src="assets/ic_visible.png" width="12px" height="12px"/></button>' +
     '    </div>' +
-    '    <div class="col-1 module-editable-color invisible">' +
+    '    <div class="col-1 col-phone-1 module-editable-color invisible">' +
     '       <button class="panta-btn panta-btn-dot panta-js-button"></button>' +
     '    </div>' +
-    '    <div class="col-1 module-helper-sortable">' +
+    '    <div class="col-1 col-phone-1 module-helper-sortable">' +
     '       <button class="panta-btn panta-btn-dot panta-js-button" title="Dieses Feld kann für die Sortierung verwendet werden">S</button>' +
     '    </div>' +
     '</div>';
