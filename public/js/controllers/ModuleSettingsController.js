@@ -12,8 +12,8 @@ class ModuleSettingsController {
      * @param {ClientManager} clientManager
      * @returns {ModuleSettingsController}
      */
-    static create(trello, pluginController, module, editable, document, clientManager) {
-        return new ModuleSettingsController(trello, pluginController, module, editable, document, clientManager);
+    static create(trello, pluginController, module, editable, document, clientManager, trelloRemoteService) {
+        return new ModuleSettingsController(trello, pluginController, module, editable, document, clientManager, trelloRemoteService);
     }
 
     /**
@@ -26,7 +26,7 @@ class ModuleSettingsController {
      * @param {ClientManager} clientManager
      * @private
      */
-    constructor(trello, pluginController, module, editable, document, clientManager) {
+    constructor(trello, pluginController, module, editable, document, clientManager, trelloRemoteService) {
         this.trello = trello;
         /**
          * @type PluginController
@@ -40,6 +40,10 @@ class ModuleSettingsController {
         this.document = document;
         this.editable = editable;
         this.clientManager = clientManager;
+        /**
+         * @type AdminService
+         */
+        this.adminService = trelloRemoteService;
     }
 
     /**
@@ -284,10 +288,10 @@ class ModuleSettingsController {
                         });
                     return updated;
                 });
-                meti.setOnVisibleToggleListener(function() {
+                meti.setOnVisibleToggleListener(function () {
                     editable.visible = !editable.visible;
                     that.pluginController.setPluginModuleConfig(mc)
-                        .then(function() {
+                        .then(function () {
                             console.log("Values updated");
                         })
                 });
@@ -352,14 +356,14 @@ class ModuleSettingsController {
                     console.log("Label updated");
                 });
         });
-        editableName.setOnVisibleToggleListener(function() {
+        editableName.setOnVisibleToggleListener(function () {
             editable.visible = !editable.visible;
             that.pluginController.setPluginModuleConfig(mc)
-                .then(function() {
+                .then(function () {
                     console.log("Values updated. Visible: " + editable.visible);
                 })
         });
-        editableName.setOnReadyListener(function(el) {
+        editableName.setOnReadyListener(function (el) {
             el.getElementsByClassName("panta-js-visible").forEach(function (item) {
                 let ico = item.getClosestChildByTagName("img");
                 ico.setAttribute("src", editable.visible ? "assets/ic_visible.png" : "assets/ic_invisible.png");
@@ -510,7 +514,45 @@ class ModuleSettingsController {
                 element.appendChild(list);
             });
         }
+        this.renderActions();
         return Promise.resolve(true);
+    }
+
+    renderActions() {
+        const that = this;
+        this.document.querySelectorAll(".settings-import-export")
+            .forEach(it => {
+                it.removeClass("hidden");
+                if (it.querySelector("#btn-export")) {
+                    it.querySelector("#btn-export").setEventListener('click', function (e) {
+                        Promise.resolve(that.adminService.hasLabel("Panta Cards", "green"))
+                            .then(result => {
+                                if (result) {
+                                    console.debug("Contains label");
+                                } else {
+                                    console.debug("Nope");
+                                    // create it
+                                    if (Promise.resolve(that.adminService.createLabel("Panta Cards", "green"))) {
+                                        console.log("Yep");
+                                    }
+                                }
+                            });
+
+                    });
+                }
+                if (it.querySelector("#btn-import")) {
+                    it.querySelector("#btn-import").setEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.target.disabled = true;
+                        const files = document.querySelector("#file-import").files;
+                        try {
+                            that.adminService.import(files);
+                        } catch (ex) {
+                            console.error(`Error while importing files ${files}`, ex);
+                        }
+                    });
+                }
+            });
     }
 
     /**

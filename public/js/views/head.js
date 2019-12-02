@@ -15,7 +15,10 @@ if (useDefaultSelectStyle()) {
     addCss("css/panta.custom.input.css");
 }
 
-let t = TrelloPowerUp.iframe();
+let t = TrelloPowerUp.iframe({
+    appKey: '0bdd0023d8f9b9a23ed80260495bbe9b',
+    appName: 'Panta.Cards'
+});
 
 let cm = null;
 if (!window.clientManager) {

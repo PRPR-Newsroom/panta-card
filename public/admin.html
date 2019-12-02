@@ -3,6 +3,7 @@
     <link rel="stylesheet" href="https://p.trellocdn.com/power-up.min.css">
     <link rel="stylesheet" href="css/panta.commons.css"/>
     <link rel="stylesheet" href="css/panta.settings.css"/>
+    <link rel="stylesheet" href="css/panta.admin.css"/>
     <link rel="stylesheet" href="css/panta.custom.checkbox.css"/>
     <link rel="stylesheet" href="css/panta.custom.button.css"/>
     <link rel="stylesheet" href="css/panta.colors.css"/>
@@ -10,18 +11,24 @@
     <link rel="stylesheet" href="css/chrome.css"/>
 </head>
 <body>
-<div id="content" style="min-height: 200px">
-    <form>
-        <div class="row hidden">
-            <div class="col-12 line-2">
-                <p class="plugin-description editable"></p>
-            </div>
+<div id="content" style="min-height: 200px; padding: 8px 56px">
+    <div class="row settings-import-export hidden">
+        <!--        <div class="col-12">-->
+        <!--            <form>-->
+        <!--                <button id="btn-export">Export</button>-->
+        <!--            </form>-->
+        <!--        </div>-->
+        <!--        <div class="col-12">-->
+        <!--            &nbsp;-->
+        <!--        </div>-->
+        <div class="col-12">
+            <p>Wähle hier die Excel Datei aus, die importiert werden soll.</p>
         </div>
-
-    </form>
-
-    <span class="settings-content"></span>
-    <br/>
+        <div class="col-12">
+            <input type="file" id="file-import">
+            <button id="btn-import">Import</button>
+        </div>
+    </div>
 
     <small class="plugin-version-container">Version: <span class="plugin-version"/></small>
 </div>
@@ -36,5 +43,6 @@
 <script src="bin/panta.js"></script>
 <script src="js/views/head.js"></script>
 <script src="js/settings.js"></script>
+<script src="libs/xlsx.full.min.js"></script>
 </body>
 </html>

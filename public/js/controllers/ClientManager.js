@@ -96,7 +96,7 @@ class ClientManager {
              * @type {ArtikelController}
              * @private
              */
-            this._articleController = ArtikelController.getInstance(this._trello, this._window, this._telephones[ArtikelController.SHARED_NAME].port2);
+            this._articleController = ArtikelController.getOrCreateInstance(this._trello, this._window, this._telephones[ArtikelController.SHARED_NAME].port2);
             /**
              * @type {ModuleController}
              * @private

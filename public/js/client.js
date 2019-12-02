@@ -25,6 +25,31 @@ TrelloPowerUp.initialize({
                         }
                     });
             }
+        }, {
+            icon: './assets/ic_import_export.png',
+            text: 'Panta.Card.Import',
+            condition: 'admin',
+            callback: function (t) {
+                return t.member('all')
+                    .then(function (member) {
+                        if (POWERUP_ADMINS.find(function (admin) {
+                            return member.username === admin;
+                        })) {
+                            return t.modal({
+                                title: "Administration",
+                                url: "admin.html",
+                                accentColor: '#676D70'
+                            });
+                        } else {
+                            t.alert({
+                                message: "Du hast keine Berechtigung um Panta.Card zu konfigurieren. Bitte wenden dich an den Administrator, falls du die Berechtigung brauchst.",
+                                duration: 15,
+                                display: "error"
+                            });
+                            return null;
+                        }
+                    });
+            }
         }];
     },
     // https://developers.trello.com/v1.0/reference#card-badges
@@ -162,4 +187,7 @@ TrelloPowerUp.initialize({
                 return prev.concat(cur);
             }, []);
     }
+}, {
+    appName: "Panta.Cards",
+    appKey: "0bdd0023d8f9b9a23ed80260495bbe9b"
 });

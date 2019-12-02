@@ -8,7 +8,7 @@ t.render(function () {
 
     return pluginController.getPluginConfiguration()
         .then(function (data) {
-            let moduleSettingsController = ModuleSettingsController.create(t, pluginController, t.arg("module"), t.arg("editable"), document, clientManager);
+            let moduleSettingsController = ModuleSettingsController.create(t, pluginController, t.arg("module"), t.arg("editable"), document, clientManager, DI.getInstance().getAdminService(t));
 
             return moduleSettingsController.render.call(moduleSettingsController, data)
                 .then(function() {
