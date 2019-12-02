@@ -1,10 +1,20 @@
 [UNRELEASED]
 
-[1.4.3-STAGING]
+# Changes
+
+* Import feature
+
+[1.4.3]
+
+Released on 3.10.2019
 
 # Changes
 
 * Show web- and mail addresses as clickable links
+
+# Fixes
+
+* Fix label height in settings
 
 [1.4.2-STAGING]
 

@@ -416,12 +416,12 @@ $jscomp.polyfill("String.prototype.startsWith", function(a) {
     a += "";
     var e = b.length, f = a.length;
     c = Math.max(0, Math.min(c | 0, b.length));
-    for (var h = 0; h < f && c < e;) {
-      if (b[c++] != a[h++]) {
+    for (var g = 0; g < f && c < e;) {
+      if (b[c++] != a[g++]) {
         return !1;
       }
     }
-    return h >= f;
+    return g >= f;
   };
 }, "es6", "es3");
 $jscomp.polyfill("Object.entries", function(a) {
@@ -545,7 +545,7 @@ Repository.prototype.find = function(a) {
 Repository.prototype.isNew = function(a) {
 };
 // Input 3
-var VERSION = "1.4.3-STAGING", PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.settings.hint":"Folgende MODULE sind f\u00fcr dieses BOARD verf\u00fcgbar:<br/>Sobald mindestens ein MODUL aktiviert ist, wird dieses in jeder CARD auf dem BOARD dargestellt.", "module.artikel.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.", "module.artikel.desc":"ARTIKEL-Eingabefelder und LISTEN f\u00fcr dieses BOARD konfigurieren:<br/>F\u00fcr jedes Feld kann eine Farbe definiert werden.<br/>Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf der CARD Vorderseite \u2013 ansonsten wird es nur auf der CARD Innenseite dargestellt.", 
+var VERSION = "1.5.0-SNAPSHOT", PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.settings.hint":"Folgende MODULE sind f\u00fcr dieses BOARD verf\u00fcgbar:<br/>Sobald mindestens ein MODUL aktiviert ist, wird dieses in jeder CARD auf dem BOARD dargestellt.", "module.artikel.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.", "module.artikel.desc":"ARTIKEL-Eingabefelder und LISTEN f\u00fcr dieses BOARD konfigurieren:<br/>F\u00fcr jedes Feld kann eine Farbe definiert werden.<br/>Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf der CARD Vorderseite \u2013 ansonsten wird es nur auf der CARD Innenseite dargestellt.", 
 "module.artikel.editable.desc":"Beschriftung und Stichworte der maximal sechs LISTEN definieren:<br/>Die Reihenfolge der Stichwort muss fix erfasst werden.<br/>Die Zahl der Stichwort ist NICHT begrenzt.<br/>Maximal vier der sechs LISTEN lassen sich sortieren.<br/>LISTEN ohne Beschriftung werden auf der CARD nicht dargestellt.", "module.artikel.field-a.desc":"Das Textfeld \u00abA\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-b.desc":"Das Textfeld \u00abB\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
 "module.artikel.field-c.desc":"Das Textfeld \u00abC\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-d.desc":"Das Textfeld \u00abD\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-e.desc":"Das Textfeld \u00abE\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-f.desc":"Das Textfeld \u00abF\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
 "module.artikel.field-g.desc":"Das Textfeld \u00abG\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.beteiligt.desc":"BETEILIGT kann als Erg\u00e4nzung zum ARTIKEL oder PLAN aktiviert werden.<br/>Hier die Eingabefelder und LISTEN f\u00fcr das ganze BOARD konfigurieren:", "module.beteiligt.label.desc":"Dieser Titel wird oberhalb des Modul BETEILIGT auf jeder CARD sichtbar.", "module.beteiligt.layout.onsite":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", 
@@ -576,12 +576,16 @@ DI.create = function(a) {
     return new ArtikelRepository;
   }, a.prototype.getTabIndexProvider = function() {
     return this.tabIndexProvider;
+  }, a.prototype.getAdminService = function(a) {
+    return new AdminService(a);
   }, DI.INSTANCE = new a);
   return DI.INSTANCE;
 };
 DI.prototype.getArticleRepository = function() {
 };
 DI.prototype.getTabIndexProvider = function() {
+};
+DI.prototype.getAdminService = function(a) {
 };
 DI.INSTANCE = null;
 // Input 5
@@ -976,7 +980,7 @@ $jscomp.global.Object.defineProperties(ModuleEditableTextItem.prototype, {value:
   this._value = a;
 }}});
 // Input 13
-var PInput = function(a, b, c, d, e, f, h, g) {
+var PInput = function(a, b, c, d, e, f, g, h) {
   this._document = a;
   this._label = 0 === b.length ? "" : b;
   this._value = c;
@@ -984,12 +988,12 @@ var PInput = function(a, b, c, d, e, f, h, g) {
   d.startsWith(".", 0) ? this._target = this._document.getElementsByClassName(d.substr(1)).item(0) : this._target = this._document.getElementById(d);
   this._type = f;
   this._placeholder = e;
-  this._readonly = h;
+  this._readonly = g;
   this._input = this._document.createElement(this._type);
   this._inputOverlay = this._document.createElement("div");
   this._property = this._labelInput = null;
   this._propertyType = "text";
-  this._visible = g;
+  this._visible = h;
 };
 PInput.prototype.setPropertyType = function(a) {
   this.propertyType = a;
@@ -1218,8 +1222,8 @@ $jscomp.global.Object.defineProperties(PInput.prototype, {propertyType:{configur
 }, set:function(a) {
   this._propertyType = a;
 }}});
-var MultiLineInput = function(a, b, c, d, e, f, h, g) {
-  PInput.call(this, a, b, c, d, e, "textarea", !!h, g);
+var MultiLineInput = function(a, b, c, d, e, f, g, h) {
+  PInput.call(this, a, b, c, d, e, "textarea", !!g, h);
   this._rows = f;
 };
 $jscomp.inherits(MultiLineInput, PInput);
@@ -1237,8 +1241,8 @@ MultiLineInput.prototype.doCustomization = function(a, b, c) {
   }
   return PInput.prototype.doCustomization.call(this, a, b, c);
 };
-var SingleLineInput = function(a, b, c, d, e, f, h) {
-  PInput.call(this, a, b, c, d, e, "textarea", !!f, h);
+var SingleLineInput = function(a, b, c, d, e, f, g) {
+  PInput.call(this, a, b, c, d, e, "textarea", !!f, g);
 };
 $jscomp.inherits(SingleLineInput, PInput);
 SingleLineInput.prototype.doCustomization = function(a, b, c) {
@@ -1257,8 +1261,8 @@ SingleLineInput.prototype.doCustomization = function(a, b, c) {
   this.setPadding(Math.max(0, this.getOffsetHeight() - 26));
   return PInput.prototype.doCustomization.call(this, a, b, c);
 };
-var SingleSelectInput = function(a, b, c, d, e, f, h) {
-  PInput.call(this, a, b, c, d, e, "select", !!f, h);
+var SingleSelectInput = function(a, b, c, d, e, f, g) {
+  PInput.call(this, a, b, c, d, e, "select", !!f, g);
   this._options = [];
 };
 $jscomp.inherits(SingleSelectInput, PInput);
@@ -1380,26 +1384,26 @@ PluginController.prototype._upgradeAllArticleToModuleConfig = function(a, b) {
 };
 PluginController.prototype._upgradeArticleToModuleConfig = function(a, b, c, d) {
   if (d < c.length) {
-    var e = this, f = c[d], h = f[0], g = f[1];
-    if (1 === g.version) {
-      if (g.involved) {
-        f = Object.entries(g.involved).reduce(function(a, b) {
+    var e = this, f = c[d], g = f[0], h = f[1];
+    if (1 === h.version) {
+      if (h.involved) {
+        f = Object.entries(h.involved).reduce(function(a, b) {
           a.sections[b[0]] = b[1];
           return a;
-        }, ModuleConfig.create()), b.persist.call(b, f, h).then(function() {
-          g.version = Artikel.VERSION;
-          "function" === typeof g.clearInvolved && g.clearInvolved();
-          return a.persist.call(a, g, h);
+        }, ModuleConfig.create()), b.persist.call(b, f, g).then(function() {
+          h.version = Artikel.VERSION;
+          "function" === typeof h.clearInvolved && h.clearInvolved();
+          return a.persist.call(a, h, g);
         }).then(function() {
-          e._upgradeArticleToModuleConfig.call(e, a, b, c, d + 1, h);
+          e._upgradeArticleToModuleConfig.call(e, a, b, c, d + 1, g);
         });
       } else {
-        return console.log("The article does not have any involved data. Just update the version of the article and proceed to the next item."), g.version = Artikel.VERSION, a.persist.call(a, g, h).then(function() {
-          e._upgradeArticleToModuleConfig.call(e, a, b, c, d + 1, h);
+        return console.log("The article does not have any involved data. Just update the version of the article and proceed to the next item."), h.version = Artikel.VERSION, a.persist.call(a, h, g).then(function() {
+          e._upgradeArticleToModuleConfig.call(e, a, b, c, d + 1, g);
         });
       }
     } else {
-      console.log("Skipping article because its at version %d", g.version), this._upgradeArticleToModuleConfig.call(this, a, b, c, d + 1, h);
+      console.log("Skipping article because its at version %d", h.version), this._upgradeArticleToModuleConfig.call(this, a, b, c, d + 1, g);
     }
   } else {
     console.log("All articles updated");
@@ -1660,16 +1664,17 @@ $jscomp.global.Object.defineProperties(ModuleController, {VERSION:{configurable:
   return "panta.Beteiligt.PropertyBag";
 }}});
 // Input 16
-var ModuleSettingsController = function(a, b, c, d, e, f) {
+var ModuleSettingsController = function(a, b, c, d, e, f, g) {
   this.trello = a;
   this.pluginController = b;
   this.module = c;
   this.document = e;
   this.editable = d;
   this.clientManager = f;
+  this.adminService = g;
 };
-ModuleSettingsController.create = function(a, b, c, d, e, f) {
-  return new ModuleSettingsController(a, b, c, d, e, f);
+ModuleSettingsController.create = function(a, b, c, d, e, f, g) {
+  return new ModuleSettingsController(a, b, c, d, e, f, g);
 };
 ModuleSettingsController.prototype.render = function(a) {
   this.clearContent();
@@ -1871,13 +1876,13 @@ ModuleSettingsController.prototype.renderEditableLabel = function(a, b, c, d) {
   b.appendChild(d.render());
 };
 ModuleSettingsController.prototype.renderFieldGroup = function(a, b, c, d) {
-  var e = this, f = e.document.createElement("span"), h = a.config.editables.filter(function(a) {
+  var e = this, f = e.document.createElement("span"), g = a.config.editables.filter(function(a) {
     return a.type === b;
   });
-  f.addClass(0 < h.length ? "show" : "hidden");
+  f.addClass(0 < g.length ? "show" : "hidden");
   f.innerHTML = e._createLabel(d);
   c.appendChild(f);
-  h.map(function(b) {
+  g.map(function(b) {
     return (new ModuleEditableItem(a, b)).setOnEnterListener(function(a, b) {
       e.trello.popup({title:b.label, url:"settings.html", height:184, args:{module:a.id, editable:b.id}});
     }).setOnActivationListener(function(a, b, c) {
@@ -1892,7 +1897,7 @@ ModuleSettingsController.prototype.renderFieldGroup = function(a, b, c, d) {
     a.appendChild(b);
     return a;
   }, c);
-  0 < h.length && e.nl(c);
+  0 < g.length && e.nl(c);
 };
 ModuleSettingsController.prototype.index = function(a) {
   var b = this;
@@ -1930,7 +1935,29 @@ ModuleSettingsController.prototype.index = function(a) {
     }, document.createElement("div"));
     c.appendChild(d);
   }));
+  this.renderActions();
   return Promise.resolve(!0);
+};
+ModuleSettingsController.prototype.renderActions = function() {
+  var a = this;
+  this.document.querySelectorAll(".settings-import-export").forEach(function(b) {
+    b.removeClass("hidden");
+    b.querySelector("#btn-export") && b.querySelector("#btn-export").setEventListener("click", function(b) {
+      Promise.resolve(a.adminService.hasLabel("Panta Cards", "green")).then(function(b) {
+        b ? console.debug("Contains label") : (console.debug("Nope"), Promise.resolve(a.adminService.createLabel("Panta Cards", "green")) && console.log("Yep"));
+      });
+    });
+    b.querySelector("#btn-import") && b.querySelector("#btn-import").setEventListener("click", function(b) {
+      b.preventDefault();
+      b.target.disabled = !0;
+      b = document.querySelector("#file-import").files;
+      try {
+        a.adminService.import(b);
+      } catch (d) {
+        console.error("Error while importing files " + b, d);
+      }
+    });
+  });
 };
 ModuleSettingsController.prototype._createLabel = function(a) {
   return "<strong class='label'>" + a + "</strong>";
@@ -2199,7 +2226,7 @@ var ArtikelController = function(a, b, c, d) {
   this.setVersionInfo();
 };
 $jscomp.inherits(ArtikelController, Controller);
-ArtikelController.getInstance = function(a, b, c) {
+ArtikelController.getOrCreateInstance = function(a, b, c) {
   b.hasOwnProperty("articleController") || (b.articleController = new ArtikelController(b, a, DI.getInstance().getArticleRepository(), c));
   return b.articleController;
 };
@@ -2495,7 +2522,7 @@ ClientManager.prototype.onUnload = function() {
   delete this._pluginController;
 };
 ClientManager.prototype.init = function() {
-  this._initialized || (this._telephones = {}, this._telephones[ArtikelController.SHARED_NAME] = this._createMessageChannel(), this._telephones[ModuleController.SHARED_NAME] = this._createMessageChannel(), this._telephones[PluginController.SHARED_NAME] = this._createMessageChannel(), this._telephones[ModulePlanController.SHARED_NAME] = this._createMessageChannel(), this._pluginController = PluginController.getInstance(this._trello, this._window), this._articleController = ArtikelController.getInstance(this._trello, 
+  this._initialized || (this._telephones = {}, this._telephones[ArtikelController.SHARED_NAME] = this._createMessageChannel(), this._telephones[ModuleController.SHARED_NAME] = this._createMessageChannel(), this._telephones[PluginController.SHARED_NAME] = this._createMessageChannel(), this._telephones[ModulePlanController.SHARED_NAME] = this._createMessageChannel(), this._pluginController = PluginController.getInstance(this._trello, this._window), this._articleController = ArtikelController.getOrCreateInstance(this._trello, 
   this._window, this._telephones[ArtikelController.SHARED_NAME].port2), this._moduleController = ModuleController.getInstance(this._trello, this._window, this._telephones[ModuleController.SHARED_NAME].port2), this._planController = ModulePlanController.getInstance(this._trello, this._window, this._telephones[ModulePlanController.SHARED_NAME].port2), this._initialized = !0);
   return this;
 };
@@ -3046,21 +3073,392 @@ ArtikelBinding.prototype.updateConfiguration = function(a) {
   this.updateField(this._location, "place");
 };
 // Input 28
-var Artikel = function(a, b, c, d, e, f, h, g, k, l, m, q, n, p) {
+var AbstractField = function(a, b, c) {
+  this._name = a;
+  this._reference = b;
+  this._source = c;
+};
+AbstractField.prototype.set = function(a) {
+};
+AbstractField.prototype.getValue = function(a) {
+};
+$jscomp.global.Object.defineProperties(AbstractField.prototype, {source:{configurable:!0, enumerable:!0, get:function() {
+  return this._source;
+}}, reference:{configurable:!0, enumerable:!0, get:function() {
+  return this._reference;
+}, set:function(a) {
+  this._reference = a;
+}}, name:{configurable:!0, enumerable:!0, get:function() {
+  return this._name;
+}}});
+// Input 29
+var AdminService = function(a) {
+  if (!window.hasOwnProperty("Trello")) {
+    throw "Trello not correctly loaded";
+  }
+  this.trello = a;
+  this.fileReader = new FileReader;
+  this.importConfiguration = new ImportConfiguration;
+  this.clientManager = ClientManager.getInstance(window);
+  this.articleController = this.clientManager.getArticleController();
+  this.moduleController = this.clientManager.getModuleController();
+};
+AdminService.prototype.hasLabel = function(a, b) {
+  return this.getLabels().map(function(b) {
+    return b.name === a;
+  }).reduce(function(a, b) {
+    return a | b;
+  });
+};
+AdminService.prototype.createLabel = function(a, b) {
+  var c = this;
+  this.doWithToken(function(d) {
+    c._createLabel(a, b);
+  });
+};
+AdminService.prototype.getCurrentCard = function() {
+  return this.trello.card("id");
+};
+AdminService.prototype.doWithToken = function(a) {
+  var b = this;
+  if (!this.tryDoWithToken(a)) {
+    return window.Trello.authorize({type:"popup", persist:"true", expiration:"1day", scope:{read:!0, write:!0, account:!1}, success:function() {
+      b.trello.restApi.tokenExpirationKey = "app_token_exp";
+      var c = new Date;
+      c.setTime(c.getTime() + 33E5);
+      b.trello.restApi.localStorage[b.trello.restApi.tokenExpirationKey] = c.toISOString();
+      b.trello.restApi.localStorage[b.trello.restApi.pantaCardToken] = b.trello.restApi.localStorage[b.trello.restApi.tokenStorageKey];
+      b.tryDoWithToken(a);
+    }, error:function() {
+      console.error("Error authorizing");
+    }});
+  }
+};
+AdminService.prototype.tryDoWithToken = function(a) {
+  isBlank(this.trello.restApi.tokenExpirationKey) && (this.trello.restApi.tokenExpirationKey = "app_token_exp");
+  isBlank(this.trello.restApi.pantaCardToken) && (this.trello.restApi.pantaCardToken = "panta_app_token");
+  if (!isBlank(this.trello.restApi.localStorage[this.trello.restApi.tokenExpirationKey])) {
+    var b = new Date;
+    if ((new Date(this.trello.restApi.localStorage[this.trello.restApi.tokenExpirationKey])).getTime() > b.getTime()) {
+      if (b = this.trello.restApi.localStorage[this.trello.restApi.tokenStorageKey], !isBlank(b)) {
+        return a(b), !0;
+      }
+    } else {
+      delete this.trello.restApi.localStorage[this.trello.restApi.pantaCardToken];
+    }
+  }
+  return !1;
+};
+AdminService.prototype.getLabels = function() {
+  return this.trello.board("id", "name", "labels").then(function(a) {
+    return a.labels;
+  });
+};
+AdminService.prototype.import = function(a) {
+  var b = this;
+  if (0 < a.length) {
+    for (var c = {}, d = 0; d < a.length; c = {$jscomp$loop$prop$file$1:c.$jscomp$loop$prop$file$1}, d++) {
+      c.$jscomp$loop$prop$file$1 = a.item(d), b.fileReader.onload = function(a) {
+        b._processFile(a.target.result);
+      }, b.getCurrentCard().then(function(a) {
+        return function(c) {
+          b.doWithToken(function(d) {
+            var e = new FormData;
+            e.append("file", a.$jscomp$loop$prop$file$1);
+            e.append("name", a.$jscomp$loop$prop$file$1.name);
+            e.append("key", b.trello.restApi.appKey);
+            e.append("token", d);
+            var f = new XMLHttpRequest;
+            f.onreadystatechange = function() {
+              4 === f.readyState && (200 === f.status ? (console.log("Successfully uploaded at: " + f.response.date, f), b.fileReader.readAsArrayBuffer(a.$jscomp$loop$prop$file$1)) : console.error("Could not attach import file: " + a.$jscomp$loop$prop$file$1.name, f));
+            };
+            f.open("POST", "https://api.trello.com/1/cards/" + c.id + "/attachments");
+            f.send(e);
+          });
+        };
+      }(c));
+    }
+  }
+};
+AdminService.prototype._processFile = function(a) {
+  this.dataRowIndex = 4;
+  a = new Uint8Array(a);
+  var b = XLSX.read(a, {type:"array"});
+  console.log("workbook is", b);
+  a = b.Sheets[b.SheetNames[0]];
+  this.boundary = XLSX.utils.decode_range(a["!ref"]);
+  b = new Import(b.Props.Title);
+  b.header = this._parseImportHeader(a, 0, 0, null);
+  this._readImportData(a, b, 0, this.dataRowIndex);
+  console.debug("Import: ", b);
+  console.debug(b.getHeader(XLSX.utils.decode_cell("A4")).getPath());
+  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.0", b.getHeader(XLSX.utils.decode_cell("A4"))));
+  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.1", b.getHeader(XLSX.utils.decode_cell("B4"))));
+  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.2", b.getHeader(XLSX.utils.decode_cell("C4"))));
+  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.3", b.getHeader(XLSX.utils.decode_cell("D4"))));
+  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.4", b.getHeader(XLSX.utils.decode_cell("E4"))));
+  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.5", b.getHeader(XLSX.utils.decode_cell("F4"))));
+  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.6", b.getHeader(XLSX.utils.decode_cell("G4"))));
+  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.7", b.getHeader(XLSX.utils.decode_cell("H4"))));
+  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.8", b.getHeader(XLSX.utils.decode_cell("I4"))));
+  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.9", b.getHeader(XLSX.utils.decode_cell("J4"))));
+  this.importConfiguration.mapping.push(new TextField("Trello Title", "trello.title", b.getHeader(XLSX.utils.decode_cell("L4"))));
+  this.importConfiguration.mapping.push(new TextField("Trello Description", "trello.description", b.getHeader(XLSX.utils.decode_cell("M4"))));
+  this.importConfiguration.mapping.push(new TextField("Panta.Card.Artikel - Details", "panta.article.details", b.getHeader(XLSX.utils.decode_cell("U4"))));
+  this.importConfiguration.mapping.push(new TextField("Panta.Card.Artikel - Vorname", "panta.article.vorname", b.getHeader(XLSX.utils.decode_cell("V4"))));
+  this.importConfiguration.mapping.push(new TextField("Panta.Card.Artikel - Nachname", "panta.article.nachname", b.getHeader(XLSX.utils.decode_cell("W4"))));
+  this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter1 - Address", "panta.beteiligt.0.address", b.getHeader(XLSX.utils.decode_cell("Z4"))));
+  this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter2 - Link", "panta.beteiligt.1.name", b.getHeader(XLSX.utils.decode_cell("AF4"))));
+  this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter3 - Link", "panta.beteiligt.2.name", b.getHeader(XLSX.utils.decode_cell("AG4"))));
+  this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter4 - Link", "panta.beteiligt.3.name", b.getHeader(XLSX.utils.decode_cell("AH4"))));
+  this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter5 - Link", "panta.beteiligt.4.name", b.getHeader(XLSX.utils.decode_cell("AI4"))));
+  this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter6 - Link", "panta.beteiligt.5.name", b.getHeader(XLSX.utils.decode_cell("AJ4"))));
+  this._importCards(b);
+};
+AdminService.prototype._readImportData = function(a, b, c, d) {
+  if (d <= this.boundary.e.r) {
+    for (var e = new DataNode(d), f = c; f <= this.boundary.e.c; f++) {
+      var g = {r:d, c:f}, h = b.getHeader(g);
+      g = a[XLSX.utils.encode_cell(g)];
+      null != g && e.set(h, g);
+    }
+    0 !== e.values.length && b.put(e);
+    this._readImportData(a, b, c, d + 1);
+  }
+};
+AdminService.prototype._parseImportHeader = function(a, b, c, d) {
+  if (c < this.dataRowIndex && b <= this.boundary.e.c) {
+    var e = {c:b, r:c}, f = a[XLSX.utils.encode_cell(e)];
+    if (null == f) {
+      return null;
+    }
+    d = new HeaderNode(d, f.h, e);
+    if (0 === c) {
+      for (e = b + 1; e <= this.boundary.e.c; e++) {
+        f = a[XLSX.utils.encode_cell({c:e, r:c})], null != f && d.put(f.h);
+      }
+    }
+    do {
+      e = this._parseImportHeader(a, b, c + 1, d), null != e && d.add(e);
+    } while (++b <= this.boundary.e.c && (0 === c || null == a[XLSX.utils.encode_cell({c:b, r:c})]));
+    return d;
+  }
+  return null;
+};
+AdminService.prototype._importCards = function(a) {
+  this._importCard(a, 0);
+};
+AdminService.prototype._importCard = function(a, b) {
+  var c = this;
+  b < a.data.length ? c._createCard(a.data[b], function() {
+    window.setTimeout(function() {
+      c._importCard(a, b + 1);
+    }, 600);
+  }) : (console.log("Import completed"), c.trello.closeModal());
+};
+AdminService.prototype._createCard = function(a, b) {
+  var c = this;
+  c.doWithToken(function(d) {
+    c._findListByName("Import Test").reduce(function(a, b) {
+      return a || b;
+    }, null).then(function(d) {
+      null == d ? c._createList("Import Test", function(d) {
+        c._createCardInternal(d, a, b);
+      }) : c._createCardInternal(d, a, b);
+      return !0;
+    });
+  });
+};
+AdminService.prototype._createCardInternal = function(a, b, c) {
+  var d = this, e = this._getField("trello.label.0"), f = this._getField("trello.label.1"), g = this._getField("trello.label.2"), h = this._getField("trello.label.3"), k = this._getField("trello.label.4"), l = this._getField("trello.label.5"), m = this._getField("trello.label.6"), r = this._getField("trello.label.7"), n = this._getField("trello.label.8"), p = this._getField("trello.label.9"), q = this._getFieldValue(b, "trello.title"), t = this._getFieldValue(b, "trello.description"), u = this._getFieldValue(b, 
+  "panta.article.details"), v = this._getFieldValue(b, "panta.article.vorname"), w = this._getFieldValue(b, "panta.article.nachname"), x = this._getFieldValue(b, "panta.beteiligt.0.address"), y = this._getFieldValue(b, "panta.beteiligt.1.name"), z = this._getFieldValue(b, "panta.beteiligt.2.name"), A = this._getFieldValue(b, "panta.beteiligt.3.name"), B = this._getFieldValue(b, "panta.beteiligt.4.name"), C = this._getFieldValue(b, "panta.beteiligt.5.name");
+  d.doWithToken(function(D) {
+    window.Trello.post("/cards", {name:q, desc:t, idList:a.id}, function(a) {
+      console.log("Card created: ", a);
+      [e, f, g, h, k, l, m, r, n, p].filter(function(a) {
+        return null != a;
+      }).forEach(function(c) {
+        return d._getFieldValue(b, c.reference) ? (window.Trello.post("/cards/" + a.id + "/labels", {name:c.source.label, color:null}, function(a) {
+          console.log("Label added to card", a);
+        }), !0) : !1;
+      });
+      var q = new Artikel(null, u, 0, v, 1, 1, null, null, null, null, w, null, null, null);
+      d.articleController.persist(q, a.id).then(function(b) {
+        console.log("Artikel created in card", b);
+        b = ModuleConfig.create({}, null);
+        b.sections.onsite.address = x;
+        b.sections.text.name = y;
+        b.sections.photo.name = z;
+        b.sections.video.name = A;
+        b.sections.illu.name = B;
+        b.sections.ad.name = C;
+        d.moduleController.persist(b, a.id).then(function() {
+          console.log("Beteiligt created in card");
+          c();
+        });
+      });
+    });
+  });
+};
+AdminService.prototype._createList = function(a, b) {
+  var c = this;
+  return this.trello.board("id", "name", "labels").then(function(d) {
+    c.doWithToken(function(c) {
+      window.Trello.post("/lists", {name:a, idBoard:d.id, pos:"bottom"}, function(a) {
+        b(a);
+      });
+    });
+    return !0;
+  });
+};
+AdminService.prototype._getField = function(a) {
+  return this.importConfiguration.get(a);
+};
+AdminService.prototype._getFieldValue = function(a, b) {
+  return (b = this._getField(b)) && a.get(b.source) ? b.getValue(a.get(b.source)) : null;
+};
+AdminService.prototype._findListByName = function(a) {
+  return this.trello.lists("all").filter(function(b) {
+    return b.name === a;
+  });
+};
+AdminService.prototype._createLabel = function(a, b) {
+  return this.trello.board("id", "name", "labels").then(function(c) {
+    return window.Trello.post("/labels", {name:a, color:b, idBoard:c.id}, function() {
+      console.debug("Label created");
+    });
+  });
+};
+// Input 30
+var HeaderNode = function(a, b, c) {
+  this._parent = a;
+  this._label = b;
+  this._children = [];
+  this._properties = [];
+  this._address = c;
+};
+HeaderNode.prototype.add = function(a) {
+  this.children.push(a);
+};
+HeaderNode.prototype.get = function(a) {
+  return this.children[a];
+};
+HeaderNode.prototype.put = function(a) {
+  -1 === this.properties.indexOf(a) && this.properties.push(a);
+};
+HeaderNode.prototype.hasChildren = function() {
+  return 0 < this._children.length;
+};
+HeaderNode.prototype.hasParent = function() {
+  return null != this.parent;
+};
+HeaderNode.prototype.getPath = function() {
+  return this.hasParent() ? this.parent.getPath() + " \u00bb " + this.label : this.label;
+};
+$jscomp.global.Object.defineProperties(HeaderNode.prototype, {address:{configurable:!0, enumerable:!0, get:function() {
+  return this._address;
+}}, parent:{configurable:!0, enumerable:!0, get:function() {
+  return this._parent;
+}}, children:{configurable:!0, enumerable:!0, get:function() {
+  return this._children;
+}}, properties:{configurable:!0, enumerable:!0, get:function() {
+  return this._properties;
+}}, label:{configurable:!0, enumerable:!0, get:function() {
+  return this._label;
+}}});
+// Input 31
+var BooleanField = function(a, b, c) {
+  AbstractField.call(this, a, b, c);
+};
+$jscomp.inherits(BooleanField, AbstractField);
+BooleanField.prototype.getValue = function(a) {
+  return !isBlank(a.value.v) && 0 !== a.value.v;
+};
+BooleanField.prototype.set = function(a) {
+};
+// Input 32
+var DataNode = function(a) {
+  this._row = a;
+  this._values = [];
+};
+DataNode.prototype.set = function(a, b) {
+  this._values.push({header:a, value:b});
+};
+DataNode.prototype.get = function(a) {
+  return this._values.find(function(b) {
+    return b.header === a;
+  });
+};
+$jscomp.global.Object.defineProperties(DataNode.prototype, {row:{configurable:!0, enumerable:!0, get:function() {
+  return this._row;
+}}, values:{configurable:!0, enumerable:!0, get:function() {
+  return this._values;
+}}});
+// Input 33
+var ImportConfiguration = function() {
+  this._mapping = [];
+};
+ImportConfiguration.prototype.get = function(a) {
+  return this.mapping.find(function(b) {
+    return b.reference === a;
+  });
+};
+$jscomp.global.Object.defineProperties(ImportConfiguration.prototype, {mapping:{configurable:!0, enumerable:!0, get:function() {
+  return this._mapping;
+}}});
+// Input 34
+var Import = function(a) {
+  this.title = a;
+  this.header = null;
+  this.data = [];
+};
+Import.prototype.getHeader = function(a) {
+  var b = this.getHeaders(this.header);
+  return Object.entries(b).filter(function(b) {
+    return XLSX.utils.decode_cell(b[0]).c === a.c;
+  }).map(function(a) {
+    return a[1];
+  })[0];
+};
+Import.prototype.getHeaders = function(a) {
+  var b = this, c = {};
+  a.children.forEach(function(a) {
+    a.hasChildren() ? Object.entries(b.getHeaders(a)).forEach(function(a) {
+      c[a[0]] = a[1];
+    }) : c[XLSX.utils.encode_cell(a.address)] = a;
+  });
+  return c;
+};
+Import.prototype.put = function(a) {
+  this.data.push(a);
+};
+// Input 35
+var TextField = function(a, b, c) {
+  AbstractField.call(this, a, b, c);
+};
+$jscomp.inherits(TextField, AbstractField);
+TextField.prototype.set = function(a) {
+  this.reference;
+};
+TextField.prototype.getValue = function(a) {
+  return a.value.h;
+};
+// Input 36
+var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, r, n, p) {
   this._id = a || uuid();
   this._topic = b;
   this._pagina = c;
   this._from = d;
   this._layout = e;
   this._total = f;
-  this._tags = h;
+  this._tags = g;
   this._form = n;
-  this._visual = g;
+  this._visual = h;
   this._region = k;
   this._season = l;
   this._location = p;
   this._author = m;
-  this._text = q;
+  this._text = r;
   this._involved = {};
   this._version = Artikel.VERSION;
   this.putInvolved("onsite", new OtherBeteiligt);
@@ -3189,7 +3587,7 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, 
 $jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 3;
 }}});
-// Input 29
+// Input 37
 var PluginCardConfig = function(a, b, c) {
   this._title = a;
   this._icon = b;
@@ -3208,7 +3606,7 @@ $jscomp.global.Object.defineProperties(PluginCardConfig.prototype, {title:{confi
 }, set:function(a) {
   this._content = a;
 }}});
-// Input 30
+// Input 38
 var PluginModuleConfig = function(a, b, c) {
   this._id = a;
   this._name = b;
@@ -3230,7 +3628,7 @@ $jscomp.global.Object.defineProperties(PluginModuleConfig.prototype, {config:{co
 }, set:function(a) {
   this._id = a;
 }}});
-// Input 31
+// Input 39
 var ModuleConfig = function(a, b) {
   this._id = a || uuid();
   this._sections = b;
@@ -3318,11 +3716,11 @@ $jscomp.global.Object.defineProperties(CommonBeteiligt.prototype, {id:{configura
 $jscomp.global.Object.defineProperties(CommonBeteiligt, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 2;
 }}});
-var OtherBeteiligt = function(a, b, c, d, e, f, h, g, k, l) {
+var OtherBeteiligt = function(a, b, c, d, e, f, g, h, k, l) {
   CommonBeteiligt.call(this, a, b, c, d, e);
   this._duedate = f;
-  this._fee = h;
-  this._charges = g;
+  this._fee = g;
+  this._charges = h;
   this._project = k;
   this._capOnDepenses = l;
   this.type = "other";
@@ -3358,11 +3756,11 @@ $jscomp.global.Object.defineProperties(OtherBeteiligt.prototype, {duedate:{confi
 }, set:function(a) {
   this._capOnDepenses = a;
 }}});
-var AdBeteiligt = function(a, b, c, d, e, f, h, g) {
+var AdBeteiligt = function(a, b, c, d, e, f, g, h) {
   CommonBeteiligt.call(this, a, b, c, d, e);
   this._format = f;
-  this._placement = h;
-  this._price = g;
+  this._placement = g;
+  this._price = h;
   this._total = 0;
   this.type = "ad";
 };
@@ -3413,7 +3811,7 @@ $jscomp.global.Object.defineProperties(BlogBeteiligt.prototype, {date:{configura
 }, set:function(a) {
   this._date = a;
 }}});
-// Input 32
+// Input 40
 var PluginConfiguration = function(a, b, c, d) {
   this._version = a;
   this._description = b;
@@ -3479,21 +3877,21 @@ $jscomp.global.Object.defineProperties(PluginConfiguration.prototype, {card:{con
 $jscomp.global.Object.defineProperties(PluginConfiguration, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
 }}});
-// Input 33
-var Plan = function(a, b, c, d, e, f, h, g, k, l, m, q, n, p, r) {
+// Input 41
+var Plan = function(a, b, c, d, e, f, g, h, k, l, m, r, n, p, q) {
   this._id = a || uuid();
   this._fee = d;
   this._projectFee = e;
   this._thirdPartyCharges = f;
-  this._thirdPartyTotalCosts = h;
-  this._capOnDepenses = g;
+  this._thirdPartyTotalCosts = g;
+  this._capOnDepenses = h;
   this._totalCosts = k;
   this._visual = l;
   this._form = m;
-  this._online = q;
+  this._online = r;
   this._season = n;
   this._region = p;
-  this._place = r;
+  this._place = q;
   this._measures = b;
   this._description = c;
   this._version = Plan.VERSION;
@@ -3581,7 +3979,7 @@ $jscomp.global.Object.defineProperties(Plan.prototype, {id:{configurable:!0, enu
 $jscomp.global.Object.defineProperties(Plan, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
 }}});
-// Input 34
+// Input 42
 HTMLElement.prototype.addClass = function(a) {
   this.hasClass(a) || (this.className += " " + a, this.className = this.className.trim());
   return this;
@@ -3680,26 +4078,26 @@ function uuid() {
     return ("x" === b ? c : c & 3 | 8).toString(16);
   });
 }
-HTMLDocument.prototype.newMultiLineInput = function(a, b, c, d, e, f, h, g, k) {
-  return (new MultiLineInput(this, d, null, b, void 0 === g ? "" : g, void 0 === h ? 2 : h, !1, void 0 === k ? !0 : k)).bind(a.data, c).onFocus(f, e).onEnterEditing(f, e).onChange(f, e).render();
+HTMLDocument.prototype.newMultiLineInput = function(a, b, c, d, e, f, g, h, k) {
+  return (new MultiLineInput(this, d, null, b, void 0 === h ? "" : h, void 0 === g ? 2 : g, !1, void 0 === k ? !0 : k)).bind(a.data, c).onFocus(f, e).onEnterEditing(f, e).onChange(f, e).render();
 };
-HTMLDocument.prototype.newSingleLineInput = function(a, b, c, d, e, f, h, g, k, l) {
-  g = void 0 === g ? "text" : g;
+HTMLDocument.prototype.newSingleLineInput = function(a, b, c, d, e, f, g, h, k, l) {
+  h = void 0 === h ? "text" : h;
   k = void 0 === k ? !1 : k;
-  b = new SingleLineInput(this, d, null, b, void 0 === h ? "" : h, k, void 0 === l ? !0 : l);
-  b.propertyType = g || "text";
+  b = new SingleLineInput(this, d, null, b, void 0 === g ? "" : g, k, void 0 === l ? !0 : l);
+  b.propertyType = h || "text";
   null !== c && b.bind(a.data, c);
   a = function() {
   };
   b.onFocus(f, e).onEnterEditing(f, e).onChange(k ? a : f, e).render();
   return b;
 };
-HTMLDocument.prototype.newSingleSelect = function(a, b, c, d, e, f, h, g, k, l) {
-  var m = (new SingleSelectInput(this, d, null, b, void 0 === h ? "" : h, !1, void 0 === l ? !0 : l)).bind(a.data, c).onFocus(f, e).onEnterEditing(f, e).onChange(f, e);
+HTMLDocument.prototype.newSingleSelect = function(a, b, c, d, e, f, g, h, k, l) {
+  var m = (new SingleSelectInput(this, d, null, b, void 0 === g ? "" : g, !1, void 0 === l ? !0 : l)).bind(a.data, c).onFocus(f, e).onEnterEditing(f, e).onChange(f, e);
   k.forEach(function(a, b) {
     m.addOption(a.value, a.text);
   });
-  m.setEmpty(g.value, g.text);
+  m.setEmpty(h.value, h.text);
   return m.render();
 };
 HTMLDocument.prototype.createStylesheet = function(a) {
@@ -3773,7 +4171,7 @@ function extend(a, b) {
   return a;
 }
 ;
-// Input 35
+// Input 43
 var JsonSerialization = function() {
 };
 JsonSerialization.prototype.serialize = function(a) {
@@ -3802,7 +4200,7 @@ JsonSerialization.getProperty = function(a, b) {
 JsonSerialization.prototype.getAllProperties = function(a) {
   return Object.getOwnPropertyNames(a);
 };
-// Input 36
+// Input 44
 var template_regular = '<div id="template">    <div class="row">        <div class="col-6 col-phone-12">            <div class="row">                <div class="col-12 col-phone-12">                    <div class="pa.name"></div>                </div>                <div class="col-12 col-phone-12">                    <div class="pa.social"></div>                </div>            </div>        </div>        <div class="col-6 col-phone-12 line-4 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-6 col-phone-12">            <div class="pa.address"></div>        </div>        <div class="col-6 col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-12 col-phone-12">            <div class="row">                <div class="col-4 col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_regular_mobile = '<div id="template">    <div class="row">        <div class="col-phone-12">            <div class="pa.name"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.social"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.address"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="row">                <div class="col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.notes"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.format"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.placement"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.price"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.name"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.social"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.address"></div>            </div>        </div>    </div></div>', 

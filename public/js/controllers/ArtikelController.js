@@ -35,7 +35,7 @@ class ArtikelController extends Controller {
      * @param windowManager
      * @returns {ArtikelController}
      */
-    static getInstance(trelloApi, windowManager, telephone) {
+    static getOrCreateInstance(trelloApi, windowManager, telephone) {
         if (!windowManager.hasOwnProperty('articleController')) {
             windowManager.articleController = new ArtikelController(
                 windowManager,
