@@ -3,6 +3,9 @@
  */
 class DI {
 
+    /**
+     * @returns {DI}
+     */
     static getInstance() {
         if (DI.INSTANCE === null) {
             this.create();
@@ -34,6 +37,11 @@ class DI {
                      * @type {TabIndexProvider}
                      */
                     this.tabIndexProvider = new TabIndexProvider();
+                    //
+                    // /**
+                    //  * @type {AdminService}
+                    //  */
+                    // this.adminService = new AdminService("0bdd0023d8f9b9a23ed80260495bbe9b");
                 }
 
                 getArticleRepository() {
@@ -42,6 +50,10 @@ class DI {
 
                 getTabIndexProvider() {
                     return this.tabIndexProvider;
+                }
+
+                getAdminService(trello) {
+                    return new AdminService(trello);
                 }
             }
             DI.INSTANCE = new DefaultDI();
@@ -61,6 +73,12 @@ class DI {
      * @abstract
      */
     getTabIndexProvider() {}
+
+    /**
+     * Get the trello remote service
+     * @return {AdminService}
+     */
+    getAdminService(trello) {}
 
 }
 

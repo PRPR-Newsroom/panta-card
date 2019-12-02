@@ -16,7 +16,7 @@ describe("The ArtikelController provides business logic", function() {
     /**
      * @type {ArtikelController}
      */
-    let sut = ArtikelController.getInstance(trello, window);
+    let sut = ArtikelController.getOrCreateInstance(trello, window);
 
     beforeEach(function() {
         expect(trello.set).toHaveBeenCalledWith('card', 'shared', 'panta.Meta', jasmine.objectContaining({"version": 1}));

@@ -1,0 +1,59 @@
+@startuml
+
+start
+
+:Attach input file to current card;
+:Read input file;
+
+if (Invalid input?) then (yes)
+    :Show error message;
+    :Log invalid input;
+else (no)
+
+    :Export board;
+    note right: Backup of current board
+    :Attach export to current card;
+
+    ' setup labels
+    :Get all labels from input file;
+    repeat
+
+        if (label exists) then (yes)
+            if (label color same) then (no)
+                :Log different color;
+                :Update color;
+            endif
+        else (no)
+            :Create label with name and color;
+            :Log new label;
+        endif
+
+    repeat while (has more labels?)
+
+    ' import cards
+    repeat
+        :read row/item;
+        if (idList exists?) then (no)
+            :Log idList not found;
+            :Create new List with name;
+            :Log new idList;
+            :Replace idList with new;
+        endif
+
+        if (card exists) then (no)
+            :Log cardId not found;
+            :Create card with name;
+            :Log new cardId;
+        endif
+
+    repeat while (more rows?)
+
+
+
+endif
+
+:Attach log to current card;
+
+stop
+
+@enduml

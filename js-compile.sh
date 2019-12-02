@@ -10,5 +10,7 @@ java -jar ~/dev/google-compiler/closure-compiler-v20190325.jar \
     'public/js/contracts/**.js' \
     'public/js/components/**.js' \
     'public/js/controllers/**.js' \
+    'public/js/admin/domain/AbstractField.js' \
+    'public/js/admin/**.js' \
     'public/js/models/**.js' \
     'public/js/helpers/**.js'
