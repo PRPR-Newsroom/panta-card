@@ -2523,7 +2523,7 @@ ClientManager.prototype.onUnload = function() {
 };
 ClientManager.prototype.init = function() {
   this._initialized || (this._telephones = {}, this._telephones[ArtikelController.SHARED_NAME] = this._createMessageChannel(), this._telephones[ModuleController.SHARED_NAME] = this._createMessageChannel(), this._telephones[PluginController.SHARED_NAME] = this._createMessageChannel(), this._telephones[ModulePlanController.SHARED_NAME] = this._createMessageChannel(), this._pluginController = PluginController.getInstance(this._trello, this._window), this._articleController = ArtikelController.getOrCreateInstance(this._trello, 
-  this._window, this._telephones[ArtikelController.SHARED_NAME].port2), this._moduleController = ModuleController.getInstance(this._trello, this._window, this._telephones[ModuleController.SHARED_NAME].port2), this._planController = ModulePlanController.getInstance(this._trello, this._window, this._telephones[ModulePlanController.SHARED_NAME].port2), this._initialized = !0);
+  this._window, this._telephones[ArtikelController.SHARED_NAME].port2), this._moduleController = ModuleController.getInstance(this._trello, this._window, this._telephones[ModuleController.SHARED_NAME].port2), this._planController = ModulePlanController.getInstance(this._trello, this._window, this._telephones[ModulePlanController.SHARED_NAME].port2), this._excelService = new ExcelService, this._initialized = !0);
   return this;
 };
 ClientManager.prototype._createMessageChannel = function() {
@@ -2632,6 +2632,9 @@ ClientManager.prototype.getPluginController = function() {
 };
 ClientManager.prototype.getPlanController = function() {
   return this._planController;
+};
+ClientManager.prototype.getExcelService = function() {
+  return this._excelService;
 };
 ClientManager.prototype.removePluginData = function() {
   var a = this;
@@ -3102,6 +3105,7 @@ var AdminService = function(a) {
   this.clientManager = ClientManager.getInstance(window);
   this.articleController = this.clientManager.getArticleController();
   this.moduleController = this.clientManager.getModuleController();
+  this.excelService = this.clientManager.getExcelService();
 };
 AdminService.prototype.hasLabel = function(a, b) {
   return this.getLabels().map(function(b) {
@@ -3159,7 +3163,7 @@ AdminService.prototype.import = function(a) {
   if (0 < a.length) {
     for (var c = {}, d = 0; d < a.length; c = {$jscomp$loop$prop$file$1:c.$jscomp$loop$prop$file$1}, d++) {
       c.$jscomp$loop$prop$file$1 = a.item(d), b.fileReader.onload = function(a) {
-        b._processFile(a.target.result);
+        b._importInternal(a.target.result);
       }, b.getCurrentCard().then(function(a) {
         return function(c) {
           b.doWithToken(function(d) {
@@ -3169,10 +3173,13 @@ AdminService.prototype.import = function(a) {
             e.append("key", b.trello.restApi.appKey);
             e.append("token", d);
             var f = new XMLHttpRequest;
-            f.onreadystatechange = function() {
-              4 === f.readyState && (200 === f.status ? (console.log("Successfully uploaded at: " + f.response.date, f), b.fileReader.readAsArrayBuffer(a.$jscomp$loop$prop$file$1)) : console.error("Could not attach import file: " + a.$jscomp$loop$prop$file$1.name, f));
+            f.onload = function(d) {
+              4 === f.readyState && (200 === f.status ? (console.debug("Successfully attached file to card " + c.id + " at " + f.response.date, f), b.fileReader.readAsArrayBuffer(a.$jscomp$loop$prop$file$1)) : window.alert("Ein Fehler beim Verarbeiten der Datei \u00ab" + a.$jscomp$loop$prop$file$1.name + "\u00bb ist aufgetreten: \n\n" + f.statusText));
             };
-            f.open("POST", "https://api.trello.com/1/cards/" + c.id + "/attachments");
+            f.onerror = function(b) {
+              window.alert("Ein Fehler beim Verarbeiten der Datei \u00ab" + a.$jscomp$loop$prop$file$1.name + "\u00bb ist aufgetreten: \n\n" + f.statusText);
+            };
+            f.open("POST", "https://api.trello.com/1/cards/" + c.id + "/attachments", !0);
             f.send(e);
           });
         };
@@ -3180,70 +3187,30 @@ AdminService.prototype.import = function(a) {
     }
   }
 };
-AdminService.prototype._processFile = function(a) {
-  this.dataRowIndex = 4;
-  a = new Uint8Array(a);
-  var b = XLSX.read(a, {type:"array"});
-  console.log("workbook is", b);
-  a = b.Sheets[b.SheetNames[0]];
-  this.boundary = XLSX.utils.decode_range(a["!ref"]);
-  b = new Import(b.Props.Title);
-  b.header = this._parseImportHeader(a, 0, 0, null);
-  this._readImportData(a, b, 0, this.dataRowIndex);
-  console.debug("Import: ", b);
-  console.debug(b.getHeader(XLSX.utils.decode_cell("A4")).getPath());
-  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.0", b.getHeader(XLSX.utils.decode_cell("A4"))));
-  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.1", b.getHeader(XLSX.utils.decode_cell("B4"))));
-  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.2", b.getHeader(XLSX.utils.decode_cell("C4"))));
-  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.3", b.getHeader(XLSX.utils.decode_cell("D4"))));
-  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.4", b.getHeader(XLSX.utils.decode_cell("E4"))));
-  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.5", b.getHeader(XLSX.utils.decode_cell("F4"))));
-  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.6", b.getHeader(XLSX.utils.decode_cell("G4"))));
-  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.7", b.getHeader(XLSX.utils.decode_cell("H4"))));
-  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.8", b.getHeader(XLSX.utils.decode_cell("I4"))));
-  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.9", b.getHeader(XLSX.utils.decode_cell("J4"))));
-  this.importConfiguration.mapping.push(new TextField("Trello Title", "trello.title", b.getHeader(XLSX.utils.decode_cell("L4"))));
-  this.importConfiguration.mapping.push(new TextField("Trello Description", "trello.description", b.getHeader(XLSX.utils.decode_cell("M4"))));
-  this.importConfiguration.mapping.push(new TextField("Panta.Card.Artikel - Details", "panta.article.details", b.getHeader(XLSX.utils.decode_cell("U4"))));
-  this.importConfiguration.mapping.push(new TextField("Panta.Card.Artikel - Vorname", "panta.article.vorname", b.getHeader(XLSX.utils.decode_cell("V4"))));
-  this.importConfiguration.mapping.push(new TextField("Panta.Card.Artikel - Nachname", "panta.article.nachname", b.getHeader(XLSX.utils.decode_cell("W4"))));
-  this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter1 - Address", "panta.beteiligt.0.address", b.getHeader(XLSX.utils.decode_cell("Z4"))));
-  this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter2 - Link", "panta.beteiligt.1.name", b.getHeader(XLSX.utils.decode_cell("AF4"))));
-  this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter3 - Link", "panta.beteiligt.2.name", b.getHeader(XLSX.utils.decode_cell("AG4"))));
-  this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter4 - Link", "panta.beteiligt.3.name", b.getHeader(XLSX.utils.decode_cell("AH4"))));
-  this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter5 - Link", "panta.beteiligt.4.name", b.getHeader(XLSX.utils.decode_cell("AI4"))));
-  this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter6 - Link", "panta.beteiligt.5.name", b.getHeader(XLSX.utils.decode_cell("AJ4"))));
-  this._importCards(b);
-};
-AdminService.prototype._readImportData = function(a, b, c, d) {
-  if (d <= this.boundary.e.r) {
-    for (var e = new DataNode(d), f = c; f <= this.boundary.e.c; f++) {
-      var g = {r:d, c:f}, h = b.getHeader(g);
-      g = a[XLSX.utils.encode_cell(g)];
-      null != g && e.set(h, g);
-    }
-    0 !== e.values.length && b.put(e);
-    this._readImportData(a, b, c, d + 1);
-  }
-};
-AdminService.prototype._parseImportHeader = function(a, b, c, d) {
-  if (c < this.dataRowIndex && b <= this.boundary.e.c) {
-    var e = {c:b, r:c}, f = a[XLSX.utils.encode_cell(e)];
-    if (null == f) {
-      return null;
-    }
-    d = new HeaderNode(d, f.h, e);
-    if (0 === c) {
-      for (e = b + 1; e <= this.boundary.e.c; e++) {
-        f = a[XLSX.utils.encode_cell({c:e, r:c})], null != f && d.put(f.h);
-      }
-    }
-    do {
-      e = this._parseImportHeader(a, b, c + 1, d), null != e && d.add(e);
-    } while (++b <= this.boundary.e.c && (0 === c || null == a[XLSX.utils.encode_cell({c:b, r:c})]));
-    return d;
-  }
-  return null;
+AdminService.prototype._importInternal = function(a) {
+  a = this.excelService.read(a);
+  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.0", a.getHeader(XLSX.utils.decode_cell("A4"))));
+  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.1", a.getHeader(XLSX.utils.decode_cell("B4"))));
+  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.2", a.getHeader(XLSX.utils.decode_cell("C4"))));
+  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.3", a.getHeader(XLSX.utils.decode_cell("D4"))));
+  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.4", a.getHeader(XLSX.utils.decode_cell("E4"))));
+  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.5", a.getHeader(XLSX.utils.decode_cell("F4"))));
+  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.6", a.getHeader(XLSX.utils.decode_cell("G4"))));
+  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.7", a.getHeader(XLSX.utils.decode_cell("H4"))));
+  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.8", a.getHeader(XLSX.utils.decode_cell("I4"))));
+  this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.9", a.getHeader(XLSX.utils.decode_cell("J4"))));
+  this.importConfiguration.mapping.push(new TextField("Trello Title", "trello.title", a.getHeader(XLSX.utils.decode_cell("L4"))));
+  this.importConfiguration.mapping.push(new TextField("Trello Description", "trello.description", a.getHeader(XLSX.utils.decode_cell("M4"))));
+  this.importConfiguration.mapping.push(new TextField("Panta.Card.Artikel - Details", "panta.article.details", a.getHeader(XLSX.utils.decode_cell("U4"))));
+  this.importConfiguration.mapping.push(new TextField("Panta.Card.Artikel - Vorname", "panta.article.vorname", a.getHeader(XLSX.utils.decode_cell("V4"))));
+  this.importConfiguration.mapping.push(new TextField("Panta.Card.Artikel - Nachname", "panta.article.nachname", a.getHeader(XLSX.utils.decode_cell("W4"))));
+  this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter1 - Address", "panta.beteiligt.0.address", a.getHeader(XLSX.utils.decode_cell("Z4"))));
+  this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter2 - Link", "panta.beteiligt.1.name", a.getHeader(XLSX.utils.decode_cell("AF4"))));
+  this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter3 - Link", "panta.beteiligt.2.name", a.getHeader(XLSX.utils.decode_cell("AG4"))));
+  this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter4 - Link", "panta.beteiligt.3.name", a.getHeader(XLSX.utils.decode_cell("AH4"))));
+  this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter5 - Link", "panta.beteiligt.4.name", a.getHeader(XLSX.utils.decode_cell("AI4"))));
+  this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter6 - Link", "panta.beteiligt.5.name", a.getHeader(XLSX.utils.decode_cell("AJ4"))));
+  this._importCards(a);
 };
 AdminService.prototype._importCards = function(a) {
   this._importCard(a, 0);
@@ -3254,7 +3221,7 @@ AdminService.prototype._importCard = function(a, b) {
     window.setTimeout(function() {
       c._importCard(a, b + 1);
     }, 600);
-  }) : (console.log("Import completed"), c.trello.closeModal());
+  }) : (console.debug("Import completed"), c.trello.closeModal());
 };
 AdminService.prototype._createCard = function(a, b) {
   var c = this;
@@ -3274,17 +3241,17 @@ AdminService.prototype._createCardInternal = function(a, b, c) {
   "panta.article.details"), v = this._getFieldValue(b, "panta.article.vorname"), w = this._getFieldValue(b, "panta.article.nachname"), x = this._getFieldValue(b, "panta.beteiligt.0.address"), y = this._getFieldValue(b, "panta.beteiligt.1.name"), z = this._getFieldValue(b, "panta.beteiligt.2.name"), A = this._getFieldValue(b, "panta.beteiligt.3.name"), B = this._getFieldValue(b, "panta.beteiligt.4.name"), C = this._getFieldValue(b, "panta.beteiligt.5.name");
   d.doWithToken(function(D) {
     window.Trello.post("/cards", {name:q, desc:t, idList:a.id}, function(a) {
-      console.log("Card created: ", a);
+      console.debug("Card created: ", a);
       [e, f, g, h, k, l, m, r, n, p].filter(function(a) {
         return null != a;
       }).forEach(function(c) {
         return d._getFieldValue(b, c.reference) ? (window.Trello.post("/cards/" + a.id + "/labels", {name:c.source.label, color:null}, function(a) {
-          console.log("Label added to card", a);
+          console.debug("Label added to card", a);
         }), !0) : !1;
       });
       var q = new Artikel(null, u, 0, v, 1, 1, null, null, null, null, w, null, null, null);
       d.articleController.persist(q, a.id).then(function(b) {
-        console.log("Artikel created in card", b);
+        console.debug("Artikel created in card", b);
         b = ModuleConfig.create({}, null);
         b.sections.onsite.address = x;
         b.sections.text.name = y;
@@ -3293,7 +3260,7 @@ AdminService.prototype._createCardInternal = function(a, b, c) {
         b.sections.illu.name = B;
         b.sections.ad.name = C;
         d.moduleController.persist(b, a.id).then(function() {
-          console.log("Beteiligt created in card");
+          console.debug("Beteiligt created in card");
           c();
         });
       });
@@ -3444,6 +3411,51 @@ TextField.prototype.getValue = function(a) {
   return a.value.h;
 };
 // Input 36
+var ExcelService = function() {
+};
+ExcelService.prototype.read = function(a) {
+  this.dataRowIndex = 4;
+  a = new Uint8Array(a);
+  var b = XLSX.read(a, {type:"array"});
+  console.debug("workbook is", b);
+  a = b.Sheets[b.SheetNames[0]];
+  this.boundary = XLSX.utils.decode_range(a["!ref"]);
+  b = new Import(b.Props.Title);
+  b.header = this._parseImportHeader(a, 0, 0, null);
+  this._readImportData(a, b, 0, this.dataRowIndex);
+  return b;
+};
+ExcelService.prototype._parseImportHeader = function(a, b, c, d) {
+  if (c < this.dataRowIndex && b <= this.boundary.e.c) {
+    var e = {c:b, r:c}, f = a[XLSX.utils.encode_cell(e)];
+    if (null == f) {
+      return null;
+    }
+    d = new HeaderNode(d, f.h, e);
+    if (0 === c) {
+      for (e = b + 1; e <= this.boundary.e.c; e++) {
+        f = a[XLSX.utils.encode_cell({c:e, r:c})], null != f && d.put(f.h);
+      }
+    }
+    do {
+      e = this._parseImportHeader(a, b, c + 1, d), null != e && d.add(e);
+    } while (++b <= this.boundary.e.c && (0 === c || null == a[XLSX.utils.encode_cell({c:b, r:c})]));
+    return d;
+  }
+  return null;
+};
+ExcelService.prototype._readImportData = function(a, b, c, d) {
+  if (d <= this.boundary.e.r) {
+    for (var e = new DataNode(d), f = c; f <= this.boundary.e.c; f++) {
+      var g = {r:d, c:f}, h = b.getHeader(g);
+      g = a[XLSX.utils.encode_cell(g)];
+      null != g && e.set(h, g);
+    }
+    0 !== e.values.length && b.put(e);
+    this._readImportData(a, b, c, d + 1);
+  }
+};
+// Input 37
 var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, r, n, p) {
   this._id = a || uuid();
   this._topic = b;
@@ -3587,7 +3599,7 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, 
 $jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 3;
 }}});
-// Input 37
+// Input 38
 var PluginCardConfig = function(a, b, c) {
   this._title = a;
   this._icon = b;
@@ -3606,7 +3618,7 @@ $jscomp.global.Object.defineProperties(PluginCardConfig.prototype, {title:{confi
 }, set:function(a) {
   this._content = a;
 }}});
-// Input 38
+// Input 39
 var PluginModuleConfig = function(a, b, c) {
   this._id = a;
   this._name = b;
@@ -3628,7 +3640,7 @@ $jscomp.global.Object.defineProperties(PluginModuleConfig.prototype, {config:{co
 }, set:function(a) {
   this._id = a;
 }}});
-// Input 39
+// Input 40
 var ModuleConfig = function(a, b) {
   this._id = a || uuid();
   this._sections = b;
@@ -3811,7 +3823,7 @@ $jscomp.global.Object.defineProperties(BlogBeteiligt.prototype, {date:{configura
 }, set:function(a) {
   this._date = a;
 }}});
-// Input 40
+// Input 41
 var PluginConfiguration = function(a, b, c, d) {
   this._version = a;
   this._description = b;
@@ -3877,7 +3889,7 @@ $jscomp.global.Object.defineProperties(PluginConfiguration.prototype, {card:{con
 $jscomp.global.Object.defineProperties(PluginConfiguration, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
 }}});
-// Input 41
+// Input 42
 var Plan = function(a, b, c, d, e, f, g, h, k, l, m, r, n, p, q) {
   this._id = a || uuid();
   this._fee = d;
@@ -3979,7 +3991,7 @@ $jscomp.global.Object.defineProperties(Plan.prototype, {id:{configurable:!0, enu
 $jscomp.global.Object.defineProperties(Plan, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
 }}});
-// Input 42
+// Input 43
 HTMLElement.prototype.addClass = function(a) {
   this.hasClass(a) || (this.className += " " + a, this.className = this.className.trim());
   return this;
@@ -4171,7 +4183,7 @@ function extend(a, b) {
   return a;
 }
 ;
-// Input 43
+// Input 44
 var JsonSerialization = function() {
 };
 JsonSerialization.prototype.serialize = function(a) {
@@ -4200,7 +4212,7 @@ JsonSerialization.getProperty = function(a, b) {
 JsonSerialization.prototype.getAllProperties = function(a) {
   return Object.getOwnPropertyNames(a);
 };
-// Input 44
+// Input 45
 var template_regular = '<div id="template">    <div class="row">        <div class="col-6 col-phone-12">            <div class="row">                <div class="col-12 col-phone-12">                    <div class="pa.name"></div>                </div>                <div class="col-12 col-phone-12">                    <div class="pa.social"></div>                </div>            </div>        </div>        <div class="col-6 col-phone-12 line-4 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-6 col-phone-12">            <div class="pa.address"></div>        </div>        <div class="col-6 col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-12 col-phone-12">            <div class="row">                <div class="col-4 col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_regular_mobile = '<div id="template">    <div class="row">        <div class="col-phone-12">            <div class="pa.name"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.social"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.address"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="row">                <div class="col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.notes"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.format"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.placement"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.price"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.name"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.social"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.address"></div>            </div>        </div>    </div></div>', 

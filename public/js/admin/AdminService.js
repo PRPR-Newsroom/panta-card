@@ -13,6 +13,7 @@ class AdminService {
         this.clientManager = ClientManager.getInstance(window);
         this.articleController = this.clientManager.getArticleController();
         this.moduleController = this.clientManager.getModuleController();
+        this.excelService = this.clientManager.getExcelService();
     }
 
     hasLabel(label, color) {
@@ -74,7 +75,8 @@ class AdminService {
                     onAuthorized(apptoken);
                     return true;
                 } else {
-                    const papptoken = that.trello.restApi.localStorage[that.trello.restApi.pantaCardToken];
+                    // it's not just that easy to cache the apptoken manually (but actually is not part of MVP so maybe try to find a way later)
+                    // const papptoken = that.trello.restApi.localStorage[that.trello.restApi.pantaCardToken];
                     // if (!isBlank(papptoken)) {
                     //     that.trello.restApi.tokenStorageKey = "trello_token";
                     //     that.trello.restApi.localStorage[that.trello.restApi.tokenStorageKey] = papptoken;
@@ -107,7 +109,7 @@ class AdminService {
             for (let index = 0; index < files.length; index++) {
                 const file = files.item(index);
                 that.fileReader.onload = function (e) {
-                    that._processFile(e.target.result);
+                    that._importInternal(e.target.result);
                 };
 
                 that.getCurrentCard()
@@ -121,21 +123,24 @@ class AdminService {
 
                             const request = new XMLHttpRequest();
                             // what url to use?
-                            request.onreadystatechange = function () {
-                                // When we have a response back from the server we want to share it!
-                                // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/response
+                            request.onload = function (e) {
                                 if (request.readyState === 4) {
                                     if (request.status === 200) {
-                                        console.log(`Successfully uploaded at: ${request.response.date}`, request);
+                                        console.debug(`Successfully attached file to card ${card.id} at ${request.response.date}`, request);
                                         that.fileReader.readAsArrayBuffer(file);
                                     } else {
-                                        console.error(`Could not attach import file: ${file.name}`, request);
+                                        window.alert(`Ein Fehler beim Verarbeiten der Datei «${file.name}» ist aufgetreten: \n\n${request.statusText}`);
                                     }
                                 } else {
                                     // still uploading...
                                 }
                             };
-                            request.open("POST", `https://api.trello.com/1/cards/${card.id}/attachments`);
+                            request.onerror = function(e) {
+                                window.alert(`Ein Fehler beim Verarbeiten der Datei «${file.name}» ist aufgetreten: \n\n${request.statusText}`);
+                            };
+
+                            // even tough its async i get a IFrameIO request timed out. Command=card-back-section, Plugin=undefined, Elapsed=5029 which looks like it is blocking
+                            request.open("POST", `https://api.trello.com/1/cards/${card.id}/attachments`, true);
                             request.send(formData);
                         });
                     });
@@ -143,27 +148,14 @@ class AdminService {
         }
     }
 
-    /**
-     * Process the excel file
-     * @param content
-     * @private
-     */
-    _processFile(content) {
-        this.dataRowIndex = 4;
+    _importInternal(content) {
+        /**
+         * @type {Import}
+         */
+        const root = this.excelService.read(content);
 
-        const data = new Uint8Array(content);
-        const wb = XLSX.read(data, {type: "array"});
-        console.log("workbook is", wb);
-        const first_sheet_name = wb.SheetNames[0];
-        /* Get worksheet */
-        const worksheet = wb.Sheets[first_sheet_name];
-        this.boundary = XLSX.utils.decode_range(worksheet['!ref']);
+        // TODO: bring the mapping to the UI... something like render(root, configuration) whereas the configuration is the predefined/saved mapping
 
-        const root = new Import(wb.Props.Title);
-        root.header = this._parseImportHeader(worksheet, 0, 0, null);
-        this._readImportData(worksheet, root, 0, this.dataRowIndex);
-        console.debug("Import: ", root);
-        console.debug(root.getHeader(XLSX.utils.decode_cell("A4")).getPath());
         //labels
         this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.0", root.getHeader(XLSX.utils.decode_cell("A4"))));
         this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.1", root.getHeader(XLSX.utils.decode_cell("B4"))));
@@ -188,85 +180,8 @@ class AdminService {
         this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter5 - Link", "panta.beteiligt.4.name", root.getHeader(XLSX.utils.decode_cell("AI4"))));
         this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter6 - Link", "panta.beteiligt.5.name", root.getHeader(XLSX.utils.decode_cell("AJ4"))));
 
+        // TODO start the import process when the user clicks on the "Import" button after he did the mapping
         this._importCards(root);
-
-    }
-
-    /**
-     * Read the data and link them with the headers
-     * @param worksheet
-     * @param {Import} root
-     * @param column
-     * @param row
-     * @private
-     */
-    _readImportData(worksheet, root, column, row) {
-        if (row <= this.boundary.e.r) {
-
-            const node = new DataNode(row);
-
-            for (let c = column; c <= this.boundary.e.c; c++) {
-                const address = {r: row, c: c};
-                const header = root.getHeader(address);
-                let data = worksheet[XLSX.utils.encode_cell(address)];
-                if (null != data) {
-                    node.set(header, data);
-                }
-            }
-
-            if (node.values.length !== 0) {
-                root.put(node);
-            }
-
-            this._readImportData(worksheet, root, column, row + 1);
-        }
-    }
-
-    /**
-     * Parse the headers of that worksheet
-     * @param worksheet
-     * @param column
-     * @param row
-     * @param parent
-     * @returns {null|HeaderNode}
-     * @private
-     */
-    _parseImportHeader(worksheet, column, row, parent) {
-        if (row < this.dataRowIndex) {
-            if (column <= this.boundary.e.c) {
-                let address = {c: column, r: row};
-                let cell = worksheet[XLSX.utils.encode_cell(address)];
-                if (cell == null) {
-                    // if cell is empty then ignore it
-                    return null;
-                }
-
-                const node = new HeaderNode(parent, cell.h, address);
-                if (row === 0) {
-                    // first row is special: all values on the same row are properties
-                    for (let c = column + 1; c <= this.boundary.e.c; c++) {
-                        const property = worksheet[XLSX.utils.encode_cell({c: c, r: row})];
-                        if (property != null) {
-                            node.put(property.h);
-                        }
-                    }
-                }
-
-                do {
-                    let childNode = this._parseImportHeader(worksheet, column, row + 1, node);
-                    if (childNode != null) {
-                        node.add(childNode);
-                    }
-                } while (
-                    ++column <= this.boundary.e.c &&
-                    (row === 0 || null == worksheet[XLSX.utils.encode_cell({c: column, r: row})])
-                    );
-
-                return node;
-            }
-        }
-        // when no more rows to parse or the last cell was reached abort by returning null
-        return null;
     }
 
     /**
@@ -289,11 +204,14 @@ class AdminService {
         if (index < root.data.length) {
             that._createCard(root.data[index], () => {
                 window.setTimeout(() => {
+                    // TODO update log on UI
                     that._importCard(root, index + 1);
                 }, 600);
             });
         } else {
-            console.log("Import completed");
+            console.debug("Import completed");
+            // TODO close the log and attach it to the card
+            // TODO update process on UI and close
             that.trello.closeModal();
         }
     }
@@ -312,10 +230,12 @@ class AdminService {
                 .reduce((prev, cur) => prev || cur, null)
                 .then(list => {
                     if (list == null) {
+                        // TODO append to log
                         that._createList("Import Test", list => {
                             that._createCardInternal(list, data, onReady);
                         });
                     } else {
+                        // TODO append to log
                         that._createCardInternal(list, data, onReady);
                     }
                     return true;
@@ -353,7 +273,7 @@ class AdminService {
                 desc: desc,
                 idList: list.id
             }, (card) => {
-                console.log("Card created: ", card);
+                console.debug("Card created: ", card);
                 [
                     label0,
                     label1,
@@ -369,11 +289,13 @@ class AdminService {
                     .filter(field => field != null)
                     .forEach(field => {
                         if (that._getFieldValue(data, field.reference)) {
+                            // CHECKME what about the color?
                             window.Trello.post(`/cards/${card.id}/labels`, {
                                 name: field.source.label,
                                 color: null
                             }, (label) => {
-                                console.log("Label added to card", label);
+                                // TODO append to log
+                                console.debug("Label added to card", label);
                             });
                             return true;
                         }
@@ -383,7 +305,8 @@ class AdminService {
                 const artikel = new Artikel(null, details, 0, vorname, 1, 1, null, null, null, null, nachname, null, null, null);
                 that.articleController.persist(artikel, card.id)
                     .then((article) => {
-                        console.log("Artikel created in card", article);
+                        // TODO append to log
+                        console.debug("Artikel created in card", article);
                         const module = ModuleConfig.create({}, null);
                         module.sections['onsite'].address = b1address;
                         module.sections['text'].name = b1name;
@@ -393,7 +316,8 @@ class AdminService {
                         module.sections['ad'].name = b5name;
                         that.moduleController.persist(module, card.id)
                             .then(() => {
-                                console.log("Beteiligt created in card");
+                                // TODO append to log
+                                console.debug("Beteiligt created in card");
                                 onReady();
                             });
                     });
@@ -411,6 +335,7 @@ class AdminService {
                         idBoard: board.id,
                         pos: "bottom"
                     }, (list) => {
+                        // TODO append to log
                         onSuccess(list);
                     });
                 });

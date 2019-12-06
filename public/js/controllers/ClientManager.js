@@ -109,6 +109,8 @@ class ClientManager {
              */
             this._planController = ModulePlanController.getInstance(this._trello, this._window, this._telephones[ModulePlanController.SHARED_NAME].port2);
 
+            this._excelService = new ExcelService();
+
             this._initialized = true;
         }
         return this;
@@ -306,6 +308,13 @@ class ClientManager {
      */
     getPlanController() {
         return this._planController;
+    }
+
+    /**
+     * @return {ExcelService}
+     */
+    getExcelService() {
+        return this._excelService;
     }
 
     /**
