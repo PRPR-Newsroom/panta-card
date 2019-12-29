@@ -12,7 +12,7 @@ class PluginRepository extends Repository {
         // TODO move the config of PluginModuleConfig to a concrete type
         if (!PluginRepository.instance) {
             PluginRepository.instance = new PluginRepository();
-            PluginRepository.instance.add(new PluginModuleConfig("module.artikel", "Artikel", {
+            PluginRepository.instance.add(new PluginModuleConfig(ArtikelController.ID, "Artikel", {
                 "sort": 1,
                 "enabled": false,
                 "icon": "ic_artikel.png",

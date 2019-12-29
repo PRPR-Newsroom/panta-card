@@ -24,11 +24,18 @@
 .row {
   max-width: 500px;
 }
+.row.full {
+  max-width: none;
+}
 
 .row::after {
   content: "";
   clear: both;
   display: table;
+}
+
+.error-messages {
+  color: #eb5a46;
 }
 
 form .line-phone-1 textarea.u-border, form .line-phone-1 .input-overlay.u-border {

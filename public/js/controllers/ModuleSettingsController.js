@@ -12,8 +12,8 @@ class ModuleSettingsController {
      * @param {ClientManager} clientManager
      * @returns {ModuleSettingsController}
      */
-    static create(trello, pluginController, module, editable, document, clientManager, trelloRemoteService) {
-        return new ModuleSettingsController(trello, pluginController, module, editable, document, clientManager, trelloRemoteService);
+    static create(trello, pluginController, module, editable, document, clientManager) {
+        return new ModuleSettingsController(trello, pluginController, module, editable, document, clientManager);
     }
 
     /**
@@ -26,7 +26,7 @@ class ModuleSettingsController {
      * @param {ClientManager} clientManager
      * @private
      */
-    constructor(trello, pluginController, module, editable, document, clientManager, trelloRemoteService) {
+    constructor(trello, pluginController, module, editable, document, clientManager) {
         this.trello = trello;
         /**
          * @type PluginController
@@ -40,10 +40,6 @@ class ModuleSettingsController {
         this.document = document;
         this.editable = editable;
         this.clientManager = clientManager;
-        /**
-         * @type AdminService
-         */
-        this.adminService = trelloRemoteService;
     }
 
     /**
@@ -302,7 +298,7 @@ class ModuleSettingsController {
                 return prev;
             }, element);
 
-        let sorter = new SwitchItem(that.document, "Sortierbar", editable.sortable)
+        let sorter = new SwitchItem(that.document, "Sortierbar", editable.sortable);
         sorter.setOnActivationListener(function (previous, updated) {
             editable.sortable = updated;
             return that.pluginController.setPluginModuleConfig(mc)
@@ -514,46 +510,10 @@ class ModuleSettingsController {
                 element.appendChild(list);
             });
         }
-        this.renderActions();
         return Promise.resolve(true);
     }
 
-    renderActions() {
-        const that = this;
-        this.document.querySelectorAll(".settings-import-export")
-            .forEach(it => {
-                it.removeClass("hidden");
-                if (it.querySelector("#btn-export")) {
-                    it.querySelector("#btn-export").setEventListener('click', function (e) {
-                        Promise.resolve(that.adminService.hasLabel("Panta Cards", "green"))
-                            .then(result => {
-                                if (result) {
-                                    console.debug("Contains label");
-                                } else {
-                                    console.debug("Nope");
-                                    // create it
-                                    if (Promise.resolve(that.adminService.createLabel("Panta Cards", "green"))) {
-                                        console.log("Yep");
-                                    }
-                                }
-                            });
 
-                    });
-                }
-                if (it.querySelector("#btn-import")) {
-                    it.querySelector("#btn-import").setEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.target.disabled = true;
-                        const files = document.querySelector("#file-import").files;
-                        try {
-                            that.adminService.import(files);
-                        } catch (ex) {
-                            console.error(`Error while importing files ${files}`, ex);
-                        }
-                    });
-                }
-            });
-    }
 
     /**
      * Create a styled label

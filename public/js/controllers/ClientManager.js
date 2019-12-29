@@ -214,7 +214,7 @@ class ClientManager {
      * @return {PromiseLike<T> | Promise<T>}
      */
     isArticleModuleEnabled() {
-        return this._isModuleEnabled("module.artikel");
+        return this._isModuleEnabled(ArtikelController.ID);
     }
 
     /**
@@ -222,7 +222,7 @@ class ClientManager {
      * @return {PromiseLike<T> | Promise<T>}
      */
     isBeteiligtModuleEnabled() {
-        return this._isModuleEnabled("module.beteiligt");
+        return this._isModuleEnabled(ModuleController.ID);
     }
 
     /**
@@ -252,7 +252,7 @@ class ClientManager {
      */
     getController(id) {
         switch (id) {
-            case "module.artikel":
+            case ArtikelController.ID:
                 return this.getArticleController();
             case "module.beteiligt":
                 return this.getModuleController();

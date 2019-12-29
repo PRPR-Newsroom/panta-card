@@ -6,11 +6,14 @@ let pluginController = clientManager.init().getPluginController();
 
 t.render(function () {
 
-    return pluginController.getPluginConfiguration()
+    // pluginController.setAdminConfiguration({
+    //     configuration: new ImportConfiguration()
+    // });
+    return pluginController.getAdminConfiguration()
         .then(function (data) {
-            let moduleSettingsController = ModuleSettingsController.create(t, pluginController, t.arg("module"), t.arg("editable"), document, clientManager);
+            let controller = AdminController.create(t, document, DI.getInstance().getAdminService(t));
 
-            return moduleSettingsController.render.call(moduleSettingsController, data)
+            return controller.render.call(controller, data)
                 .then(function() {
                     return t.sizeTo("#content").done();
                 });

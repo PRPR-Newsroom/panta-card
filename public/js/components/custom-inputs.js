@@ -104,13 +104,13 @@ class PInput {
             if (this._type !== "select") {
                 this._input.value = newValue;
             }
-            if (isBlank(newValue.trim())) {
+            if (isBlank(newValue)) {
                 this._inputOverlay.innerHTML = "<span class='placeholder'>" + this._placeholder  + "</span>";
             } else {
-                this._inputOverlay.innerHTML = newValue.htmlify();
+                this._inputOverlay.innerHTML = isString(newValue) ? newValue.htmlify() : '';
             }
         } else {
-            if (isBlank(newValue.trim())) {
+            if (isBlank(newValue)) {
                 this._inputOverlay.innerHTML = "<span class='placeholder'>" + this._placeholder  + "</span>";
             }
         }

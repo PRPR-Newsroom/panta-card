@@ -2,6 +2,11 @@
  * The Beteiligt Controller
  */
 class ModuleController extends Controller {
+
+    static get ID() {
+        return "module.beteiligt";
+    }
+
     /**
      * The app version
      * @returns {number}
@@ -195,9 +200,9 @@ class ModuleController extends Controller {
         }
         // update the total price in the "ad" section
         let total = this.getTotalPrice();
-        Object.values(this._entity.sections).filter(function(section) {
+        Object.values(this._entity.sections).filter(function (section) {
             return section instanceof AdBeteiligt
-        }).forEach(function(section) {
+        }).forEach(function (section) {
             section.total = total;
         });
         let totalProject = this.getTotalProject();
@@ -281,7 +286,7 @@ class ModuleController extends Controller {
     getTotalPrice() {
         return Object.values(this._repository.all()).flatMap(function (item) {
             let sections = item && item.sections ? item.sections : {};
-            return Object.values(sections).filter(function(section) {
+            return Object.values(sections).filter(function (section) {
                 return section instanceof AdBeteiligt
             });
         }).filter(function (item) {
@@ -524,5 +529,23 @@ class ModuleController extends Controller {
 
     create(json, configuration) {
         return ModuleConfig.create(json, configuration || this._beteiligtBinding.configuration);
+    }
+
+    /**
+     * @param {PluginModuleConfig} pluginModuleConfig
+     * @return {[]}
+     */
+    getFields(pluginModuleConfig) {
+        const that = this;
+        return pluginModuleConfig.config.editables
+            .filter(it => it.type === 'layout' && it.show)
+            .map(it => {
+                return [{
+                    'group': it.label,
+                    'groupId': `${pluginModuleConfig.id}.${it.id}`,
+                    'fields': pluginModuleConfig.config.layouts[it.layout]
+                        .fields.filter(that.isImportableField)
+                }];
+            });
     }
 }

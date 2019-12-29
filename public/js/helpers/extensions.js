@@ -62,6 +62,22 @@ HTMLElement.prototype.removeClasses = function (names) {
 };
 
 /**
+ * Removes all classes that start with the given prefix
+ * @param prefix
+ */
+HTMLElement.prototype.removeClassByPrefix = function (prefix) {
+    let names = this.className.split(" ");
+    let new_names = "";
+    names.forEach(function (value, index) {
+        if (!value.startsWith(prefix)) {
+            new_names += " " + value;
+        }
+    });
+    this.className = new_names.trim();
+    return this;
+};
+
+/**
  * Removes a CSS class on an HTML element if it exists
  * @param name
  * @returns {HTMLElement} itself
@@ -286,9 +302,8 @@ HTMLDocument.prototype.createStylesheet = function (href) {
 };
 
 /**
- * Check if a string is considered
  * @param totest
- * @returns {boolean}
+ * @returns {boolean} true if the argument contains no or only space characters otherwise false
  */
 Window.prototype.isBlank = function (totest) {
     return (!totest || 0 === (totest + "").trim().length);
@@ -300,8 +315,16 @@ String.prototype.toHTML = function () {
     return txt.value;
 };
 
-String.prototype.htmlify = function() {
-    const webaddresses = this.replace(/(@?(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-.][a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?)/g, function(match) {
+/**
+ * @param totest
+ * @return {boolean} true if the argument is of type string otherwise false
+ */
+Window.prototype.isString = function(totest) {
+    return typeof totest === 'string';
+}
+
+String.prototype.htmlify = function () {
+    const webaddresses = this.replace(/(@?(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-.][a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?)/g, function (match) {
         let link = match;
         if (match.startsWith("@")) {
             return match;
@@ -311,10 +334,10 @@ String.prototype.htmlify = function() {
         }
         return "<a href=\"" + link + "\" target=\"_blank\" title='Öffne die Webseite «" + link + "» in einem neuen Fenster'>" + match + "</a>";
     });
-    let html = webaddresses.replace(/([a-z0-9]+([\-.][a-z0-9]+)*@[a-z0-9]+([\-.][a-z0-9]+)*\.[a-z]{2,5})/g, function(match) {
+    let html = webaddresses.replace(/([a-z0-9]+([\-.][a-z0-9]+)*@[a-z0-9]+([\-.][a-z0-9]+)*\.[a-z]{2,5})/g, function (match) {
         return "<a href=\"mailto:" + match + "\" title='Schreib eine Mail an «" + match + "»'>" + match + "</a>";
     });
-    return html.replace(/(\r\n|\n|\r)/g, function(match) {
+    return html.replace(/(\r\n|\n|\r)/g, function (match) {
         return "<br />";
     });
 };
@@ -388,7 +411,7 @@ function newOption(value, text) {
 }
 
 function isNumber(number) {
-    return number && !isNaN(number)
+    return !!(number && !isNaN(number))
 }
 
 /**

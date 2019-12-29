@@ -1,14 +1,14 @@
 class BooleanField extends AbstractField {
 
-    constructor(name, reference, source) {
-        super(name, reference, source);
+    static getBooleanValue(raw) {
+        return isNumber(raw) && parseFloat(raw) !== 0.0;
     }
 
     getValue(node) {
-        return !isBlank(node.value.v) && node.value.v !== 0;
+        return BooleanField.getBooleanValue(node.value.v);
     }
 
-    set(value) {
-
+    getType() {
+        return "boolean";
     }
 }

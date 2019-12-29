@@ -1,12 +1,23 @@
-
 class ExcelService {
+    
+    get treatFirstRowAsRoot() {
+        return this._treatFirstRowAsRoot;
+    }
+
+    set treatFirstRowAsRoot(value) {
+        this._treatFirstRowAsRoot = value;
+    }
+
+    constructor() {
+        this._treatFirstRowAsRoot = false;
+    }
 
     /**
      * @param content
      * @return {Import}
      */
     read(content) {
-        this.dataRowIndex = 4;
+        this.dataRowIndex = 1;
 
         const data = new Uint8Array(content);
         const wb = XLSX.read(data, {type: "array"});
@@ -19,7 +30,14 @@ class ExcelService {
 
         const root = new Import(wb.Props.Title);
 
-        root.header = this._parseImportHeader(worksheet, 0, 0, null);
+        if (!this._treatFirstRowAsRoot) {
+            let header = new HeaderNode(null, 'Panta.Card', {constant: '/'});
+            this._parseImportHeader(worksheet, 0, 0, header);
+            root.header = header;
+        } else {
+            this._parseImportHeader(worksheet, 0, 0, null);
+        }
+        console.log('Header', root.header);
         this._readImportData(worksheet, root, 0, this.dataRowIndex);
 
         return root;
@@ -30,7 +48,7 @@ class ExcelService {
      * @param worksheet
      * @param column
      * @param row
-     * @param parent
+     * @param {HeaderNode} parent
      * @returns {null|HeaderNode}
      * @private
      */
@@ -41,11 +59,11 @@ class ExcelService {
                 let cell = worksheet[XLSX.utils.encode_cell(address)];
                 if (cell == null) {
                     // if cell is empty then ignore it
-                    return null;
+                    return this.treatFirstRowAsRoot ? null : this._parseImportHeader(worksheet, column + 1, row, parent);
                 }
 
-                const node = new HeaderNode(parent, cell.h, address);
-                if (row === 0) {
+                const node = new HeaderNode(parent, cell.v, address, cell.c ? cell.c : []);
+                if (row === 0 && this._treatFirstRowAsRoot) {
                     // first row is special: all values on the same row are properties
                     for (let c = column + 1; c <= this.boundary.e.c; c++) {
                         const property = worksheet[XLSX.utils.encode_cell({c: c, r: row})];
@@ -53,6 +71,9 @@ class ExcelService {
                             node.put(property.h);
                         }
                     }
+                } else if (row === 0 && !this._treatFirstRowAsRoot) {
+                    parent.add(node);
+                    this._parseImportHeader(worksheet, column + 1, row, parent);
                 }
 
                 do {

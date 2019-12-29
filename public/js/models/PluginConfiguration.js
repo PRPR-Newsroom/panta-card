@@ -11,6 +11,9 @@ class PluginConfiguration {
         this._card = value;
     }
 
+    /**
+     * @return {PluginModuleConfig[]}
+     */
     get modules() {
         return this._modules;
     }
@@ -98,11 +101,15 @@ class PluginConfiguration {
         this._version = version;
         this._description = description;
         this._card = card;
+        /**
+         * @type {PluginModuleConfig[]}
+         * @private
+         */
         this._modules = modules || [];
     }
 
     /**
-     * @returns {any[]}
+     * @returns {PluginModuleConfig[]}
      */
     getActiveModules() {
         return Object.values(this._modules).filter(function(value) {
@@ -117,7 +124,7 @@ class PluginConfiguration {
      * modules
      * @param id
      * @param onlyEnabled
-     * @return {any}
+     * @return {PluginModuleConfig}
      */
     getModule(id, onlyEnabled) {
         return Object.values(this._modules).filter(function(value) {

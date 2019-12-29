@@ -28,7 +28,7 @@ TrelloPowerUp.initialize({
         }, {
             icon: './assets/ic_import_export.png',
             text: 'Panta.Card.Import',
-            // condition: 'admin',
+            condition: 'admin',
             callback: function (t) {
                 return t.member('all')
                     .then(function (member) {
@@ -38,7 +38,13 @@ TrelloPowerUp.initialize({
                             return t.modal({
                                 title: "Administration",
                                 url: "admin.html",
-                                accentColor: '#676D70'
+                                accentColor: 'blue',
+                                actions: [{
+                                    icon: './assets/ic_import_export_white.png',
+                                    url: 'load.html',
+                                    alt: 'Import',
+                                    position: 'right',
+                                }]
                             });
                         } else {
                             t.alert({

@@ -99,10 +99,40 @@ const TEXTS = {
     "module.beteiligt.field-follower.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
     "module.beteiligt.field-date.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
 
+    'trello.list.desc': 'Liste',
+    'trello.title.desc': 'Card Titel',
+    'trello.description.desc': 'Card Beschreibung',
+    'trello.members.desc': 'Card Mitglieder',
+    'trello.duedate.desc': 'Card Frist',
+    'trello.labels.desc': 'Card Label',
 };
 
+// TODO: can be replace by the new Trello condtion 'admin'
 const POWERUP_ADMINS = [
     "manu29494020",
     "koni_nordmann",
     "ray2505",
 ];
+
+const TRELLO_FIELDS = [{
+    'id': 'trello.list',
+    'desc': 'trello.list.desc',
+}, {
+    'id': 'trello.title',
+    'desc': 'trello.title.desc',
+}, {
+    'id': 'trello.description',
+    'desc': 'trello.description.desc',
+}, {
+    'id': 'trello.members',
+    'desc': 'trello.members.desc',
+    'type': 'array'
+}, {
+    'id': 'trello.duedate',
+    'desc': 'trello.duedate.desc',
+    'type': 'date'
+}, {
+    'id': 'trello.labels',
+    'desc': 'trello.labels.desc',
+    'type': 'boolean'
+}];

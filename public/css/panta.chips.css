@@ -1,0 +1,33 @@
+.panta-chip, .panta-chip-sep {
+  display: inline-block;
+  padding: 0 8px;
+  height: 18px;
+  line-height: 18px;
+  border-radius: 8px;
+  background-color: #eaebec;
+  max-width: 140px;
+  margin: 0 2px 0 0;
+}
+.panta-chip p, .panta-chip-sep p {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0;
+  margin: 0;
+  font-size: smaller;
+}
+
+.panta-chip-grandpa {
+  max-width: 48px;
+}
+
+.panta-chip-parent {
+  max-width: 72px;
+}
+
+.panta-chip-sep {
+  background-color: transparent;
+  padding: 0;
+}
+
+/*# sourceMappingURL=panta.chips.css.map */

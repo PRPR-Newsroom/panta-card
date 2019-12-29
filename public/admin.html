@@ -7,30 +7,172 @@
     <link rel="stylesheet" href="css/panta.custom.checkbox.css"/>
     <link rel="stylesheet" href="css/panta.custom.button.css"/>
     <link rel="stylesheet" href="css/panta.colors.css"/>
+    <link rel="stylesheet" href="css/panta.chips.css"/>
     <link rel="stylesheet" href="css/firefox.css"/>
     <link rel="stylesheet" href="css/chrome.css"/>
 </head>
 <body>
 <div id="content" style="min-height: 200px; padding: 8px 56px">
-    <div class="row settings-import-export hidden">
-        <!--        <div class="col-12">-->
-        <!--            <form>-->
-        <!--                <button id="btn-export">Export</button>-->
-        <!--            </form>-->
-        <!--        </div>-->
-        <!--        <div class="col-12">-->
-        <!--            &nbsp;-->
-        <!--        </div>-->
-        <div class="col-12">
-            <p>Wähle hier die Excel Datei aus, die importiert werden soll.</p>
+    <div class="settings-import-export hidden">
+        <div class="row">
+            <!--        <div class="col-12">-->
+            <!--            <form>-->
+            <!--                <button id="btn-export">Export</button>-->
+            <!--            </form>-->
+            <!--        </div>-->
+            <!--        <div class="col-12">-->
+            <!--            &nbsp;-->
+            <!--        </div>-->
+            <div class="col-12">
+                <p>Wähle hier die Excel Datei aus, die importiert werden soll.</p>
+            </div>
+            <div class="col-12">
+                <input class="panta-btn" type="file" id="file-import">
+                <button class="panta-btn" id="btn-load">Laden</button>
+            </div>
+
         </div>
-        <div class="col-12">
-            <input type="file" id="file-import">
-            <button id="btn-import">Import</button>
+
+        <div class="hidden mapping-content-header">
+            <div class="row full">
+                <div class="col-12">
+                    <hr/>
+                </div>
+            </div>
+            <div class="row space full">
+                <div class="col-3">
+                    <b>Import Feld</b>
+                </div>
+                <div class="col-4">
+                    <b>Trello Feld</b>
+                </div>
+                <div class="col-3">
+                    <b>Beispiel Wert</b>
+                </div>
+                <div class="col-2">
+                    <b>Mehr</b>
+                </div>
+            </div>
         </div>
+        <form>
+            <div class="hidden mapping-content">
+                <div class="row">
+                    <div class="col-9">
+                        <div class="panta-chip panta-chip-grandpa">
+                            <p>prpr Kontakte: Blogger/Influencer</p>
+                        </div>
+                        <div class="panta-chip-sep"><p>/</p></div>
+                        <div class="panta-chip panta-chip-grandpa">
+                            <p>*Design: Wohnen, Architektur, Bauen, Interior-Design; **Wellbeing: Fitness, Yoga,
+                                Healthcare, Meditation, Gewicht</p>
+                        </div>
+                        <div class="panta-chip-sep"><p>/</p></div>
+                        <div class="panta-chip panta-chip-parent">
+                            <p>Label</p>
+                        </div>
+                        <div class="panta-chip-sep"><p>/</p></div>
+                        <div class="panta-chip">
+                            <p>F</p>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <select>
+                            <option value="0">Verknüpfung wählen...</option>
+                            <option value="1">Label</option>
+                        </select>
+                    </div>
+                    <div class="col-9">
+                        <div class="panta-chip panta-chip-grandpa">
+                            <p>prpr Kontakte: Blogger/Influencer</p>
+                        </div>
+                        <div class="panta-chip-sep"><p>/</p></div>
+                        <div class="panta-chip panta-chip-grandpa">
+                            <p>*Design: Wohnen, Architektur, Bauen, Interior-Design; **Wellbeing: Fitness, Yoga,
+                                Healthcare, Meditation, Gewicht</p>
+                        </div>
+                        <div class="panta-chip-sep"><p>/</p></div>
+                        <div class="panta-chip panta-chip-parent">
+                            <p>Label</p>
+                        </div>
+                        <div class="panta-chip-sep"><p>/</p></div>
+                        <div class="panta-chip">
+                            <p>D</p>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <select>
+                            <option value="0">Verknüpfung wählen...</option>
+                            <option value="1">Label</option>
+                        </select>
+                    </div>
+                    <div class="col-9">
+                        <div class="panta-chip panta-chip-grandpa">
+                            <p>prpr Kontakte: Blogger/Influencer</p>
+                        </div>
+                        <div class="panta-chip-sep"><p>/</p></div>
+                        <div class="panta-chip panta-chip-grandpa">
+                            <p>*Design: Wohnen, Architektur, Bauen, Interior-Design; **Wellbeing: Fitness, Yoga,
+                                Healthcare, Meditation, Gewicht</p>
+                        </div>
+                        <div class="panta-chip-sep"><p>/</p></div>
+                        <div class="panta-chip panta-chip-parent">
+                            <p>Label</p>
+                        </div>
+                        <div class="panta-chip-sep"><p>/</p></div>
+                        <div class="panta-chip">
+                            <p>E</p>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <select>
+                            <option value="0">Verknüpfung wählen...</option>
+                            <option value="1">Label</option>
+                        </select>
+                    </div>
+                    <div class="col-9">
+                        <div class="panta-chip panta-chip-grandpa">
+                            <p>prpr Kontakte: Blogger/Influencer</p>
+                        </div>
+                        <div class="panta-chip-sep"><p>/</p></div>
+                        <div class="panta-chip panta-chip-grandpa">
+                            <p>*Design: Wohnen, Architektur, Bauen, Interior-Design; **Wellbeing: Fitness, Yoga,
+                                Healthcare, Meditation, Gewicht</p>
+                        </div>
+                        <div class="panta-chip-sep"><p>/</p></div>
+                        <div class="panta-chip panta-chip-parent">
+                            <p>Label</p>
+                        </div>
+                        <div class="panta-chip-sep"><p>/</p></div>
+                        <div class="panta-chip">
+                            <p>Travel</p>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <select>
+                            <option value="0">Verknüpfung wählen...</option>
+                            <option value="1">Label</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row space full">
+                <div class="col-10">&nbsp;</div>
+                <div class="col-2">
+                    <button class="panta-btn panta-bgcolor-green panta-js-button" id="btn-import">
+                        Importieren
+                    </button>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12 hidden error-messages">
+                    <p class="error" id="error-message"></p>
+                </div>
+            </div>
+        </form>
     </div>
 
-    <small class="plugin-version-container">Version: <span class="plugin-version"/></small>
 </div>
 
 <script src="https://p.trellocdn.com/power-up.min.js"></script>
@@ -42,7 +184,7 @@
 <script src="libs/lz-string.min.js"></script>
 <script src="bin/panta.js"></script>
 <script src="js/views/head.js"></script>
-<script src="js/settings.js"></script>
+<script src="js/admin.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.15.1/xlsx.full.min.js"></script>
 </body>
 </html>

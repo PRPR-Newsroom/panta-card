@@ -250,4 +250,5 @@ class ModulePlanController extends Controller {
     create(json, configuration) {
         return Plan.create(json);
     }
+
 }

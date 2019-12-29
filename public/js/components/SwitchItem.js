@@ -2,6 +2,20 @@
  * Represents a switch item
  */
 class SwitchItem extends AbstractItem {
+    get additionalStyles() {
+        return this._additionalStyles;
+    }
+
+    set additionalStyles(value) {
+        this._additionalStyles = value;
+    }
+    get readonly() {
+        return this._readonly;
+    }
+
+    set readonly(value) {
+        this._readonly = value;
+    }
 
     get enabled() {
         return this._enabled;
@@ -23,7 +37,7 @@ class SwitchItem extends AbstractItem {
         return this._document;
     }
 
-    constructor(document, label, enabled) {
+    constructor(document, label, enabled, readonly = false) {
         super();
         this._document = document;
         /**
@@ -34,6 +48,14 @@ class SwitchItem extends AbstractItem {
          * @type Boolean
          */
         this._enabled = enabled;
+
+        /**
+         * @type {boolean}
+         * @private
+         */
+        this._readonly = readonly;
+
+        this._additionalStyles = "";
     }
 
     setOnActivationListener(handler) {
@@ -42,31 +64,42 @@ class SwitchItem extends AbstractItem {
     }
 
     render() {
-        let that = this;
-        let templ = createByTemplate(template_settings_switch, template_settings_switch);
+        const that = this;
+        const templ = createByTemplate(template_settings_switch, template_settings_switch);
 
-        templ.getElementsByClassName("switch-title").forEach(function (element) {
-            element.innerText = that.label;
-            // element.setAttribute("id", that.label);
-        });
+        if (!isBlank(that.label)) {
+            templ.getElementsByClassName("switch-title").forEach(function (element) {
+                element.innerText = that.label;
+            });
+        }
 
         that.decorate(templ);
 
-        let container = templ.getClosestChildByClassName("panta-checkbox-container");
-        let checkmark = container.getClosestChildByClassName("panta-js-checkbox");
-        checkmark.checked = that.enabled;
-        container.setEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            let checkbox = e.srcElement
-                .getClosestParentByClassName("panta-checkbox-container")
-                .getClosestChildByClassName("panta-js-checkbox");
-            checkbox.checked = !checkbox.checked;
-            that._onActivationHandler(that.enabled, checkbox.checked)
-                .then(function(checked) {
-                    that.enabled = checked;
-                });
-        });
+        const container = templ.getClosestChildByClassName("panta-checkbox-container");
+        if (!isBlank(this.additionalStyles)) {
+            container.addClass(this.additionalStyles);
+        }
+        const checkmark = container.getClosestChildByClassName("panta-js-checkbox");
+        if (that.enabled) {
+            checkmark.setAttribute('checked', 'checked');
+        } else {
+            checkmark.removeAttribute('checked');
+        }
+        checkmark.disabled = this.readonly;
+        if (!this.readonly) {
+            container.setEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const checkbox = e.srcElement
+                    .getClosestParentByClassName("panta-checkbox-container")
+                    .getClosestChildByClassName("panta-js-checkbox");
+                checkbox.checked = !checkbox.checked;
+                that._onActivationHandler(that.enabled, checkbox.checked)
+                    .then(function(checked) {
+                        that.enabled = checked;
+                    });
+            });
+        }
 
         return templ;
     }
