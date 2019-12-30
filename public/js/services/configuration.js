@@ -114,6 +114,9 @@ const POWERUP_ADMINS = [
     "ray2505",
 ];
 
+/**
+ * @type {{id: string, desc: string, type: string?}[]}
+ */
 const TRELLO_FIELDS = [{
     'id': 'trello.list',
     'desc': 'trello.list.desc',

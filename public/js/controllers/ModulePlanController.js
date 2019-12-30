@@ -1,5 +1,9 @@
 class ModulePlanController extends Controller {
 
+    static get ID() {
+        return "module.plan";
+    }
+
     static get SHARED_NAME() {
         return "panta.Plan";
     }

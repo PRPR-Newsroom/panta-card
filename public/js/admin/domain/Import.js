@@ -1,20 +1,57 @@
 class Import {
 
+    static create(name, json) {
+        const instance = new Import('Import');
+        if (json) {
+            const _header = JsonSerialization.getProperty(json, 'header');
+            const header = new HeaderNode(null, _header._label, _header._address, _header._comments);
+            header.addAll(_header._children.map(it => new HeaderNode(header, it._label, it._address, it._comments)));
+            instance.header = header;
+        }
+        return instance;
+    }
+
+    get data() {
+        return this._data;
+    }
+
+    set data(value) {
+        this._data = value;
+    }
+
+    /**
+     * @return {HeaderNode}
+     */
+    get header() {
+        return this._header;
+    }
+
+    set header(value) {
+        this._header = value;
+    }
+    get title() {
+        return this._title;
+    }
+
+    set title(value) {
+        this._title = value;
+    }
+
     constructor(title) {
         /**
          * @type {string}
          */
-        this.title = title;
+        this._title = title;
         /**
          * @type {HeaderNode}
          */
-        this.header = null;
+        this._header = null;
 
         /**
          * Data holder
          * @type {DataNode[]}
          */
-        this.data = [];
+        this._data = [];
     }
 
     /**
@@ -113,7 +150,7 @@ class Import {
             const raw = sample.value.v;
             return this._getSampleHtml(sample, raw, type, document);
         } else {
-            return '';
+            return '<p>&nbsp;</p>';
         }
     }
 
@@ -149,7 +186,7 @@ class Import {
         } else if (raw !== null) {
             return `<p class="nobreak" title="${raw}">${raw}</p>`;
         } else {
-            return '';
+            return '<p>&nbsp;</p>';
         }
     }
 

@@ -11,7 +11,7 @@
 class AbstractField {
 
     /**
-     * @return {HeaderNode}
+     * @return {HeaderNode} the header node in the Excel file that this field is mapped to
      */
     get source() {
         return this._source;

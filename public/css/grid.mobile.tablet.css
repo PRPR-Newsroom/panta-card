@@ -38,6 +38,10 @@
   color: #eb5a46;
 }
 
+.warning-messages {
+  color: #E99E40;
+}
+
 .line-tablet-1 textarea, .line-tablet-1 .input-overlay {
   height: 26px;
 }

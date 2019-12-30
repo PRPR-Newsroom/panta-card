@@ -254,9 +254,9 @@ class ClientManager {
         switch (id) {
             case ArtikelController.ID:
                 return this.getArticleController();
-            case "module.beteiligt":
+            case ModuleController.ID:
                 return this.getModuleController();
-            case "module.plan":
+            case ModulePlanController.ID:
                 return this.getPlanController();
             default:
                 throw "Invalid ID: " + id;

@@ -38,6 +38,10 @@
   color: #eb5a46;
 }
 
+.warning-messages {
+  color: #E99E40;
+}
+
 form .line-phone-1 textarea.u-border, form .line-phone-1 .input-overlay.u-border {
   height: 26px;
 }

@@ -21,7 +21,7 @@ class HeaderNode {
         this._parent = parent;
         this._label = label;
         /**
-         * @type {Array}
+         * @type {HeaderNode[]}
          */
         this._children = [];
         this._properties = [];
@@ -71,7 +71,7 @@ class HeaderNode {
     }
 
     /**
-     * @param {r: number, c: number, constant: string} another
+     * @param {{r: number, c: number, constant: string}} another
      */
     isSameAddress(another) {
         return another ? another.c === this.address.c && another.r === this.address.r : false;
@@ -95,6 +95,16 @@ class HeaderNode {
      */
     add(child) {
         this.children.push(child);
+    }
+
+    /**
+     * @param {HeaderNode[]} children
+     */
+    addAll(children) {
+        const that = this;
+        if (children && Array.isArray(children)) {
+            children.forEach(it => that.add(it));
+        }
     }
 
     /**

@@ -62,6 +62,14 @@ class ImportConfiguration {
         this._mapping = value;
     }
 
+    /**
+     * @return boolean if the configuration is valid resp. all required fields are set
+     */
+    isValid() {
+        let field = this.single('trello.list');
+        return field && field.source !== null;
+    }
+
     constructor() {
         /**
          * @type {AbstractField[]}
@@ -86,6 +94,10 @@ class ImportConfiguration {
             });
     }
 
+    /**
+     * @param field
+     * @return {AbstractField}
+     */
     single(field) {
         const fields = this.get(field);
         return fields && fields.length === 1 ? fields[0] : null;

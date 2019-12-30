@@ -11,13 +11,14 @@ class AdminService {
         this.fileReader = new FileReader();
         this.clientManager = ClientManager.getInstance(window);
         this.articleController = this.clientManager.getArticleController();
+        this.planController = this.clientManager.getPlanController();
         this.moduleController = this.clientManager.getModuleController();
         this.excelService = this.clientManager.getExcelService();
     }
 
     hasLabel(label, color) {
         return this.getLabels()
-            .map(it => it.name === label/* && it.color === color*/)
+            .map(it => it.name === label && it.color === color)
             .reduce((prev, cur) => prev | cur);
     }
 
@@ -224,7 +225,7 @@ class AdminService {
                 const existingLabels = board.labels;
                 return Promise.all(labels
                     .map((it) => {
-                        const found = existingLabels.find(label => label.name === it.name);
+                        const found = existingLabels.find(label => label.name === it.name && label.color === it.source.color);
                         if (!found) {
                             return that._createLabel(it.source.label, it.source.color, board.id)
                         } else {
@@ -323,8 +324,8 @@ class AdminService {
                                 });
                         }
                     }).then(card => {
-                        // TODO Module Plan
-                        return that.clientManager.isArticleModuleEnabled()
+                        // TODO: all records must be imported sequentially otherwise records get overridden
+                        const importArtikel = that.clientManager.isArticleModuleEnabled()
                             .then(enabled => {
                                 if (enabled) {
                                     const fielda = this._getFieldValue(data, "module.artikel.field.a", configuration);
@@ -357,69 +358,118 @@ class AdminService {
                                             return that.articleController.persist(it, card.id)
                                                 .then(() => {
                                                     // TODO append to log
-                                                    console.debug("Artikel created in card");
-                                                    return that.clientManager.isBeteiligtModuleEnabled();
+                                                    console.debug(`Artikel created in card ${card.id}`);
+                                                    return that._doImportBeteiligt(data, configuration, card);
                                                 });
-                                        })
-                                        .then(it => {
-                                            if (it) {
-                                                // get the section depending on the configured layout
-                                                return that.clientManager.getModuleConfiguration(ModuleController.ID)
-                                                    .then(config => {
-                                                        const module = ModuleConfig.create({}, null);
-                                                        const sections = {
-                                                            'onsite': config.getEditableLayout('onsite').fields.map(it => {
-                                                                const obj = {};
-                                                                obj[BeteiligtBinding.getFieldMapping(config.getEditable('onsite').layout, it)] = that._getFieldValue(data, `module.beteiligt.onsite.${it.id}`, configuration);
-                                                                return obj;
-                                                            }).reduce(Reducers.asKeyValue, {}),
-                                                            'text': config.getEditableLayout('text').fields.map(it => {
-                                                                const obj = {};
-                                                                obj[BeteiligtBinding.getFieldMapping(config.getEditable('text').layout, it)] = that._getFieldValue(data, `module.beteiligt.text.${it.id}`, configuration);
-                                                                return obj;
-                                                            }).reduce(Reducers.asKeyValue, {}),
-                                                            'photo': config.getEditableLayout('photo').fields.map(it => {
-                                                                const obj = {};
-                                                                obj[BeteiligtBinding.getFieldMapping(config.getEditable('photo').layout, it)] = that._getFieldValue(data, `module.beteiligt.photo.${it.id}`, configuration);
-                                                                return obj;
-                                                            }).reduce(Reducers.asKeyValue, {}),
-                                                            'video': config.getEditableLayout('video').fields.map(it => {
-                                                                const obj = {};
-                                                                obj[BeteiligtBinding.getFieldMapping(config.getEditable('video').layout, it)] = that._getFieldValue(data, `module.beteiligt.video.${it.id}`, configuration);
-                                                                return obj;
-                                                            }).reduce(Reducers.asKeyValue, {}),
-                                                            'illu': config.getEditableLayout('illu').fields.map(it => {
-                                                                const obj = {};
-                                                                obj[BeteiligtBinding.getFieldMapping(config.getEditable('illu').layout, it)] = that._getFieldValue(data, `module.beteiligt.illu.${it.id}`, configuration);
-                                                                return obj;
-                                                            }).reduce(Reducers.asKeyValue, {}),
-                                                            'ad': config.getEditableLayout('ad').fields.map(it => {
-                                                                const obj = {};
-                                                                obj[BeteiligtBinding.getFieldMapping(config.getEditable('ad').layout, it)] = that._getFieldValue(data, `module.beteiligt.ad.${it.id}`, configuration);
-                                                                return obj;
-                                                            }).reduce(Reducers.asKeyValue, {})
-                                                        };
-                                                        console.debug('sections', sections);
-                                                        module.sections = sections;
-                                                        return that.moduleController.persist(module, card.id)
-                                                            .then(() => {
-                                                                // TODO append to log
-                                                                console.debug("Beteiligt created in card");
-                                                                return true;
-                                                            });
-                                                    });
-
-                                            } else {
-                                                return false;
-                                            }
                                         });
 
                                 } else {
                                     console.debug('Article Module is not enabled');
-                                    return false;
+                                    return that._doImportBeteiligt(data, configuration, card);
                                 }
                             });
+                        const importPlan = that.clientManager.isPlanModuleEnabled()
+                            .then(enabled => {
+                                if (enabled) {
+                                    const visual = this._getFieldValue(data, "module.plan.visual", configuration);
+                                    const form = this._getFieldValue(data, "module.plan.form", configuration);
+                                    const online = this._getFieldValue(data, "module.plan.online", configuration);
+                                    const season = this._getFieldValue(data, "module.plan.season", configuration);
+                                    const region = this._getFieldValue(data, "module.plan.region", configuration);
+                                    const place = this._getFieldValue(data, "module.plan.place", configuration);
+                                    const fielda = this._getFieldValue(data, "module.plan.field.a", configuration);
+                                    const fieldb = this._getFieldValue(data, "module.plan.field.b", configuration);
+                                    const fieldg = this._getFieldValue(data, "module.plan.field.g", configuration);
+                                    return that.clientManager.getModuleConfiguration(ModulePlanController.ID)
+                                        .then(it => {
+                                            return new Plan(null,
+                                                fielda, fieldb, 0, 0, 0, 0, fieldg, 0,
+                                                it.getEditableOptionValue('visual', visual),
+                                                it.getEditableOptionValue('form', form),
+                                                it.getEditableOptionValue('online', online),
+                                                it.getEditableOptionValue('season', season),
+                                                it.getEditableOptionValue('region', region),
+                                                it.getEditableOptionValue('place', place));
+                                        })
+                                        .then(plan => {
+                                            return that.planController.persist(plan, card.id)
+                                                .then(() => {
+                                                    // TODO append to log
+                                                    console.debug(`Plan created in card ${card.id}`);
+                                                    return that._doImportBeteiligt(data, configuration, card);
+                                                });
+                                        })
+                                } else {
+                                    return that._doImportBeteiligt(data, configuration, card);
+                                }
+                            });
+                        return [importArtikel, importPlan];
                     });
+            });
+    }
+
+    /**
+     * Import the beteiligt record
+     * @param data
+     * @param configuration
+     * @param card
+     * @return {PromiseLike<T | never> | Promise<T | never>}
+     * @private
+     */
+    _doImportBeteiligt(data, configuration, card) {
+        const that = this;
+        return that.clientManager.isBeteiligtModuleEnabled()
+            .then(enabled => {
+                if (enabled) {
+                    // get the section depending on the configured layout
+                    return that.clientManager.getModuleConfiguration(ModuleController.ID)
+                        .then(config => {
+                            const module = ModuleConfig.create({}, null);
+                            const sections = {
+                                'onsite': config.getEditableLayout('onsite').fields.map(it => {
+                                    const obj = {};
+                                    obj[BeteiligtBinding.getFieldMapping(config.getEditable('onsite').layout, it)] = that._getFieldValue(data, `module.beteiligt.onsite.${it.id}`, configuration);
+                                    return obj;
+                                }).reduce(Reducers.asKeyValue, {}),
+                                'text': config.getEditableLayout('text').fields.map(it => {
+                                    const obj = {};
+                                    obj[BeteiligtBinding.getFieldMapping(config.getEditable('text').layout, it)] = that._getFieldValue(data, `module.beteiligt.text.${it.id}`, configuration);
+                                    return obj;
+                                }).reduce(Reducers.asKeyValue, {}),
+                                'photo': config.getEditableLayout('photo').fields.map(it => {
+                                    const obj = {};
+                                    obj[BeteiligtBinding.getFieldMapping(config.getEditable('photo').layout, it)] = that._getFieldValue(data, `module.beteiligt.photo.${it.id}`, configuration);
+                                    return obj;
+                                }).reduce(Reducers.asKeyValue, {}),
+                                'video': config.getEditableLayout('video').fields.map(it => {
+                                    const obj = {};
+                                    obj[BeteiligtBinding.getFieldMapping(config.getEditable('video').layout, it)] = that._getFieldValue(data, `module.beteiligt.video.${it.id}`, configuration);
+                                    return obj;
+                                }).reduce(Reducers.asKeyValue, {}),
+                                'illu': config.getEditableLayout('illu').fields.map(it => {
+                                    const obj = {};
+                                    obj[BeteiligtBinding.getFieldMapping(config.getEditable('illu').layout, it)] = that._getFieldValue(data, `module.beteiligt.illu.${it.id}`, configuration);
+                                    return obj;
+                                }).reduce(Reducers.asKeyValue, {}),
+                                'ad': config.getEditableLayout('ad').fields.map(it => {
+                                    const obj = {};
+                                    obj[BeteiligtBinding.getFieldMapping(config.getEditable('ad').layout, it)] = that._getFieldValue(data, `module.beteiligt.ad.${it.id}`, configuration);
+                                    return obj;
+                                }).reduce(Reducers.asKeyValue, {})
+                            };
+                            console.debug('sections', sections);
+                            module.sections = sections;
+                            return that.moduleController.persist(module, card.id)
+                                .then(() => {
+                                    // TODO append to log
+                                    console.debug(`Beteiligt created in card ${card.id}`);
+                                    return true;
+                                });
+                        });
+
+                } else {
+                    return false;
+                }
             });
     }
 
@@ -457,16 +507,6 @@ class AdminService {
      */
     _getField(name, configuration) {
         return configuration.single(name);
-    }
-
-    /**
-     * @param name
-     * @param {ImportConfiguration} configuration
-     * @return {AbstractField[]}
-     * @private
-     */
-    _getFields(name, configuration) {
-        return configuration.get(name);
     }
 
     /**

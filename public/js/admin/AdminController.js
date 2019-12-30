@@ -79,33 +79,43 @@ class AdminController {
         return this.renderActions(previousConfig)
             .then(it => {
                 // Sample data
-                const model = new Import("Sample");
-                const header = new HeaderNode(null, "Panta", {c: 0, r: 0});
-                header.add(new HeaderNode(header, 'Label', {c: 1, r: 0}, [{
-                    a: ' ',
-                    h: '<span>Sky</span>',
-                    r: '<raw>...</raw>',
-                    t: 'Sky'
-                }]));
-                header.add(new HeaderNode(header, 'Titel', {c: 2, r: 0}));
-                header.add(new HeaderNode(header, 'Beschreibung', {c: 3, r: 0}));
-                header.add(new HeaderNode(header, 'Liste', {c: 4, r: 0}));
-                header.add(new HeaderNode(header, 'Feld: Details', {c: 5, r: 0}));
-                header.add(new HeaderNode(header, 'Mitglieder', {c: 6, r: 0}));
-                header.add(new HeaderNode(header, 'Frist', {c: 7, r: 0}));
-                header.add(new HeaderNode(header, 'Auswahlliste 1', {c: 8, r: 0}));
-                header.add(new HeaderNode(header, 'Blog Name', {c: 9, r: 0}));
-                model.header = header;
+                const model = Import.create('Sample', sampleImport);
                 const sample1 = new DataNode(1);
-                sample1.set(header.get(0), {v: 1, t: 'n'});
-                sample1.set(header.get(1), {v: 'A cocktail a day', t: 's'});
-                sample1.set(header.get(2), {v: 'https://a-cocktail-a-day.com/', t: 's'});
-                sample1.set(header.get(3), {v: 'Test Liste', t: 's' });
-                sample1.set(header.get(4), {v: 'Blog zum Thema: Reisen, Lifestyle, Fliegen', t: 's'});
-                sample1.set(header.get(5), {v: 'me@m3ns1.com', t: 's'});
-                sample1.set(header.get(6), {v: 43830, w: '31/12/2019', t: 'n'});
-                sample1.set(header.get(7), {v: '3.Begriff', t: 's'});
-                sample1.set(header.get(8), {v: 'Manuel Wyssen', t: 's'});
+                const header = model.header;
+                sample1.set(header.get(0), {v: 'Test Liste', t: 's'});
+                sample1.set(header.get(1), {v: 43830, w: '31/12/2019', t: 'n'});
+                sample1.set(header.get(2), {v: 'me@m3ns1.com', t: 's'});
+                sample1.set(header.get(3), {v: 1, t: 'n'});
+                sample1.set(header.get(4), {v: 1, t: 'n'});
+                sample1.set(header.get(5), {v: 1, t: 'n'});
+                sample1.set(header.get(6), {v: 1, t: 'n'});
+                sample1.set(header.get(7), {v: 1, t: 'n'});
+                sample1.set(header.get(8), {v: 1, t: 'n'});
+                sample1.set(header.get(9), {v: 1, t: 'n'});
+                sample1.set(header.get(10), {v: 1, t: 'n'});
+                sample1.set(header.get(11), {v: 1, t: 'n'});
+                sample1.set(header.get(12), {v: 1, t: 'n'});
+                sample1.set(header.get(13), {v: 'A cocktail a day', t: 's'});
+                sample1.set(header.get(14), {v: 'https://a-cocktail-a-day.com/', t: 's'});
+                sample1.set(header.get(15), {v: '3.Begriff', t: 's'});
+                sample1.set(header.get(16), {v: '', t: 's'});
+                sample1.set(header.get(17), {v: '', t: 's'});
+                sample1.set(header.get(18), {v: '', t: 's'});
+                sample1.set(header.get(19), {v: '', t: 's'});
+                sample1.set(header.get(20), {v: 'Blog zum Thema: Reisen, Lifestyle, Fliegen', t: 's'});
+                sample1.set(header.get(21), {v: 'Kristina', t: 's'});
+                sample1.set(header.get(22), {v: 'Roder', t: 's'});
+                sample1.set(header.get(23), {v: 'Test Notiz', t: 's'});
+                sample1.set(header.get(24), {v: 'kristina@a-cocktail-a-day.com', t: 's'});
+                sample1.set(header.get(25), {v: 'n.a.', t: 's'});
+                sample1.set(header.get(26), {v: '', t: 's'});
+                sample1.set(header.get(27), {v: 'Offen für Kooperationen', t: 's'});
+                sample1.set(header.get(28), {v: '', t: 's'});
+                sample1.set(header.get(29), {v: 'https://facebook.com', t: 's'});
+                sample1.set(header.get(30), {v: 'https://instagram.com', t: 's'});
+                sample1.set(header.get(31), {v: 'https://twitter.com', t: 's'});
+                sample1.set(header.get(32), {v: 'https://youtube.com', t: 's'});
+                sample1.set(header.get(33), {v: 'https://flickr.com', t: 's'});
                 model.data.push(sample1);
                 that.renderModel(model, previousConfig);
                 return true;
@@ -144,6 +154,7 @@ class AdminController {
                         e.preventDefault();
                         const button = e.target;
                         that._hideErrors(it);
+                        that._hideWarnings(it);
                         button.disabled = true;
 
                         const files = that._document.querySelector("#file-import").files;
@@ -163,11 +174,25 @@ class AdminController {
                                 });
                         } catch (ex) {
                             console.error(`Error while importing files ${files}`, ex);
+                            that._showErrors(it, `Fehler beim importieren der Datei ${err.name}`);
                         }
                     });
                 }
-                if (it.querySelector("#btn-import")) {
-                    it.querySelector("#btn-import").setEventListener('click', function (e) {
+                const btnImport = it.querySelector('#btn-import');
+                if (btnImport) {
+                    btnImport.setEventListener('update', e => {
+                        const configuration = that._readConfiguration(that._model);
+                        if (configuration.isValid()) {
+                            that._hideWarnings(document);
+                            btnImport.removeAttribute('disabled');
+                            btnImport.removeAttribute('title');
+                        } else {
+                            btnImport.setAttribute('disabled', 'disabled');
+                            btnImport.setAttribute('title', 'Es sind noch nicht alle notwendingen Felder konfiguriert.');
+                            that._showWarnings(document, 'Es sind noch nicht alle notwendingen Felder konfiguriert.');
+                        }
+                    });
+                    btnImport.setEventListener('click', function (e) {
                         // read configuration
                         e.preventDefault();
                         const button = e.target;
@@ -177,44 +202,58 @@ class AdminController {
                             /**
                              * @type {ImportConfiguration}
                              */
-                            const configuration = Object.values(model.getNormalizedHeaders()).map(it => {
-                                /**
-                                 * @type {HTMLSelectElement}
-                                 */
-                                const select = that._document.querySelector(`#field-mapping-${it.getAddressAsText()}`);
-                                const option = select.item(select.selectedIndex);
-                                const type = option.getAttribute('data-type');
-                                return that._createFieldOfType(type, it, option.value);
-                            }).reduce((prev, cur) => {
-                                prev.mapping.push(cur);
-                                return prev;
-                            }, new ImportConfiguration());
-                            that._adminService.importCards(model, configuration)
-                                .then(success => {
-                                    console.debug(`success = ${success}`);
-                                    if (success) {
-                                        that._propertyBag['configuration'] = configuration;
-                                        return that._pluginController.setAdminConfiguration(that._propertyBag);
-                                    } else {
-                                        return Promise.reject(`See log for more details`);
-                                    }
-                                })
-                                .then(it => {
-                                    console.debug('Configuration saved', it);
-                                })
-                                .catch(it => {
-                                    console.error(`An error occured while importing from file: ${it}`);
-                                    console.error(it.stack);
-                                })
-                                .finally(() => {
-                                    button.removeAttribute('disabled');
-                                });
+                            const configuration = that._readConfiguration(model);
+                            if (configuration.isValid()) {
+                                that._adminService.importCards(model, configuration)
+                                    .then(success => {
+                                        console.debug(`success = ${success}`);
+                                        if (success) {
+                                            that._propertyBag['configuration'] = configuration;
+                                            return that._pluginController.setAdminConfiguration(that._propertyBag);
+                                        } else {
+                                            return Promise.reject(`See log for more details`);
+                                        }
+                                    })
+                                    .then(it => {
+                                        console.debug('Configuration saved', it);
+                                    })
+                                    .catch(it => {
+                                        console.error(`An error occured while importing from file: ${it}`);
+                                        console.error(it.stack);
+                                    })
+                                    .finally(() => {
+                                        button.removeAttribute('disabled');
+                                    });
+                            } else {
+                                that._showWarnings(document, `Die Konfiguration ist unvollständig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.`);
+                            }
                         }
                     });
                 }
 
             });
         return Promise.resolve(true);
+    }
+
+    /**
+     * @param model
+     * @return {ImportConfiguration}
+     * @private
+     */
+    _readConfiguration(model) {
+        const that = this;
+        return Object.values(model.getNormalizedHeaders()).map(it => {
+            /**
+             * @type {HTMLSelectElement}
+             */
+            const select = that._document.querySelector(`#field-mapping-${it.getAddressAsText()}`);
+            const option = select.item(select.selectedIndex);
+            const type = option.getAttribute('data-type');
+            return that._createFieldOfType(type, it, option.value);
+        }).reduce((prev, cur) => {
+            prev.mapping.push(cur);
+            return prev;
+        }, new ImportConfiguration());
     }
 
     /**
@@ -244,6 +283,7 @@ class AdminController {
      */
     renderModel(model, previousConfiguration) {
         const that = this;
+        that._clearContent();
         this._document.getElementsByClassName("mapping-content-header").forEach(it => {
             it.removeClass("hidden");
         });
@@ -293,8 +333,7 @@ class AdminController {
             });
         });
         that._model = model;
-        Promise.all(all)
-            .then(it => that._trello.sizeTo('#content'));
+        Promise.all(all).then(it => that._trello.sizeTo('#content'));
 
     }
 
@@ -360,8 +399,9 @@ class AdminController {
         preview.setEventListener('update', e => {
             const field = e.item || configuration.mapping.find(it => it.source.isSameAddress(header.address));
             const sample = model.getSample(header);
-            preview.innerHTML = model.getSampleHtml(sample, that._document, field);
+            preview.innerHTML = model.getSampleHtml(sample, that._document, field) || '<p>&nbsp;</p>';
         });
+        preview.innerHTML = '<p>&nbsp;</p>';
         return Promise.resolve(preview);
     }
 
@@ -438,8 +478,15 @@ class AdminController {
         }
         event.item = this._createFieldOfType(item.getAttribute('data-type'), header, item.value);
         that._document.querySelector(`#preview-${address}`).dispatchEvent(event);
+        that._document.querySelector(`#btn-import`).dispatchEvent(event);
     }
 
+    /**
+     * Create the colorpicker dropdown
+     * @param selected
+     * @return {HTMLElement | HTMLSelectElement | any}
+     * @private
+     */
     _createColorPicker(selected = null) {
         const that = this;
         const colorPicker = that._document.createElement('select');
@@ -457,6 +504,14 @@ class AdminController {
         return colorPicker;
     }
 
+    /**
+     * Create a color option for the dropdown
+     * @param color
+     * @param value
+     * @param selected
+     * @return {HTMLElement | HTMLOptionElement | any}
+     * @private
+     */
     _createColorOption(color, value, selected) {
         const opt = this._document.createElement('option');
         opt.setAttribute('value', value);
@@ -476,18 +531,31 @@ class AdminController {
         const that = this;
         const group = this._document.createElement('optgroup');
         group.setAttribute('label', 'Trello Felder');
-        return Promise.resolve(TRELLO_FIELDS.map(it => {
-            const option = that._document.createElement('option');
-            const fieldId = it.id;
-            option.setAttribute('value', fieldId);
-            option.innerText = __(it.desc);
-            option.setAttribute('data-type', it.hasOwnProperty('type') ? it.type : 'text');
-            option.selected = previousConfiguration.mapping.find(it => it.source.isSameAddress(header.address) && it.reference === fieldId) != null;
-            return option;
-        }).reduce((prev, cur) => {
-            prev.appendChild(cur);
-            return prev;
-        }, group));
+        return Promise.resolve(TRELLO_FIELDS.map(it => that._createFieldOption(header, it.id, __(it.desc), it.type, previousConfiguration))
+            .reduce((prev, cur) => {
+                prev.appendChild(cur);
+                return prev;
+            }, group));
+    }
+
+    /**
+     * Create an option element for the field mappings
+     * @param header
+     * @param fieldId
+     * @param description
+     * @param type
+     * @param configuration
+     * @return {HTMLElement | HTMLOptionElement | any}
+     * @private
+     */
+    _createFieldOption(header, fieldId, description, type, configuration) {
+        const that = this;
+        const option = that._document.createElement('option');
+        option.setAttribute('value', fieldId);
+        option.innerText = description;
+        option.setAttribute('data-type', type || 'text');
+        option.selected = configuration.mapping.find(it => it.source.isSameAddress(header.address) && it.reference === fieldId) != null;
+        return option;
     }
 
     /**
@@ -504,9 +572,6 @@ class AdminController {
             .then(its => {
                 return its.flatMap(it => {
                     const modulename = it.name;
-                    /**
-                     * @type {Controller}
-                     */
                     const controller = that._clientManager.getController(it.id);
                     return controller.getFields(it)
                         .flatMap(its => {
@@ -515,15 +580,7 @@ class AdminController {
                                 const subgrp = that._document.createElement('optgroup');
                                 subgrp.setAttribute('label', `${modulename}: ${it.group}`);
                                 return it.fields
-                                    .map(it => {
-                                        const option = that._document.createElement('option');
-                                        const fieldId = `${groupId}.${it.id}`;
-                                        option.setAttribute('value', fieldId);
-                                        option.innerText = it.label;
-                                        option.setAttribute('data-type', it.hasOwnProperty('type') ? it.type : 'text');
-                                        option.selected = previousConfiguration.mapping.find(it => it.source.isSameAddress(header.address) && it.reference === fieldId) != null;
-                                        return option;
-                                    })
+                                    .map(it => that._createFieldOption(header, `${groupId}.${it.id}`, it.label, it.type, previousConfiguration))
                                     .reduce((prev, cur) => {
                                         prev.appendChild(cur);
                                         return prev;
@@ -545,20 +602,34 @@ class AdminController {
     }
 
     _showErrors(holder, message) {
-        let container = holder.querySelectorAll('.error-messages');
+        return this._show(holder, holder.querySelectorAll('.error-messages'), message, '#error-message');
+    }
+
+    _showWarnings(holder, message) {
+        return this._show(holder, holder.querySelectorAll('.warning-messages'), message, '#warning-message');
+    }
+
+    _hideWarnings(holder) {
+        return this._hide(holder.querySelectorAll('.warning-messages'), '#warning-message');
+    }
+
+    _hideErrors(holder) {
+        return this._hide(holder.querySelectorAll('.error-messages'), '#error-message');
+    }
+
+    _show(holder, container, message, messageId) {
         container.forEach(errorMessageContainer => {
             errorMessageContainer.removeClass('hidden');
-            const errorMessage = errorMessageContainer.querySelector('#error-message');
+            const errorMessage = errorMessageContainer.querySelector(messageId);
             errorMessage.innerHTML = message;
         });
         return container;
     }
 
-    _hideErrors(holder) {
-        let container = holder.querySelectorAll('.error-messages');
+    _hide(container, messageId) {
         container.forEach(errorMessageContainer => {
             errorMessageContainer.addClass('hidden');
-            const errorMessage = errorMessageContainer.querySelector('#error-message');
+            const errorMessage = errorMessageContainer.querySelector(messageId);
             errorMessage.innerHTML = '';
         });
         return container;

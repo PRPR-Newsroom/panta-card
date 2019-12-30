@@ -2565,7 +2565,9 @@ ModulePlanController.prototype.clear = function() {
 ModulePlanController.prototype.create = function(a, b) {
   return Plan.create(a);
 };
-$jscomp.global.Object.defineProperties(ModulePlanController, {SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
+$jscomp.global.Object.defineProperties(ModulePlanController, {ID:{configurable:!0, enumerable:!0, get:function() {
+  return "module.plan";
+}}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Plan";
 }}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Plan.PropertyBag";
@@ -2690,9 +2692,9 @@ ClientManager.prototype.getController = function(a) {
   switch(a) {
     case ArtikelController.ID:
       return this.getArticleController();
-    case "module.beteiligt":
+    case ModuleController.ID:
       return this.getModuleController();
-    case "module.plan":
+    case ModulePlanController.ID:
       return this.getPlanController();
     default:
       throw "Invalid ID: " + a;
@@ -2909,7 +2911,7 @@ $jscomp.global.Object.defineProperties(PluginRepository, {INSTANCE:{configurable
   "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"region", desc:"module.artikel.editable.desc", type:"select", label:"5.Liste", color:"lime", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"place", desc:"module.artikel.editable.desc", type:"select", label:"6.Liste", color:"orange", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"field.a", desc:"module.artikel.field-a.desc", 
   type:"text", label:"Thema", placeholder:"Lauftext", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.b", desc:"module.artikel.field-b.desc", type:"text", label:"Input von", placeholder:"Name", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.c", desc:"module.artikel.field-c.desc", type:"text", label:"Textautor*in", placeholder:"Name", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.d", desc:"module.artikel.field-d.desc", type:"text", label:"Textbox", placeholder:"Lauftext", 
   show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"title", desc:"module.artikel.label.desc", type:"label", placeholder:"", label:"Artikel", visible:!0, title:"Modul-Titel"}, {id:"field.e", desc:"module.artikel.field-e.desc", type:"text", label:"Pagina", placeholder:"Zahl", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.f", desc:"module.artikel.field-f.desc", type:"text", label:"Seiten Layout", placeholder:"Zahl", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.g", 
-  desc:"module.artikel.field-g.desc", type:"calc", label:"Seiten Total", placeholder:"Summe", show:!1, sortable:!1, visible:!0, color:"shades"}]}), {id:1}), PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", "Beteiligt", {sort:3, enabled:!1, icon:"ic_beteiligt.png", desc:"module.beteiligt.desc", editables:[{id:"title", desc:"module.beteiligt.label.desc", type:"label", placeholder:"", label:"Beteiligt", title:"Modul-Titel"}, {id:"onsite", desc:"module.beteiligt.layout.onsite", 
+  desc:"module.artikel.field-g.desc", type:"calc", label:"Seiten Total", placeholder:"Summe", show:!1, sortable:!1, visible:!0, color:"shades"}]}), {id:1}), PluginRepository.instance.add(new PluginModuleConfig(ModuleController.ID, "Beteiligt", {sort:3, enabled:!1, icon:"ic_beteiligt.png", desc:"module.beteiligt.desc", editables:[{id:"title", desc:"module.beteiligt.label.desc", type:"label", placeholder:"", label:"Beteiligt", title:"Modul-Titel"}, {id:"onsite", desc:"module.beteiligt.layout.onsite", 
   type:"layout", label:"1.Reiter", container:"pa.involved.onsite", layout:"regular", show:!0, title:"Reiter-Titel"}, {id:"text", desc:"module.beteiligt.layout.text", type:"layout", label:"2.Reiter", container:"pa.involved.text", layout:"regular", show:!0}, {id:"photo", desc:"module.beteiligt.layout.photo", type:"layout", label:"3.Reiter", container:"pa.involved.photo", layout:"regular", show:!0}, {id:"video", desc:"module.beteiligt.layout.video", type:"layout", label:"4.Reiter", container:"pa.involved.video", 
   layout:"regular", show:!0}, {id:"illu", desc:"module.beteiligt.layout.illu", type:"layout", label:"5.Reiter", container:"pa.involved.illu", layout:"regular", show:!0}, {id:"ad", desc:"module.beteiligt.layout.ad", type:"layout", label:"6.Reiter", container:"pa.involved.ad", layout:"regular", show:!0}], layouts:{regular:{desc:"module.beteiligt.regular.desc", label:"Kontakt", fields:[{id:"field.name", desc:"module.beteiligt.field-name.desc", type:"text", label:"Name", placeholder:"eintippen\u2026", 
   show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.social", desc:"module.beteiligt.field-social.desc", type:"text", label:"Telefon.Mail.Webseite", placeholder:"notieren\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.address", desc:"module.beteiligt.field-address.desc", type:"text", label:"Adresse", placeholder:"festhalten\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.notes", desc:"module.beteiligt.field-notes.desc", type:"text", label:"Notizen", 
@@ -2918,7 +2920,7 @@ $jscomp.global.Object.defineProperties(PluginRepository, {INSTANCE:{configurable
   color:"shades"}, {id:"field.format", desc:"module.beteiligt.field-format.desc", type:"text", label:"Format", placeholder:"festhalten\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.placement", desc:"module.beteiligt.field-placement.desc", type:"text", label:"Platzierung", placeholder:"vormerken\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.price", desc:"module.beteiligt.field-price.desc", type:"text", label:"Preis CHF", placeholder:"bestimmen\u2026", 
   show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.total", desc:"module.beteiligt.field-total.desc", type:"text", label:"Total", placeholder:"", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.name", desc:"module.beteiligt.field-name.desc", type:"text", label:"Kontakt", placeholder:"eintippen\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.social", desc:"module.beteiligt.field-social.desc", type:"text", label:"Telefon.Mail.Webseite", placeholder:"notieren\u2026", 
   show:!1, sortable:!1, color:"shades"}, {id:"field.address", desc:"module.beteiligt.field-address.desc", type:"text", label:"Adresse", placeholder:"festhalten\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}]}, blog:{desc:"module.beteiligt.blog.desc", label:"Blog", fields:[{id:"field.link", desc:"module.beteiligt.field-link.desc", type:"text", label:"Link", placeholder:"hinterlegen\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.notes", desc:"module.beteiligt.field-notes.desc", 
-  type:"text", label:"Notiz", placeholder:"hinterlegen\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.follower", desc:"module.beteiligt.field-follower.desc", type:"text", label:"Follower.Fans.Abos", placeholder:"eintippen\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.date", desc:"module.beteiligt.field-date.desc", type:"text", label:"Stand.Datum", placeholder:"notieren\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}]}}}), {id:2}), PluginRepository.instance.add(new PluginModuleConfig("module.plan", 
+  type:"text", label:"Notiz", placeholder:"hinterlegen\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.follower", desc:"module.beteiligt.field-follower.desc", type:"text", label:"Follower.Fans.Abos", placeholder:"eintippen\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.date", desc:"module.beteiligt.field-date.desc", type:"text", label:"Stand.Datum", placeholder:"notieren\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}]}}}), {id:2}), PluginRepository.instance.add(new PluginModuleConfig(ModulePlanController.ID, 
   "Plan", {sort:2, enabled:!1, icon:"ic_plan.png", desc:"module.plan.desc", editables:[{id:"visual", desc:"module.plan.editable.desc", type:"select", label:"1.Liste", color:"blue", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"form", desc:"module.plan.editable.desc", type:"select", label:"2.Liste", color:"green", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff"]}, {id:"online", desc:"module.plan.editable.desc", 
   type:"select", label:"3.Liste", color:"yellow", show:!1, sortable:!1, visible:!0, values:"1.Begriff 2.Begriff 3.Begriff 4.Begriff 5.Begriff 6.Begriff 7.Begriff".split(" ")}, {id:"season", desc:"module.plan.editable.desc", type:"select", label:"4.Liste", color:"sky", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff"]}, {id:"region", desc:"module.plan.editable.desc", type:"select", label:"5.Liste", color:"lime", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff"]}, 
   {id:"place", desc:"module.plan.editable.desc", type:"select", label:"6.Liste", color:"orange", show:!1, sortable:!1, visible:!0, values:"1.Begriff 2.Begriff 3.Begriff 4.Begriff 5.Begriff 6.Begriff 7.Begriff".split(" ")}, {id:"field.a", desc:"module.plan.field-a.desc", type:"text", label:"Massnahmen", placeholder:"notieren\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.b", desc:"module.plan.field-b.desc", type:"text", label:"Beschreibung", placeholder:"notieren\u2026", show:!1, 
@@ -3188,12 +3190,13 @@ var AdminService = function(a) {
   this.fileReader = new FileReader;
   this.clientManager = ClientManager.getInstance(window);
   this.articleController = this.clientManager.getArticleController();
+  this.planController = this.clientManager.getPlanController();
   this.moduleController = this.clientManager.getModuleController();
   this.excelService = this.clientManager.getExcelService();
 };
 AdminService.prototype.hasLabel = function(a, b) {
-  return this.getLabels().map(function(b) {
-    return b.name === a;
+  return this.getLabels().map(function(c) {
+    return c.name === a && c.color === b;
   }).reduce(function(a, b) {
     return a | b;
   });
@@ -3300,7 +3303,7 @@ AdminService.prototype._createLabels = function(a) {
     var d = c.labels;
     return Promise.all(a.map(function(a) {
       var e = d.find(function(b) {
-        return b.name === a.name;
+        return b.name === a.name && b.color === a.source.color;
       });
       return e ? Promise.resolve(e) : b._createLabel(a.source.label, a.source.color, c.id);
     }));
@@ -3355,57 +3358,75 @@ AdminService.prototype._createCardInternal = function(a, b, c) {
         });
       });
     }).then(function(a) {
-      return e.clientManager.isArticleModuleEnabled().then(function(f) {
+      var f = e.clientManager.isArticleModuleEnabled().then(function(f) {
         if (f) {
-          var g = d._getFieldValue(b, "module.artikel.field.a", c), h = d._getFieldValue(b, "module.artikel.field.b", c), k = d._getFieldValue(b, "module.artikel.field.c", c), l = d._getFieldValue(b, "module.artikel.field.d", c), m = d._getFieldValue(b, "module.artikel.field.e", c), p = d._getFieldValue(b, "module.artikel.field.f", c), n = d._getFieldValue(b, "module.artikel.online", c), u = d._getFieldValue(b, "module.artikel.visual", c), v = d._getFieldValue(b, "module.artikel.region", c), w = 
-          d._getFieldValue(b, "module.artikel.season", c), x = d._getFieldValue(b, "module.artikel.form", c), y = d._getFieldValue(b, "module.artikel.place", c);
+          var g = d._getFieldValue(b, "module.artikel.field.a", c), h = d._getFieldValue(b, "module.artikel.field.b", c), k = d._getFieldValue(b, "module.artikel.field.c", c), l = d._getFieldValue(b, "module.artikel.field.d", c), m = d._getFieldValue(b, "module.artikel.field.e", c), q = d._getFieldValue(b, "module.artikel.field.f", c), n = d._getFieldValue(b, "module.artikel.online", c), p = d._getFieldValue(b, "module.artikel.visual", c), r = d._getFieldValue(b, "module.artikel.region", c), u = 
+          d._getFieldValue(b, "module.artikel.season", c), v = d._getFieldValue(b, "module.artikel.form", c), w = d._getFieldValue(b, "module.artikel.place", c);
           return e.clientManager.getModuleConfiguration(ArtikelController.ID).then(function(a) {
-            return new Artikel(null, g, m, h, p, 1, a.getEditableOptionValue("online", n), a.getEditableOptionValue("visual", u), a.getEditableOptionValue("region", v), a.getEditableOptionValue("season", w), k, l, a.getEditableOptionValue("form", x), y);
-          }).then(function(b) {
-            return e.articleController.persist(b, a.id).then(function() {
-              console.debug("Artikel created in card");
-              return e.clientManager.isBeteiligtModuleEnabled();
-            });
+            return new Artikel(null, g, m, h, q, 1, a.getEditableOptionValue("online", n), a.getEditableOptionValue("visual", p), a.getEditableOptionValue("region", r), a.getEditableOptionValue("season", u), k, l, a.getEditableOptionValue("form", v), w);
           }).then(function(d) {
-            return d ? e.clientManager.getModuleConfiguration(ModuleController.ID).then(function(d) {
-              var f = ModuleConfig.create({}, null), g = {onsite:d.getEditableLayout("onsite").fields.map(function(a) {
-                var f = {};
-                f[BeteiligtBinding.getFieldMapping(d.getEditable("onsite").layout, a)] = e._getFieldValue(b, "module.beteiligt.onsite." + a.id, c);
-                return f;
-              }).reduce(Reducers.asKeyValue, {}), text:d.getEditableLayout("text").fields.map(function(a) {
-                var f = {};
-                f[BeteiligtBinding.getFieldMapping(d.getEditable("text").layout, a)] = e._getFieldValue(b, "module.beteiligt.text." + a.id, c);
-                return f;
-              }).reduce(Reducers.asKeyValue, {}), photo:d.getEditableLayout("photo").fields.map(function(a) {
-                var f = {};
-                f[BeteiligtBinding.getFieldMapping(d.getEditable("photo").layout, a)] = e._getFieldValue(b, "module.beteiligt.photo." + a.id, c);
-                return f;
-              }).reduce(Reducers.asKeyValue, {}), video:d.getEditableLayout("video").fields.map(function(a) {
-                var f = {};
-                f[BeteiligtBinding.getFieldMapping(d.getEditable("video").layout, a)] = e._getFieldValue(b, "module.beteiligt.video." + a.id, c);
-                return f;
-              }).reduce(Reducers.asKeyValue, {}), illu:d.getEditableLayout("illu").fields.map(function(a) {
-                var f = {};
-                f[BeteiligtBinding.getFieldMapping(d.getEditable("illu").layout, a)] = e._getFieldValue(b, "module.beteiligt.illu." + a.id, c);
-                return f;
-              }).reduce(Reducers.asKeyValue, {}), ad:d.getEditableLayout("ad").fields.map(function(a) {
-                var f = {};
-                f[BeteiligtBinding.getFieldMapping(d.getEditable("ad").layout, a)] = e._getFieldValue(b, "module.beteiligt.ad." + a.id, c);
-                return f;
-              }).reduce(Reducers.asKeyValue, {})};
-              console.debug("sections", g);
-              f.sections = g;
-              return e.moduleController.persist(f, a.id).then(function() {
-                console.debug("Beteiligt created in card");
-                return !0;
-              });
-            }) : !1;
+            return e.articleController.persist(d, a.id).then(function() {
+              console.debug("Artikel created in card " + a.id);
+              return e._doImportBeteiligt(b, c, a);
+            });
           });
         }
         console.debug("Article Module is not enabled");
-        return !1;
+        return e._doImportBeteiligt(b, c, a);
+      }), g = e.clientManager.isPlanModuleEnabled().then(function(f) {
+        if (f) {
+          var g = d._getFieldValue(b, "module.plan.visual", c), h = d._getFieldValue(b, "module.plan.form", c), k = d._getFieldValue(b, "module.plan.online", c), l = d._getFieldValue(b, "module.plan.season", c), m = d._getFieldValue(b, "module.plan.region", c), q = d._getFieldValue(b, "module.plan.place", c), n = d._getFieldValue(b, "module.plan.field.a", c), p = d._getFieldValue(b, "module.plan.field.b", c), r = d._getFieldValue(b, "module.plan.field.g", c);
+          return e.clientManager.getModuleConfiguration(ModulePlanController.ID).then(function(a) {
+            return new Plan(null, n, p, 0, 0, 0, 0, r, 0, a.getEditableOptionValue("visual", g), a.getEditableOptionValue("form", h), a.getEditableOptionValue("online", k), a.getEditableOptionValue("season", l), a.getEditableOptionValue("region", m), a.getEditableOptionValue("place", q));
+          }).then(function(d) {
+            return e.planController.persist(d, a.id).then(function() {
+              console.debug("Plan created in card " + a.id);
+              return e._doImportBeteiligt(b, c, a);
+            });
+          });
+        }
+        return e._doImportBeteiligt(b, c, a);
       });
+      return [f, g];
     });
+  });
+};
+AdminService.prototype._doImportBeteiligt = function(a, b, c) {
+  var d = this;
+  return d.clientManager.isBeteiligtModuleEnabled().then(function(e) {
+    return e ? d.clientManager.getModuleConfiguration(ModuleController.ID).then(function(e) {
+      var f = ModuleConfig.create({}, null), h = {onsite:e.getEditableLayout("onsite").fields.map(function(c) {
+        var f = {};
+        f[BeteiligtBinding.getFieldMapping(e.getEditable("onsite").layout, c)] = d._getFieldValue(a, "module.beteiligt.onsite." + c.id, b);
+        return f;
+      }).reduce(Reducers.asKeyValue, {}), text:e.getEditableLayout("text").fields.map(function(c) {
+        var f = {};
+        f[BeteiligtBinding.getFieldMapping(e.getEditable("text").layout, c)] = d._getFieldValue(a, "module.beteiligt.text." + c.id, b);
+        return f;
+      }).reduce(Reducers.asKeyValue, {}), photo:e.getEditableLayout("photo").fields.map(function(c) {
+        var f = {};
+        f[BeteiligtBinding.getFieldMapping(e.getEditable("photo").layout, c)] = d._getFieldValue(a, "module.beteiligt.photo." + c.id, b);
+        return f;
+      }).reduce(Reducers.asKeyValue, {}), video:e.getEditableLayout("video").fields.map(function(c) {
+        var f = {};
+        f[BeteiligtBinding.getFieldMapping(e.getEditable("video").layout, c)] = d._getFieldValue(a, "module.beteiligt.video." + c.id, b);
+        return f;
+      }).reduce(Reducers.asKeyValue, {}), illu:e.getEditableLayout("illu").fields.map(function(c) {
+        var f = {};
+        f[BeteiligtBinding.getFieldMapping(e.getEditable("illu").layout, c)] = d._getFieldValue(a, "module.beteiligt.illu." + c.id, b);
+        return f;
+      }).reduce(Reducers.asKeyValue, {}), ad:e.getEditableLayout("ad").fields.map(function(c) {
+        var f = {};
+        f[BeteiligtBinding.getFieldMapping(e.getEditable("ad").layout, c)] = d._getFieldValue(a, "module.beteiligt.ad." + c.id, b);
+        return f;
+      }).reduce(Reducers.asKeyValue, {})};
+      console.debug("sections", h);
+      f.sections = h;
+      return d.moduleController.persist(f, c.id).then(function() {
+        console.debug("Beteiligt created in card " + c.id);
+        return !0;
+      });
+    }) : !1;
   });
 };
 AdminService.prototype._createList = function(a, b) {
@@ -3422,9 +3443,6 @@ AdminService.prototype._createList = function(a, b) {
 };
 AdminService.prototype._getField = function(a, b) {
   return b.single(a);
-};
-AdminService.prototype._getFields = function(a, b) {
-  return b.get(a);
 };
 AdminService.prototype._getLabels = function(a) {
   return a.get("trello.labels");
@@ -3490,6 +3508,12 @@ HeaderNode.prototype.getComment = function(a) {
 };
 HeaderNode.prototype.add = function(a) {
   this.children.push(a);
+};
+HeaderNode.prototype.addAll = function(a) {
+  var b = this;
+  a && Array.isArray(a) && a.forEach(function(a) {
+    return b.add(a);
+  });
 };
 HeaderNode.prototype.get = function(a) {
   return this.children[a];
@@ -3620,6 +3644,10 @@ ImportConfiguration.create = function(a) {
   console.debug("config", b);
   return b;
 };
+ImportConfiguration.prototype.isValid = function() {
+  var a = this.single("trello.list");
+  return a && null !== a.source;
+};
 ImportConfiguration.prototype.get = function(a) {
   return this.mapping.filter(function(b) {
     return b.reference === a;
@@ -3639,9 +3667,21 @@ $jscomp.global.Object.defineProperties(ImportConfiguration.prototype, {labels:{c
 }}});
 // Input 36
 var Import = function(a) {
-  this.title = a;
-  this.header = null;
-  this.data = [];
+  this._title = a;
+  this._header = null;
+  this._data = [];
+};
+Import.create = function(a, b) {
+  a = new Import("Import");
+  if (b) {
+    b = JsonSerialization.getProperty(b, "header");
+    var c = new HeaderNode(null, b._label, b._address, b._comments);
+    c.addAll(b._children.map(function(a) {
+      return new HeaderNode(c, a._label, a._address, a._comments);
+    }));
+    a.header = c;
+  }
+  return a;
 };
 Import.prototype.getHeader = function(a) {
   var b = this.getHeaders(this.header);
@@ -3693,7 +3733,7 @@ Import.prototype.getSampleText = function(a, b) {
   }
 };
 Import.prototype.getSampleHtml = function(a, b, c) {
-  return (c = void 0 === c ? null : c) && a ? this._getHtml(c.getValue(a), b) : a && a.value ? this._getSampleHtml(a, a.value.v, a.value.t, b) : "";
+  return (c = void 0 === c ? null : c) && a ? this._getHtml(c.getValue(a), b) : a && a.value ? this._getSampleHtml(a, a.value.v, a.value.t, b) : "<p>&nbsp;</p>";
 };
 Import.prototype._getSampleHtml = function(a, b, c, d) {
   switch(c) {
@@ -3717,7 +3757,7 @@ Import.prototype._getHtml = function(a, b) {
     return c._getHtml(a, b);
   }).reduce(function(a, b) {
     return a + b;
-  }, "") : null !== a ? '<p class="nobreak" title="' + a + '">' + a + "</p>" : "";
+  }, "") : null !== a ? '<p class="nobreak" title="' + a + '">' + a + "</p>" : "<p>&nbsp;</p>";
 };
 Import.prototype._getDateTime = function(a) {
   var b = a instanceof Date ? a : DateField.getDateOf(a);
@@ -3729,6 +3769,19 @@ Import.prototype._getSwitch = function(a, b) {
   b.additionalStyles = "borderless";
   return b.render().innerHTML;
 };
+$jscomp.global.Object.defineProperties(Import.prototype, {data:{configurable:!0, enumerable:!0, get:function() {
+  return this._data;
+}, set:function(a) {
+  this._data = a;
+}}, header:{configurable:!0, enumerable:!0, get:function() {
+  return this._header;
+}, set:function(a) {
+  this._header = a;
+}}, title:{configurable:!0, enumerable:!0, get:function() {
+  return this._title;
+}, set:function(a) {
+  this._title = a;
+}}});
 // Input 37
 var TextField = function(a) {
   AbstractField.apply(this, arguments);
@@ -3764,29 +3817,43 @@ AdminController.prototype.index = function(a) {
   this._model = null;
   this._clearContent();
   return this.renderActions(a).then(function(c) {
-    c = new Import("Sample");
-    var d = new HeaderNode(null, "Panta", {c:0, r:0});
-    d.add(new HeaderNode(d, "Label", {c:1, r:0}, [{a:" ", h:"<span>Sky</span>", r:"<raw>...</raw>", t:"Sky"}]));
-    d.add(new HeaderNode(d, "Titel", {c:2, r:0}));
-    d.add(new HeaderNode(d, "Beschreibung", {c:3, r:0}));
-    d.add(new HeaderNode(d, "Liste", {c:4, r:0}));
-    d.add(new HeaderNode(d, "Feld: Details", {c:5, r:0}));
-    d.add(new HeaderNode(d, "Mitglieder", {c:6, r:0}));
-    d.add(new HeaderNode(d, "Frist", {c:7, r:0}));
-    d.add(new HeaderNode(d, "Auswahlliste 1", {c:8, r:0}));
-    d.add(new HeaderNode(d, "Blog Name", {c:9, r:0}));
-    c.header = d;
-    var e = new DataNode(1);
-    e.set(d.get(0), {v:1, t:"n"});
-    e.set(d.get(1), {v:"A cocktail a day", t:"s"});
-    e.set(d.get(2), {v:"https://a-cocktail-a-day.com/", t:"s"});
-    e.set(d.get(3), {v:"Test Liste", t:"s"});
-    e.set(d.get(4), {v:"Blog zum Thema: Reisen, Lifestyle, Fliegen", t:"s"});
-    e.set(d.get(5), {v:"me@m3ns1.com", t:"s"});
-    e.set(d.get(6), {v:43830, w:"31/12/2019", t:"n"});
-    e.set(d.get(7), {v:"3.Begriff", t:"s"});
-    e.set(d.get(8), {v:"Manuel Wyssen", t:"s"});
-    c.data.push(e);
+    c = Import.create("Sample", sampleImport);
+    var d = new DataNode(1), e = c.header;
+    d.set(e.get(0), {v:"Test Liste", t:"s"});
+    d.set(e.get(1), {v:43830, w:"31/12/2019", t:"n"});
+    d.set(e.get(2), {v:"me@m3ns1.com", t:"s"});
+    d.set(e.get(3), {v:1, t:"n"});
+    d.set(e.get(4), {v:1, t:"n"});
+    d.set(e.get(5), {v:1, t:"n"});
+    d.set(e.get(6), {v:1, t:"n"});
+    d.set(e.get(7), {v:1, t:"n"});
+    d.set(e.get(8), {v:1, t:"n"});
+    d.set(e.get(9), {v:1, t:"n"});
+    d.set(e.get(10), {v:1, t:"n"});
+    d.set(e.get(11), {v:1, t:"n"});
+    d.set(e.get(12), {v:1, t:"n"});
+    d.set(e.get(13), {v:"A cocktail a day", t:"s"});
+    d.set(e.get(14), {v:"https://a-cocktail-a-day.com/", t:"s"});
+    d.set(e.get(15), {v:"3.Begriff", t:"s"});
+    d.set(e.get(16), {v:"", t:"s"});
+    d.set(e.get(17), {v:"", t:"s"});
+    d.set(e.get(18), {v:"", t:"s"});
+    d.set(e.get(19), {v:"", t:"s"});
+    d.set(e.get(20), {v:"Blog zum Thema: Reisen, Lifestyle, Fliegen", t:"s"});
+    d.set(e.get(21), {v:"Kristina", t:"s"});
+    d.set(e.get(22), {v:"Roder", t:"s"});
+    d.set(e.get(23), {v:"Test Notiz", t:"s"});
+    d.set(e.get(24), {v:"kristina@a-cocktail-a-day.com", t:"s"});
+    d.set(e.get(25), {v:"n.a.", t:"s"});
+    d.set(e.get(26), {v:"", t:"s"});
+    d.set(e.get(27), {v:"Offen f\u00fcr Kooperationen", t:"s"});
+    d.set(e.get(28), {v:"", t:"s"});
+    d.set(e.get(29), {v:"https://facebook.com", t:"s"});
+    d.set(e.get(30), {v:"https://instagram.com", t:"s"});
+    d.set(e.get(31), {v:"https://twitter.com", t:"s"});
+    d.set(e.get(32), {v:"https://youtube.com", t:"s"});
+    d.set(e.get(33), {v:"https://flickr.com", t:"s"});
+    c.data.push(d);
     b.renderModel(c, a);
     return !0;
   });
@@ -3804,6 +3871,7 @@ AdminController.prototype.renderActions = function(a) {
       d.preventDefault();
       var e = d.target;
       b._hideErrors(c);
+      b._hideWarnings(c);
       e.disabled = !0;
       d = b._document.querySelector("#file-import").files;
       try {
@@ -3817,25 +3885,20 @@ AdminController.prototype.renderActions = function(a) {
         }).finally(function() {
           e.disabled = !1;
         });
-      } catch (f) {
-        console.error("Error while importing files " + d, f);
+      } catch (g) {
+        console.error("Error while importing files " + d, g), b._showErrors(c, "Fehler beim importieren der Datei " + err.name);
       }
     });
-    c.querySelector("#btn-import") && c.querySelector("#btn-import").setEventListener("click", function(a) {
+    var d = c.querySelector("#btn-import");
+    d && (d.setEventListener("update", function(a) {
+      b._readConfiguration(b._model).isValid() ? (b._hideWarnings(document), d.removeAttribute("disabled"), d.removeAttribute("title")) : (d.setAttribute("disabled", "disabled"), d.setAttribute("title", "Es sind noch nicht alle notwendingen Felder konfiguriert."), b._showWarnings(document, "Es sind noch nicht alle notwendingen Felder konfiguriert."));
+    }), d.setEventListener("click", function(a) {
       a.preventDefault();
       var c = a.target;
       c.setAttribute("disabled", "disabled");
       if (a = b._model) {
-        var d = Object.values(a.getNormalizedHeaders()).map(function(a) {
-          var c = b._document.querySelector("#field-mapping-" + a.getAddressAsText());
-          c = c.item(c.selectedIndex);
-          var d = c.getAttribute("data-type");
-          return b._createFieldOfType(d, a, c.value);
-        }).reduce(function(a, b) {
-          a.mapping.push(b);
-          return a;
-        }, new ImportConfiguration);
-        b._adminService.importCards(a, d).then(function(a) {
+        var d = b._readConfiguration(a);
+        d.isValid() ? b._adminService.importCards(a, d).then(function(a) {
           console.debug("success = " + a);
           return a ? (b._propertyBag.configuration = d, b._pluginController.setAdminConfiguration(b._propertyBag)) : Promise.reject("See log for more details");
         }).then(function(a) {
@@ -3845,11 +3908,23 @@ AdminController.prototype.renderActions = function(a) {
           console.error(a.stack);
         }).finally(function() {
           c.removeAttribute("disabled");
-        });
+        }) : b._showWarnings(document, "Die Konfiguration ist unvollst\u00e4ndig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.");
       }
-    });
+    }));
   });
   return Promise.resolve(!0);
+};
+AdminController.prototype._readConfiguration = function(a) {
+  var b = this;
+  return Object.values(a.getNormalizedHeaders()).map(function(a) {
+    var c = b._document.querySelector("#field-mapping-" + a.getAddressAsText());
+    c = c.item(c.selectedIndex);
+    var e = c.getAttribute("data-type");
+    return b._createFieldOfType(e, a, c.value);
+  }).reduce(function(a, b) {
+    a.mapping.push(b);
+    return a;
+  }, new ImportConfiguration);
 };
 AdminController.prototype._createFieldOfType = function(a, b, c) {
   switch(a) {
@@ -3865,6 +3940,7 @@ AdminController.prototype._createFieldOfType = function(a, b, c) {
 };
 AdminController.prototype.renderModel = function(a, b) {
   var c = this;
+  c._clearContent();
   this._document.getElementsByClassName("mapping-content-header").forEach(function(a) {
     a.removeClass("hidden");
   });
@@ -3942,8 +4018,9 @@ AdminController.prototype._createPreviewSection = function(a, b, c) {
       return b.source.isSameAddress(a.address);
     });
     var g = b.getSample(a);
-    e.innerHTML = b.getSampleHtml(g, d._document, f);
+    e.innerHTML = b.getSampleHtml(g, d._document, f) || "<p>&nbsp;</p>";
   });
+  e.innerHTML = "<p>&nbsp;</p>";
   return Promise.resolve(e);
 };
 AdminController.prototype._createFieldMappingSection = function(a, b) {
@@ -3994,6 +4071,7 @@ AdminController.prototype._onFieldMappingChange = function(a, b) {
   }
   f.item = this._createFieldOfType(a.getAttribute("data-type"), b, a.value);
   c._document.querySelector("#preview-" + d).dispatchEvent(f);
+  c._document.querySelector("#btn-import").dispatchEvent(f);
 };
 AdminController.prototype._createColorPicker = function(a) {
   a = void 0 === a ? null : a;
@@ -4022,18 +4100,21 @@ AdminController.prototype._getTrelloFields = function(a, b) {
   var c = this, d = this._document.createElement("optgroup");
   d.setAttribute("label", "Trello Felder");
   return Promise.resolve(TRELLO_FIELDS.map(function(d) {
-    var e = c._document.createElement("option"), g = d.id;
-    e.setAttribute("value", g);
-    e.innerText = __(d.desc);
-    e.setAttribute("data-type", d.hasOwnProperty("type") ? d.type : "text");
-    e.selected = null != b.mapping.find(function(b) {
-      return b.source.isSameAddress(a.address) && b.reference === g;
-    });
-    return e;
+    return c._createFieldOption(a, d.id, __(d.desc), d.type, b);
   }).reduce(function(a, b) {
     a.appendChild(b);
     return a;
   }, d));
+};
+AdminController.prototype._createFieldOption = function(a, b, c, d, e) {
+  var f = this._document.createElement("option");
+  f.setAttribute("value", b);
+  f.innerText = c;
+  f.setAttribute("data-type", d || "text");
+  f.selected = null != e.mapping.find(function(c) {
+    return c.source.isSameAddress(a.address) && c.reference === b;
+  });
+  return f;
 };
 AdminController.prototype._getPantaFields = function(a, b) {
   var c = this;
@@ -4045,14 +4126,7 @@ AdminController.prototype._getPantaFields = function(a, b) {
           var f = d.groupId, g = c._document.createElement("optgroup");
           g.setAttribute("label", e + ": " + d.group);
           return d.fields.map(function(d) {
-            var e = c._document.createElement("option"), g = f + "." + d.id;
-            e.setAttribute("value", g);
-            e.innerText = d.label;
-            e.setAttribute("data-type", d.hasOwnProperty("type") ? d.type : "text");
-            e.selected = null != b.mapping.find(function(b) {
-              return b.source.isSameAddress(a.address) && b.reference === g;
-            });
-            return e;
+            return c._createFieldOption(a, f + "." + d.id, d.label, d.type, b);
           }).reduce(function(a, b) {
             a.appendChild(b);
             return a;
@@ -4068,18 +4142,28 @@ AdminController.prototype._clearContent = function() {
   });
 };
 AdminController.prototype._showErrors = function(a, b) {
-  a = a.querySelectorAll(".error-messages");
-  a.forEach(function(a) {
-    a.removeClass("hidden");
-    a.querySelector("#error-message").innerHTML = b;
-  });
-  return a;
+  return this._show(a, a.querySelectorAll(".error-messages"), b, "#error-message");
+};
+AdminController.prototype._showWarnings = function(a, b) {
+  return this._show(a, a.querySelectorAll(".warning-messages"), b, "#warning-message");
+};
+AdminController.prototype._hideWarnings = function(a) {
+  return this._hide(a.querySelectorAll(".warning-messages"), "#warning-message");
 };
 AdminController.prototype._hideErrors = function(a) {
-  a = a.querySelectorAll(".error-messages");
+  return this._hide(a.querySelectorAll(".error-messages"), "#error-message");
+};
+AdminController.prototype._show = function(a, b, c, d) {
+  b.forEach(function(a) {
+    a.removeClass("hidden");
+    a.querySelector(d).innerHTML = c;
+  });
+  return b;
+};
+AdminController.prototype._hide = function(a, b) {
   a.forEach(function(a) {
     a.addClass("hidden");
-    a.querySelector("#error-message").innerHTML = "";
+    a.querySelector(b).innerHTML = "";
   });
   return a;
 };
@@ -4147,7 +4231,7 @@ $jscomp.global.Object.defineProperties(ExcelService.prototype, {treatFirstRowAsR
   this._treatFirstRowAsRoot = a;
 }}});
 // Input 40
-var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, p, n, q) {
+var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, q, n, p) {
   this._id = a || uuid();
   this._topic = b;
   this._pagina = c;
@@ -4159,9 +4243,9 @@ var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, p, n, q) {
   this._visual = h;
   this._region = k;
   this._season = l;
-  this._location = q;
+  this._location = p;
   this._author = m;
-  this._text = p;
+  this._text = q;
   this._involved = {};
   this._version = Artikel.VERSION;
   this.putInvolved("onsite", new OtherBeteiligt);
@@ -4595,7 +4679,7 @@ $jscomp.global.Object.defineProperties(PluginConfiguration, {VERSION:{configurab
   return 1;
 }}});
 // Input 45
-var Plan = function(a, b, c, d, e, f, g, h, k, l, m, p, n, q, r) {
+var Plan = function(a, b, c, d, e, f, g, h, k, l, m, q, n, p, r) {
   this._id = a || uuid();
   this._fee = d;
   this._projectFee = e;
@@ -4605,9 +4689,9 @@ var Plan = function(a, b, c, d, e, f, g, h, k, l, m, p, n, q, r) {
   this._totalCosts = k;
   this._visual = l;
   this._form = m;
-  this._online = p;
+  this._online = q;
   this._season = n;
-  this._region = q;
+  this._region = p;
   this._place = r;
   this._measures = b;
   this._description = c;
@@ -4697,6 +4781,16 @@ $jscomp.global.Object.defineProperties(Plan, {VERSION:{configurable:!0, enumerab
   return 1;
 }}});
 // Input 46
+var sampleImport = {_title:"Test", _header:{_label:"Listen-Name", _children:[{_label:"Listen-Name", _children:[], _properties:[], _address:{c:0, r:0}, _comments:[], _color:null}, {_label:"Frist (Datum)", _children:[], _properties:[], _address:{c:1, r:0}, _comments:[], _color:null}, {_label:"Mitglieder(Mehrere M\u00f6glich)", _children:[], _properties:[], _address:{c:2, r:0}, _comments:[], _color:null}, {_label:"Wasser", _children:[], _properties:[], _address:{c:3, r:0}, _comments:[{a:" ", t:"Sky", 
+r:'<r><rPr><sz val="10"/><color rgb="FF000000"/><rFont val="Arial"/><family val="2"/><charset val="1"/></rPr><t xml:space="preserve">Sky</t></r>', h:'<span style="font-size:10pt;">Sky</span>'}], _color:null}, {_label:"Wiese", _children:[], _properties:[], _address:{c:4, r:0}, _comments:[{a:" ", t:"Lime", r:'<r><rPr><sz val="10"/><color rgb="FF000000"/><rFont val="Arial"/><family val="2"/><charset val="1"/></rPr><t xml:space="preserve">Lime</t></r>', h:'<span style="font-size:10pt;">Lime</span>'}], 
+_color:null}, {_label:"Strasse", _children:[], _properties:[], _address:{c:5, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:6, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:7, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:8, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:9, r:0}, _comments:[], _color:null}, {_label:"Label", 
+_children:[], _properties:[], _address:{c:10, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:11, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:12, r:0}, _comments:[], _color:null}, {_label:"Trello-Feld: TITEL", _children:[], _properties:[], _address:{c:14, r:0}, _comments:[], _color:null}, {_label:"Trello-Feld: Beschreibung", _children:[], _properties:[], _address:{c:15, r:0}, _comments:[], _color:null}, 
+{_label:"1. Auwwahlliste", _children:[], _properties:[], _address:{c:17, r:0}, _comments:[], _color:null}, {_parent:null, _label:"2. Auwwahlliste", _children:[], _properties:[], _address:{c:18, r:0}, _comments:[], _color:null}, {_label:"3. Auwwahlliste", _children:[], _properties:[], _address:{c:19, r:0}, _comments:[], _color:null}, {_label:"4. Auwwahlliste", _children:[], _properties:[], _address:{c:20, r:0}, _comments:[], _color:null}, {_label:"5. Auswahlliste", _children:[], _properties:[], _address:{c:21, 
+r:0}, _comments:[], _color:null}, {_label:"Feld: Details ", _children:[], _properties:[], _address:{c:23, r:0}, _comments:[], _color:null}, {_label:"Feld: Vorname", _children:[], _properties:[], _address:{c:24, r:0}, _comments:[], _color:null}, {_label:"Feld: Name", _children:[], _properties:[], _address:{c:25, r:0}, _comments:[], _color:null}, {_label:"Noitzen (nur im TRELLO)", _children:[], _properties:[], _address:{c:26, r:0}, _comments:[], _color:null}, {_label:"Feld: E-Mail", _children:[], _properties:[], 
+_address:{c:28, r:0}, _comments:[], _color:null}, {_label:" Feld: Telefon", _children:[], _properties:[], _address:{c:29, r:0}, _comments:[], _color:null}, {_label:"Feld: Adresse", _children:[], _properties:[], _address:{c:30, r:0}, _comments:[], _color:null}, {_label:"Feld: Konditionen", _children:[], _properties:[], _address:{c:31, r:0}, _comments:[], _color:null}, {_label:"Feld: Erfahrungen", _children:[], _properties:[], _address:{c:32, r:0}, _comments:[], _color:null}, {_label:"Facebook Feld: Link", 
+_children:[], _properties:[], _address:{c:34, r:0}, _comments:[], _color:null}, {_label:"Instagram Feld: Link", _children:[], _properties:[], _address:{c:35, r:0}, _comments:[], _color:null}, {_label:"Twitter Feld: Link", _children:[], _properties:[], _address:{c:36, r:0}, _comments:[], _color:null}, {_label:"Youtube Feld: Link", _children:[], _properties:[], _address:{c:37, r:0}, _comments:[], _color:null}, {_label:"Flickr Feld: Link", _children:[], _properties:[], _address:{c:38, r:0}, _comments:[], 
+_color:null}], _properties:[], _address:{c:-1, r:-1}, _comments:[], _color:null}};
+// Input 47
 HTMLElement.prototype.addClass = function(a) {
   this.hasClass(a) || (this.className += " " + a, this.className = this.className.trim());
   return this;
@@ -4899,7 +4993,7 @@ function extend(a, b) {
   return a;
 }
 ;
-// Input 47
+// Input 48
 var JsonSerialization = function() {
 };
 JsonSerialization.prototype.serialize = function(a) {
@@ -4928,7 +5022,7 @@ JsonSerialization.getProperty = function(a, b) {
 JsonSerialization.prototype.getAllProperties = function(a) {
   return Object.getOwnPropertyNames(a);
 };
-// Input 48
+// Input 49
 var template_regular = '<div id="template">    <div class="row">        <div class="col-6 col-phone-12">            <div class="row">                <div class="col-12 col-phone-12">                    <div class="pa.name"></div>                </div>                <div class="col-12 col-phone-12">                    <div class="pa.social"></div>                </div>            </div>        </div>        <div class="col-6 col-phone-12 line-4 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-6 col-phone-12">            <div class="pa.address"></div>        </div>        <div class="col-6 col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-12 col-phone-12">            <div class="row">                <div class="col-4 col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_regular_mobile = '<div id="template">    <div class="row">        <div class="col-phone-12">            <div class="pa.name"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.social"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.address"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="row">                <div class="col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.notes"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.format"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.placement"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.price"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.name"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.social"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.address"></div>            </div>        </div>    </div></div>', 
@@ -4940,7 +5034,7 @@ template_settings_switch = '<div class="row module-switch-container">    <div cl
 template_settings_editable = '<div class="row module-editable-container">    <div class="col-1 col-phone-1 module-editable-show">       <div class="panta-module-enabled">           <label class="panta-checkbox-container hidden">               <input class="panta-js-checkbox" type="checkbox" checked="checked">               <span class="panta-checkbox-checkmark elevate"></span>           </label>       </div>    </div>    <div class="col-8 col-phone-8 module-editable-name"></div>    <div class="col-1 col-phone-1 module-helper-visible">       <button class="panta-btn panta-btn-dot panta-js-button hidden" title="Dieses Feld ist sichtbar"><img src="assets/ic_visible.png" width="12px" height="12px"/></button>    </div>    <div class="col-1 col-phone-1 module-editable-color invisible">       <button class="panta-btn panta-btn-dot panta-js-button"></button>    </div>    <div class="col-1 col-phone-1 module-helper-sortable">       <button class="panta-btn panta-btn-dot panta-js-button" title="Dieses Feld kann f\u00fcr die Sortierung verwendet werden">S</button>    </div></div>', 
 template_settings_editable_select = '<div class="row module-editable-select-container">   <select class="panta-js-select"></select></div>', template_settings_editable_option = '<div class="row module-editable-option-container">    <div class="col-10 module-editable-option-name">       <input type="text" class="panta-js-name"/>    </div>    <div class="col-2 module-editable-option-actions">       <button class="panta-btn panta-btn-icon panta-js-delete"><img src="assets/ic_trash.svg" width="16px" height="16px"/></button>       <button class="panta-btn panta-btn-icon panta-js-visible hidden"><img src="assets/ic_visible.png" width="16px" height="16px"/></button>    </div></div>', 
 template_beteiligt = '<form id="panta.module">    <div class="js-panta-editable-title">        <div class="row min"><div class="col-12">\u00a0</div></div>        <div class="row min">           <div class="col-12">                <h3 class="js-panta-module js-panta-label"></h3>           </div>        </div>    </div>    <div class="row min navigation-bar">        <div id="pa.involved.onsite" class="col-2 col-phone-4 tab" data-label="vor.Ort" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.text" class="col-2 col-phone-4 tab" data-label="Journalist" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.photo" class="col-phone-4 col-2 tab" data-label="Visual" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.video" class="col-phone-4 col-2 tab" data-label="Event" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.illu" class="col-phone-4 col-2 tab" data-label="MC/Host" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.ad" class="col-phone-4 col-2 tab" data-label="weitere" data-layout="regular"><span>Placeholder</span></div>    </div>    <span id="pa.tab.content"></span></form>';
-// Input 49
+// Input 50
 var Reducers = function() {
 };
 Reducers.asKeyValue = function(a, b) {

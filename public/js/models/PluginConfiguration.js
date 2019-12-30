@@ -70,7 +70,7 @@ class PluginConfiguration {
     }
 
     static _readModules(json) {
-        let modules = JsonSerialization.getProperty(json, 'modules') || {
+        const modules = JsonSerialization.getProperty(json, 'modules') || {
             "1": JSON.stringify(new PluginModuleConfig("module.artikel", "Artikel", {}))
         };
         return Object.values(modules).map(function(module) {

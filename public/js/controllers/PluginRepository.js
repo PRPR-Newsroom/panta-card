@@ -195,7 +195,7 @@ class PluginRepository extends Repository {
                     "color": "shades"
                 }]
             }), {"id": 1});
-            PluginRepository.instance.add(new PluginModuleConfig("module.beteiligt", "Beteiligt", {
+            PluginRepository.instance.add(new PluginModuleConfig(ModuleController.ID, "Beteiligt", {
                 "sort": 3,
                 "enabled": false,
                 "icon": "ic_beteiligt.png",
@@ -476,7 +476,7 @@ class PluginRepository extends Repository {
                     }
                 },
             }), {"id": 2});
-            PluginRepository.instance.add(new PluginModuleConfig("module.plan", "Plan", {
+            PluginRepository.instance.add(new PluginModuleConfig(ModulePlanController.ID, "Plan", {
                 "sort": 2,
                 "enabled": false,
                 "icon": "ic_plan.png",
