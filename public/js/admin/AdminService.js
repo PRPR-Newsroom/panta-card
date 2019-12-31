@@ -41,10 +41,11 @@ class AdminService {
         return that.trello.getRestApi()
             .getToken()
             .then(it => {
+                console.debug(`trello token is ${it}`);
                 if (it) {
-                    console.debug(`Using token ${it}`);
                     return {token: it, key: that.trello.getRestApi().appKey};
                 } else {
+                    console.debug(`authorize app with key=${that.trello.getRestApi().appKey}`);
                     return that.trello.getRestApi().authorize({
                         expiration: 'never',
                         scope: 'read,write'

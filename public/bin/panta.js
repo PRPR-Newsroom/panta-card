@@ -3210,7 +3210,12 @@ AdminService.prototype.getCurrentCard = function() {
 AdminService.prototype.withTrelloToken = function() {
   var a = this;
   return a.trello.getRestApi().getToken().then(function(b) {
-    return b ? (console.debug("Using token " + b), {token:b, key:a.trello.getRestApi().appKey}) : a.trello.getRestApi().authorize({expiration:"never", scope:"read,write"}).then(function(b) {
+    console.debug("trello token is " + b);
+    if (b) {
+      return {token:b, key:a.trello.getRestApi().appKey};
+    }
+    console.debug("authorize app with key=" + a.trello.getRestApi().appKey);
+    return a.trello.getRestApi().authorize({expiration:"never", scope:"read,write"}).then(function(b) {
       return {token:b, key:a.trello.getRestApi().appKey};
     }).catch(function(b) {
       console.error("Got error " + b);
