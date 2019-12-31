@@ -100,6 +100,7 @@ class AdminService {
                                 })
                                 .catch(err => {
                                     console.error(`Got an error while uploading to card: ${err}`);
+                                    that.trello.getRestApi().clearToken();
                                     reject(file);
                                 });
                         })
