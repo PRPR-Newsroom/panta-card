@@ -3210,10 +3210,11 @@ AdminService.prototype.getCurrentCard = function() {
 AdminService.prototype.withTrelloToken = function() {
   var a = this;
   return a.trello.getRestApi().getToken().then(function(b) {
-    return b ? {token:b, key:a.trello.getRestApi().appKey} : a.trello.getRestApi().authorize({expiration:"never", scope:"read,write"}).then(function(b) {
+    return b ? (console.debug("Using token " + b), {token:b, key:a.trello.getRestApi().appKey}) : a.trello.getRestApi().authorize({expiration:"never", scope:"read,write"}).then(function(b) {
       return {token:b, key:a.trello.getRestApi().appKey};
-    }).catch(function(a) {
-      console.error("Got error " + a);
+    }).catch(function(b) {
+      console.error("Got error " + b);
+      a.trello.getRestApi().clearToken();
       throw "Unauthorized";
     });
   });
@@ -3244,7 +3245,6 @@ AdminService.prototype.load = function(a) {
               }, 10);
             }).catch(function(a) {
               console.error("Got an error while uploading to card: " + a);
-              b.trello.getRestApi().clearToken();
               e(f);
             });
           });
