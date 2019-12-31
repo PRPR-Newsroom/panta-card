@@ -1,43 +1,51 @@
 @import "variables";
 
+[class*="panta-bgcolor-"] {
+  color: $white;
+  p {
+    color: $white;
+  }
+}
+
 .panta-bgcolor-blue {
-  background-color: $trello-blue;
+  background-color: $trello-blue !important;
 }
 
 .panta-bgcolor-green {
-  background-color: $trello-green;
+  background-color: $trello-green !important;
 }
 
 .panta-bgcolor-orange {
-  background-color: $trello-orange;
+  background-color: $trello-orange !important;
 }
 
 .panta-bgcolor-red {
-  background-color: $trello-red;
+  background-color: $trello-red !important;
 }
 
 .panta-bgcolor-yellow {
-  background-color: $trello-yellow;
+  background-color: $trello-yellow !important;
 }
 
 .panta-bgcolor-purple {
-  background-color: $trello-purple;
+  background-color: $trello-purple !important;
 }
 
 .panta-bgcolor-pink {
-  background-color: $trello-pink;
+  background-color: $trello-pink !important;
+
 }
 
 .panta-bgcolor-sky {
-  background-color: $trello-sky;
+  background-color: $trello-sky !important;
 }
 
 .panta-bgcolor-lime {
-  background-color: $trello-lime;
+  background-color: $trello-lime !important;
 }
 
 .panta-bgcolor-shades {
-  background-color: $trello-shades;
+  background-color: $trello-shades !important;
 }
 
 .panta-btn {

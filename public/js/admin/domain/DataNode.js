@@ -3,7 +3,7 @@ class DataNode {
     constructor(row) {
         this._row = row;
         /**
-         * @type {{header:string,value:any}[]}
+         * @type {{header:HeaderNode,value:any}[]}
          * @private
          */
         this._values = [];
@@ -24,9 +24,14 @@ class DataNode {
         });
     }
 
+    /**
+     * Get the value at the address/position of the argument header
+     * @param {HeaderNode} header
+     * @return {{header: HeaderNode, value: any}}
+     */
     get(header) {
         return this._values.find(it => {
-            return it.header === header;
+            return it.header.isSameAddress(header.address);
         });
     }
 

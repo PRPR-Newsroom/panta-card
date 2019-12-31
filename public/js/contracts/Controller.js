@@ -44,7 +44,8 @@ class Controller {
      * Called when the controller should update its content
      * @abstract
      */
-    update() {}
+    update() {
+    }
 
     /**
      *
@@ -52,7 +53,8 @@ class Controller {
      * @param configuration an option configuration object
      * @abstract
      */
-    render(entity, configuration) {}
+    render(entity, configuration) {
+    }
 
     /**
      * Detach the ui
@@ -83,14 +85,16 @@ class Controller {
      * @return {}
      * @abstract
      */
-    create(json, configuration) {}
+    create(json, configuration) {
+    }
 
     /**
      * Called when an event has occurred
      * @param {PInput} source
      * @param args
      */
-    onEvent(source, args) {}
+    onEvent(source, args) {
+    }
 
     /**
      * Get all module configs
@@ -174,5 +178,27 @@ class Controller {
      * @return {*} the property value
      * @abstract
      */
-    getPropertyByName(entity, editableId, defaultValue) {}
+    getPropertyByName(entity, editableId, defaultValue) {
+    }
+
+    /**
+     * @param {PluginModuleConfig} pluginModuleConfig the plugin module configuration
+     * @return {[]} all fields that this controller knows about
+     */
+    getFields(pluginModuleConfig) {
+        const that = this;
+        return [[{
+            'group': 'Felder',
+            'groupId': `${pluginModuleConfig.id}`,
+            'fields': pluginModuleConfig.config.editables.filter(that.isImportableField)
+        }]];
+    }
+
+    /**
+     * @param {{id: string, desc: string, visible: boolean, type: string}} field
+     */
+    isImportableField(editable) {
+        return editable.visible && (editable.type === "text" || editable.type === "select")
+    }
+
 }

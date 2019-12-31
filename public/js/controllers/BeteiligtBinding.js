@@ -200,7 +200,7 @@ class BeteiligtBinding extends Binding {
         let tabs = Object.values(this).filter(function (property) {
             return property instanceof PModuleConfig && property.valueHolder.show;
         });
-        let tab = tabs.find(function(item) {
+        let tab = tabs.find(function (item) {
             return !item.valueHolder.data.isEmpty()
         }) || tabs[0];
         tab.activate();
@@ -371,6 +371,47 @@ class BeteiligtBinding extends Binding {
 
             config = this.getLayoutConfigurationFor("blog", "field.date");
             forms.setField("date", this.document.newSingleLineInput(valueHolder, ".pa.date", "date", config.label, params, this._action, config.placeholder, "text", false, config.visible));
+        }
+    }
+
+    /**
+     * @param layout
+     * @param {{id: string}} field
+     */
+    static getFieldMapping(layout, field) {
+        switch (layout) {
+            case 'regular':
+                switch (field.id) {
+                    case 'field.deadline':
+                        return 'duedate';
+                    case 'field.a':
+                        return 'fee';
+                    case 'field.b':
+                        return 'charges';
+                    case 'field.c':
+                        return 'project';
+                    default:
+                        return field.id.substr(field.id.indexOf('.') + 1);
+                }
+            case 'ad':
+                switch (field.id) {
+                    case 'field.sujet':
+                        return 'notes';
+                    default:
+                        return field.id.substr(field.id.indexOf('.') + 1);
+                }
+            case 'blog':
+                switch (field.id) {
+                    case 'field.link':
+                        return 'address';
+                    case 'field.follower':
+                        return 'social';
+                    default:
+                        return field.id.substr(field.id.indexOf('.') + 1);
+                }
+            default:
+                console.warn(`No mapping for ${layout} and field ${field.id}`);
+                return field.id;
         }
     }
 

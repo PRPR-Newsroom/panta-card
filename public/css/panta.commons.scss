@@ -144,3 +144,27 @@ textarea, .input-overlay {
 ::-ms-input-placeholder { /* Microsoft Edge */
   opacity: 0.5;
 }
+
+.nobreak {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.space {
+  margin: 0.5em 0.1em;
+}
+
+.borderless {
+  border: none;
+}
+
+.align-right {
+  text-align: right;
+}
+
+.panta-ico-import-export {
+  background-image: url(../assets/ic_import_export.png);
+  width: 16px;
+  height: 16px;
+}

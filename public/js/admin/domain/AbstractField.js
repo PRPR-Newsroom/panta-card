@@ -11,12 +11,15 @@
 class AbstractField {
 
     /**
-     * @return {HeaderNode}
+     * @return {HeaderNode} the header node in the Excel file that this field is mapped to
      */
     get source() {
         return this._source;
     }
 
+    /**
+     * @return {string}
+     */
     get reference() {
         return this._reference;
     }
@@ -31,28 +34,32 @@ class AbstractField {
 
     /**
      * @param name a human readable name
-     * @param reference the referenced, target field (e.g. the trello field but also any panta.card field)
+     * @param {string} reference the referenced, target field (e.g. the trello field but also any panta.card field)
      * @param {HeaderNode} source field
      */
     constructor(name, reference, source) {
         this._name = name;
+        /**
+         * @type {string}
+         * @private
+         */
         this._reference = reference;
         /**
          * @type {HeaderNode}
          */
         this._source = source;
+
+        this._type = this.getType();
     }
 
     /**
-     * @param {DataNode} value
-     * @abstract
-     */
-    set(value) {}
-
-    /**
-     * @param {{value: {h}}} node
+     * @param {{value: {h: string, v: string, t: string}}} node
      * @abstract
      */
     getValue(node) {}
 
+    /**
+     * @abstract
+     */
+    getType() {}
 }

@@ -1,5 +1,9 @@
 class ModulePlanController extends Controller {
 
+    static get ID() {
+        return "module.plan";
+    }
+
     static get SHARED_NAME() {
         return "panta.Plan";
     }
@@ -250,4 +254,5 @@ class ModulePlanController extends Controller {
     create(json, configuration) {
         return Plan.create(json);
     }
+
 }

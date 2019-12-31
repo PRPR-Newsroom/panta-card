@@ -38,7 +38,7 @@ class ModuleConfig {
                 return OtherBeteiligt.create(jsonObj);
             };
         }
-        let editable = configuration.config.editables
+        const editable = configuration.config.editables
             .filter(function (editable) {
                 return editable.id === id;
             })[0];
@@ -59,6 +59,9 @@ class ModuleConfig {
     
     constructor(id, sections) {
         this._id = id || uuid();
+        /**
+         * @type {{onsite: CommonBeteiligt, text: CommonBeteiligt, photo: CommonBeteiligt, video: CommonBeteiligt, illu: CommonBeteiligt, ad: CommonBeteiligt}}
+         */
         this._sections = sections;
         this._version = CommonBeteiligt.VERSION;
     }
@@ -74,6 +77,9 @@ class ModuleConfig {
         }).length;
     }
 
+    /**
+     * @return {{onsite: CommonBeteiligt, text: CommonBeteiligt, photo: CommonBeteiligt, video: CommonBeteiligt, illu: CommonBeteiligt, ad: CommonBeteiligt}}
+     */
     get sections() {
         return this._sections;
     }
