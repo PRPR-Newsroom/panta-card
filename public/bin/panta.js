@@ -3981,8 +3981,9 @@ AdminController.prototype.renderModel = function(a, b) {
       }).then(function(a) {
         e.appendChild(a);
         return Array.from(a.querySelectorAll("select").values());
-      }).then(function(a) {
-        a.forEach(function(a) {
+      }).then(function(b) {
+        c._model = a;
+        b.forEach(function(a) {
           a.dispatchEvent(new Event("change"));
         });
         return Array.from(h.querySelectorAll(".js-preview").values());
@@ -3994,7 +3995,6 @@ AdminController.prototype.renderModel = function(a, b) {
       }));
     });
   });
-  c._model = a;
   Promise.all(d).then(function(a) {
     return c._trello.sizeTo("#content");
   });
