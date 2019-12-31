@@ -3385,6 +3385,7 @@ AdminService.prototype._createCardInternal = function(a, b, c) {
             });
           });
         }
+        console.debug("Plan Module is not enabled");
         return e._doImportBeteiligt(b, c, a);
       });
       return [f, g];
@@ -3813,48 +3814,46 @@ AdminController.prototype.render = function(a) {
   return this.index(a.configuration);
 };
 AdminController.prototype.index = function(a) {
-  var b = this;
   this._model = null;
   this._clearContent();
-  return this.renderActions(a).then(function(c) {
-    c = Import.create("Sample", sampleImport);
-    var d = new DataNode(1), e = c.header;
-    d.set(e.get(0), {v:"Test Liste", t:"s"});
-    d.set(e.get(1), {v:43830, w:"31/12/2019", t:"n"});
-    d.set(e.get(2), {v:"me@m3ns1.com", t:"s"});
-    d.set(e.get(3), {v:1, t:"n"});
-    d.set(e.get(4), {v:1, t:"n"});
-    d.set(e.get(5), {v:1, t:"n"});
-    d.set(e.get(6), {v:1, t:"n"});
-    d.set(e.get(7), {v:1, t:"n"});
-    d.set(e.get(8), {v:1, t:"n"});
-    d.set(e.get(9), {v:1, t:"n"});
-    d.set(e.get(10), {v:1, t:"n"});
-    d.set(e.get(11), {v:1, t:"n"});
-    d.set(e.get(12), {v:1, t:"n"});
-    d.set(e.get(13), {v:"A cocktail a day", t:"s"});
-    d.set(e.get(14), {v:"https://a-cocktail-a-day.com/", t:"s"});
-    d.set(e.get(15), {v:"3.Begriff", t:"s"});
-    d.set(e.get(16), {v:"", t:"s"});
-    d.set(e.get(17), {v:"", t:"s"});
-    d.set(e.get(18), {v:"", t:"s"});
-    d.set(e.get(19), {v:"", t:"s"});
-    d.set(e.get(20), {v:"Blog zum Thema: Reisen, Lifestyle, Fliegen", t:"s"});
-    d.set(e.get(21), {v:"Kristina", t:"s"});
-    d.set(e.get(22), {v:"Roder", t:"s"});
-    d.set(e.get(23), {v:"Test Notiz", t:"s"});
-    d.set(e.get(24), {v:"kristina@a-cocktail-a-day.com", t:"s"});
-    d.set(e.get(25), {v:"n.a.", t:"s"});
-    d.set(e.get(26), {v:"", t:"s"});
-    d.set(e.get(27), {v:"Offen f\u00fcr Kooperationen", t:"s"});
-    d.set(e.get(28), {v:"", t:"s"});
-    d.set(e.get(29), {v:"https://facebook.com", t:"s"});
-    d.set(e.get(30), {v:"https://instagram.com", t:"s"});
-    d.set(e.get(31), {v:"https://twitter.com", t:"s"});
-    d.set(e.get(32), {v:"https://youtube.com", t:"s"});
-    d.set(e.get(33), {v:"https://flickr.com", t:"s"});
-    c.data.push(d);
-    b.renderModel(c, a);
+  return this.renderActions(a).then(function(a) {
+    a = Import.create("Sample", sampleImport);
+    var b = new DataNode(1), d = a.header;
+    b.set(d.get(0), {v:"Test Liste", t:"s"});
+    b.set(d.get(1), {v:43830, w:"31/12/2019", t:"n"});
+    b.set(d.get(2), {v:"me@m3ns1.com", t:"s"});
+    b.set(d.get(3), {v:1, t:"n"});
+    b.set(d.get(4), {v:1, t:"n"});
+    b.set(d.get(5), {v:1, t:"n"});
+    b.set(d.get(6), {v:1, t:"n"});
+    b.set(d.get(7), {v:1, t:"n"});
+    b.set(d.get(8), {v:1, t:"n"});
+    b.set(d.get(9), {v:1, t:"n"});
+    b.set(d.get(10), {v:1, t:"n"});
+    b.set(d.get(11), {v:1, t:"n"});
+    b.set(d.get(12), {v:1, t:"n"});
+    b.set(d.get(13), {v:"A cocktail a day", t:"s"});
+    b.set(d.get(14), {v:"https://a-cocktail-a-day.com/", t:"s"});
+    b.set(d.get(15), {v:"3.Begriff", t:"s"});
+    b.set(d.get(16), {v:"", t:"s"});
+    b.set(d.get(17), {v:"", t:"s"});
+    b.set(d.get(18), {v:"", t:"s"});
+    b.set(d.get(19), {v:"", t:"s"});
+    b.set(d.get(20), {v:"Blog zum Thema: Reisen, Lifestyle, Fliegen", t:"s"});
+    b.set(d.get(21), {v:"Kristina", t:"s"});
+    b.set(d.get(22), {v:"Roder", t:"s"});
+    b.set(d.get(23), {v:"Test Notiz", t:"s"});
+    b.set(d.get(24), {v:"kristina@a-cocktail-a-day.com", t:"s"});
+    b.set(d.get(25), {v:"n.a.", t:"s"});
+    b.set(d.get(26), {v:"", t:"s"});
+    b.set(d.get(27), {v:"Offen f\u00fcr Kooperationen", t:"s"});
+    b.set(d.get(28), {v:"", t:"s"});
+    b.set(d.get(29), {v:"https://facebook.com", t:"s"});
+    b.set(d.get(30), {v:"https://instagram.com", t:"s"});
+    b.set(d.get(31), {v:"https://twitter.com", t:"s"});
+    b.set(d.get(32), {v:"https://youtube.com", t:"s"});
+    b.set(d.get(33), {v:"https://flickr.com", t:"s"});
+    a.data.push(b);
     return !0;
   });
 };
@@ -3919,8 +3918,13 @@ AdminController.prototype._readConfiguration = function(a) {
   return Object.values(a.getNormalizedHeaders()).map(function(a) {
     var c = b._document.querySelector("#field-mapping-" + a.getAddressAsText());
     c = c.item(c.selectedIndex);
+    if (null === c) {
+      return null;
+    }
     var e = c.getAttribute("data-type");
     return b._createFieldOfType(e, a, c.value);
+  }).filter(function(a) {
+    return null != a;
   }).reduce(function(a, b) {
     a.mapping.push(b);
     return a;
@@ -4051,27 +4055,30 @@ AdminController.prototype._createFieldMappingSection = function(a, b) {
       return b.source.isSameAddress(a.address);
     });
     f.value = c && c.reference ? c.reference : "-1";
+    isBlank(f.value) && (f.value = "-1");
     return e;
   });
 };
 AdminController.prototype._onFieldMappingChange = function(a, b) {
-  var c = this, d = b.getAddressAsText(), e = c._document.querySelector("#more-" + d), f = new Event("update");
-  e.removeChildren();
-  if ("trello.labels" === a.getAttribute("value")) {
-    f.item = new BooleanField(a);
-    var g = c._createColorPicker(b.color);
-    g.setEventListener("change", function(a) {
-      a = a.target.item(a.target.selectedIndex).getAttribute("value");
-      var e = c._document.querySelector("#chip-" + d + "-last");
-      e.removeClassByPrefix("panta-bgcolor-");
-      "0" !== a && e.addClass("panta-bgcolor-" + a);
-      b.color = a;
-    });
-    e.appendChild(g);
+  if (null !== a) {
+    var c = this, d = b.getAddressAsText(), e = c._document.querySelector("#more-" + d), f = new Event("update");
+    e.removeChildren();
+    if ("trello.labels" === a.getAttribute("value")) {
+      f.item = new BooleanField(a);
+      var g = c._createColorPicker(b.color);
+      g.setEventListener("change", function(a) {
+        a = a.target.item(a.target.selectedIndex).getAttribute("value");
+        var e = c._document.querySelector("#chip-" + d + "-last");
+        e.removeClassByPrefix("panta-bgcolor-");
+        "0" !== a && e.addClass("panta-bgcolor-" + a);
+        b.color = a;
+      });
+      e.appendChild(g);
+    }
+    f.item = this._createFieldOfType(a.getAttribute("data-type"), b, a.value);
+    c._document.querySelector("#preview-" + d).dispatchEvent(f);
+    c._document.querySelector("#btn-import").dispatchEvent(f);
   }
-  f.item = this._createFieldOfType(a.getAttribute("data-type"), b, a.value);
-  c._document.querySelector("#preview-" + d).dispatchEvent(f);
-  c._document.querySelector("#btn-import").dispatchEvent(f);
 };
 AdminController.prototype._createColorPicker = function(a) {
   a = void 0 === a ? null : a;
@@ -4107,14 +4114,11 @@ AdminController.prototype._getTrelloFields = function(a, b) {
   }, d));
 };
 AdminController.prototype._createFieldOption = function(a, b, c, d, e) {
-  var f = this._document.createElement("option");
-  f.setAttribute("value", b);
-  f.innerText = c;
-  f.setAttribute("data-type", d || "text");
-  f.selected = null != e.mapping.find(function(c) {
-    return c.source.isSameAddress(a.address) && c.reference === b;
-  });
-  return f;
+  a = this._document.createElement("option");
+  a.setAttribute("value", b);
+  a.innerText = c;
+  a.setAttribute("data-type", d || "text");
+  return a;
 };
 AdminController.prototype._getPantaFields = function(a, b) {
   var c = this;

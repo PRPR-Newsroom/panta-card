@@ -400,6 +400,7 @@ class AdminService {
                                                 });
                                         })
                                 } else {
+                                    console.debug('Plan Module is not enabled');
                                     return that._doImportBeteiligt(data, configuration, card);
                                 }
                             });

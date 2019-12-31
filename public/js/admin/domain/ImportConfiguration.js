@@ -66,7 +66,8 @@ class ImportConfiguration {
      * @return boolean if the configuration is valid resp. all required fields are set
      */
     isValid() {
-        let field = this.single('trello.list');
+        // TODO a field can only be mapped once!!
+        const field = this.single('trello.list');
         return field && field.source !== null;
     }
 

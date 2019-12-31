@@ -117,7 +117,7 @@ class AdminController {
                 sample1.set(header.get(32), {v: 'https://youtube.com', t: 's'});
                 sample1.set(header.get(33), {v: 'https://flickr.com', t: 's'});
                 model.data.push(sample1);
-                that.renderModel(model, previousConfig);
+                // that.renderModel(model, previousConfig);
                 return true;
             });
     }
@@ -248,9 +248,13 @@ class AdminController {
              */
             const select = that._document.querySelector(`#field-mapping-${it.getAddressAsText()}`);
             const option = select.item(select.selectedIndex);
+            if (option === null) {
+                return null;
+            }
             const type = option.getAttribute('data-type');
             return that._createFieldOfType(type, it, option.value);
-        }).reduce((prev, cur) => {
+        }).filter(it => it != null)
+            .reduce((prev, cur) => {
             prev.mapping.push(cur);
             return prev;
         }, new ImportConfiguration());
@@ -445,6 +449,9 @@ class AdminController {
                 linking.appendChild(fields);
                 const field = configuration.mapping.find(it => it.source.isSameAddress(header.address));
                 fields.value = field && field.reference ? field.reference : '-1';
+                if (isBlank(fields.value)) {
+                    fields.value = '-1';
+                }
                 return linking;
             });
     }
@@ -455,6 +462,9 @@ class AdminController {
      * @private
      */
     _onFieldMappingChange(item, header) {
+        if (item === null) {
+            return;
+        }
         const that = this;
         const address = header.getAddressAsText();
         const more = that._document.querySelector(`#more-${address}`);
@@ -554,7 +564,6 @@ class AdminController {
         option.setAttribute('value', fieldId);
         option.innerText = description;
         option.setAttribute('data-type', type || 'text');
-        option.selected = configuration.mapping.find(it => it.source.isSameAddress(header.address) && it.reference === fieldId) != null;
         return option;
     }
 
