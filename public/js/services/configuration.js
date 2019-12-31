@@ -1,5 +1,5 @@
 // SEE ALSO VERSION FILE
-const VERSION = "1.5.0-SNAPSHOT";
+const VERSION = "1.5.1-STAGING";
 
 const PLUGIN_CONFIGURATION = {
     'module.artikel.enabled': false, // 1

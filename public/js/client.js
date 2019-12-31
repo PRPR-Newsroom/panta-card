@@ -28,7 +28,7 @@ TrelloPowerUp.initialize({
         }, {
             icon: './assets/ic_import_export.png',
             text: 'Panta.Card.Import',
-            condition: 'admin',
+            // condition: 'admin',
             callback: function (t) {
                 return t.member('all')
                     .then(function (member) {
