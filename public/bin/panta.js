@@ -3215,12 +3215,18 @@ AdminService.prototype.withTrelloToken = function() {
       return {token:b, key:a.trello.getRestApi().appKey};
     }
     console.debug("authorize app with key=" + a.trello.getRestApi().appKey);
-    return a.trello.getRestApi().authorize({expiration:"never", scope:"read,write"}).then(function(b) {
-      return {token:b, key:a.trello.getRestApi().appKey};
-    }).catch(function(b) {
-      console.error("Got error " + b);
-      a.trello.getRestApi().clearToken();
-      throw "Unauthorized";
+    return (new Promise(function(a, b) {
+      window.Trello.authorize({expiration:"never", scope:{read:"true", write:"true"}, success:function() {
+        console.debug("Auth success");
+        a(!0);
+      }, error:function() {
+        console.error("Auth error");
+        b("Could not authorize");
+      }});
+    })).then(function() {
+      return a.trello.getRestApi().getToken().then(function(b) {
+        return {token:b, key:a.trello.getRestApi().appKey};
+      });
     });
   });
 };
