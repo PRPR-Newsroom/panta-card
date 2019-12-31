@@ -3216,7 +3216,7 @@ AdminService.prototype.withTrelloToken = function() {
     }
     console.debug("authorize app with key=" + a.trello.getRestApi().appKey);
     return (new Promise(function(a, b) {
-      window.Trello.authorize({expiration:"never", scope:{read:"true", write:"true"}, success:function() {
+      window.Trello.authorize({type:"popup", expiration:"never", scope:{read:"true", write:"true"}, success:function() {
         console.debug("Auth success");
         a(!0);
       }, error:function() {
