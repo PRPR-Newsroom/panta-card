@@ -58,6 +58,7 @@ class AdminService {
                     // });
                     return new Promise(function (resolve, reject) {
                         window.Trello.authorize({
+                            type: 'popup',
                             expiration: 'never',
                             scope: {
                                 read: 'true',
