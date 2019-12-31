@@ -9,23 +9,22 @@ class AdminService {
          * @type {FileReader}
          */
         this.fileReader = new FileReader();
-        this.importConfiguration = new ImportConfiguration();
         this.clientManager = ClientManager.getInstance(window);
         this.articleController = this.clientManager.getArticleController();
+        this.planController = this.clientManager.getPlanController();
         this.moduleController = this.clientManager.getModuleController();
+        this.excelService = this.clientManager.getExcelService();
     }
 
     hasLabel(label, color) {
         return this.getLabels()
-            .map(it => it.name === label/* && it.color === color*/)
+            .map(it => it.name === label && it.color === color)
             .reduce((prev, cur) => prev | cur);
     }
 
     createLabel(label, color) {
         const that = this;
-        this.doWithToken(function (token) {
-            that._createLabel(label, color);
-        });
+        return that._createLabel(label, color);
     }
 
     getCurrentCard() {
@@ -33,61 +32,29 @@ class AdminService {
         return that.trello.card('id');
     }
 
-    doWithToken(onAuthorized) {
+    /**
+     *
+     * @return {Promise<string>}
+     */
+    withTrelloToken() {
         const that = this;
-        if (!this.tryDoWithToken(onAuthorized)) {
-            return window.Trello.authorize({
-                type: "popup",
-                persist: "true",
-                expiration: "1day",
-                scope: {read: true, write: true, account: false},
-                success: () => {
-                    that.trello.restApi.tokenExpirationKey = "app_token_exp";
-                    const expdate = new Date();
-                    expdate.setTime(expdate.getTime() + 60 * 55 * 1000);
-                    that.trello.restApi.localStorage[that.trello.restApi.tokenExpirationKey] = expdate.toISOString();
-                    that.trello.restApi.localStorage[that.trello.restApi.pantaCardToken] = that.trello.restApi.localStorage[that.trello.restApi.tokenStorageKey];
-                    that.tryDoWithToken(onAuthorized);
-                },
-                error: function () {
-                    console.error("Error authorizing");
+        return that.trello.getRestApi()
+            .getToken()
+            .then(it => {
+                if (it) {
+                    return {token: it, key: that.trello.getRestApi().appKey};
+                } else {
+                    return that.trello.getRestApi().authorize({
+                        expiration: 'never',
+                        scope: 'read,write'
+                    }).then(it => {
+                        return {token: it, key: that.trello.getRestApi().appKey};
+                    }).catch(it => {
+                        console.error(`Got error ${it}`);
+                        throw 'Unauthorized';
+                    });
                 }
             });
-        }
-    }
-
-    tryDoWithToken(onAuthorized) {
-        const that = this;
-        if (isBlank(that.trello.restApi.tokenExpirationKey)) {
-            that.trello.restApi.tokenExpirationKey = "app_token_exp";
-        }
-        if (isBlank(that.trello.restApi.pantaCardToken)) {
-            that.trello.restApi.pantaCardToken = "panta_app_token";
-        }
-
-        if (!isBlank(that.trello.restApi.localStorage[that.trello.restApi.tokenExpirationKey])) {
-            const expdate = new Date(that.trello.restApi.localStorage[that.trello.restApi.tokenExpirationKey]);
-            const now = new Date();
-            if (expdate.getTime() > now.getTime()) {
-                const apptoken = that.trello.restApi.localStorage[that.trello.restApi.tokenStorageKey];
-                if (!isBlank(apptoken)) {
-                    onAuthorized(apptoken);
-                    return true;
-                } else {
-                    const papptoken = that.trello.restApi.localStorage[that.trello.restApi.pantaCardToken];
-                    // if (!isBlank(papptoken)) {
-                    //     that.trello.restApi.tokenStorageKey = "trello_token";
-                    //     that.trello.restApi.localStorage[that.trello.restApi.tokenStorageKey] = papptoken;
-                    //     onAuthorized(papptoken);
-                    //     return true;
-                    // }
-                }
-            } else {
-                // delete that.trello.restApi.localStorage[that.trello.restApi.tokenStorageKey];
-                delete that.trello.restApi.localStorage[that.trello.restApi.pantaCardToken];
-            }
-        }
-        return false;
     }
 
     getLabels() {
@@ -100,339 +67,495 @@ class AdminService {
 
     /**
      * @param {FileList} files
+     * @return {PromiseLike<T>|Promise<T>}
      */
-    import(files) {
+    load(files) {
         const that = this;
+        const importers = [];
         if (files.length > 0) {
             for (let index = 0; index < files.length; index++) {
-                const file = files.item(index);
-                that.fileReader.onload = function (e) {
-                    that._processFile(e.target.result);
-                };
-
-                that.getCurrentCard()
-                    .then((card) => {
-                        that.doWithToken((token) => {
-                            const formData = new FormData();
-                            formData.append("file", file);
-                            formData.append("name", file.name);
-                            formData.append("key", that.trello.restApi.appKey);
-                            formData.append("token", token);
-
-                            const request = new XMLHttpRequest();
-                            // what url to use?
-                            request.onreadystatechange = function () {
-                                // When we have a response back from the server we want to share it!
-                                // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/response
-                                if (request.readyState === 4) {
-                                    if (request.status === 200) {
-                                        console.log(`Successfully uploaded at: ${request.response.date}`, request);
-                                        that.fileReader.readAsArrayBuffer(file);
-                                    } else {
-                                        console.error(`Could not attach import file: ${file.name}`, request);
-                                    }
+                importers.push(new Promise(function (resolve, reject) {
+                    const file = files.item(index);
+                    that.fileReader.onload = function (e) {
+                        that._loadContent(e.target.result)
+                            .then(model => {
+                                if (model) {
+                                    resolve({
+                                        'file': file,
+                                        'model': model
+                                    });
                                 } else {
-                                    // still uploading...
+                                    reject(`Could not successfully import all cards for file ${file.name}`);
                                 }
-                            };
-                            request.open("POST", `https://api.trello.com/1/cards/${card.id}/attachments`);
-                            request.send(formData);
-                        });
-                    });
+                            });
+                    };
+                    that.getCurrentCard()
+                        .then((card) => {
+                            return that.withTrelloToken()
+                                .then(token => {
+                                    return that._uploadFileToCard(card, file, token);
+                                })
+                                .then(file => {
+                                    window.setTimeout(() => that.fileReader.readAsArrayBuffer(file), 10);
+                                })
+                                .catch(err => {
+                                    console.error(`Got an error while uploading to card: ${err}`);
+                                    reject(file);
+                                });
+                        })
+                }));
             }
         }
+        return importers.length === 0 ? Promise.reject('No imports') : Promise.all(importers);
     }
 
     /**
-     * Process the excel file
-     * @param content
+     * @param card
+     * @param file
+     * @param {key: string, token: string} token
+     * @return {Promise<Blob>}
      * @private
      */
-    _processFile(content) {
-        this.dataRowIndex = 4;
-
-        const data = new Uint8Array(content);
-        const wb = XLSX.read(data, {type: "array"});
-        console.log("workbook is", wb);
-        const first_sheet_name = wb.SheetNames[0];
-        /* Get worksheet */
-        const worksheet = wb.Sheets[first_sheet_name];
-        this.boundary = XLSX.utils.decode_range(worksheet['!ref']);
-
-        const root = new Import(wb.Props.Title);
-        root.header = this._parseImportHeader(worksheet, 0, 0, null);
-        this._readImportData(worksheet, root, 0, this.dataRowIndex);
-        console.debug("Import: ", root);
-        console.debug(root.getHeader(XLSX.utils.decode_cell("A4")).getPath());
-        //labels
-        this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.0", root.getHeader(XLSX.utils.decode_cell("A4"))));
-        this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.1", root.getHeader(XLSX.utils.decode_cell("B4"))));
-        this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.2", root.getHeader(XLSX.utils.decode_cell("C4"))));
-        this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.3", root.getHeader(XLSX.utils.decode_cell("D4"))));
-        this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.4", root.getHeader(XLSX.utils.decode_cell("E4"))));
-        this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.5", root.getHeader(XLSX.utils.decode_cell("F4"))));
-        this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.6", root.getHeader(XLSX.utils.decode_cell("G4"))));
-        this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.7", root.getHeader(XLSX.utils.decode_cell("H4"))));
-        this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.8", root.getHeader(XLSX.utils.decode_cell("I4"))));
-        this.importConfiguration.mapping.push(new BooleanField("Trello Label", "trello.label.9", root.getHeader(XLSX.utils.decode_cell("J4"))));
-
-        this.importConfiguration.mapping.push(new TextField("Trello Title", "trello.title", root.getHeader(XLSX.utils.decode_cell("L4"))));
-        this.importConfiguration.mapping.push(new TextField("Trello Description", "trello.description", root.getHeader(XLSX.utils.decode_cell("M4"))));
-        this.importConfiguration.mapping.push(new TextField("Panta.Card.Artikel - Details", "panta.article.details", root.getHeader(XLSX.utils.decode_cell("U4"))));
-        this.importConfiguration.mapping.push(new TextField("Panta.Card.Artikel - Vorname", "panta.article.vorname", root.getHeader(XLSX.utils.decode_cell("V4"))));
-        this.importConfiguration.mapping.push(new TextField("Panta.Card.Artikel - Nachname", "panta.article.nachname", root.getHeader(XLSX.utils.decode_cell("W4"))));
-        this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter1 - Address", "panta.beteiligt.0.address", root.getHeader(XLSX.utils.decode_cell("Z4"))));
-        this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter2 - Link", "panta.beteiligt.1.name", root.getHeader(XLSX.utils.decode_cell("AF4"))));
-        this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter3 - Link", "panta.beteiligt.2.name", root.getHeader(XLSX.utils.decode_cell("AG4"))));
-        this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter4 - Link", "panta.beteiligt.3.name", root.getHeader(XLSX.utils.decode_cell("AH4"))));
-        this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter5 - Link", "panta.beteiligt.4.name", root.getHeader(XLSX.utils.decode_cell("AI4"))));
-        this.importConfiguration.mapping.push(new TextField("Panta.Card.Beteiligt.Reiter6 - Link", "panta.beteiligt.5.name", root.getHeader(XLSX.utils.decode_cell("AJ4"))));
-
-        this._importCards(root);
-
-    }
-
-    /**
-     * Read the data and link them with the headers
-     * @param worksheet
-     * @param {Import} root
-     * @param column
-     * @param row
-     * @private
-     */
-    _readImportData(worksheet, root, column, row) {
-        if (row <= this.boundary.e.r) {
-
-            const node = new DataNode(row);
-
-            for (let c = column; c <= this.boundary.e.c; c++) {
-                const address = {r: row, c: c};
-                const header = root.getHeader(address);
-                let data = worksheet[XLSX.utils.encode_cell(address)];
-                if (null != data) {
-                    node.set(header, data);
-                }
-            }
-
-            if (node.values.length !== 0) {
-                root.put(node);
-            }
-
-            this._readImportData(worksheet, root, column, row + 1);
-        }
-    }
-
-    /**
-     * Parse the headers of that worksheet
-     * @param worksheet
-     * @param column
-     * @param row
-     * @param parent
-     * @returns {null|HeaderNode}
-     * @private
-     */
-    _parseImportHeader(worksheet, column, row, parent) {
-        if (row < this.dataRowIndex) {
-            if (column <= this.boundary.e.c) {
-                let address = {c: column, r: row};
-                let cell = worksheet[XLSX.utils.encode_cell(address)];
-                if (cell == null) {
-                    // if cell is empty then ignore it
-                    return null;
-                }
-
-                const node = new HeaderNode(parent, cell.h, address);
-                if (row === 0) {
-                    // first row is special: all values on the same row are properties
-                    for (let c = column + 1; c <= this.boundary.e.c; c++) {
-                        const property = worksheet[XLSX.utils.encode_cell({c: c, r: row})];
-                        if (property != null) {
-                            node.put(property.h);
-                        }
-                    }
-                }
-
-                do {
-                    let childNode = this._parseImportHeader(worksheet, column, row + 1, node);
-                    if (childNode != null) {
-                        node.add(childNode);
-                    }
-                } while (
-                    ++column <= this.boundary.e.c &&
-                    (row === 0 || null == worksheet[XLSX.utils.encode_cell({c: column, r: row})])
-                    );
-
-                return node;
-            }
-        }
-        // when no more rows to parse or the last cell was reached abort by returning null
-        return null;
-    }
-
-    /**
-     * @param {Import} root
-     * @private
-     */
-    _importCards(root) {
+    _uploadFileToCard(card, file, token) {
         const that = this;
-        that._importCard(root, 0);
+        return new Promise(function (resolve, reject) {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("name", file.name);
+            formData.append("key", token.key);
+            formData.append("token", token.token);
+
+            const request = new XMLHttpRequest();
+            // what url to use?
+            request.onload = function (e) {
+                if (request.readyState === 4) {
+                    if (request.status === 200) {
+                        console.debug(`Successfully attached file to card ${card.id} at ${request.response.date}`, request);
+                        resolve(file);
+                    } else {
+                        reject(`Ein Fehler beim Verarbeiten der Datei «${file.name}» ist aufgetreten: \n\n${request.statusText}`);
+                    }
+                } else {
+                    // still uploading...
+                }
+            };
+            request.onerror = function (e) {
+                reject(`Ein Fehler beim Verarbeiten der Datei «${file.name}» ist aufgetreten: \n\n${request.statusText}`);
+            };
+
+            // even tough its async i get a IFrameIO request timed out. Command=card-back-section, Plugin=undefined, Elapsed=5029 which looks like it is blocking
+            request.open("POST", `https://api.trello.com/1/cards/${card.id}/attachments`, true);
+            request.send(formData);
+        });
+    }
+
+    /**
+     * @param content
+     * @return {Promise<Import>}
+     * @private
+     */
+    _loadContent(content) {
+        /**
+         * @type {Import}
+         */
+        const root = this.excelService.read(content);
+
+        return Promise.resolve(root);
+        // // TODO: bring the mapping to the UI... something like render(root, configuration) whereas the configuration is the predefined/saved mapping
+        // return this._importCards(root);
+    }
+
+    /**
+     * @param {Import} model
+     * @param {ImportConfiguration} configuration
+     * @return {Promise<any>}
+     */
+    importCards(model, configuration) {
+        const that = this;
+        // create all labels beforehand
+        return this._createLabels(this._getLabels(configuration))
+            .then(it => {
+                console.debug('Labels', it);
+                configuration.labels = it;
+                return that._importCard(model, 0, configuration);
+
+            });
+        // return that._importCard(model, 0, configuration);
     }
 
     /**
      * Import the data at index and when the import was successful it will proceed to the next one
-     * @param root
+     * @param {Import} model
      * @param index
+     * @param {ImportConfiguration} configuration
+     * @return {Promise<boolean>}
      * @private
      */
-    _importCard(root, index) {
+    _importCard(model, index, configuration) {
         const that = this;
-        if (index < root.data.length) {
-            that._createCard(root.data[index], () => {
-                window.setTimeout(() => {
-                    that._importCard(root, index + 1);
-                }, 600);
-            });
+        if (index < model.data.length) {
+            return that._createCard(model.data[index], configuration)
+                .then(() => {
+                    return new Promise(function (resolve, reject) {
+                        window.setTimeout(() => {
+                            // TODO update log on UI
+                            resolve(that._importCard(model, index + 1, configuration));
+                        }, 600);
+                    });
+                });
         } else {
-            console.log("Import completed");
-            that.trello.closeModal();
+            console.debug("Import completed");
+            // TODO close the log and attach it to the card
+            // TODO update process on UI and close
+            return Promise.resolve(true);
         }
     }
 
     /**
      *
-     * @param {DataNode} data
-     * @param onReady a callback to be called when the import was successful
+     * @param {AbstractField[]} labels
+     * @return {Promise<any>}
      * @private
      */
-    _createCard(data, onReady) {
+    _createLabels(labels) {
+        // get all labels of that board
         const that = this;
-
-        that.doWithToken(token => {
-            that._findListByName("Import Test")
-                .reduce((prev, cur) => prev || cur, null)
-                .then(list => {
-                    if (list == null) {
-                        that._createList("Import Test", list => {
-                            that._createCardInternal(list, data, onReady);
-                        });
-                    } else {
-                        that._createCardInternal(list, data, onReady);
-                    }
-                    return true;
-                });
-        });
-
+        return that.trello.board('id', 'labels')
+            .then(board => {
+                const existingLabels = board.labels;
+                return Promise.all(labels
+                    .map((it) => {
+                        const found = existingLabels.find(label => label.name === it.name && label.color === it.source.color);
+                        if (!found) {
+                            return that._createLabel(it.source.label, it.source.color, board.id)
+                        } else {
+                            return Promise.resolve(found);
+                        }
+                    }));
+            });
     }
 
-    _createCardInternal(list, data, onReady) {
+    /**
+     *
+     * @param {DataNode} data
+     * @param {ImportConfiguration} configuration
+     * @return {Promise<T>}
+     * @private
+     */
+    _createCard(data, configuration) {
         const that = this;
-        const label0 = this._getField("trello.label.0");
-        const label1 = this._getField("trello.label.1");
-        const label2 = this._getField("trello.label.2");
-        const label3 = this._getField("trello.label.3");
-        const label4 = this._getField("trello.label.4");
-        const label5 = this._getField("trello.label.5");
-        const label6 = this._getField("trello.label.6");
-        const label7 = this._getField("trello.label.7");
-        const label8 = this._getField("trello.label.8");
-        const label9 = this._getField("trello.label.9");
-        const title = this._getFieldValue(data, "trello.title");
-        const desc = this._getFieldValue(data, "trello.description");
-        const details = this._getFieldValue(data, "panta.article.details");
-        const vorname = this._getFieldValue(data, "panta.article.vorname");
-        const nachname = this._getFieldValue(data, "panta.article.nachname");
-        const b1address = this._getFieldValue(data, "panta.beteiligt.0.address");
-        const b1name = this._getFieldValue(data, "panta.beteiligt.1.name");
-        const b2name = this._getFieldValue(data, "panta.beteiligt.2.name");
-        const b3name = this._getFieldValue(data, "panta.beteiligt.3.name");
-        const b4name = this._getFieldValue(data, "panta.beteiligt.4.name");
-        const b5name = this._getFieldValue(data, "panta.beteiligt.5.name");
-        that.doWithToken(token => {
-            window.Trello.post("/cards", {
-                name: title,
-                desc: desc,
-                idList: list.id
-            }, (card) => {
-                console.log("Card created: ", card);
-                [
-                    label0,
-                    label1,
-                    label2,
-                    label3,
-                    label4,
-                    label5,
-                    label6,
-                    label7,
-                    label8,
-                    label9
-                ]
-                    .filter(field => field != null)
-                    .forEach(field => {
-                        if (that._getFieldValue(data, field.reference)) {
-                            window.Trello.post(`/cards/${card.id}/labels`, {
-                                name: field.source.label,
-                                color: null
-                            }, (label) => {
-                                console.log("Label added to card", label);
-                            });
-                            return true;
-                        }
-                        return false;
-                    });
+        const listname = data.get(that._getList(configuration).source).value.v;
+        return that._findListByName(listname)
+            .reduce((prev, cur) => prev || cur, null)
+            .then(list => {
+                if (list == null) {
+                    // TODO append to log
+                    return that._createList(listname)
+                        .then(list => {
+                            return that._createCardInternal(list, data, configuration);
+                        });
+                } else {
+                    // TODO append to log
+                    return that._createCardInternal(list, data, configuration);
+                }
+            });
+    }
 
-                const artikel = new Artikel(null, details, 0, vorname, 1, 1, null, null, null, null, nachname, null, null, null);
-                that.articleController.persist(artikel, card.id)
-                    .then((article) => {
-                        console.log("Artikel created in card", article);
-                        const module = ModuleConfig.create({}, null);
-                        module.sections['onsite'].address = b1address;
-                        module.sections['text'].name = b1name;
-                        module.sections['photo'].name = b2name;
-                        module.sections['video'].name = b3name;
-                        module.sections['illu'].name = b4name;
-                        module.sections['ad'].name = b5name;
-                        that.moduleController.persist(module, card.id)
-                            .then(() => {
-                                console.log("Beteiligt created in card");
-                                onReady();
+    /**
+     * @param {{id: string}} list
+     * @param {DataNode} data
+     * @param {ImportConfiguration} configuration
+     * @return {Promise<any>}
+     * @private
+     */
+    _createCardInternal(list, data, configuration) {
+        const that = this;
+        const labels = configuration.labels
+            .filter(label => {
+                return configuration.get('trello.labels')
+                    .filter(it => label.name === it.name)
+                    .filter(it => it.getValue(data.get(it.source))).length === 1;
+            });
+
+        // trello fields
+        const title = this._getFieldValue(data, "trello.title", configuration);
+        const desc = this._getFieldValue(data, "trello.description", configuration);
+        const frist = this._getFieldValue(data, 'trello.duedate', configuration);
+        const members = this._getFieldValue(data, 'trello.members', configuration) || [];
+
+        return that.withTrelloToken()
+            .then(appToken => {
+                return that._findCardByTitle(title)
+                    .then(it => {
+                        if (it) {
+                            return it;
+                        } else {
+                            const searches = members.map((it, index, arr) => {
+                                return new Promise(function (resolve, reject) {
+                                    window.Trello.get('/search/members', that._createBody(appToken, {
+                                        query: `${it}`,
+                                        limit: 1
+                                    }), (members) => {
+                                        resolve(members);
+                                    })
+                                });
+                            }).reduce((prev, cur) => {
+                                prev.push(cur);
+                                return prev;
+                            }, []);
+                            return Promise.all(searches)
+                                .then(its => {
+                                    return its.flatMap(it => it);
+                                })
+                                .then(its => {
+                                    // TODO log
+                                    return new Promise(function (resolve, reject) {
+                                        window.Trello.post("/cards", that._createBody(appToken, {
+                                            name: title,
+                                            desc: desc,
+                                            idList: list.id,
+                                            idLabels: labels.map(it => it.id).join(','),
+                                            due: isBlank(frist) ? null : frist.toISOString(),
+                                            idMembers: its.map(it => it.id).join(',')
+                                        }), (card) => {
+                                            resolve(card);
+                                        })
+                                    });
+                                });
+                        }
+                    }).then(card => {
+                        // TODO: all records must be imported sequentially otherwise records get overridden
+                        const importArtikel = that.clientManager.isArticleModuleEnabled()
+                            .then(enabled => {
+                                if (enabled) {
+                                    const fielda = this._getFieldValue(data, "module.artikel.field.a", configuration);
+                                    const fieldb = this._getFieldValue(data, "module.artikel.field.b", configuration);
+                                    const fieldc = this._getFieldValue(data, "module.artikel.field.c", configuration);
+                                    const text = this._getFieldValue(data, "module.artikel.field.d", configuration);
+                                    const fielde = this._getFieldValue(data, "module.artikel.field.e", configuration);
+                                    const fieldf = this._getFieldValue(data, "module.artikel.field.f", configuration);
+
+                                    // these fields are enums
+                                    const online = this._getFieldValue(data, 'module.artikel.online', configuration);
+                                    const visual = this._getFieldValue(data, 'module.artikel.visual', configuration);
+                                    const region = this._getFieldValue(data, 'module.artikel.region', configuration);
+                                    const season = this._getFieldValue(data, 'module.artikel.season', configuration);
+                                    const form = this._getFieldValue(data, 'module.artikel.form', configuration);
+                                    const place = this._getFieldValue(data, 'module.artikel.place', configuration);
+
+                                    return that.clientManager.getModuleConfiguration(ArtikelController.ID)
+                                        .then(it => {
+                                            return new Artikel(null,
+                                                fielda, fielde, fieldb, fieldf, 1,
+                                                it.getEditableOptionValue('online', online),
+                                                it.getEditableOptionValue('visual', visual),
+                                                it.getEditableOptionValue('region', region),
+                                                it.getEditableOptionValue('season', season),
+                                                fieldc, text,
+                                                it.getEditableOptionValue('form', form), place);
+                                        })
+                                        .then(it => {
+                                            return that.articleController.persist(it, card.id)
+                                                .then(() => {
+                                                    // TODO append to log
+                                                    console.debug(`Artikel created in card ${card.id}`);
+                                                    return that._doImportBeteiligt(data, configuration, card);
+                                                });
+                                        });
+
+                                } else {
+                                    console.debug('Article Module is not enabled');
+                                    return that._doImportBeteiligt(data, configuration, card);
+                                }
                             });
+                        const importPlan = that.clientManager.isPlanModuleEnabled()
+                            .then(enabled => {
+                                if (enabled) {
+                                    const visual = this._getFieldValue(data, "module.plan.visual", configuration);
+                                    const form = this._getFieldValue(data, "module.plan.form", configuration);
+                                    const online = this._getFieldValue(data, "module.plan.online", configuration);
+                                    const season = this._getFieldValue(data, "module.plan.season", configuration);
+                                    const region = this._getFieldValue(data, "module.plan.region", configuration);
+                                    const place = this._getFieldValue(data, "module.plan.place", configuration);
+                                    const fielda = this._getFieldValue(data, "module.plan.field.a", configuration);
+                                    const fieldb = this._getFieldValue(data, "module.plan.field.b", configuration);
+                                    const fieldg = this._getFieldValue(data, "module.plan.field.g", configuration);
+                                    return that.clientManager.getModuleConfiguration(ModulePlanController.ID)
+                                        .then(it => {
+                                            return new Plan(null,
+                                                fielda, fieldb, 0, 0, 0, 0, fieldg, 0,
+                                                it.getEditableOptionValue('visual', visual),
+                                                it.getEditableOptionValue('form', form),
+                                                it.getEditableOptionValue('online', online),
+                                                it.getEditableOptionValue('season', season),
+                                                it.getEditableOptionValue('region', region),
+                                                it.getEditableOptionValue('place', place));
+                                        })
+                                        .then(plan => {
+                                            return that.planController.persist(plan, card.id)
+                                                .then(() => {
+                                                    // TODO append to log
+                                                    console.debug(`Plan created in card ${card.id}`);
+                                                    return that._doImportBeteiligt(data, configuration, card);
+                                                });
+                                        })
+                                } else {
+                                    console.debug('Plan Module is not enabled');
+                                    return that._doImportBeteiligt(data, configuration, card);
+                                }
+                            });
+                        return [importArtikel, importPlan];
                     });
             });
-        });
     }
 
-    _createList(name, onSuccess) {
+    /**
+     * Import the beteiligt record
+     * @param data
+     * @param configuration
+     * @param card
+     * @return {PromiseLike<T | never> | Promise<T | never>}
+     * @private
+     */
+    _doImportBeteiligt(data, configuration, card) {
         const that = this;
-        return this.trello.board("id", "name", "labels")
-            .then(board => {
-                that.doWithToken(token => {
-                    window.Trello.post("/lists", {
-                        name: name,
-                        idBoard: board.id,
-                        pos: "bottom"
-                    }, (list) => {
-                        onSuccess(list);
-                    });
-                });
-                return true;
+        return that.clientManager.isBeteiligtModuleEnabled()
+            .then(enabled => {
+                if (enabled) {
+                    // get the section depending on the configured layout
+                    return that.clientManager.getModuleConfiguration(ModuleController.ID)
+                        .then(config => {
+                            const module = ModuleConfig.create({}, null);
+                            const sections = {
+                                'onsite': config.getEditableLayout('onsite').fields.map(it => {
+                                    const obj = {};
+                                    obj[BeteiligtBinding.getFieldMapping(config.getEditable('onsite').layout, it)] = that._getFieldValue(data, `module.beteiligt.onsite.${it.id}`, configuration);
+                                    return obj;
+                                }).reduce(Reducers.asKeyValue, {}),
+                                'text': config.getEditableLayout('text').fields.map(it => {
+                                    const obj = {};
+                                    obj[BeteiligtBinding.getFieldMapping(config.getEditable('text').layout, it)] = that._getFieldValue(data, `module.beteiligt.text.${it.id}`, configuration);
+                                    return obj;
+                                }).reduce(Reducers.asKeyValue, {}),
+                                'photo': config.getEditableLayout('photo').fields.map(it => {
+                                    const obj = {};
+                                    obj[BeteiligtBinding.getFieldMapping(config.getEditable('photo').layout, it)] = that._getFieldValue(data, `module.beteiligt.photo.${it.id}`, configuration);
+                                    return obj;
+                                }).reduce(Reducers.asKeyValue, {}),
+                                'video': config.getEditableLayout('video').fields.map(it => {
+                                    const obj = {};
+                                    obj[BeteiligtBinding.getFieldMapping(config.getEditable('video').layout, it)] = that._getFieldValue(data, `module.beteiligt.video.${it.id}`, configuration);
+                                    return obj;
+                                }).reduce(Reducers.asKeyValue, {}),
+                                'illu': config.getEditableLayout('illu').fields.map(it => {
+                                    const obj = {};
+                                    obj[BeteiligtBinding.getFieldMapping(config.getEditable('illu').layout, it)] = that._getFieldValue(data, `module.beteiligt.illu.${it.id}`, configuration);
+                                    return obj;
+                                }).reduce(Reducers.asKeyValue, {}),
+                                'ad': config.getEditableLayout('ad').fields.map(it => {
+                                    const obj = {};
+                                    obj[BeteiligtBinding.getFieldMapping(config.getEditable('ad').layout, it)] = that._getFieldValue(data, `module.beteiligt.ad.${it.id}`, configuration);
+                                    return obj;
+                                }).reduce(Reducers.asKeyValue, {})
+                            };
+                            console.debug('sections', sections);
+                            module.sections = sections;
+                            return that.moduleController.persist(module, card.id)
+                                .then(() => {
+                                    // TODO append to log
+                                    console.debug(`Beteiligt created in card ${card.id}`);
+                                    return true;
+                                });
+                        });
+
+                } else {
+                    return false;
+                }
             });
     }
 
     /**
      * @param name
+     * @param onSuccess
+     * @return {*|PromiseLike<string | never>|Promise<string | never>}
+     * @private
+     */
+    _createList(name, onSuccess) {
+        const that = this;
+        return this.trello.board("id", "name", "labels")
+            .then(board => {
+                return that.withTrelloToken()
+                    .then(it => {
+                        return new Promise(function (resolve, reject) {
+                            window.Trello.post("/lists", that._createBody(it, {
+                                name: name,
+                                idBoard: board.id,
+                                pos: "bottom"
+                            }), (list) => {
+                                // TODO append to log
+                                resolve(list);
+                            });
+                        });
+                    });
+            });
+    }
+
+    /**
+     * @param name
+     * @param {ImportConfiguration} configuration
      * @return {AbstractField}
      * @private
      */
-    _getField(name) {
-        return this.importConfiguration.get(name);
+    _getField(name, configuration) {
+        return configuration.single(name);
     }
 
-    _getFieldValue(data, name) {
+    /**
+     * @param {ImportConfiguration} configuration
+     * @return {AbstractField[]} all trello label fields
+     * @private
+     */
+    _getLabels(configuration) {
+        return configuration.get('trello.labels');
+    }
+
+    /**
+     *
+     * @param {ImportConfiguration} configuration
+     * @return {AbstractField} all trello list fields
+     * @private
+     */
+    _getList(configuration) {
+        return configuration.single('trello.list');
+    }
+
+    /**
+     *
+     * @param {DataNode} data
+     * @param name
+     * @param {ImportConfiguration} configuration
+     * @return {null}
+     * @private
+     */
+    _getFieldValue(data, name, configuration) {
         /**
          * @type {AbstractField}
          */
-        const field = this._getField(name)
+        const field = this._getField(name, configuration);
         return field && data.get(field.source) ? field.getValue(data.get(field.source)) : null;
+    }
+
+    /**
+     * @param title
+     * @return {Promise<{id: string, name: string}>}
+     * @private
+     */
+    _findCardByTitle(title) {
+        return this.trello.cards('id', 'name')
+            .reduce((prev, cur) => {
+                prev = cur.name === title ? cur : prev;
+                return prev;
+            }, null)
     }
 
     _findListByName(name) {
@@ -442,18 +565,41 @@ class AdminService {
             });
     }
 
-    _createLabel(label, color) {
-        return this.trello.board("id", "name", "labels")
-            .then(board => {
-                return window.Trello.post("/labels", {
-                    name: label,
-                    color: color,
-                    idBoard: board.id
-                }, function () {
-                    console.debug("Label created");
+    /**
+     *
+     * @param label
+     * @param color
+     * @param boardId
+     * @return {*|PromiseLike<T | never>|Promise<T | never>}
+     * @private
+     */
+    _createLabel(label, color, boardId) {
+        const that = this;
+        return this.withTrelloToken()
+            .then(it => {
+                return new Promise(function (resolve, reject) {
+                    window.Trello.post("/labels", that._createBody(it, {
+                        name: label,
+                        color: color,
+                        idBoard: boardId
+                    }), function (label) {
+                        resolve(label);
+                    });
                 });
             });
+    }
 
+    _createBody(token, obj) {
+        obj.key = token.key;
+        obj.token = token.token;
+        return obj;
+    }
+
+    _getMembersOfBoard() {
+        return this.trello.board('members')
+            .then(it => {
+                console.debug('members are ', it);
+            });
     }
 
 }

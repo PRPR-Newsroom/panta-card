@@ -4,6 +4,9 @@
  */
 class ArtikelController extends Controller {
 
+    static get ID() {
+        return "module.artikel";
+    }
     /**
      * The app version
      * @returns {number}
@@ -98,19 +101,6 @@ class ArtikelController extends Controller {
         return Artikel.create(json);
     }
 
-// /**
-    //  * Insert the passed artikel into the repository and associates it with the given card
-    //  * @param {Artikel} artikel
-    //  * @param {{id: number}} card
-    //  */
-    // insert(artikel, card) {
-    //     if (artikel && this._repository.isNew(artikel)) {
-    //         this._repository.add(artikel, card);
-    //     } else if (artikel) {
-    //         this._repository.replace(artikel, card);
-    //     }
-    // }
-
     /**
      * Get a property value by its name
      * @param {Artikel|Plan|ModuleConfig} entity
@@ -189,25 +179,6 @@ class ArtikelController extends Controller {
      */
     size() {
         return Object.keys(this.list()).length;
-    }
-
-    /**
-     * Check if the passed artikel is already managed or not
-     * @param artikel
-     * @returns {boolean}
-     */
-    isManaged(artikel) {
-        return artikel.id !== null;
-    }
-
-    /**
-     * Make the artikel managed by setting the ID of the artikel
-     * @param artikel
-     * @returns {Artikel}
-     */
-    manage(artikel) {
-        artikel.id = uuid();
-        return artikel;
     }
 
     /**
@@ -303,5 +274,4 @@ class ArtikelController extends Controller {
     persist(artikel, cardId) {
         return this.trelloApi.set(cardId || 'card', 'shared', ArtikelController.SHARED_NAME, artikel);
     }
-
 }

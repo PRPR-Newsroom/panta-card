@@ -1,0 +1,33 @@
+@import "variables";
+
+.panta-chip, .panta-chip-sep {
+  display: inline-block;
+  padding: 0 8px;
+  height: $line-height * 1px;
+  line-height: $line-height * 1px;
+  border-radius: 8px;
+  background-color: $bg-color-chip;
+  max-width: 140px;
+  margin: 0 2px 0 0;
+  p {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0;
+    margin: 0;
+    font-size: smaller;
+  }
+}
+
+.panta-chip-grandpa {
+  max-width: 48px;
+}
+
+.panta-chip-parent {
+  max-width: 72px;
+}
+
+.panta-chip-sep {
+  background-color: transparent;
+  padding: 0;
+}

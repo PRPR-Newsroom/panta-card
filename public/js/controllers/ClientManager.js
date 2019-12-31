@@ -109,6 +109,8 @@ class ClientManager {
              */
             this._planController = ModulePlanController.getInstance(this._trello, this._window, this._telephones[ModulePlanController.SHARED_NAME].port2);
 
+            this._excelService = new ExcelService();
+
             this._initialized = true;
         }
         return this;
@@ -212,7 +214,7 @@ class ClientManager {
      * @return {PromiseLike<T> | Promise<T>}
      */
     isArticleModuleEnabled() {
-        return this._isModuleEnabled("module.artikel");
+        return this._isModuleEnabled(ArtikelController.ID);
     }
 
     /**
@@ -220,7 +222,7 @@ class ClientManager {
      * @return {PromiseLike<T> | Promise<T>}
      */
     isBeteiligtModuleEnabled() {
-        return this._isModuleEnabled("module.beteiligt");
+        return this._isModuleEnabled(ModuleController.ID);
     }
 
     /**
@@ -250,11 +252,11 @@ class ClientManager {
      */
     getController(id) {
         switch (id) {
-            case "module.artikel":
+            case ArtikelController.ID:
                 return this.getArticleController();
-            case "module.beteiligt":
+            case ModuleController.ID:
                 return this.getModuleController();
-            case "module.plan":
+            case ModulePlanController.ID:
                 return this.getPlanController();
             default:
                 throw "Invalid ID: " + id;
@@ -306,6 +308,13 @@ class ClientManager {
      */
     getPlanController() {
         return this._planController;
+    }
+
+    /**
+     * @return {ExcelService}
+     */
+    getExcelService() {
+        return this._excelService;
     }
 
     /**

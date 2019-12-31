@@ -101,6 +101,28 @@ class PluginController {
         });
     }
 
+    getAdminConfiguration() {
+        const that = this;
+        return that._trelloApi.get('board', 'private', AdminController.PROPERTY_BAG_NAME, null).then(data => {
+            if (data) {
+                const raw = JSON.parse(LZString.decompress(data));
+                return {
+                    configuration: ImportConfiguration.create(raw.configuration)
+                }
+            } else {
+                return {
+                    configuration: new ImportConfiguration()
+                };
+            }
+        });
+    }
+
+    setAdminConfiguration(config) {
+        const that = this;
+        return this._trelloApi.set('board', 'private', AdminController.PROPERTY_BAG_NAME, LZString.compress(JSON.stringify(config)))
+            .then(() => that.getAdminConfiguration());
+    }
+
     /**
      * @param {PluginModuleConfig} pmc
      * @param card (optional) if set it will also store the new card configuration on the plugin configuration
@@ -144,6 +166,20 @@ class PluginController {
             }, null);
     }
 
+    /**
+     * @return {PromiseLike<PluginModuleConfig[] | never> | Promise<PluginModuleConfig[] | never>}
+     */
+    getEnabledModules() {
+        return this.getPluginConfiguration()
+            .then(it => {
+                return it.modules.filter(it => it.config.enabled);
+            });
+    }
+
+    /**
+     * Get all available modules (also modules that are disabled)
+     * @return {PluginModuleConfig[]}
+     */
     getAvailableModules() {
         return Object.values(PluginRepository.INSTANCE.all()).sort(function (lhs, rhs) {
             return lhs.config.sort - rhs.config.sort;
@@ -274,7 +310,7 @@ class PluginController {
                     console.log("The article does not have any involved data. Just update the version of the article and proceed to the next item.");
                     article.version = Artikel.VERSION;
                     return ac.persist.call(ac, article, cardId)
-                        // and then proceed with the next article
+                    // and then proceed with the next article
                         .then(function () {
                             that._upgradeArticleToModuleConfig.call(that, ac, mc, articles, index + 1, cardId)
                         });

@@ -1,41 +1,48 @@
+[class*=panta-bgcolor-] {
+  color: #fff;
+}
+[class*=panta-bgcolor-] p {
+  color: #fff;
+}
+
 .panta-bgcolor-blue {
-  background-color: #026AA7;
+  background-color: #026AA7 !important;
 }
 
 .panta-bgcolor-green {
-  background-color: #5AAC44;
+  background-color: #5AAC44 !important;
 }
 
 .panta-bgcolor-orange {
-  background-color: #E99E40;
+  background-color: #E99E40 !important;
 }
 
 .panta-bgcolor-red {
-  background-color: #eb5a46;
+  background-color: #eb5a46 !important;
 }
 
 .panta-bgcolor-yellow {
-  background-color: #E6C60D;
+  background-color: #E6C60D !important;
 }
 
 .panta-bgcolor-purple {
-  background-color: #A86CC1;
+  background-color: #A86CC1 !important;
 }
 
 .panta-bgcolor-pink {
-  background-color: #E76EB1;
+  background-color: #E76EB1 !important;
 }
 
 .panta-bgcolor-sky {
-  background-color: #00AECC;
+  background-color: #00AECC !important;
 }
 
 .panta-bgcolor-lime {
-  background-color: #4FD683;
+  background-color: #4FD683 !important;
 }
 
 .panta-bgcolor-shades {
-  background-color: #676D70;
+  background-color: #676D70 !important;
 }
 
 .panta-btn.panta-bgcolor-blue:hover {

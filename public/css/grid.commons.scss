@@ -24,10 +24,21 @@
 
 .row {
   max-width: 500px;
+  &.full {
+    max-width: none;
+  }
 }
 
 .row::after {
   content: "";
   clear: both;
   display: table;
+}
+
+.error-messages {
+  color: $trello-red;
+}
+
+.warning-messages {
+  color: $trello-orange;
 }
