@@ -3244,6 +3244,7 @@ AdminService.prototype.load = function(a) {
               }, 10);
             }).catch(function(a) {
               console.error("Got an error while uploading to card: " + a);
+              b.trello.getRestApi().clearToken();
               e(f);
             });
           });
