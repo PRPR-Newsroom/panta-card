@@ -42,6 +42,7 @@ class AdminService {
             .getToken()
             .then(it => {
                 if (it) {
+                    console.debug(`Using token ${it}`);
                     return {token: it, key: that.trello.getRestApi().appKey};
                 } else {
                     return that.trello.getRestApi().authorize({
@@ -51,6 +52,7 @@ class AdminService {
                         return {token: it, key: that.trello.getRestApi().appKey};
                     }).catch(it => {
                         console.error(`Got error ${it}`);
+                        that.trello.getRestApi().clearToken();
                         throw 'Unauthorized';
                     });
                 }
@@ -100,7 +102,6 @@ class AdminService {
                                 })
                                 .catch(err => {
                                     console.error(`Got an error while uploading to card: ${err}`);
-                                    that.trello.getRestApi().clearToken();
                                     reject(file);
                                 });
                         })
