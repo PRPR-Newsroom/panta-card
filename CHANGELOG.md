@@ -1,5 +1,7 @@
 [UNRELEASED]
 
+[1.5.2]
+
 # Changes
 
 * Import feature
