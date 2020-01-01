@@ -194,6 +194,6 @@ TrelloPowerUp.initialize({
             }, []);
     }
 }, {
-    appName: "Panta.Cards",
-    appKey: "0bdd0023d8f9b9a23ed80260495bbe9b"
+    appName: APP_NAME,
+    appKey: APP_KEY
 });

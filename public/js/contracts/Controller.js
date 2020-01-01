@@ -26,7 +26,7 @@ class Controller {
      * Check if it can unblock the UI and will do so if there's no block task
      */
     canUnblock() {
-        if (!this._window.clientManager.getPluginController().upgrading) {
+        if (this._binding && !this._window.clientManager.getPluginController().upgrading) {
             this._binding.unblock();
         }
     }
@@ -36,7 +36,9 @@ class Controller {
      * @return {Promise<boolean>}
      */
     blockUi() {
-        this._binding.blockUi();
+        if (this._binding) {
+            this._binding.blockUi();
+        }
         return Promise.resolve(true);
     }
 

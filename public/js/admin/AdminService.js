@@ -46,16 +46,6 @@ class AdminService {
                     return {token: it, key: that.trello.getRestApi().appKey};
                 } else {
                     console.debug(`authorize app with key=${that.trello.getRestApi().appKey}`);
-                    // return that.trello.getRestApi().authorize({
-                    //     expiration: 'never',
-                    //     scope: 'read,write'
-                    // }).then(it => {
-                    //     return {token: it, key: that.trello.getRestApi().appKey};
-                    // }).catch(it => {
-                    //     console.error(`Got error ${it}`);
-                    //     that.trello.getRestApi().clearToken();
-                    //     throw 'Unauthorized';
-                    // });
                     return new Promise(function (resolve, reject) {
                         window.Trello.authorize({
                             type: 'popup',
