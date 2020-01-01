@@ -5,7 +5,7 @@ class PluginController {
      * @returns {number}
      */
     static get VERSION() {
-        return 3;
+        return 4;
     }
 
     /**
@@ -37,7 +37,8 @@ class PluginController {
         this._upgrading = false;
         this._upgrades = {
             1: this._upgrade_1,
-            2: this._upgrade_2
+            2: this._upgrade_2,
+            3: this._upgrade_3_to_4
         }
         /**
          * @type {PluginRepository}
@@ -255,6 +256,15 @@ class PluginController {
      */
     _upgrade_2() {
         return Promise.resolve(true);
+    }
+
+    /**
+     * Perform upgrade from 3 -> 4
+     * @return {*}
+     * @private
+     */
+    _upgrade_3_to_4() {
+        return this._trelloApi.getRestApi().clearToken();
     }
 
     /**
