@@ -16,8 +16,8 @@ if (useDefaultSelectStyle()) {
 }
 
 let t = TrelloPowerUp.iframe({
-    appKey: '0bdd0023d8f9b9a23ed80260495bbe9b',
-    appName: 'Panta.Cards'
+    appKey: APP_KEY,
+    appName: APP_NAME
 });
 
 let cm = null;

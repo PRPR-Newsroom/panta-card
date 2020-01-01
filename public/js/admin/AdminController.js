@@ -321,6 +321,7 @@ class AdminController {
                         return Array.from(it.querySelectorAll('select').values());
                     })
                     .then(its => {
+                        that._model = model;
                         its.forEach(it => {
                             it.dispatchEvent(new Event('change'));
                         });
@@ -336,7 +337,6 @@ class AdminController {
 
             });
         });
-        that._model = model;
         Promise.all(all).then(it => that._trello.sizeTo('#content'));
 
     }
