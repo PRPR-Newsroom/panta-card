@@ -591,7 +591,7 @@ var VERSION = "1.5.1-STAGING", APP_NAME = "Panta.Cards", APP_KEY = "86a73cafa11d
 "module.beteiligt.field-c.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-total.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-price.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-placement.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
 "module.beteiligt.field-format.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-sujet.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-link.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-follower.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
 "module.beteiligt.field-date.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "trello.list.desc":"Liste", "trello.title.desc":"Card Titel", "trello.description.desc":"Card Beschreibung", "trello.members.desc":"Card Mitglieder", "trello.duedate.desc":"Card Frist", "trello.labels.desc":"Card Label"}, POWERUP_ADMINS = ["manu29494020", "koni_nordmann", "ray2505"], TRELLO_FIELDS = [{id:"trello.list", desc:"trello.list.desc"}, {id:"trello.title", 
-desc:"trello.title.desc"}, {id:"trello.description", desc:"trello.description.desc"}, {id:"trello.members", desc:"trello.members.desc", type:"array"}, {id:"trello.duedate", desc:"trello.duedate.desc", type:"date"}, {id:"trello.labels", desc:"trello.labels.desc", type:"boolean"}];
+desc:"trello.title.desc"}, {id:"trello.description", desc:"trello.description.desc"}, {id:"trello.members", desc:"trello.members.desc", type:"array"}, {id:"trello.duedate", desc:"trello.duedate.desc", type:"date"}, {id:"trello.labels", desc:"trello.labels.desc", type:"boolean", multi:!0}];
 // Input 4
 var DI = function() {
 };
@@ -3166,17 +3166,23 @@ ArtikelBinding.prototype.updateConfiguration = function(a) {
   this.updateField(this._location, "place");
 };
 // Input 28
-var AbstractField = function(a, b, c) {
+var AbstractField = function(a, b, c, d) {
+  d = void 0 === d ? !1 : d;
   this._name = a;
   this._reference = b;
   this._source = c;
   this._type = this.getType();
+  this._multi = d || !1;
 };
 AbstractField.prototype.getValue = function(a) {
 };
 AbstractField.prototype.getType = function() {
 };
-$jscomp.global.Object.defineProperties(AbstractField.prototype, {source:{configurable:!0, enumerable:!0, get:function() {
+$jscomp.global.Object.defineProperties(AbstractField.prototype, {multi:{configurable:!0, enumerable:!0, get:function() {
+  return this._multi;
+}, set:function(a) {
+  this._multi = a;
+}}, source:{configurable:!0, enumerable:!0, get:function() {
   return this._source;
 }}, reference:{configurable:!0, enumerable:!0, get:function() {
   return this._reference;
@@ -3662,8 +3668,22 @@ ImportConfiguration.create = function(a) {
   return b;
 };
 ImportConfiguration.prototype.isValid = function() {
-  var a = this.single("trello.list");
-  return a && null !== a.source;
+  return 0 === this.getValidationErrors().length;
+};
+ImportConfiguration.prototype.getValidationErrors = function() {
+  var a = [], b = this.single("trello.list");
+  null !== b && null !== b.source || a.push({id:"validation.error.trello-list", details:""});
+  b = Object.entries(this.mapping.filter(function(a) {
+    return !a.multi;
+  }).map(function(a) {
+    return a.reference;
+  }).reduce(Reducers.asOccurrenceMap, {})).filter(function(a) {
+    return "-1" !== a[0] && 1 < a[1];
+  });
+  0 < b.length && a.push({id:"validation.error.multiple-mapping", details:"" + b.map(function(a) {
+    return a[0];
+  }).join(",")});
+  return a;
 };
 ImportConfiguration.prototype.get = function(a) {
   return this.mapping.filter(function(b) {
@@ -3830,46 +3850,48 @@ AdminController.prototype.render = function(a) {
   return this.index(a.configuration);
 };
 AdminController.prototype.index = function(a) {
+  var b = this;
   this._model = null;
   this._clearContent();
-  return this.renderActions(a).then(function(a) {
-    a = Import.create("Sample", sampleImport);
-    var b = new DataNode(1), d = a.header;
-    b.set(d.get(0), {v:"Test Liste", t:"s"});
-    b.set(d.get(1), {v:43830, w:"31/12/2019", t:"n"});
-    b.set(d.get(2), {v:"me@m3ns1.com", t:"s"});
-    b.set(d.get(3), {v:1, t:"n"});
-    b.set(d.get(4), {v:1, t:"n"});
-    b.set(d.get(5), {v:1, t:"n"});
-    b.set(d.get(6), {v:1, t:"n"});
-    b.set(d.get(7), {v:1, t:"n"});
-    b.set(d.get(8), {v:1, t:"n"});
-    b.set(d.get(9), {v:1, t:"n"});
-    b.set(d.get(10), {v:1, t:"n"});
-    b.set(d.get(11), {v:1, t:"n"});
-    b.set(d.get(12), {v:1, t:"n"});
-    b.set(d.get(13), {v:"A cocktail a day", t:"s"});
-    b.set(d.get(14), {v:"https://a-cocktail-a-day.com/", t:"s"});
-    b.set(d.get(15), {v:"3.Begriff", t:"s"});
-    b.set(d.get(16), {v:"", t:"s"});
-    b.set(d.get(17), {v:"", t:"s"});
-    b.set(d.get(18), {v:"", t:"s"});
-    b.set(d.get(19), {v:"", t:"s"});
-    b.set(d.get(20), {v:"Blog zum Thema: Reisen, Lifestyle, Fliegen", t:"s"});
-    b.set(d.get(21), {v:"Kristina", t:"s"});
-    b.set(d.get(22), {v:"Roder", t:"s"});
-    b.set(d.get(23), {v:"Test Notiz", t:"s"});
-    b.set(d.get(24), {v:"kristina@a-cocktail-a-day.com", t:"s"});
-    b.set(d.get(25), {v:"n.a.", t:"s"});
-    b.set(d.get(26), {v:"", t:"s"});
-    b.set(d.get(27), {v:"Offen f\u00fcr Kooperationen", t:"s"});
-    b.set(d.get(28), {v:"", t:"s"});
-    b.set(d.get(29), {v:"https://facebook.com", t:"s"});
-    b.set(d.get(30), {v:"https://instagram.com", t:"s"});
-    b.set(d.get(31), {v:"https://twitter.com", t:"s"});
-    b.set(d.get(32), {v:"https://youtube.com", t:"s"});
-    b.set(d.get(33), {v:"https://flickr.com", t:"s"});
-    a.data.push(b);
+  return this.renderActions(a).then(function(c) {
+    c = Import.create("Sample", sampleImport);
+    var d = new DataNode(1), e = c.header;
+    d.set(e.get(0), {v:"Test Liste", t:"s"});
+    d.set(e.get(1), {v:43830, w:"31/12/2019", t:"n"});
+    d.set(e.get(2), {v:"me@m3ns1.com", t:"s"});
+    d.set(e.get(3), {v:1, t:"n"});
+    d.set(e.get(4), {v:1, t:"n"});
+    d.set(e.get(5), {v:1, t:"n"});
+    d.set(e.get(6), {v:1, t:"n"});
+    d.set(e.get(7), {v:1, t:"n"});
+    d.set(e.get(8), {v:1, t:"n"});
+    d.set(e.get(9), {v:1, t:"n"});
+    d.set(e.get(10), {v:1, t:"n"});
+    d.set(e.get(11), {v:1, t:"n"});
+    d.set(e.get(12), {v:1, t:"n"});
+    d.set(e.get(13), {v:"A cocktail a day", t:"s"});
+    d.set(e.get(14), {v:"https://a-cocktail-a-day.com/", t:"s"});
+    d.set(e.get(15), {v:"3.Begriff", t:"s"});
+    d.set(e.get(16), {v:"", t:"s"});
+    d.set(e.get(17), {v:"", t:"s"});
+    d.set(e.get(18), {v:"", t:"s"});
+    d.set(e.get(19), {v:"", t:"s"});
+    d.set(e.get(20), {v:"Blog zum Thema: Reisen, Lifestyle, Fliegen", t:"s"});
+    d.set(e.get(21), {v:"Kristina", t:"s"});
+    d.set(e.get(22), {v:"Roder", t:"s"});
+    d.set(e.get(23), {v:"Test Notiz", t:"s"});
+    d.set(e.get(24), {v:"kristina@a-cocktail-a-day.com", t:"s"});
+    d.set(e.get(25), {v:"n.a.", t:"s"});
+    d.set(e.get(26), {v:"", t:"s"});
+    d.set(e.get(27), {v:"Offen f\u00fcr Kooperationen", t:"s"});
+    d.set(e.get(28), {v:"", t:"s"});
+    d.set(e.get(29), {v:"https://facebook.com", t:"s"});
+    d.set(e.get(30), {v:"https://instagram.com", t:"s"});
+    d.set(e.get(31), {v:"https://twitter.com", t:"s"});
+    d.set(e.get(32), {v:"https://youtube.com", t:"s"});
+    d.set(e.get(33), {v:"https://flickr.com", t:"s"});
+    c.data.push(d);
+    b.renderModel(c, a);
     return !0;
   });
 };
@@ -3906,24 +3928,46 @@ AdminController.prototype.renderActions = function(a) {
     });
     var d = c.querySelector("#btn-import");
     d && (d.setEventListener("update", function(a) {
-      b._readConfiguration(b._model).isValid() ? (b._hideWarnings(document), d.removeAttribute("disabled"), d.removeAttribute("title")) : (d.setAttribute("disabled", "disabled"), d.setAttribute("title", "Es sind noch nicht alle notwendingen Felder konfiguriert."), b._showWarnings(document, "Es sind noch nicht alle notwendingen Felder konfiguriert."));
+      a = b._readConfiguration(b._model);
+      if (a.isValid()) {
+        b._hideWarnings(document), d.removeAttribute("disabled"), d.removeAttribute("title"), d.removeAttribute("data-validation");
+      } else {
+        if (!d.hasAttribute("data-validation")) {
+          a = a.getValidationErrors();
+          var c = a.map(function(a) {
+            return a.id;
+          }).join("<br/>");
+          d.setAttribute("disabled", "disabled");
+          d.setAttribute("data-validation", "invalid");
+          d.setAttribute("title", "Es sind noch nicht alle notwendingen Felder konfiguriert.");
+          console.warn("Validation errors", a);
+          b._showWarnings(document, "Es sind noch nicht alle notwendingen Felder konfiguriert.<br/>" + c);
+        }
+      }
     }), d.setEventListener("click", function(a) {
       a.preventDefault();
       var c = a.target;
       c.setAttribute("disabled", "disabled");
       if (a = b._model) {
         var d = b._readConfiguration(a);
-        d.isValid() ? b._adminService.importCards(a, d).then(function(a) {
-          console.debug("success = " + a);
-          return a ? (b._propertyBag.configuration = d, b._pluginController.setAdminConfiguration(b._propertyBag)) : Promise.reject("See log for more details");
-        }).then(function(a) {
-          console.debug("Configuration saved", a);
-        }).catch(function(a) {
-          console.error("An error occured while importing from file: " + a);
-          console.error(a.stack);
-        }).finally(function() {
-          c.removeAttribute("disabled");
-        }) : b._showWarnings(document, "Die Konfiguration ist unvollst\u00e4ndig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.");
+        if (d.isValid()) {
+          b._adminService.importCards(a, d).then(function(a) {
+            console.debug("success = " + a);
+            return a ? (b._propertyBag.configuration = d, b._pluginController.setAdminConfiguration(b._propertyBag)) : Promise.reject("See log for more details");
+          }).then(function(a) {
+            console.debug("Configuration saved", a);
+          }).catch(function(a) {
+            console.error("An error occured while importing from file: " + a);
+            console.error(a.stack);
+          }).finally(function() {
+            c.removeAttribute("disabled");
+          });
+        } else {
+          a = d.getValidationErrors();
+          var e = a.join("<br/>");
+          console.warn("Validation errors", a);
+          b._showWarnings(document, "Die Konfiguration ist unvollst\u00e4ndig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>" + e);
+        }
       }
     }));
   });
@@ -3937,8 +3981,8 @@ AdminController.prototype._readConfiguration = function(a) {
     if (null === c) {
       return null;
     }
-    var e = c.getAttribute("data-type");
-    return b._createFieldOfType(e, a, c.value);
+    var e = c.getAttribute("data-type"), f = "true" === c.getAttribute("data-multi");
+    return b._createFieldOfType(e, a, c.value, f);
   }).filter(function(a) {
     return null != a;
   }).reduce(function(a, b) {
@@ -3946,16 +3990,16 @@ AdminController.prototype._readConfiguration = function(a) {
     return a;
   }, new ImportConfiguration);
 };
-AdminController.prototype._createFieldOfType = function(a, b, c) {
+AdminController.prototype._createFieldOfType = function(a, b, c, d) {
   switch(a) {
     case "boolean":
-      return new BooleanField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments));
+      return new BooleanField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments), d);
     case "date":
-      return new DateField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments));
+      return new DateField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments), d);
     case "array":
-      return new ArrayField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments));
+      return new ArrayField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments), d);
     default:
-      return new TextField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments));
+      return new TextField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments), d);
   }
 };
 AdminController.prototype.renderModel = function(a, b) {
@@ -4091,7 +4135,8 @@ AdminController.prototype._onFieldMappingChange = function(a, b) {
       });
       e.appendChild(g);
     }
-    f.item = this._createFieldOfType(a.getAttribute("data-type"), b, a.value);
+    e = "true" === a.getAttribute("data-multi");
+    f.item = this._createFieldOfType(a.getAttribute("data-type"), b, a.value, e);
     c._document.querySelector("#preview-" + d).dispatchEvent(f);
     c._document.querySelector("#btn-import").dispatchEvent(f);
   }
@@ -4123,17 +4168,18 @@ AdminController.prototype._getTrelloFields = function(a, b) {
   var c = this, d = this._document.createElement("optgroup");
   d.setAttribute("label", "Trello Felder");
   return Promise.resolve(TRELLO_FIELDS.map(function(d) {
-    return c._createFieldOption(a, d.id, __(d.desc), d.type, b);
+    return c._createFieldOption(a, d.id, __(d.desc), d.type, d.multi, b);
   }).reduce(function(a, b) {
     a.appendChild(b);
     return a;
   }, d));
 };
-AdminController.prototype._createFieldOption = function(a, b, c, d, e) {
+AdminController.prototype._createFieldOption = function(a, b, c, d, e, f) {
   a = this._document.createElement("option");
   a.setAttribute("value", b);
   a.innerText = c;
   a.setAttribute("data-type", d || "text");
+  a.setAttribute("data-multi", e || "false");
   return a;
 };
 AdminController.prototype._getPantaFields = function(a, b) {
@@ -4146,7 +4192,7 @@ AdminController.prototype._getPantaFields = function(a, b) {
           var f = d.groupId, g = c._document.createElement("optgroup");
           g.setAttribute("label", e + ": " + d.group);
           return d.fields.map(function(d) {
-            return c._createFieldOption(a, f + "." + d.id, d.label, d.type, b);
+            return c._createFieldOption(a, f + "." + d.id, d.label, d.type, "false", b);
           }).reduce(function(a, b) {
             a.appendChild(b);
             return a;
@@ -5061,6 +5107,10 @@ Reducers.asKeyValue = function(a, b) {
   Object.entries(b).forEach(function(b) {
     a[JsonSerialization.denomalize(b[0])] = b[1];
   });
+  return a;
+};
+Reducers.asOccurrenceMap = function(a, b) {
+  void 0 === a[b] ? a[b] = 1 : a[b]++;
   return a;
 };
 
