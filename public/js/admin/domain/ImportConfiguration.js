@@ -1,5 +1,9 @@
 class ImportConfiguration {
 
+    /**
+     * @param {string?} json
+     * @return {ImportConfiguration}
+     */
     static create(json) {
         const config = new ImportConfiguration();
         if (json) {
@@ -36,7 +40,6 @@ class ImportConfiguration {
             });
             config.labels = JsonSerialization.getProperty(json, 'labels');
         }
-        console.debug('config', config);
         return config;
     }
 

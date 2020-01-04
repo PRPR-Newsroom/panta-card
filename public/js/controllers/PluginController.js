@@ -102,26 +102,63 @@ class PluginController {
         });
     }
 
+    /**
+     * @return {Promise<{configuration: ImportConfiguration}>}
+     */
     getAdminConfiguration() {
         const that = this;
         return that._trelloApi.get('board', 'private', AdminController.PROPERTY_BAG_NAME, null).then(data => {
-            if (data) {
-                const raw = JSON.parse(LZString.decompress(data));
+            return that._parseAdminConfiguration(data);
+        });
+    }
+
+    /**
+     * @return {Promise<{configuration: ImportConfiguration}>}
+     */
+    setAdminConfiguration(config) {
+        const that = this;
+        if (config) {
+            return this._trelloApi.set('board', 'private', AdminController.PROPERTY_BAG_NAME, LZString.compress(JSON.stringify(config)))
+                .then(() => that.getAdminConfiguration());
+        } else {
+            return that.getAdminConfiguration();
+        }
+    }
+
+    /**
+     * @return {Promise<{configuration: ImportConfiguration}>}
+     */
+    resetAdminConfiguration() {
+        const that = this;
+        return this._trelloApi.remove('board', 'private', AdminController.PROPERTY_BAG_NAME)
+            .then(() => that.getAdminConfiguration());
+    }
+
+    /**
+     * @return {Promise<{configuration: ImportConfiguration}>}
+     */
+    parseAdminConfiguration(str) {
+        return Promise.resolve(this._parseAdminConfiguration(Base64.decode(str)));
+    }
+
+    /**
+     * @return {{configuration: ImportConfiguration}}
+     */
+    _parseAdminConfiguration(data) {
+        try {
+            if (isString(data) && !isBlank(data)) {
+                const raw = JSON.parse(LZString.decompress(data) || '{ "configuration": null }');
                 return {
                     configuration: ImportConfiguration.create(raw.configuration)
                 }
             } else {
                 return {
-                    configuration: new ImportConfiguration()
+                    configuration: ImportConfiguration.create()
                 };
             }
-        });
-    }
-
-    setAdminConfiguration(config) {
-        const that = this;
-        return this._trelloApi.set('board', 'private', AdminController.PROPERTY_BAG_NAME, LZString.compress(JSON.stringify(config)))
-            .then(() => that.getAdminConfiguration());
+        } catch (ex) {
+            throw new Error(`Could not read configuration: ${Base64.encode(data)}`);
+        }
     }
 
     /**

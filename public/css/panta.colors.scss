@@ -7,6 +7,13 @@
   }
 }
 
+[class*="panta-bgcolor-shades"] {
+  color: $black;
+  p {
+    color: $black;
+  }
+}
+
 .panta-bgcolor-blue {
   background-color: $trello-blue !important;
 }
@@ -78,5 +85,9 @@
   }
   &.panta-bgcolor-shades:hover {
     background-color: darken($trello-shades, 10%);
+  }
+
+  &[disabled], &[disabled]:hover {
+    color: lighten($white, 10);
   }
 }

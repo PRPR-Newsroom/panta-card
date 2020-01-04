@@ -6,13 +6,23 @@ let pluginController = clientManager.init().getPluginController();
 
 t.render(function () {
 
-    // pluginController.setAdminConfiguration({
-    //     configuration: new ImportConfiguration()
-    // });
     return pluginController.getAdminConfiguration()
         .then(function (data) {
-            let controller = AdminController.create(t, document, DI.getInstance().getAdminService(t));
-
+            const controller = AdminController.create(t, document, DI.getInstance().getAdminService(t));
+            data.page = t.arg('page');
+            return controller.render.call(controller, data)
+                .then(function() {
+                    return t.sizeTo("#content").done();
+                });
+        })
+        .catch(it => {
+            const controller = AdminController.create(t, document, DI.getInstance().getAdminService(t));
+            const data = {
+                'configuration': null,
+                'page': 'error',
+                'error': it,
+                'error_details': it.stack
+            };
             return controller.render.call(controller, data)
                 .then(function() {
                     return t.sizeTo("#content").done();

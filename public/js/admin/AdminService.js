@@ -41,11 +41,9 @@ class AdminService {
         return that.trello.getRestApi()
             .getToken()
             .then(it => {
-                console.debug(`trello token is ${it}`);
                 if (it) {
                     return {token: it, key: that.trello.getRestApi().appKey};
                 } else {
-                    console.debug(`authorize app with key=${that.trello.getRestApi().appKey}`);
                     return new Promise(function (resolve, reject) {
                         window.Trello.authorize({
                             type: 'popup',
@@ -189,7 +187,6 @@ class AdminService {
         // create all labels beforehand
         return this._createLabels(this._getLabels(configuration))
             .then(it => {
-                console.debug('Labels', it);
                 configuration.labels = it;
                 return that._importCard(model, 0, configuration);
 
@@ -472,7 +469,6 @@ class AdminService {
                                     return obj;
                                 }).reduce(Reducers.asKeyValue, {})
                             };
-                            console.debug('sections', sections);
                             module.sections = sections;
                             return that.moduleController.persist(module, card.id)
                                 .then(() => {
