@@ -1,10 +1,15 @@
 [UNRELEASED]
 
-[1.5.2-STAGING]
+[1.5.3-STAGING]
 
 # Changes
 
 * Import feature
+* Load a different configuration from a decompressed base64 encoded string
+
+# Fixes
+
+* Error handling when there's a problem with the configuration
 
 [1.4.3]
 
