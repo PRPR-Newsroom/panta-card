@@ -5,6 +5,13 @@
   color: #fff;
 }
 
+[class*=panta-bgcolor-shades] {
+  color: #000;
+}
+[class*=panta-bgcolor-shades] p {
+  color: #000;
+}
+
 .panta-bgcolor-blue {
   background-color: #026AA7 !important;
 }
@@ -74,6 +81,9 @@
 }
 .panta-btn.panta-bgcolor-shades:hover {
   background-color: #4f5355;
+}
+.panta-btn[disabled], .panta-btn[disabled]:hover {
+  color: white;
 }
 
 /*# sourceMappingURL=panta.colors.css.map */

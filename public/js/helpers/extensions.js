@@ -319,7 +319,7 @@ String.prototype.toHTML = function () {
  * @param totest
  * @return {boolean} true if the argument is of type string otherwise false
  */
-Window.prototype.isString = function(totest) {
+Window.prototype.isString = function (totest) {
     return typeof totest === 'string';
 }
 
@@ -392,7 +392,7 @@ Window.prototype.autoTabIndex = function () {
  * @returns {Node}
  */
 Window.prototype.createByTemplate = function (desktop_template, mobile_template) {
-    let virtual = this.document.createElement('div');
+    const virtual = this.document.createElement('div');
     virtual.innerHTML = isMobileBrowser() ? mobile_template : desktop_template;
     return virtual.cloneNode(true);
 };

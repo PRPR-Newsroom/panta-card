@@ -101,16 +101,21 @@ class Import {
     /**
      * Get a sample value if there's one at the given position
      * @param {HeaderNode} header
-     * @return {{header: string, value: any}|null}
+     * @return {Promise<{header: string, value: {h: string, v: string, t: string}}|null>}
      */
     getSample(header) {
         if (this.data.length > 0) {
-            return this.data[0].get(header);
+            return Promise.resolve(this.data[0].get(header));
         } else {
-            return null;
+            return Promise.resolve(null);
         }
     }
 
+    /**
+     * @param {{value: {h: string, v: string, t: string}}} sample
+     * @param {AbstractField} field
+     * @return {string|string|number|{}|*|*}
+     */
     getSampleText(sample, field) {
         if (field && sample) {
             return field.getValue(sample);
@@ -125,7 +130,6 @@ class Import {
                 case "n": // number
                     return sample.value.w ? sample.value.w : raw;
                 case "d": // date
-                    console.debug(`got a date ${raw}`);
                     return raw.toISOString();
                 case "s":
                     return sample.value.w ? sample.value.w : raw;

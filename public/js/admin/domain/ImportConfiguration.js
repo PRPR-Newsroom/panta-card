@@ -1,5 +1,9 @@
 class ImportConfiguration {
 
+    /**
+     * @param {string?} json
+     * @return {ImportConfiguration}
+     */
     static create(json) {
         const config = new ImportConfiguration();
         if (json) {
@@ -36,7 +40,6 @@ class ImportConfiguration {
             });
             config.labels = JsonSerialization.getProperty(json, 'labels');
         }
-        console.debug('config', config);
         return config;
     }
 
@@ -66,9 +69,27 @@ class ImportConfiguration {
      * @return boolean if the configuration is valid resp. all required fields are set
      */
     isValid() {
-        // TODO a field can only be mapped once!!
+        return this.getValidationErrors().length === 0;
+    }
+
+    /**
+     * @return {{id: string, details: string}[]}
+     */
+    getValidationErrors() {
+        const errors = [];
         const field = this.single('trello.list');
-        return field && field.source !== null;
+        if (field === null || field.source === null) {
+            errors.push({id: `validation.error.trello-list`, details: ``});
+        }
+        const multi = Object.entries(this.mapping
+            .filter(it => !it.multi)
+            .map(it => it.reference)
+            .reduce(Reducers.asOccurrenceMap, {})
+        ).filter(it => it[0] !== '-1' && it[1] > 1);
+        if (multi.length > 0) {
+            errors.push({id: `validation.error.multiple-mapping`, details: `${multi.map(it => it[0]).join(',')}`});
+        }
+        return errors;
     }
 
     constructor() {
