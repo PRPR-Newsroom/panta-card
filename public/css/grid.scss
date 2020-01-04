@@ -94,3 +94,10 @@
 .col-12 {
   width: 100%;
 }
+
+[class*="col-"] {
+  &.space {
+    margin: 0;
+    padding: 0.5em 0.1em;
+  }
+}

@@ -8,4 +8,12 @@ class Reducers {
         return prev;
     }
 
+    static asOccurrenceMap(prev, cur) {
+        if (prev[cur] === undefined) {
+            prev[cur] = 1;
+        } else {
+            prev[cur]++;
+        }
+        return prev;
+    }
 }

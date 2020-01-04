@@ -27,34 +27,15 @@ TrelloPowerUp.initialize({
             }
         }, {
             icon: './assets/ic_import_export.png',
-            text: 'Panta.Card.Import',
-            // condition: 'admin',
+            text: 'Panta.Card.Data',
+            condition: 'admin',
             callback: function (t) {
-                return t.member('all')
-                    .then(function (member) {
-                        if (POWERUP_ADMINS.find(function (admin) {
-                            return member.username === admin;
-                        })) {
-                            return t.modal({
-                                title: "Administration",
-                                url: "admin.html",
-                                accentColor: 'blue',
-                                actions: [{
-                                    icon: './assets/ic_import_export_white.png',
-                                    url: 'load.html',
-                                    alt: 'Import',
-                                    position: 'right',
-                                }]
-                            });
-                        } else {
-                            t.alert({
-                                message: "Du hast keine Berechtigung um Panta.Card zu konfigurieren. Bitte wenden dich an den Administrator, falls du die Berechtigung brauchst.",
-                                duration: 15,
-                                display: "error"
-                            });
-                            return null;
-                        }
-                    });
+                return t.modal({
+                    title: "Administration",
+                    url: "admin.html",
+                    accentColor: 'blue',
+                    fullscreen: true
+                });
             }
         }];
     },

@@ -9,6 +9,14 @@
  * @abstract
  */
 class AbstractField {
+    
+    get multi() {
+        return this._multi;
+    }
+
+    set multi(value) {
+        this._multi = value;
+    }
 
     /**
      * @return {HeaderNode} the header node in the Excel file that this field is mapped to
@@ -36,8 +44,9 @@ class AbstractField {
      * @param name a human readable name
      * @param {string} reference the referenced, target field (e.g. the trello field but also any panta.card field)
      * @param {HeaderNode} source field
+     * @param {boolean?} multi
      */
-    constructor(name, reference, source) {
+    constructor(name, reference, source, multi = false) {
         this._name = name;
         /**
          * @type {string}
@@ -50,6 +59,8 @@ class AbstractField {
         this._source = source;
 
         this._type = this.getType();
+
+        this._multi = multi || false;
     }
 
     /**

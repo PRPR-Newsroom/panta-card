@@ -119,7 +119,7 @@ const POWERUP_ADMINS = [
 ];
 
 /**
- * @type {{id: string, desc: string, type: string?}[]}
+ * @type {{id: string, desc: string, type: string?, multi: string?}[]}
  */
 const TRELLO_FIELDS = [{
     'id': 'trello.list',
@@ -141,5 +141,6 @@ const TRELLO_FIELDS = [{
 }, {
     'id': 'trello.labels',
     'desc': 'trello.labels.desc',
-    'type': 'boolean'
+    'type': 'boolean',
+    'multi': true
 }];

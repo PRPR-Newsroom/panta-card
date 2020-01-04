@@ -591,7 +591,7 @@ var VERSION = "1.5.2-STAGING", APP_NAME = "Panta.Cards", APP_KEY = "86a73cafa11d
 "module.beteiligt.field-c.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-total.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-price.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-placement.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
 "module.beteiligt.field-format.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-sujet.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-link.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-follower.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
 "module.beteiligt.field-date.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "trello.list.desc":"Liste", "trello.title.desc":"Card Titel", "trello.description.desc":"Card Beschreibung", "trello.members.desc":"Card Mitglieder", "trello.duedate.desc":"Card Frist", "trello.labels.desc":"Card Label"}, POWERUP_ADMINS = ["manu29494020", "koni_nordmann", "ray2505"], TRELLO_FIELDS = [{id:"trello.list", desc:"trello.list.desc"}, {id:"trello.title", 
-desc:"trello.title.desc"}, {id:"trello.description", desc:"trello.description.desc"}, {id:"trello.members", desc:"trello.members.desc", type:"array"}, {id:"trello.duedate", desc:"trello.duedate.desc", type:"date"}, {id:"trello.labels", desc:"trello.labels.desc", type:"boolean"}];
+desc:"trello.title.desc"}, {id:"trello.description", desc:"trello.description.desc"}, {id:"trello.members", desc:"trello.members.desc", type:"array"}, {id:"trello.duedate", desc:"trello.duedate.desc", type:"date"}, {id:"trello.labels", desc:"trello.labels.desc", type:"boolean", multi:!0}];
 // Input 4
 var DI = function() {
 };
@@ -1380,15 +1380,36 @@ PluginController.prototype.getPluginConfiguration = function() {
   });
 };
 PluginController.prototype.getAdminConfiguration = function() {
-  return this._trelloApi.get("board", "private", AdminController.PROPERTY_BAG_NAME, null).then(function(a) {
-    return a ? (a = JSON.parse(LZString.decompress(a)), {configuration:ImportConfiguration.create(a.configuration)}) : {configuration:new ImportConfiguration};
+  var a = this;
+  return a._trelloApi.get("board", "private", AdminController.PROPERTY_BAG_NAME, null).then(function(b) {
+    return a._parseAdminConfiguration(b);
   });
 };
 PluginController.prototype.setAdminConfiguration = function(a) {
   var b = this;
-  return this._trelloApi.set("board", "private", AdminController.PROPERTY_BAG_NAME, LZString.compress(JSON.stringify(a))).then(function() {
+  return a ? this._trelloApi.set("board", "private", AdminController.PROPERTY_BAG_NAME, LZString.compress(JSON.stringify(a))).then(function() {
     return b.getAdminConfiguration();
+  }) : b.getAdminConfiguration();
+};
+PluginController.prototype.resetAdminConfiguration = function() {
+  var a = this;
+  return this._trelloApi.remove("board", "private", AdminController.PROPERTY_BAG_NAME).then(function() {
+    return a.getAdminConfiguration();
   });
+};
+PluginController.prototype.parseAdminConfiguration = function(a) {
+  return Promise.resolve(this._parseAdminConfiguration(Base64.decode(a)));
+};
+PluginController.prototype._parseAdminConfiguration = function(a) {
+  try {
+    if (isString(a) && !isBlank(a)) {
+      var b = JSON.parse(LZString.decompress(a) || '{ "configuration": null }');
+      return {configuration:ImportConfiguration.create(b.configuration)};
+    }
+    return {configuration:ImportConfiguration.create()};
+  } catch (c) {
+    throw Error("Could not read configuration: " + Base64.encode(a));
+  }
 };
 PluginController.prototype.setPluginModuleConfig = function(a, b) {
   var c = this;
@@ -3166,17 +3187,23 @@ ArtikelBinding.prototype.updateConfiguration = function(a) {
   this.updateField(this._location, "place");
 };
 // Input 28
-var AbstractField = function(a, b, c) {
+var AbstractField = function(a, b, c, d) {
+  d = void 0 === d ? !1 : d;
   this._name = a;
   this._reference = b;
   this._source = c;
   this._type = this.getType();
+  this._multi = d || !1;
 };
 AbstractField.prototype.getValue = function(a) {
 };
 AbstractField.prototype.getType = function() {
 };
-$jscomp.global.Object.defineProperties(AbstractField.prototype, {source:{configurable:!0, enumerable:!0, get:function() {
+$jscomp.global.Object.defineProperties(AbstractField.prototype, {multi:{configurable:!0, enumerable:!0, get:function() {
+  return this._multi;
+}, set:function(a) {
+  this._multi = a;
+}}, source:{configurable:!0, enumerable:!0, get:function() {
   return this._source;
 }}, reference:{configurable:!0, enumerable:!0, get:function() {
   return this._reference;
@@ -3214,12 +3241,7 @@ AdminService.prototype.getCurrentCard = function() {
 AdminService.prototype.withTrelloToken = function() {
   var a = this;
   return a.trello.getRestApi().getToken().then(function(b) {
-    console.debug("trello token is " + b);
-    if (b) {
-      return {token:b, key:a.trello.getRestApi().appKey};
-    }
-    console.debug("authorize app with key=" + a.trello.getRestApi().appKey);
-    return (new Promise(function(a, b) {
+    return b ? {token:b, key:a.trello.getRestApi().appKey} : (new Promise(function(a, b) {
       window.Trello.authorize({type:"popup", expiration:"never", scope:{read:"true", write:"true"}, success:function() {
         console.debug("Auth success");
         a(!0);
@@ -3294,7 +3316,6 @@ AdminService.prototype._loadContent = function(a) {
 AdminService.prototype.importCards = function(a, b) {
   var c = this;
   return this._createLabels(this._getLabels(b)).then(function(d) {
-    console.debug("Labels", d);
     b.labels = d;
     return c._importCard(a, 0, b);
   });
@@ -3437,7 +3458,6 @@ AdminService.prototype._doImportBeteiligt = function(a, b, c) {
         f[BeteiligtBinding.getFieldMapping(e.getEditable("ad").layout, c)] = d._getFieldValue(a, "module.beteiligt.ad." + c.id, b);
         return f;
       }).reduce(Reducers.asKeyValue, {})};
-      console.debug("sections", h);
       f.sections = h;
       return d.moduleController.persist(f, c.id).then(function() {
         console.debug("Beteiligt created in card " + c.id);
@@ -3658,12 +3678,25 @@ ImportConfiguration.create = function(a) {
         return null;
     }
   }), b.labels = JsonSerialization.getProperty(a, "labels"));
-  console.debug("config", b);
   return b;
 };
 ImportConfiguration.prototype.isValid = function() {
-  var a = this.single("trello.list");
-  return a && null !== a.source;
+  return 0 === this.getValidationErrors().length;
+};
+ImportConfiguration.prototype.getValidationErrors = function() {
+  var a = [], b = this.single("trello.list");
+  null !== b && null !== b.source || a.push({id:"validation.error.trello-list", details:""});
+  b = Object.entries(this.mapping.filter(function(a) {
+    return !a.multi;
+  }).map(function(a) {
+    return a.reference;
+  }).reduce(Reducers.asOccurrenceMap, {})).filter(function(a) {
+    return "-1" !== a[0] && 1 < a[1];
+  });
+  0 < b.length && a.push({id:"validation.error.multiple-mapping", details:"" + b.map(function(a) {
+    return a[0];
+  }).join(",")});
+  return a;
 };
 ImportConfiguration.prototype.get = function(a) {
   return this.mapping.filter(function(b) {
@@ -3724,7 +3757,7 @@ Import.prototype.put = function(a) {
   this.data.push(a);
 };
 Import.prototype.getSample = function(a) {
-  return 0 < this.data.length ? this.data[0].get(a) : null;
+  return 0 < this.data.length ? Promise.resolve(this.data[0].get(a)) : Promise.resolve(null);
 };
 Import.prototype.getSampleText = function(a, b) {
   if (b && a) {
@@ -3739,7 +3772,7 @@ Import.prototype.getSampleText = function(a, b) {
       case "n":
         return a.value.w ? a.value.w : b;
       case "d":
-        return console.debug("got a date " + b), b.toISOString();
+        return b.toISOString();
       case "s":
         return a.value.w ? a.value.w : b;
       default:
@@ -3827,60 +3860,153 @@ AdminController.create = function(a, b, c) {
   return new AdminController(a, c, b);
 };
 AdminController.prototype.render = function(a) {
-  return this.index(a.configuration);
+  this._context = a.page || "home";
+  this._document.querySelectorAll(".js-content").forEach(function(a) {
+    return a.removeChildren();
+  });
+  return "import" === this._context ? this.importPage(a.configuration) : "export" === this._context ? this.exportPage(a.configuration) : "error" === this._context ? this.errorPage(a.error, a.error_details) : this.homePage();
 };
-AdminController.prototype.index = function(a) {
+AdminController.prototype.errorPage = function(a, b) {
+  var c = this, d = createByTemplate(template_admin_errorpage, template_admin_errorpage);
+  this._document.querySelectorAll(".js-content").forEach(function(a) {
+    return a.appendChild(d);
+  });
+  this._document.querySelectorAll(".js-content").forEach(function(a) {
+    return a.removeClass("hidden");
+  });
+  this._showErrors(d, "<h5>" + a + "</h5><p>" + b + "</p>");
+  this._document.querySelector("#btn-reset").setEventListener("click", function(a) {
+    c._pluginController.resetAdminConfiguration();
+  });
+  return Promise.resolve(!0);
+};
+AdminController.prototype.homePage = function() {
+  var a = this, b = createByTemplate(template_admin_actions, template_admin_actions);
+  this._document.querySelectorAll(".js-content").forEach(function(a) {
+    return a.appendChild(b);
+  });
+  this._document.querySelectorAll(".js-content").forEach(function(a) {
+    return a.removeClass("hidden");
+  });
+  this._document.querySelector("#btn-action-import").setEventListener("click", function(b) {
+    b.preventDefault();
+    b.stopPropagation();
+    a._trello.modal({title:"Administration - Import", url:"admin.html", accentColor:"blue", fullscreen:!0, actions:[{icon:"./assets/ic_arrow_back.png", callback:function(a) {
+      a.modal({title:"Administration", url:"admin.html", accentColor:"blue"});
+    }, alt:"Zur\u00fcck", position:"left"}], args:{page:"import"}});
+  });
+  this._document.querySelector("#btn-action-export").setEventListener("click", function(a) {
+    a.preventDefault();
+    a.stopPropagation();
+  });
+  return Promise.resolve(!0);
+};
+AdminController.prototype.exportPage = function(a) {
+  var b = this;
   this._model = null;
+  var c = createByTemplate(template_admin_export, template_admin_export);
+  this._document.querySelectorAll(".js-content").forEach(function(a) {
+    return a.appendChild(c);
+  });
   this._clearContent();
-  return this.renderActions(a).then(function(a) {
-    a = Import.create("Sample", sampleImport);
-    var b = new DataNode(1), d = a.header;
-    b.set(d.get(0), {v:"Test Liste", t:"s"});
-    b.set(d.get(1), {v:43830, w:"31/12/2019", t:"n"});
-    b.set(d.get(2), {v:"me@m3ns1.com", t:"s"});
-    b.set(d.get(3), {v:1, t:"n"});
-    b.set(d.get(4), {v:1, t:"n"});
-    b.set(d.get(5), {v:1, t:"n"});
-    b.set(d.get(6), {v:1, t:"n"});
-    b.set(d.get(7), {v:1, t:"n"});
-    b.set(d.get(8), {v:1, t:"n"});
-    b.set(d.get(9), {v:1, t:"n"});
-    b.set(d.get(10), {v:1, t:"n"});
-    b.set(d.get(11), {v:1, t:"n"});
-    b.set(d.get(12), {v:1, t:"n"});
-    b.set(d.get(13), {v:"A cocktail a day", t:"s"});
-    b.set(d.get(14), {v:"https://a-cocktail-a-day.com/", t:"s"});
-    b.set(d.get(15), {v:"3.Begriff", t:"s"});
-    b.set(d.get(16), {v:"", t:"s"});
-    b.set(d.get(17), {v:"", t:"s"});
-    b.set(d.get(18), {v:"", t:"s"});
-    b.set(d.get(19), {v:"", t:"s"});
-    b.set(d.get(20), {v:"Blog zum Thema: Reisen, Lifestyle, Fliegen", t:"s"});
-    b.set(d.get(21), {v:"Kristina", t:"s"});
-    b.set(d.get(22), {v:"Roder", t:"s"});
-    b.set(d.get(23), {v:"Test Notiz", t:"s"});
-    b.set(d.get(24), {v:"kristina@a-cocktail-a-day.com", t:"s"});
-    b.set(d.get(25), {v:"n.a.", t:"s"});
-    b.set(d.get(26), {v:"", t:"s"});
-    b.set(d.get(27), {v:"Offen f\u00fcr Kooperationen", t:"s"});
-    b.set(d.get(28), {v:"", t:"s"});
-    b.set(d.get(29), {v:"https://facebook.com", t:"s"});
-    b.set(d.get(30), {v:"https://instagram.com", t:"s"});
-    b.set(d.get(31), {v:"https://twitter.com", t:"s"});
-    b.set(d.get(32), {v:"https://youtube.com", t:"s"});
-    b.set(d.get(33), {v:"https://flickr.com", t:"s"});
-    a.data.push(b);
+  return this.renderActions(a).then(function(c) {
+    c = Import.create("Sample", sampleImport);
+    var d = new DataNode(1), f = c.header;
+    d.set(f.get(0), {v:"Test Liste", t:"s"});
+    d.set(f.get(1), {v:43830, w:"31/12/2019", t:"n"});
+    d.set(f.get(2), {v:"me@m3ns1.com", t:"s"});
+    d.set(f.get(3), {v:1, t:"n"});
+    d.set(f.get(4), {v:1, t:"n"});
+    d.set(f.get(5), {v:1, t:"n"});
+    d.set(f.get(6), {v:1, t:"n"});
+    d.set(f.get(7), {v:1, t:"n"});
+    d.set(f.get(8), {v:1, t:"n"});
+    d.set(f.get(9), {v:1, t:"n"});
+    d.set(f.get(10), {v:1, t:"n"});
+    d.set(f.get(11), {v:1, t:"n"});
+    d.set(f.get(12), {v:1, t:"n"});
+    d.set(f.get(13), {v:"A cocktail a day", t:"s"});
+    d.set(f.get(14), {v:"https://a-cocktail-a-day.com/", t:"s"});
+    d.set(f.get(15), {v:"3.Begriff", t:"s"});
+    d.set(f.get(16), {v:"", t:"s"});
+    d.set(f.get(17), {v:"", t:"s"});
+    d.set(f.get(18), {v:"", t:"s"});
+    d.set(f.get(19), {v:"", t:"s"});
+    d.set(f.get(20), {v:"Blog zum Thema: Reisen, Lifestyle, Fliegen", t:"s"});
+    d.set(f.get(21), {v:"Kristina", t:"s"});
+    d.set(f.get(22), {v:"Roder", t:"s"});
+    d.set(f.get(23), {v:"Test Notiz", t:"s"});
+    d.set(f.get(24), {v:"kristina@a-cocktail-a-day.com", t:"s"});
+    d.set(f.get(25), {v:"n.a.", t:"s"});
+    d.set(f.get(26), {v:"", t:"s"});
+    d.set(f.get(27), {v:"Offen f\u00fcr Kooperationen", t:"s"});
+    d.set(f.get(28), {v:"", t:"s"});
+    d.set(f.get(29), {v:"https://facebook.com", t:"s"});
+    d.set(f.get(30), {v:"https://instagram.com", t:"s"});
+    d.set(f.get(31), {v:"https://twitter.com", t:"s"});
+    d.set(f.get(32), {v:"https://youtube.com", t:"s"});
+    d.set(f.get(33), {v:"https://flickr.com", t:"s"});
+    c.data.push(d);
+    b.renderModel(c, a);
+    return !0;
+  });
+};
+AdminController.prototype.importPage = function(a) {
+  var b = this;
+  this._model = null;
+  var c = createByTemplate(template_admin_import, template_admin_import);
+  this._document.querySelectorAll(".js-content").forEach(function(a) {
+    return a.appendChild(c);
+  });
+  this._clearContent();
+  return this.renderActions(a).then(function(c) {
+    c = Import.create("Sample", sampleImport);
+    var d = new DataNode(1), f = c.header;
+    d.set(f.get(0), {v:"Test Liste", t:"s"});
+    d.set(f.get(1), {v:43830, w:"31/12/2019", t:"n"});
+    d.set(f.get(2), {v:"me@m3ns1.com", t:"s"});
+    d.set(f.get(3), {v:1, t:"n"});
+    d.set(f.get(4), {v:1, t:"n"});
+    d.set(f.get(5), {v:1, t:"n"});
+    d.set(f.get(6), {v:1, t:"n"});
+    d.set(f.get(7), {v:1, t:"n"});
+    d.set(f.get(8), {v:1, t:"n"});
+    d.set(f.get(9), {v:1, t:"n"});
+    d.set(f.get(10), {v:1, t:"n"});
+    d.set(f.get(11), {v:1, t:"n"});
+    d.set(f.get(12), {v:1, t:"n"});
+    d.set(f.get(13), {v:"A cocktail a day", t:"s"});
+    d.set(f.get(14), {v:"https://a-cocktail-a-day.com/", t:"s"});
+    d.set(f.get(15), {v:"3.Begriff", t:"s"});
+    d.set(f.get(16), {v:"", t:"s"});
+    d.set(f.get(17), {v:"", t:"s"});
+    d.set(f.get(18), {v:"", t:"s"});
+    d.set(f.get(19), {v:"", t:"s"});
+    d.set(f.get(20), {v:"Blog zum Thema: Reisen, Lifestyle, Fliegen", t:"s"});
+    d.set(f.get(21), {v:"Kristina", t:"s"});
+    d.set(f.get(22), {v:"Roder", t:"s"});
+    d.set(f.get(23), {v:"Test Notiz", t:"s"});
+    d.set(f.get(24), {v:"kristina@a-cocktail-a-day.com", t:"s"});
+    d.set(f.get(25), {v:"n.a.", t:"s"});
+    d.set(f.get(26), {v:"", t:"s"});
+    d.set(f.get(27), {v:"Offen f\u00fcr Kooperationen", t:"s"});
+    d.set(f.get(28), {v:"", t:"s"});
+    d.set(f.get(29), {v:"https://facebook.com", t:"s"});
+    d.set(f.get(30), {v:"https://instagram.com", t:"s"});
+    d.set(f.get(31), {v:"https://twitter.com", t:"s"});
+    d.set(f.get(32), {v:"https://youtube.com", t:"s"});
+    d.set(f.get(33), {v:"https://flickr.com", t:"s"});
+    c.data.push(d);
+    b.renderModel(c, a);
     return !0;
   });
 };
 AdminController.prototype.renderActions = function(a) {
   var b = this;
-  this._document.querySelectorAll(".settings-import-export").forEach(function(c) {
+  this._document.querySelectorAll(".js-content").forEach(function(c) {
     c.removeClass("hidden");
     c.querySelector("#btn-export") && c.querySelector("#btn-export").setEventListener("click", function(a) {
-      Promise.resolve(b._adminService.hasLabel("Panta Cards", "green")).then(function(a) {
-        a ? console.debug("Contains label") : (console.debug("Nope"), Promise.resolve(b._adminService.createLabel("Panta Cards", "green")) && console.log("Yep"));
-      });
+      console.debug("Do export");
     });
     c.querySelector("#btn-load") && c.querySelector("#btn-load").setEventListener("click", function(d) {
       d.preventDefault();
@@ -3904,26 +4030,55 @@ AdminController.prototype.renderActions = function(a) {
         console.error("Error while importing files " + d, g), b._showErrors(c, "Fehler beim importieren der Datei " + err.name);
       }
     });
+    c.querySelector("#btn-load-config") && c.querySelector("#btn-load-config").setEventListener("click", function(a) {
+      a.preventDefault();
+      a = prompt("Bitte gib hier die Konfiguration als Base64 Text ein: ");
+      isString(a) && !isBlank(a) && b._pluginController.parseAdminConfiguration(a).then(function(a) {
+        b.renderModel(b._model, a.configuration);
+      });
+    });
     var d = c.querySelector("#btn-import");
     d && (d.setEventListener("update", function(a) {
-      b._readConfiguration(b._model).isValid() ? (b._hideWarnings(document), d.removeAttribute("disabled"), d.removeAttribute("title")) : (d.setAttribute("disabled", "disabled"), d.setAttribute("title", "Es sind noch nicht alle notwendingen Felder konfiguriert."), b._showWarnings(document, "Es sind noch nicht alle notwendingen Felder konfiguriert."));
+      a = b._readConfiguration(b._model);
+      if (a.isValid()) {
+        b._hideWarnings(document), d.removeAttribute("disabled"), d.removeAttribute("title"), d.removeAttribute("data-validation");
+      } else {
+        if (!d.hasAttribute("data-validation")) {
+          a = a.getValidationErrors();
+          var c = a.map(function(a) {
+            return a.id;
+          }).join("<br/>");
+          d.setAttribute("disabled", "disabled");
+          d.setAttribute("data-validation", "invalid");
+          d.setAttribute("title", "Es sind noch nicht alle notwendingen Felder konfiguriert.");
+          console.warn("Validation errors", a);
+          b._showWarnings(document, "Es sind noch nicht alle notwendingen Felder konfiguriert.<br/>" + c);
+        }
+      }
     }), d.setEventListener("click", function(a) {
       a.preventDefault();
       var c = a.target;
       c.setAttribute("disabled", "disabled");
       if (a = b._model) {
         var d = b._readConfiguration(a);
-        d.isValid() ? b._adminService.importCards(a, d).then(function(a) {
-          console.debug("success = " + a);
-          return a ? (b._propertyBag.configuration = d, b._pluginController.setAdminConfiguration(b._propertyBag)) : Promise.reject("See log for more details");
-        }).then(function(a) {
-          console.debug("Configuration saved", a);
-        }).catch(function(a) {
-          console.error("An error occured while importing from file: " + a);
-          console.error(a.stack);
-        }).finally(function() {
-          c.removeAttribute("disabled");
-        }) : b._showWarnings(document, "Die Konfiguration ist unvollst\u00e4ndig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.");
+        if (d.isValid()) {
+          b._adminService.importCards(a, d).then(function(a) {
+            console.debug("success = " + a);
+            return a ? (b._propertyBag.configuration = d, b._pluginController.setAdminConfiguration(b._propertyBag)) : Promise.reject("See log for more details");
+          }).then(function(a) {
+            console.debug("Configuration saved", a);
+          }).catch(function(a) {
+            console.error("An error occured while importing from file: " + a);
+            console.error(a.stack);
+          }).finally(function() {
+            c.removeAttribute("disabled");
+          });
+        } else {
+          a = d.getValidationErrors();
+          var e = a.join("<br/>");
+          console.warn("Validation errors", a);
+          b._showWarnings(document, "Die Konfiguration ist unvollst\u00e4ndig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>" + e);
+        }
       }
     }));
   });
@@ -3937,8 +4092,8 @@ AdminController.prototype._readConfiguration = function(a) {
     if (null === c) {
       return null;
     }
-    var e = c.getAttribute("data-type");
-    return b._createFieldOfType(e, a, c.value);
+    var e = c.getAttribute("data-type"), f = "true" === c.getAttribute("data-multi");
+    return b._createFieldOfType(e, a, c.value, f);
   }).filter(function(a) {
     return null != a;
   }).reduce(function(a, b) {
@@ -3946,62 +4101,64 @@ AdminController.prototype._readConfiguration = function(a) {
     return a;
   }, new ImportConfiguration);
 };
-AdminController.prototype._createFieldOfType = function(a, b, c) {
+AdminController.prototype._createFieldOfType = function(a, b, c, d) {
   switch(a) {
     case "boolean":
-      return new BooleanField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments));
+      return new BooleanField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments), d);
     case "date":
-      return new DateField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments));
+      return new DateField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments), d);
     case "array":
-      return new ArrayField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments));
+      return new ArrayField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments), d);
     default:
-      return new TextField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments));
+      return new TextField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments), d);
   }
 };
 AdminController.prototype.renderModel = function(a, b) {
   var c = this;
   c._clearContent();
-  this._document.getElementsByClassName("mapping-content-header").forEach(function(a) {
-    a.removeClass("hidden");
-  });
-  var d = [];
-  this._document.getElementsByClassName("mapping-content").forEach(function(e) {
-    e.removeClass("hidden");
-    Object.entries(a.getNormalizedHeaders()).forEach(function(f) {
-      var g = f[1], h = c._document.createElement("div");
-      h.addClass("row space full");
-      d.push(c._createChipsSection(g).then(function(a) {
-        h.appendChild(a);
-        return c._createFieldMappingSection(g, b);
-      }).then(function(d) {
-        h.appendChild(d);
-        return c._createPreviewSection(g, a, b);
-      }).then(function(a) {
-        h.appendChild(a);
-        return c._createMore(g);
-      }).then(function(a) {
-        h.appendChild(a);
-        return h;
-      }).then(function(a) {
-        e.appendChild(a);
-        return Array.from(a.querySelectorAll("select").values());
-      }).then(function(b) {
-        c._model = a;
-        b.forEach(function(a) {
-          a.dispatchEvent(new Event("change"));
-        });
-        return Array.from(h.querySelectorAll(".js-preview").values());
-      }).then(function(a) {
-        a.forEach(function(a) {
-          a.dispatchEvent(new Event("update"));
-        });
-        return e;
-      }));
+  if (a) {
+    this._document.getElementsByClassName("mapping-content-header").forEach(function(a) {
+      a.removeClass("hidden");
     });
-  });
-  Promise.all(d).then(function(a) {
-    return c._trello.sizeTo("#content");
-  });
+    var d = [];
+    this._document.getElementsByClassName("mapping-content").forEach(function(e) {
+      e.removeClass("hidden");
+      Object.entries(a.getNormalizedHeaders()).forEach(function(f) {
+        var g = f[1], h = c._document.createElement("div");
+        h.addClass("row space full");
+        d.push(c._createChipsSection(g).then(function(a) {
+          h.appendChild(a);
+          return c._createFieldMappingSection(g, b);
+        }).then(function(d) {
+          h.appendChild(d);
+          return c._createPreviewSection(g, a, b);
+        }).then(function(a) {
+          h.appendChild(a);
+          return c._createMore(g);
+        }).then(function(a) {
+          h.appendChild(a);
+          return h;
+        }).then(function(a) {
+          e.appendChild(a);
+          return Array.from(a.querySelectorAll("select").values());
+        }).then(function(b) {
+          c._model = a;
+          b.forEach(function(a) {
+            a.dispatchEvent(new Event("change"));
+          });
+          return Array.from(h.querySelectorAll(".js-preview").values());
+        }).then(function(a) {
+          a.forEach(function(a) {
+            a.dispatchEvent(new Event("update"));
+          });
+          return e;
+        }));
+      });
+    });
+    Promise.all(d).then(function(a) {
+      return c._trello.sizeTo("#content");
+    });
+  }
 };
 AdminController.prototype._createMore = function(a) {
   var b = this._document.createElement("div");
@@ -4034,14 +4191,47 @@ AdminController.prototype._createPreviewSection = function(a, b, c) {
   e.setAttribute("id", "preview-" + a.getAddressAsText());
   e.addClass("col-3 js-preview");
   e.setEventListener("update", function(f) {
-    f = f.item || c.mapping.find(function(b) {
+    var g = f.item || c.mapping.find(function(b) {
       return b.source.isSameAddress(a.address);
     });
-    var g = b.getSample(a);
-    e.innerHTML = b.getSampleHtml(g, d._document, f) || "<p>&nbsp;</p>";
+    ("import" === d._context ? b.getSample(a).then(function(a) {
+      return b.getSampleHtml(a, d._document, g) || "<p>&nbsp;</p>";
+    }) : d._getBoardSample(a, g)).then(function(a) {
+      e.innerHTML = a;
+    });
   });
   e.innerHTML = "<p>&nbsp;</p>";
   return Promise.resolve(e);
+};
+AdminController.prototype._getBoardSample = function(a, b) {
+  var c = this;
+  return c._trello.card("id", "name", "desc", "due", "members", "labels", "idList").then(function(d) {
+    console.debug(b.reference + ": Got card " + JSON.stringify(d));
+    switch(b.reference) {
+      case "trello.title":
+        return d.name;
+      case "trello.description":
+        return d.desc;
+      case "trello.duedate":
+        return d.due;
+      case "trello.members":
+        return d.members.map(function(a) {
+          return a.fullName + " (" + a.username + ")";
+        }).join("<br/>");
+      case "trello.labels":
+        return d.labels.filter(function(b) {
+          return b.name === a.label && b.color === a.color;
+        }).map(function(a) {
+          return a.name + " (" + a.color + ")";
+        }).join("<br/>") || "&nbsp;";
+      case "trello.list":
+        return c._trello.list("id", "name").then(function(a) {
+          return a.name;
+        });
+      default:
+        return "&lt;leer&gt;";
+    }
+  });
 };
 AdminController.prototype._createFieldMappingSection = function(a, b) {
   var c = this, d = this, e = d._document.createElement("div");
@@ -4091,10 +4281,14 @@ AdminController.prototype._onFieldMappingChange = function(a, b) {
       });
       e.appendChild(g);
     }
-    f.item = this._createFieldOfType(a.getAttribute("data-type"), b, a.value);
+    e = "true" === a.getAttribute("data-multi");
+    f.item = this._createFieldOfType(a.getAttribute("data-type"), b, a.value, e);
     c._document.querySelector("#preview-" + d).dispatchEvent(f);
-    c._document.querySelector("#btn-import").dispatchEvent(f);
+    c._getActionButton().dispatchEvent(f);
   }
+};
+AdminController.prototype._getActionButton = function() {
+  return this._document.querySelector("#" + ("import" === this._context ? "btn-import" : "btn-export"));
 };
 AdminController.prototype._createColorPicker = function(a) {
   a = void 0 === a ? null : a;
@@ -4123,17 +4317,18 @@ AdminController.prototype._getTrelloFields = function(a, b) {
   var c = this, d = this._document.createElement("optgroup");
   d.setAttribute("label", "Trello Felder");
   return Promise.resolve(TRELLO_FIELDS.map(function(d) {
-    return c._createFieldOption(a, d.id, __(d.desc), d.type, b);
+    return c._createFieldOption(a, d.id, __(d.desc), d.type, d.multi, b);
   }).reduce(function(a, b) {
     a.appendChild(b);
     return a;
   }, d));
 };
-AdminController.prototype._createFieldOption = function(a, b, c, d, e) {
+AdminController.prototype._createFieldOption = function(a, b, c, d, e, f) {
   a = this._document.createElement("option");
   a.setAttribute("value", b);
   a.innerText = c;
   a.setAttribute("data-type", d || "text");
+  a.setAttribute("data-multi", e || "false");
   return a;
 };
 AdminController.prototype._getPantaFields = function(a, b) {
@@ -4146,7 +4341,7 @@ AdminController.prototype._getPantaFields = function(a, b) {
           var f = d.groupId, g = c._document.createElement("optgroup");
           g.setAttribute("label", e + ": " + d.group);
           return d.fields.map(function(d) {
-            return c._createFieldOption(a, f + "." + d.id, d.label, d.type, b);
+            return c._createFieldOption(a, f + "." + d.id, d.label, d.type, "false", b);
           }).reduce(function(a, b) {
             a.appendChild(b);
             return a;
@@ -4158,7 +4353,7 @@ AdminController.prototype._getPantaFields = function(a, b) {
 };
 AdminController.prototype._clearContent = function() {
   this._document.getElementsByClassName("mapping-content").forEach(function(a) {
-    a.removeChildren();
+    return a.removeChildren();
   });
 };
 AdminController.prototype._showErrors = function(a, b) {
@@ -5053,7 +5248,11 @@ template_plan_mobile = '<div id="template">    <div class="row">        <div cla
 template_settings_switch = '<div class="row module-switch-container">    <div class="col-2">       <div class="panta-module-enabled">           <label class="panta-checkbox-container">              <input class="panta-js-checkbox" type="checkbox" checked="checked">               <span class="panta-checkbox-checkmark elevate"></span>           </label>       </div>    </div>    <div class="col-10 switch-title"></div></div>', template_settings_module = '<div class="row module-container">    <div class="col-2 col-phone-2">       <div class="panta-module-enabled">           <label class="panta-checkbox-container">              <input class="panta-js-checkbox" type="checkbox" checked="checked">               <span class="panta-checkbox-checkmark elevate"></span>           </label>       </div>    </div>    <div class="col-8 col-phone-8 module-title"></div>    <div class="col-2 col-phone-2 module-icon"><img src="assets/ic_pantarhei.png" class="panta-js-icon" width="16px" height="16px"/></div></div>', 
 template_settings_editable = '<div class="row module-editable-container">    <div class="col-1 col-phone-1 module-editable-show">       <div class="panta-module-enabled">           <label class="panta-checkbox-container hidden">               <input class="panta-js-checkbox" type="checkbox" checked="checked">               <span class="panta-checkbox-checkmark elevate"></span>           </label>       </div>    </div>    <div class="col-8 col-phone-8 module-editable-name"></div>    <div class="col-1 col-phone-1 module-helper-visible">       <button class="panta-btn panta-btn-dot panta-js-button hidden" title="Dieses Feld ist sichtbar"><img src="assets/ic_visible.png" width="12px" height="12px"/></button>    </div>    <div class="col-1 col-phone-1 module-editable-color invisible">       <button class="panta-btn panta-btn-dot panta-js-button"></button>    </div>    <div class="col-1 col-phone-1 module-helper-sortable">       <button class="panta-btn panta-btn-dot panta-js-button" title="Dieses Feld kann f\u00fcr die Sortierung verwendet werden">S</button>    </div></div>', 
 template_settings_editable_select = '<div class="row module-editable-select-container">   <select class="panta-js-select"></select></div>', template_settings_editable_option = '<div class="row module-editable-option-container">    <div class="col-10 module-editable-option-name">       <input type="text" class="panta-js-name"/>    </div>    <div class="col-2 module-editable-option-actions">       <button class="panta-btn panta-btn-icon panta-js-delete"><img src="assets/ic_trash.svg" width="16px" height="16px"/></button>       <button class="panta-btn panta-btn-icon panta-js-visible hidden"><img src="assets/ic_visible.png" width="16px" height="16px"/></button>    </div></div>', 
-template_beteiligt = '<form id="panta.module">    <div class="js-panta-editable-title">        <div class="row min"><div class="col-12">\u00a0</div></div>        <div class="row min">           <div class="col-12">                <h3 class="js-panta-module js-panta-label"></h3>           </div>        </div>    </div>    <div class="row min navigation-bar">        <div id="pa.involved.onsite" class="col-2 col-phone-4 tab" data-label="vor.Ort" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.text" class="col-2 col-phone-4 tab" data-label="Journalist" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.photo" class="col-phone-4 col-2 tab" data-label="Visual" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.video" class="col-phone-4 col-2 tab" data-label="Event" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.illu" class="col-phone-4 col-2 tab" data-label="MC/Host" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.ad" class="col-phone-4 col-2 tab" data-label="weitere" data-layout="regular"><span>Placeholder</span></div>    </div>    <span id="pa.tab.content"></span></form>';
+template_beteiligt = '<form id="panta.module">    <div class="js-panta-editable-title">        <div class="row min"><div class="col-12">\u00a0</div></div>        <div class="row min">           <div class="col-12">                <h3 class="js-panta-module js-panta-label"></h3>           </div>        </div>    </div>    <div class="row min navigation-bar">        <div id="pa.involved.onsite" class="col-2 col-phone-4 tab" data-label="vor.Ort" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.text" class="col-2 col-phone-4 tab" data-label="Journalist" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.photo" class="col-phone-4 col-2 tab" data-label="Visual" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.video" class="col-phone-4 col-2 tab" data-label="Event" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.illu" class="col-phone-4 col-2 tab" data-label="MC/Host" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.ad" class="col-phone-4 col-2 tab" data-label="weitere" data-layout="regular"><span>Placeholder</span></div>    </div>    <span id="pa.tab.content"></span></form>', 
+template_admin_actions = '<div class="row full">            <div class="col-12">                <p>Was willst du tun?</p>            </div>        </div>        <div class="row full">            <div class="col-6 space">                <button id="btn-action-import" class="panta-btn action">Import</button>            </div>            <div class="col-6 space">                <button id="btn-action-export" class="panta-btn action js-button-export">Export</button>            </div>        </div>', 
+template_admin_import = '<div class="row">            <div class="col-12">                <p>W\u00e4hle hier die Excel Datei aus, die importiert werden soll.</p>            </div>            <div class="col-12">                <input class="panta-btn" type="file" id="file-import">                <button class="panta-btn" id="btn-load">Laden</button>                <button class="panta-btn panta-bgcolor-yellow" id="btn-load-config">Konfiguration laden</button>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3">                    <b>Excel Feld</b>                </div>                <div class="col-4">                    <b>Trello Feld</b>                </div>                <div class="col-3">                    <b>Beispiel Wert</b>                </div>                <div class="col-2">                    <b>Mehr</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-10">\u00a0</div>                <div class="col-2">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-import">                        Importieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
+template_admin_export = '<div class="row">            <div class="col-12">                <p>W\u00e4hle hier die Excel Vorlage aus, die f\u00fcr den Export verwendet werden soll.</p>            </div>            <div class="col-12">                <input class="panta-btn" type="file" id="file-import">                <button class="panta-btn" id="btn-load">Laden</button>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3">                    <b>Excel Feld</b>                </div>                <div class="col-4">                    <b>Trello Feld</b>                </div>                <div class="col-3">                    <b>Beispiel Wert</b>                </div>                <div class="col-2">                    <b>Mehr</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-10">\u00a0</div>                <div class="col-2">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-export">                        Exportieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
+template_admin_errorpage = '<div class="row full">   <div class="col-12 hidden error-messages">       <p class="error" id="error-message"></p>   </div>   <div class="col-12 hidden warning-messages">       <p class="warning" id="warning-message"></p>   </div>   <div class="col-12 space">       <button id="btn-reset" class="panta-btn panta-bgcolor-red">Zur\u00fccksetzen</button>   </div></div>';
 // Input 50
 var Reducers = function() {
 };
@@ -5061,6 +5260,10 @@ Reducers.asKeyValue = function(a, b) {
   Object.entries(b).forEach(function(b) {
     a[JsonSerialization.denomalize(b[0])] = b[1];
   });
+  return a;
+};
+Reducers.asOccurrenceMap = function(a, b) {
+  void 0 === a[b] ? a[b] = 1 : a[b]++;
   return a;
 };
 
