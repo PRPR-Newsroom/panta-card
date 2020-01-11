@@ -113,15 +113,20 @@ class PluginController {
     }
 
     /**
-     * @return {Promise<{configuration: ImportConfiguration}>}
+     *
+     * @return {Promise<string>} the base64 encoded and compressed configuration
      */
     setAdminConfiguration(config) {
         const that = this;
         if (config) {
-            return this._trelloApi.set('board', 'private', AdminController.PROPERTY_BAG_NAME, LZString.compress(JSON.stringify(config)))
-                .then(() => that.getAdminConfiguration());
+            const compress = LZString.compress(JSON.stringify(config));
+            return this._trelloApi.set('board', 'private', AdminController.PROPERTY_BAG_NAME, compress)
+                .then(() => Base64.encode(compress));
         } else {
-            return that.getAdminConfiguration();
+            return that.getAdminConfiguration()
+                .then(it => {
+                    return Base64.encode(LZString.compress(JSON.stringify(it.configuration)));
+                });
         }
     }
 

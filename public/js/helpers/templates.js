@@ -422,16 +422,19 @@ const template_admin_actions = '<div class="row full">'+
     '            </div>'+
     '        </div>';
 
-const template_admin_import = '<div class="row">'+
+const template_admin_import = '<div class="row full">'+
     '            <div class="col-12">'+
     '                <p>Wähle hier die Excel Datei aus, die importiert werden soll.</p>'+
     '            </div>'+
-    '            <div class="col-12">'+
+    '            <div class="col-10">'+
     '                <input class="panta-btn" type="file" id="file-import">'+
+    '            </div>' +
+    '            <div class="col-2">' +
     '                <button class="panta-btn" id="btn-load">Laden</button>' +
+    '            </div>' +
+    '            <div class="col-12">' +
     '                <button class="panta-btn panta-bgcolor-yellow" id="btn-load-config">Konfiguration laden</button>'+
     '            </div>'+
-    ''+
     '        </div>'+
     ''+
     '        <div class="hidden mapping-content-header">'+

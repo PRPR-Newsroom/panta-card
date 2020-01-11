@@ -3,7 +3,7 @@
  */
 class Controller {
 
-    constructor(windowManager, repository) {
+    constructor(windowManager, repository, trello) {
         /**
          * @type {Repository}
          * @public
@@ -20,6 +20,11 @@ class Controller {
          * @type {Window}
          */
         this._window = windowManager;
+
+        /**
+         * @protected
+         */
+        this.trelloApi = trello;
     }
 
     /**
@@ -70,7 +75,7 @@ class Controller {
 
     /**
      * @param {} entity
-     * @param {Trello.Card} card
+     * @param {{id: number}} card
      */
     insert(entity, card) {
         if (entity && this._repository.isNew(entity)) {
@@ -116,9 +121,47 @@ class Controller {
 
     /**
      * Fetch all module configs from Trello
+     * @param {function} onComplete
      */
-    fetchAll() {
+    fetchAll(onComplete = () => console.debug('noop')) {
+        const that = this;
+        return this.trelloApi.cards('id', 'closed')
+            .filter(function (card) {
+                return !card.closed;
+            })
+            .each(function (card) {
+                return that.trelloApi.get(card.id, 'shared', that.getSharedName())
+                    .then(function (json) {
+                        that.insert(that.create(json), card);
+                    });
+            })
+            .then(function () {
+                console.log(`${that.getSharedName()}: Fetch complete: ${that.size()}`);
+                onComplete.call(that);
+            })
     }
+
+    /**
+     * Fetch only for the given card
+     * @param {{id: number}} card
+     * @param {PluginModuleConfig} configuration
+     * @return {Promise<*>}
+     */
+    fetchByCard(card, configuration) {
+        const that = this;
+        return this.trelloApi.get(card.id, 'shared', this.getSharedName())
+            .then(it => {
+                const entity = that.create(it, configuration);
+                that.insert(entity, card);
+                return entity;
+            });
+    }
+
+    /**
+     * @return {string} the store name that is used in Trello
+     * @abstract
+     */
+    getSharedName() {}
 
     /**
      * Persist the entity to Trello
@@ -185,12 +228,13 @@ class Controller {
 
     /**
      * @param {PluginModuleConfig} pluginModuleConfig the plugin module configuration
-     * @return {[]} all fields that this controller knows about
+     * @return {{group: string, groupId: string, fields: {id: string, desc: string, visible: boolean, type: string, values: string[]?}[]}[][]} all fields that this controller knows about
      */
     getFields(pluginModuleConfig) {
         const that = this;
         return [[{
             'group': 'Felder',
+            'moduleId': `${pluginModuleConfig.id}`,
             'groupId': `${pluginModuleConfig.id}`,
             'fields': pluginModuleConfig.config.editables.filter(that.isImportableField)
         }]];

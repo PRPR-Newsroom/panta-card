@@ -184,7 +184,7 @@ const sampleImport = {
                 "_color": null
             },
             {
-                "_label": "1. Auwwahlliste",
+                "_label": "1. Auswahlliste",
                 "_children": [],
                 "_properties": [],
                 "_address": {
@@ -196,7 +196,7 @@ const sampleImport = {
             },
             {
                 "_parent": null,
-                "_label": "2. Auwwahlliste",
+                "_label": "2. Auswahlliste",
                 "_children": [],
                 "_properties": [],
                 "_address": {
@@ -207,7 +207,7 @@ const sampleImport = {
                 "_color": null
             },
             {
-                "_label": "3. Auwwahlliste",
+                "_label": "3. Auswahlliste",
                 "_children": [],
                 "_properties": [],
                 "_address": {
@@ -218,7 +218,7 @@ const sampleImport = {
                 "_color": null
             },
             {
-                "_label": "4. Auwwahlliste",
+                "_label": "4. Auswahlliste",
                 "_children": [],
                 "_properties": [],
                 "_address": {

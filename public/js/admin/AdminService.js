@@ -1,6 +1,10 @@
 class AdminService {
 
-    constructor(trello) {
+    /**
+     * @param trello
+     * @param {LoggingService} loggingService
+     */
+    constructor(trello, loggingService) {
         if (!window.hasOwnProperty("Trello")) {
             throw "Trello not correctly loaded";
         }
@@ -14,6 +18,11 @@ class AdminService {
         this.planController = this.clientManager.getPlanController();
         this.moduleController = this.clientManager.getModuleController();
         this.excelService = this.clientManager.getExcelService();
+        /**
+         * @type {LoggingService}
+         * @private
+         */
+        this._loggingService = loggingService;
     }
 
     hasLabel(label, color) {
@@ -27,6 +36,9 @@ class AdminService {
         return that._createLabel(label, color);
     }
 
+    /**
+     * @return {Promise<{id: string}>}
+     */
     getCurrentCard() {
         const that = this;
         return that.trello.card('id');
@@ -39,34 +51,46 @@ class AdminService {
     withTrelloToken() {
         const that = this;
         return that.trello.getRestApi()
-            .getToken()
+            .isAuthorized()
             .then(it => {
                 if (it) {
-                    return {token: it, key: that.trello.getRestApi().appKey};
-                } else {
-                    return new Promise(function (resolve, reject) {
-                        window.Trello.authorize({
-                            type: 'popup',
-                            expiration: 'never',
-                            scope: {
-                                read: 'true',
-                                write: 'true'
-                            },
-                            success: () => {
-                                console.debug(`Auth success`);
-                                resolve(true);
-                            },
-                            error: () => {
-                                console.error(`Auth error`);
-                                reject('Could not authorize');
+                    return that.trello.getRestApi().getToken()
+                        .then(it => {
+                            if (it) {
+                                return {token: it, key: that.trello.getRestApi().appKey};
+                            } else {
+                                return that._authorize();
                             }
                         });
-                    }).then(() => that.trello.getRestApi()
-                        .getToken().then(it => {
-                            return {token: it, key: that.trello.getRestApi().appKey};
-                        }));
+                } else {
+                    return that._authorize();
                 }
             });
+    }
+
+    _authorize() {
+        const that = this;
+        return new Promise(function (resolve, reject) {
+            window.Trello.authorize({
+                type: 'popup',
+                expiration: 'never',
+                scope: {
+                    read: 'true',
+                    write: 'true'
+                },
+                success: () => {
+                    that._loggingService.d(`Berechtigung erfolgreich erteilt`);
+                    resolve(true);
+                },
+                error: () => {
+                    that._loggingService.e(`Berechtigung konnte nicht erteilt werden`);
+                    reject('Fehler bei der Autorisierung des Power-Ups');
+                }
+            });
+        }).then(() => that.trello.getRestApi()
+            .getToken().then(it => {
+                return {token: it, key: that.trello.getRestApi().appKey};
+            }));
     }
 
     getLabels() {
@@ -87,31 +111,35 @@ class AdminService {
         if (files.length > 0) {
             for (let index = 0; index < files.length; index++) {
                 importers.push(new Promise(function (resolve, reject) {
+                    /**
+                     * @type {File}
+                     */
                     const file = files.item(index);
+                    that._loggingService.i(`Processing file ${file.name}`);
                     that.fileReader.onload = function (e) {
                         that._loadContent(e.target.result)
                             .then(model => {
                                 if (model) {
+                                    that._loggingService.i(`File ${file.name} loaded successfully`);
                                     resolve({
                                         'file': file,
                                         'model': model
                                     });
                                 } else {
-                                    reject(`Could not successfully import all cards for file ${file.name}`);
+                                    that._loggingService.i(`Fehler beim Einlesen der Datei «${file.name}»`);
+                                    reject(`Fehler beim Einlesen der Datei «${file.name}»`);
                                 }
                             });
                     };
                     that.getCurrentCard()
                         .then((card) => {
-                            return that.withTrelloToken()
-                                .then(token => {
-                                    return that._uploadFileToCard(card, file, token);
-                                })
+                            return that.uploadFileToCard(card, file)
                                 .then(file => {
                                     window.setTimeout(() => that.fileReader.readAsArrayBuffer(file), 10);
                                 })
                                 .catch(err => {
-                                    console.error(`Got an error while uploading to card: ${err}`);
+                                    that._loggingService.e(`Fehler beim Hochladen der Datei «${file.name}»`);
+                                    that._loggingService.d(`Details zum Fehler: ${err}`);
                                     reject(file);
                                 });
                         })
@@ -122,43 +150,60 @@ class AdminService {
     }
 
     /**
-     * @param card
-     * @param file
-     * @param {key: string, token: string} token
+     * @param {{id: string}} card
+     * @param {File} file
      * @return {Promise<Blob>}
-     * @private
      */
-    _uploadFileToCard(card, file, token) {
+    uploadFileToCard(card, file) {
         const that = this;
-        return new Promise(function (resolve, reject) {
-            const formData = new FormData();
-            formData.append("file", file);
-            formData.append("name", file.name);
-            formData.append("key", token.key);
-            formData.append("token", token.token);
+        return that.withTrelloToken()
+            .then(token => {
+                return that.trello.member('username')
+                    .then(it => {
+                            const username = it.username;
+                            return new Promise(function (resolve, reject) {
+                                const formData = new FormData();
+                                const now = new Date();
+                                const filename = `Datei «${file.name}» von «${username}» am ${now.toLocaleDateString()} um ${now.toLocaleTimeString()}`;
+                                formData.append("file", file);
+                                formData.append("name", `${filename}`);
+                                formData.append("key", token.key);
+                                formData.append("token", token.token);
 
-            const request = new XMLHttpRequest();
-            // what url to use?
-            request.onload = function (e) {
-                if (request.readyState === 4) {
-                    if (request.status === 200) {
-                        console.debug(`Successfully attached file to card ${card.id} at ${request.response.date}`, request);
-                        resolve(file);
-                    } else {
-                        reject(`Ein Fehler beim Verarbeiten der Datei «${file.name}» ist aufgetreten: \n\n${request.statusText}`);
-                    }
-                } else {
-                    // still uploading...
-                }
-            };
-            request.onerror = function (e) {
-                reject(`Ein Fehler beim Verarbeiten der Datei «${file.name}» ist aufgetreten: \n\n${request.statusText}`);
-            };
+                                const request = new XMLHttpRequest();
+                                // what url to use?
+                                request.onload = function (e) {
+                                    if (request.readyState === 4) {
+                                        switch (request.status) {
+                                            case 200:
+                                                that._loggingService.i(`Datei als «${filename}» in «${card.id}» gespeichert`);
+                                                resolve(file);
+                                                break;
+                                            case 401:
+                                                // unauthorized: reset the token
+                                                that.trello.getRestApi().clearToken();
+                                            default:
+                                                that._loggingService.e(`Ein Fehler beim Verarbeiten der Datei «${file.name}» ist aufgetreten}`);
+                                                that._loggingService.d(`Details zum Fehler: ${request.statusText}`);
+                                                reject(`Ein Fehler beim Verarbeiten der Datei «${file.name}» ist aufgetreten: \n\n${request.statusText}`);
+                                        }
+                                    } else {
+                                        // still uploading...
+                                    }
+                                };
+                                request.onerror = function (e) {
+                                    that._loggingService.e(`Ein I/O-Fehler beim Verarbeiten der Datei «${file.name}» ist aufgetreten`);
+                                    that._loggingService.d(`Details zum Fehler: ${request.statusText}`);
+                                    reject(`Ein I/O-Fehler beim Verarbeiten der Datei «${file.name}» ist aufgetreten: \n\n${request.statusText}`);
+                                };
 
-            // even tough its async i get a IFrameIO request timed out. Command=card-back-section, Plugin=undefined, Elapsed=5029 which looks like it is blocking
-            request.open("POST", `https://api.trello.com/1/cards/${card.id}/attachments`, true);
-            request.send(formData);
-        });
+                                // even tough its async i get a IFrameIO request timed out. Command=card-back-section, Plugin=undefined, Elapsed=5029 which looks like it is blocking
+                                request.open("POST", `https://api.trello.com/1/cards/${card.id}/attachments`, true);
+                                request.send(formData);
+                            });
+                        }
+                    );
+            });
     }
 
     /**
@@ -167,14 +212,7 @@ class AdminService {
      * @private
      */
     _loadContent(content) {
-        /**
-         * @type {Import}
-         */
-        const root = this.excelService.read(content);
-
-        return Promise.resolve(root);
-        // // TODO: bring the mapping to the UI... something like render(root, configuration) whereas the configuration is the predefined/saved mapping
-        // return this._importCards(root);
+        return Promise.resolve(this.excelService.read(content));
     }
 
     /**
@@ -186,8 +224,9 @@ class AdminService {
         const that = this;
         // create all labels beforehand
         return this._createLabels(this._getLabels(configuration))
-            .then(it => {
-                configuration.labels = it;
+            .then(its => {
+                that._loggingService.d(`Die Labels (${its.map(it => it.name).join(',')}) sind nun verfügbar`);
+                configuration.labels = its;
                 return that._importCard(model, 0, configuration);
 
             });
@@ -209,14 +248,12 @@ class AdminService {
                 .then(() => {
                     return new Promise(function (resolve, reject) {
                         window.setTimeout(() => {
-                            // TODO update log on UI
+                            // TODO update UI
                             resolve(that._importCard(model, index + 1, configuration));
-                        }, 600);
+                        }, model.data.length);
                     });
                 });
         } else {
-            console.debug("Import completed");
-            // TODO close the log and attach it to the card
             // TODO update process on UI and close
             return Promise.resolve(true);
         }
@@ -234,15 +271,21 @@ class AdminService {
         return that.trello.board('id', 'labels')
             .then(board => {
                 const existingLabels = board.labels;
-                return Promise.all(labels
-                    .map((it) => {
-                        const found = existingLabels.find(label => label.name === it.name && label.color === it.source.color);
-                        if (!found) {
-                            return that._createLabel(it.source.label, it.source.color, board.id)
-                        } else {
-                            return Promise.resolve(found);
-                        }
-                    }));
+                return Promise.all(labels.map((it) => {
+                    const labelName = it.source.label;
+                    const found = existingLabels.find(label => label.name === it.name && label.color === it.source.color);
+                    if (!found) {
+                        return that._createLabel(labelName, it.source.color, board.id)
+                            .catch(it => {
+                                that._loggingService.e(`Label «${labelName}» konnte nicht erstellt werden: ${it}`);
+                                return false;
+                            });
+                    } else {
+                        return Promise.resolve(found);
+                    }
+                })).then(its => {
+                    return its.filter(it => it !== false);
+                });
             });
     }
 
@@ -260,13 +303,13 @@ class AdminService {
             .reduce((prev, cur) => prev || cur, null)
             .then(list => {
                 if (list == null) {
-                    // TODO append to log
+                    that._loggingService.i(`Liste «${listname}» wird erstellt`);
                     return that._createList(listname)
                         .then(list => {
                             return that._createCardInternal(list, data, configuration);
                         });
                 } else {
-                    // TODO append to log
+                    that._loggingService.i(`Liste «${listname}» exisitert bereits`);
                     return that._createCardInternal(list, data, configuration);
                 }
             });
@@ -296,13 +339,16 @@ class AdminService {
 
         return that.withTrelloToken()
             .then(appToken => {
-                return that._findCardByTitle(title)
+                return that._findCardByTitle(title, list)
                     .then(it => {
                         if (it) {
+                            that._loggingService.i(`Trello Card «${title}» ist bereits in «${list.id}» vorhanden`);
+                            // CHECKME update description, due date etc.? this is not MVP
                             return it;
                         } else {
                             const searches = members.map((it, index, arr) => {
                                 return new Promise(function (resolve, reject) {
+                                    that._loggingService.d(`Member für «${it}» wird gesucht`);
                                     window.Trello.get('/search/members', that._createBody(appToken, {
                                         query: `${it}`,
                                         limit: 1
@@ -319,16 +365,17 @@ class AdminService {
                                     return its.flatMap(it => it);
                                 })
                                 .then(its => {
-                                    // TODO log
                                     return new Promise(function (resolve, reject) {
-                                        window.Trello.post("/cards", that._createBody(appToken, {
-                                            name: title,
-                                            desc: desc,
-                                            idList: list.id,
-                                            idLabels: labels.map(it => it.id).join(','),
-                                            due: isBlank(frist) ? null : frist.toISOString(),
-                                            idMembers: its.map(it => it.id).join(',')
-                                        }), (card) => {
+                                        that._loggingService.d(`Erstelle Trello Card «${title}» in ${list.id}`);
+                                        const request = that._createBody(appToken, {
+                                            'name': title,
+                                            'desc': desc,
+                                            'idList': list.id,
+                                            'idLabels': labels.map(it => it.id).join(','),
+                                            'due': isBlank(frist) ? null : frist.toISOString(),
+                                            'idMembers': its.map(it => it.id).join(',')
+                                        });
+                                        window.Trello.post("/cards", request, (card) => {
                                             resolve(card);
                                         })
                                     });
@@ -366,16 +413,16 @@ class AdminService {
                                                 it.getEditableOptionValue('form', form), place);
                                         })
                                         .then(it => {
+                                            that._loggingService.d(`Artikel wird angelegt: ${JSON.stringify(it)}`);
                                             return that.articleController.persist(it, card.id)
                                                 .then(() => {
-                                                    // TODO append to log
-                                                    console.debug(`Artikel created in card ${card.id}`);
+                                                    that._loggingService.i(`Artikel erstellt in Trello Card «${card.id}»`);
                                                     return that._doImportBeteiligt(data, configuration, card);
                                                 });
                                         });
 
                                 } else {
-                                    console.debug('Article Module is not enabled');
+                                    that._loggingService.d('Artikel Module ist deaktiviert');
                                     return that._doImportBeteiligt(data, configuration, card);
                                 }
                             });
@@ -403,15 +450,15 @@ class AdminService {
                                                 it.getEditableOptionValue('place', place));
                                         })
                                         .then(plan => {
+                                            that._loggingService.d(`Plan wird angelegt: ${JSON.stringify(plan)}`);
                                             return that.planController.persist(plan, card.id)
                                                 .then(() => {
-                                                    // TODO append to log
-                                                    console.debug(`Plan created in card ${card.id}`);
+                                                    that._loggingService.i(`Plan erstellt in Trello Card «${card.id}»`);
                                                     return that._doImportBeteiligt(data, configuration, card);
                                                 });
                                         })
                                 } else {
-                                    console.debug('Plan Module is not enabled');
+                                    that._loggingService.d('Plan Module ist deaktiviert');
                                     return that._doImportBeteiligt(data, configuration, card);
                                 }
                             });
@@ -470,10 +517,10 @@ class AdminService {
                                 }).reduce(Reducers.asKeyValue, {})
                             };
                             module.sections = sections;
+                            that._loggingService.d(`Beteiligt wird angelegt: ${JSON.stringify(module)}`);
                             return that.moduleController.persist(module, card.id)
                                 .then(() => {
-                                    // TODO append to log
-                                    console.debug(`Beteiligt created in card ${card.id}`);
+                                    that._loggingService.i(`Beteiligt erstellt in Trello Card «${card.id}»`);
                                     return true;
                                 });
                         });
@@ -502,7 +549,7 @@ class AdminService {
                                 idBoard: board.id,
                                 pos: "bottom"
                             }), (list) => {
-                                // TODO append to log
+                                that._loggingService.d(`Liste «${name}» wurde erstellt`);
                                 resolve(list);
                             });
                         });
@@ -557,13 +604,16 @@ class AdminService {
 
     /**
      * @param title
+     * @param {{id: string}} list
      * @return {Promise<{id: string, name: string}>}
      * @private
      */
-    _findCardByTitle(title) {
-        return this.trello.cards('id', 'name')
+    _findCardByTitle(title, list) {
+        // trello.cards sucht in allen offenen cards vom aktuellen board
+        this._loggingService.d(`Sucht nach bestehender Trello Card mit Namen «${title}» in Trello Liste «${list.id}»`);
+        return this.trello.cards('id', 'name', 'idList')
             .reduce((prev, cur) => {
-                prev = cur.name === title ? cur : prev;
+                prev = cur.name === title && cur.idList === list.id ? cur : prev;
                 return prev;
             }, null)
     }
@@ -585,14 +635,19 @@ class AdminService {
      */
     _createLabel(label, color, boardId) {
         const that = this;
+        if (Object.values(TRELLO_COLORS).indexOf(color) === -1) {
+            return Promise.reject(`Ungültige Farbe: ${color}. Gültige Farben sind: ${Object.values(TRELLO_COLORS).join()}`);
+        }
         return this.withTrelloToken()
             .then(it => {
                 return new Promise(function (resolve, reject) {
-                    window.Trello.post("/labels", that._createBody(it, {
+                    that._loggingService.d(`Label «${label}» (${color}) wird erstellt in Board «${boardId}»`);
+                    const request = that._createBody(it, {
                         name: label,
                         color: color,
                         idBoard: boardId
-                    }), function (label) {
+                    });
+                    window.Trello.post("/labels", request, function (label) {
                         resolve(label);
                     });
                 });
@@ -602,6 +657,7 @@ class AdminService {
     _createBody(token, obj) {
         obj.key = token.key;
         obj.token = token.token;
+        this._loggingService.t(`>> ${JSON.stringify(obj)}`);
         return obj;
     }
 

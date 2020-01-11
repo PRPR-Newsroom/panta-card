@@ -57,13 +57,12 @@ class ArtikelController extends Controller {
      * @param telephone
      */
     constructor(windowManager, trelloApi, repository, telephone) {
-        super(windowManager, repository);
+        super(windowManager, repository, trelloApi);
         /**
          * @type {HTMLDocument}
          */
         this.document = windowManager.document;
 
-        this.trelloApi = trelloApi;
         /**
          * @type {Artikel}
          * @private
@@ -143,26 +142,6 @@ class ArtikelController extends Controller {
                     return entity[name];
                 }
         }
-    }
-
-    /**
-     * Fetch all articles from Trello
-     */
-    fetchAll() {
-        let that = this;
-        return this.trelloApi.cards('id', 'closed')
-            .filter(function (card) {
-                return !card.closed;
-            })
-            .each(function (card) {
-                return that.trelloApi.get(card.id, 'shared', ArtikelController.SHARED_NAME)
-                    .then(function (json) {
-                        that.insert(Artikel.create(json), card);
-                    });
-            })
-            .then(function () {
-                console.log("Fetch complete: " + that.size() + " article(s) to process");
-            })
     }
 
     /**
@@ -273,5 +252,9 @@ class ArtikelController extends Controller {
      */
     persist(artikel, cardId) {
         return this.trelloApi.set(cardId || 'card', 'shared', ArtikelController.SHARED_NAME, artikel);
+    }
+
+    getSharedName() {
+        return ArtikelController.SHARED_NAME;
     }
 }

@@ -63,13 +63,11 @@ class ModuleController extends Controller {
      * @param telephone
      */
     constructor(windowManager, trelloApi, telephone) {
-        super(windowManager, new BeteiligtRepository());
+        super(windowManager, new BeteiligtRepository(), trelloApi);
         /**
          * @type {HTMLDocument}
          */
         this.document = windowManager.document;
-
-        this.trelloApi = trelloApi;
 
         /**
          * @type {BeteiligtBinding}
@@ -444,27 +442,6 @@ class ModuleController extends Controller {
     }
 
     /**
-     * Fetch all module configs from Trello
-     */
-    fetchAll(onComplete) {
-        let that = this;
-        return this.trelloApi.cards('id', 'closed')
-            .filter(function (card) {
-                return !card.closed;
-            })
-            .each(function (card) {
-                return that.trelloApi.get(card.id, 'shared', ModuleController.SHARED_NAME)
-                    .then(function (json) {
-                        that.insert(that.create(json), card);
-                    });
-            })
-            .then(function () {
-                console.log("Fetch complete: " + that.size() + " module config(s)");
-                onComplete.call(that);
-            })
-    }
-
-    /**
      * Persist the entity to Trello
      * @param trelloApi
      * @param entity
@@ -542,10 +519,23 @@ class ModuleController extends Controller {
             .map(it => {
                 return [{
                     'group': it.label,
+                    'moduleId': `${pluginModuleConfig.id}`,
                     'groupId': `${pluginModuleConfig.id}.${it.id}`,
                     'fields': pluginModuleConfig.config.layouts[it.layout]
                         .fields.filter(that.isImportableField)
                 }];
             });
+    }
+
+    getPropertyByName(entity, editableId, defaultValue) {
+        // switch (editableId) {
+        //     case "field.name":
+        //         return entity.sections
+        // }
+        return "not_yet_implemented";
+    }
+
+    getSharedName() {
+        return ModuleController.SHARED_NAME;
     }
 }
