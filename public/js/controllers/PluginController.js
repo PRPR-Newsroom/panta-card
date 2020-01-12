@@ -81,7 +81,7 @@ class PluginController {
      */
     getPluginConfiguration() {
         // Endpoint: https://trello.com/1/boards/<ID>/pluginData
-        let that = this;
+        const that = this;
         return this._trelloApi.get(
             'board',
             'shared',

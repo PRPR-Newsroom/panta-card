@@ -34,19 +34,7 @@ class AdminController {
          * @type {ClientManager}
          */
         this._clientManager = ClientManager.getInstance(window);
-        /**
-         * @type {ArtikelController}
-         */
-        this._artikelController = this._clientManager.getArticleController();
 
-        /**
-         * @type {ModuleController}
-         */
-        this._moduleController = this._clientManager.getModuleController();
-        /**
-         * @type {ModulePlanController}
-         */
-        this._planController = this._clientManager.getPlanController();
         /**
          * @type {PluginController}
          */
