@@ -1,11 +1,12 @@
 [UNRELEASED]
 
-[1.5.3-STAGING]
+[1.5.4-STAGING]
 
 # Changes
 
 * Import feature
 * Load a different configuration from a decompressed base64 encoded string
+* Progress dialog when importing
 
 # Fixes
 

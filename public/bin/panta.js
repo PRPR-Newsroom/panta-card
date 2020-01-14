@@ -577,7 +577,256 @@ Repository.prototype.find = function(a) {
 Repository.prototype.isNew = function(a) {
 };
 // Input 3
-var VERSION = "1.5.3-STAGING", APP_NAME = "Panta.Cards", APP_KEY = "86a73cafa11d3834d4768a20a96b6786", PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.settings.hint":"Folgende MODULE sind f\u00fcr dieses BOARD verf\u00fcgbar:<br/>Sobald mindestens ein MODUL aktiviert ist, wird dieses in jeder CARD auf dem BOARD dargestellt.", "module.artikel.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.", 
+var TrelloClient = function(a, b) {
+  if (!window.hasOwnProperty("Trello")) {
+    throw "Trello not correctly loaded";
+  }
+  this.trello = a;
+  this._loggingService = b;
+  this._requests = 0;
+};
+TrelloClient.prototype.getCurrentCard = function() {
+  var a = this;
+  return a.trello.card("id").then(function(b) {
+    a._requests++;
+    return b;
+  });
+};
+TrelloClient.prototype.attachFile = function(a, b, c) {
+  var d = this;
+  return d.withTrelloToken().then(function(e) {
+    return new Promise(function(f, g) {
+      var h = new FormData, k = new Date, l = "Datei \u00ab" + b.name + "\u00bb von \u00ab" + c + "\u00bb am " + k.toLocaleDateString() + " um " + k.toLocaleTimeString();
+      h.append("file", b);
+      h.append("name", "" + l);
+      h.append("key", e.key);
+      h.append("token", e.token);
+      var m = new XMLHttpRequest;
+      m.onload = function(c) {
+        if (4 === m.readyState) {
+          switch(m.status) {
+            case 200:
+              d._loggingService.i("Datei als \u00ab" + l + "\u00bb in \u00ab" + a.id + "\u00bb gespeichert");
+              f(b);
+              break;
+            case 401:
+              d.resetToken();
+            default:
+              d._loggingService.e("Ein Fehler beim Verarbeiten der Datei \u00ab" + b.name + "\u00bb ist aufgetreten}"), d._loggingService.d("Details zum Fehler: " + m.statusText), g("Ein Fehler beim Verarbeiten der Datei \u00ab" + b.name + "\u00bb ist aufgetreten: \n\n" + m.statusText);
+          }
+        }
+      };
+      m.onerror = function(a) {
+        d._loggingService.e("Ein I/O-Fehler beim Verarbeiten der Datei \u00ab" + b.name + "\u00bb ist aufgetreten");
+        d._loggingService.d("Details zum Fehler: " + m.statusText);
+        g("Ein I/O-Fehler beim Verarbeiten der Datei \u00ab" + b.name + "\u00bb ist aufgetreten: \n\n" + m.statusText);
+      };
+      m.open("POST", "https://api.trello.com/1/cards/" + a.id + "/attachments", !0);
+      m.send(h);
+    });
+  });
+};
+TrelloClient.prototype.withTrelloToken = function() {
+  var a = this;
+  return a.trello.getRestApi().isAuthorized().then(function(b) {
+    a._requests++;
+    return b ? a.trello.getRestApi().getToken().then(function(b) {
+      a._requests++;
+      return b ? {token:b, key:a.trello.getRestApi().appKey} : a._authorize();
+    }) : a._authorize();
+  });
+};
+TrelloClient.prototype._authorize = function() {
+  var a = this;
+  return (new Promise(function(b, c) {
+    window.Trello.authorize({type:"popup", expiration:"never", scope:{read:"true", write:"true"}, success:function() {
+      a._requests++;
+      a._loggingService.d("Berechtigung erfolgreich erteilt");
+      b(!0);
+    }, error:function() {
+      a._requests++;
+      a._loggingService.e("Berechtigung konnte nicht erteilt werden");
+      c("Fehler bei der Autorisierung des Power-Ups");
+    }});
+  })).then(function() {
+    return a.trello.getRestApi().getToken().then(function(b) {
+      a._requests++;
+      return {token:b, key:a.trello.getRestApi().appKey};
+    });
+  });
+};
+TrelloClient.prototype.resetToken = function() {
+  this._requests++;
+  return this.trello.getRestApi().clearToken();
+};
+TrelloClient.prototype.getCurrentMember = function() {
+  var a = this;
+  return this.trello.member("username").then(function(b) {
+    a._requests++;
+    return b;
+  });
+};
+TrelloClient.prototype.createCard = function(a, b, c, d, e, f) {
+  var g = this;
+  return this.withTrelloToken().then(function(h) {
+    return new Promise(function(k, l) {
+      g._loggingService.d("Erstelle Trello Card \u00ab" + a + "\u00bb in " + c);
+      var m = g._createBody(h, {name:a, desc:b, idList:c, idLabels:d, due:e, idMembers:f});
+      g._requests++;
+      window.Trello.post("/cards", m, function(a) {
+        g._loggingService.d("Trello Card erstellt mit ID \u00ab" + a.id + "\u00bb");
+        g._assertCard(a, k, l, !0);
+      }, function() {
+        l("Fehler beim Erstellen der Karte mit Titel \u00ab" + a + "\u00bb");
+      });
+    });
+  });
+};
+TrelloClient.prototype._assertCard = function(a, b, c, d) {
+  var e = this;
+  setTimeout(function() {
+    e.trello.cards("id").then(function(f) {
+      1 === f.filter(function(b) {
+        return b.id === a.id;
+      }).length ? b(a) : d ? e._assertCard(a, b, c, !1) : c("Konnte die Trello Card \u00ab" + a.id + "\u00bb nicht finden");
+    });
+  }, d ? 1 : 100);
+};
+TrelloClient.prototype.searchMember = function(a) {
+  var b = this;
+  return b.withTrelloToken().then(function(c) {
+    return new Promise(function(d, e) {
+      b._requests++;
+      window.Trello.get("/search/members", b._createBody(c, {query:"" + it, limit:1}), function(a) {
+        d(a);
+      }, function() {
+        e("Fehler beim Suchen des Mitglieds mit dem Namen \u00ab" + a + "\u00bb");
+      });
+    });
+  });
+};
+TrelloClient.prototype.getLabels = function() {
+  var a = this;
+  return a.trello.board("id", "name", "labels").then(function(b) {
+    a._requests++;
+    return b.labels;
+  });
+};
+TrelloClient.prototype.createLabels = function(a) {
+  var b = this;
+  return b.trello.board("id", "labels").then(function(c) {
+    b._requests++;
+    var d = c.labels;
+    return Promise.all(a.map(function(a) {
+      var e = a.source.label, g = d.find(function(b) {
+        return b.name === a.name && b.color === a.source.color;
+      });
+      return g ? Promise.resolve(g) : b.createLabel(e, a.source.color, c.id).catch(function(a) {
+        b._loggingService.e("Label \u00ab" + e + "\u00bb konnte nicht erstellt werden: " + a);
+        return !1;
+      });
+    })).then(function(a) {
+      return a.filter(function(a) {
+        return !1 !== a;
+      });
+    });
+  });
+};
+TrelloClient.prototype.findCardByTitle = function(a, b) {
+  this._loggingService.d("Sucht nach bestehender Trello Card mit Namen \u00ab" + a + "\u00bb in Trello Liste \u00ab" + b.id + "\u00bb");
+  this._requests++;
+  return this.trello.cards("id", "name", "idList").reduce(function(c, d) {
+    return c = d.name === a && d.idList === b.id ? d : c;
+  }, null);
+};
+TrelloClient.prototype.findListByName = function(a) {
+  this._requests++;
+  return this.trello.lists("all").filter(function(b) {
+    return b.name === a;
+  });
+};
+TrelloClient.prototype.createLabel = function(a, b, c) {
+  var d = this;
+  return -1 === Object.values(TRELLO_COLORS).indexOf(b) ? Promise.reject("Ung\u00fcltige Farbe: " + b + ". G\u00fcltige Farben sind: " + Object.values(TRELLO_COLORS).join()) : this.withTrelloToken().then(function(e) {
+    return new Promise(function(f, g) {
+      d._loggingService.d("Label \u00ab" + a + "\u00bb (" + b + ") wird erstellt in Board \u00ab" + c + "\u00bb");
+      var h = d._createBody(e, {name:a, color:b, idBoard:c});
+      window.Trello.post("/labels", h, function(a) {
+        d._requests++;
+        f(a);
+      }, function() {
+        g("Fehler beim Erstellen des Labels \u00ab" + a + "\u00bb (" + b + ")");
+      });
+    });
+  });
+};
+TrelloClient.prototype.createList = function(a) {
+  var b = this;
+  return this.trello.board("id", "name", "labels").then(function(c) {
+    b._requests++;
+    return b.withTrelloToken().then(function(d) {
+      return new Promise(function(e, f) {
+        window.Trello.post("/lists", b._createBody(d, {name:a, idBoard:c.id, pos:"bottom"}), function(c) {
+          b._requests++;
+          b._loggingService.d("Liste \u00ab" + a + "\u00bb wurde erstellt");
+          e(c);
+        }, function() {
+          f("Fehler beim Erstellen der List mit dem Namen \u00ab" + a + "\u00bb");
+        });
+      });
+    });
+  });
+};
+TrelloClient.prototype._createBody = function(a, b) {
+  b.key = a.key;
+  b.token = a.token;
+  this._loggingService.t(">> " + JSON.stringify(b));
+  return b;
+};
+$jscomp.global.Object.defineProperties(TrelloClient.prototype, {requests:{configurable:!0, enumerable:!0, get:function() {
+  return this._requests;
+}}});
+$jscomp.global.Object.defineProperties(TrelloClient, {MAX_REQUESTS:{configurable:!0, enumerable:!0, get:function() {
+  return 300;
+}}});
+// Input 4
+var LoggingService = function() {
+};
+LoggingService.prototype.flush = function() {
+  var a = new Blob([this._logs.map(function(a) {
+    return a.at.toISOString() + ": [" + a.level + "]\t" + a.msg;
+  }).join("\n")], {type:"text/plain"});
+  return new File([a], "log.txt", {type:"text/plain;charset=utf-8"});
+};
+LoggingService.prototype.open = function() {
+  this._reset();
+  return this;
+};
+LoggingService.prototype._reset = function() {
+  this._logs = [];
+};
+LoggingService.prototype.i = function(a) {
+  return this._log(this._logs, a, "INFO");
+};
+LoggingService.prototype.d = function(a) {
+  return this._log(this._logs, a, "DEBUG");
+};
+LoggingService.prototype.t = function(a) {
+  return this._log(this._logs, a, "TRACE");
+};
+LoggingService.prototype.e = function(a) {
+  return this._log(this._logs, a, "ERROR");
+};
+LoggingService.prototype._log = function(a, b, c) {
+  c = void 0 === c ? "INFO" : c;
+  if (!a) {
+    return console.warn("The logging service is not yet opened"), this;
+  }
+  a.push({at:new Date, level:c, msg:b});
+  return this;
+};
+// Input 5
+var VERSION = "1.5.4-STAGING", APP_NAME = "Panta.Cards", APP_KEY = "0bdd0023d8f9b9a23ed80260495bbe9b", PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.settings.hint":"Folgende MODULE sind f\u00fcr dieses BOARD verf\u00fcgbar:<br/>Sobald mindestens ein MODUL aktiviert ist, wird dieses in jeder CARD auf dem BOARD dargestellt.", "module.artikel.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.", 
 "module.artikel.desc":"ARTIKEL-Eingabefelder und LISTEN f\u00fcr dieses BOARD konfigurieren:<br/>F\u00fcr jedes Feld kann eine Farbe definiert werden.<br/>Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf der CARD Vorderseite \u2013 ansonsten wird es nur auf der CARD Innenseite dargestellt.", "module.artikel.editable.desc":"Beschriftung und Stichworte der maximal sechs LISTEN definieren:<br/>Die Reihenfolge der Stichwort muss fix erfasst werden.<br/>Die Zahl der Stichwort ist NICHT begrenzt.<br/>Maximal vier der sechs LISTEN lassen sich sortieren.<br/>LISTEN ohne Beschriftung werden auf der CARD nicht dargestellt.", 
 "module.artikel.field-a.desc":"Das Textfeld \u00abA\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-b.desc":"Das Textfeld \u00abB\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-c.desc":"Das Textfeld \u00abC\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-d.desc":"Das Textfeld \u00abD\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
 "module.artikel.field-e.desc":"Das Textfeld \u00abE\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-f.desc":"Das Textfeld \u00abF\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-g.desc":"Das Textfeld \u00abG\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.beteiligt.desc":"BETEILIGT kann als Erg\u00e4nzung zum ARTIKEL oder PLAN aktiviert werden.<br/>Hier die Eingabefelder und LISTEN f\u00fcr das ganze BOARD konfigurieren:", 
@@ -591,8 +840,8 @@ var VERSION = "1.5.3-STAGING", APP_NAME = "Panta.Cards", APP_KEY = "86a73cafa11d
 "module.beteiligt.field-c.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-total.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-price.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-placement.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
 "module.beteiligt.field-format.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-sujet.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-link.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-follower.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
 "module.beteiligt.field-date.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "trello.list.desc":"Liste", "trello.title.desc":"Card Titel", "trello.description.desc":"Card Beschreibung", "trello.members.desc":"Card Mitglieder", "trello.duedate.desc":"Card Frist", "trello.labels.desc":"Card Label"}, POWERUP_ADMINS = ["manu29494020", "koni_nordmann", "ray2505"], TRELLO_FIELDS = [{id:"trello.list", desc:"trello.list.desc"}, {id:"trello.title", 
-desc:"trello.title.desc"}, {id:"trello.description", desc:"trello.description.desc"}, {id:"trello.members", desc:"trello.members.desc", type:"array"}, {id:"trello.duedate", desc:"trello.duedate.desc", type:"date"}, {id:"trello.labels", desc:"trello.labels.desc", type:"boolean", multi:!0}];
-// Input 4
+desc:"trello.title.desc"}, {id:"trello.description", desc:"trello.description.desc"}, {id:"trello.members", desc:"trello.members.desc", type:"array"}, {id:"trello.duedate", desc:"trello.duedate.desc", type:"date"}, {id:"trello.labels", desc:"trello.labels.desc", type:"boolean", multi:!0}], TRELLO_COLORS = {Blue:"blue", Green:"green", Orange:"orange", Red:"red", Yellow:"yellow", Purple:"purple", Pink:"pink", Sky:"sky", Lime:"lime", Shades:"shades"};
+// Input 6
 var DI = function() {
 };
 DI.getInstance = function() {
@@ -606,12 +855,17 @@ DI.create = function(a) {
   a && a.hasOwnProperty("implementation") ? DI.INSTANCE = a.implementation() : (a = function() {
     DI.call(this);
     this.tabIndexProvider = new TabIndexProvider;
+    this.loggingService = (new LoggingService).open();
   }, $jscomp.inherits(a, DI), a.INSTANCE = DI.INSTANCE, a.getInstance = DI.getInstance, a.prototype.getArticleRepository = function() {
     return new ArtikelRepository;
   }, a.prototype.getTabIndexProvider = function() {
     return this.tabIndexProvider;
   }, a.prototype.getAdminService = function(a) {
-    return new AdminService(a);
+    return new AdminService(this.getTrelloClient(a), this.loggingService);
+  }, a.prototype.getLoggingService = function() {
+    return this.loggingService;
+  }, a.prototype.getTrelloClient = function(a) {
+    return new TrelloClient(a, this.loggingService);
   }, DI.INSTANCE = new a);
   return DI.INSTANCE;
 };
@@ -621,12 +875,17 @@ DI.prototype.getTabIndexProvider = function() {
 };
 DI.prototype.getAdminService = function(a) {
 };
+DI.prototype.getLoggingService = function() {
+};
+DI.prototype.getTrelloClient = function(a) {
+};
 DI.INSTANCE = null;
-// Input 5
-var Controller = function(a, b) {
+// Input 7
+var Controller = function(a, b, c) {
   this._repository = b;
   this._binding = null;
   this._window = a;
+  this.trelloApi = c;
 };
 Controller.prototype.canUnblock = function() {
   this._binding && !this._window.clientManager.getPluginController().upgrading && this._binding.unblock();
@@ -655,7 +914,31 @@ Controller.prototype.list = function() {
 Controller.prototype.size = function() {
   return Object.keys(this.list()).length;
 };
-Controller.prototype.fetchAll = function() {
+Controller.prototype.fetchAll = function(a) {
+  a = void 0 === a ? function() {
+    return console.debug("noop");
+  } : a;
+  var b = this;
+  return this.trelloApi.cards("id", "closed").filter(function(a) {
+    return !a.closed;
+  }).each(function(a) {
+    return b.trelloApi.get(a.id, "shared", b.getSharedName()).then(function(c) {
+      b.insert(b.create(c), a);
+    });
+  }).then(function() {
+    console.log(b.getSharedName() + ": Fetch complete: " + b.size());
+    a.call(b);
+  });
+};
+Controller.prototype.fetchByCard = function(a, b) {
+  var c = this;
+  return this.trelloApi.get(a.id, "shared", this.getSharedName()).then(function(d) {
+    d = c.create(d, b);
+    c.insert(d, a);
+    return d;
+  });
+};
+Controller.prototype.getSharedName = function() {
 };
 Controller.prototype.persist = function(a, b) {
 };
@@ -678,12 +961,12 @@ Controller.prototype.getMapping = function(a, b, c) {
 Controller.prototype.getPropertyByName = function(a, b, c) {
 };
 Controller.prototype.getFields = function(a) {
-  return [[{group:"Felder", groupId:"" + a.id, fields:a.config.editables.filter(this.isImportableField)}]];
+  return [[{group:"Felder", moduleId:"" + a.id, groupId:"" + a.id, fields:a.config.editables.filter(this.isImportableField)}]];
 };
 Controller.prototype.isImportableField = function(a) {
   return a.visible && ("text" === a.type || "select" === a.type);
 };
-// Input 6
+// Input 8
 var AbstractItem = function() {
 };
 AbstractItem.prototype.decorate = function(a) {
@@ -696,7 +979,7 @@ AbstractItem.prototype.decorate = function(a) {
   });
   return this;
 };
-// Input 7
+// Input 9
 var PModuleConfig = function(a, b) {
   this.document = a;
   this.valueHolder = b;
@@ -749,7 +1032,7 @@ PModuleConfig.prototype.endEditing = function() {
 PModuleConfig.prototype.hasContent = function() {
   return this._entity.sections[this._property];
 };
-// Input 8
+// Input 10
 var ModuleEditableSelectItem = function(a) {
   AbstractItem.call(this);
   this._options = [];
@@ -787,7 +1070,7 @@ $jscomp.global.Object.defineProperties(ModuleEditableSelectItem.prototype, {valu
 }, set:function(a) {
   this._value = a;
 }}});
-// Input 9
+// Input 11
 var ModuleEditableItem = function(a, b) {
   AbstractItem.call(this);
   this._module = a;
@@ -870,7 +1153,7 @@ $jscomp.global.Object.defineProperties(ModuleEditableItem.prototype, {module:{co
 }, set:function(a) {
   this._editable = a;
 }}});
-// Input 10
+// Input 12
 var ModuleSettingsItem = function(a, b) {
   AbstractItem.call(this);
   this._document = a;
@@ -927,7 +1210,7 @@ $jscomp.global.Object.defineProperties(ModuleSettingsItem.prototype, {module:{co
 }}, document:{configurable:!0, enumerable:!0, get:function() {
   return this._document;
 }}});
-// Input 11
+// Input 13
 var SwitchItem = function(a, b, c, d) {
   d = void 0 === d ? !1 : d;
   AbstractItem.call(this);
@@ -982,7 +1265,7 @@ $jscomp.global.Object.defineProperties(SwitchItem.prototype, {additionalStyles:{
 }}, document:{configurable:!0, enumerable:!0, get:function() {
   return this._document;
 }}});
-// Input 12
+// Input 14
 var ModuleEditableTextItem = function(a, b, c) {
   AbstractItem.call(this);
   this._value = a;
@@ -1032,7 +1315,7 @@ $jscomp.global.Object.defineProperties(ModuleEditableTextItem.prototype, {value:
 }, set:function(a) {
   this._value = a;
 }}});
-// Input 13
+// Input 15
 var PInput = function(a, b, c, d, e, f, g, h) {
   this._document = a;
   this._label = 0 === b.length ? "" : b;
@@ -1355,7 +1638,7 @@ SingleSelectInput.prototype.invalidate = function() {
   this._inputOverlay.removeChildren();
   this.doCustomization(this._input, this._labelInput, this._inputOverlay);
 };
-// Input 14
+// Input 16
 var PluginController = function(a, b) {
   this._window = b;
   this._trelloApi = a;
@@ -1386,10 +1669,15 @@ PluginController.prototype.getAdminConfiguration = function() {
   });
 };
 PluginController.prototype.setAdminConfiguration = function(a) {
-  var b = this;
-  return a ? this._trelloApi.set("board", "private", AdminController.PROPERTY_BAG_NAME, LZString.compress(JSON.stringify(a))).then(function() {
-    return b.getAdminConfiguration();
-  }) : b.getAdminConfiguration();
+  if (a) {
+    var b = LZString.compress(JSON.stringify(a));
+    return this._trelloApi.set("board", "private", AdminController.PROPERTY_BAG_NAME, b).then(function() {
+      return Base64.encode(b);
+    });
+  }
+  return this.getAdminConfiguration().then(function(a) {
+    return Base64.encode(LZString.compress(JSON.stringify(a.configuration)));
+  });
 };
 PluginController.prototype.resetAdminConfiguration = function() {
   var a = this;
@@ -1514,11 +1802,10 @@ $jscomp.global.Object.defineProperties(PluginController, {VERSION:{configurable:
 }}, CONFIGURATION_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.App.Configuration";
 }}});
-// Input 15
+// Input 17
 var ModuleController = function(a, b, c) {
-  Controller.call(this, a, new BeteiligtRepository);
+  Controller.call(this, a, new BeteiligtRepository, b);
   this.document = a.document;
-  this.trelloApi = b;
   this._entity = this._beteiligtBinding = null;
   this._propertyBag = {};
   this._telephone = c;
@@ -1708,19 +1995,6 @@ ModuleController.prototype.getCapOnDepenses = function() {
   var a = this.getProperty("cap_on_depenses");
   return isNaN(a) ? 0.0 : parseFloat(a);
 };
-ModuleController.prototype.fetchAll = function(a) {
-  var b = this;
-  return this.trelloApi.cards("id", "closed").filter(function(a) {
-    return !a.closed;
-  }).each(function(a) {
-    return b.trelloApi.get(a.id, "shared", ModuleController.SHARED_NAME).then(function(c) {
-      b.insert(b.create(c), a);
-    });
-  }).then(function() {
-    console.log("Fetch complete: " + b.size() + " module config(s)");
-    a.call(b);
-  });
-};
 ModuleController.prototype.persist = function(a, b) {
   return this.trelloApi.set(b || "card", "shared", ModuleController.SHARED_NAME, a);
 };
@@ -1754,8 +2028,14 @@ ModuleController.prototype.getFields = function(a) {
   return a.config.editables.filter(function(a) {
     return "layout" === a.type && a.show;
   }).map(function(c) {
-    return [{group:c.label, groupId:a.id + "." + c.id, fields:a.config.layouts[c.layout].fields.filter(b.isImportableField)}];
+    return [{group:c.label, moduleId:"" + a.id, groupId:a.id + "." + c.id, fields:a.config.layouts[c.layout].fields.filter(b.isImportableField)}];
   });
+};
+ModuleController.prototype.getPropertyByName = function(a, b, c) {
+  return "not_yet_implemented";
+};
+ModuleController.prototype.getSharedName = function() {
+  return ModuleController.SHARED_NAME;
 };
 $jscomp.global.Object.defineProperties(ModuleController, {ID:{configurable:!0, enumerable:!0, get:function() {
   return "module.beteiligt";
@@ -1768,7 +2048,7 @@ $jscomp.global.Object.defineProperties(ModuleController, {ID:{configurable:!0, e
 }}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Beteiligt.PropertyBag";
 }}});
-// Input 16
+// Input 18
 var ModuleSettingsController = function(a, b, c, d, e, f) {
   this.trello = a;
   this.pluginController = b;
@@ -2060,7 +2340,7 @@ ModuleSettingsController.prototype.hideVersion = function() {
     a.addClass("hidden");
   });
 };
-// Input 17
+// Input 19
 var BeteiligtBinding = function(a, b, c, d, e) {
   Binding.call(this, a, b, c, d, e);
   this._activated = this._ad = this._illu = this._video = this._photo = this._text = this._onsite = null;
@@ -2330,11 +2610,10 @@ BeteiligtBinding.prototype.getLayoutConfigurationFor = function(a, b) {
 $jscomp.global.Object.defineProperties(BeteiligtBinding.prototype, {configuration:{configurable:!0, enumerable:!0, get:function() {
   return this._configuration;
 }}});
-// Input 18
+// Input 20
 var ArtikelController = function(a, b, c, d) {
-  Controller.call(this, a, c);
+  Controller.call(this, a, c, b);
   this.document = a.document;
-  this.trelloApi = b;
   this._entity = null;
   this._telephone = d;
   this.setVersionInfo();
@@ -2385,18 +2664,6 @@ ArtikelController.prototype.getPropertyByName = function(a, b, c) {
       return a.hasOwnProperty(b), a[b];
   }
 };
-ArtikelController.prototype.fetchAll = function() {
-  var a = this;
-  return this.trelloApi.cards("id", "closed").filter(function(a) {
-    return !a.closed;
-  }).each(function(b) {
-    return a.trelloApi.get(b.id, "shared", ArtikelController.SHARED_NAME).then(function(c) {
-      a.insert(Artikel.create(c), b);
-    });
-  }).then(function() {
-    console.log("Fetch complete: " + a.size() + " article(s) to process");
-  });
-};
 ArtikelController.prototype.list = function() {
   return this._repository.all();
 };
@@ -2444,6 +2711,9 @@ ArtikelController.prototype._onChange = function(a, b) {
 ArtikelController.prototype.persist = function(a, b) {
   return this.trelloApi.set(b || "card", "shared", ArtikelController.SHARED_NAME, a);
 };
+ArtikelController.prototype.getSharedName = function() {
+  return ArtikelController.SHARED_NAME;
+};
 $jscomp.global.Object.defineProperties(ArtikelController, {ID:{configurable:!0, enumerable:!0, get:function() {
   return "module.artikel";
 }}, VERSION:{configurable:!0, enumerable:!0, get:function() {
@@ -2453,10 +2723,9 @@ $jscomp.global.Object.defineProperties(ArtikelController, {ID:{configurable:!0, 
 }}, SHARED_META:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Meta";
 }}});
-// Input 19
+// Input 21
 var ModulePlanController = function(a, b, c) {
-  Controller.call(this, a, new ModulePlanRepository);
-  this._trello = b;
+  Controller.call(this, a, new ModulePlanRepository, b);
   this._telephone = c;
   var d = this;
   this._telephone.onmessage = function(a) {
@@ -2519,11 +2788,11 @@ ModulePlanController.prototype.getProperty = function(a, b) {
 };
 ModulePlanController.prototype.setProperty = function(a, b) {
   this._propertyBag[a] = b;
-  this._trello.set("board", "shared", ModulePlanController.PROPERTY_BAG_NAME, this._propertyBag);
+  this.trelloApi.set("board", "shared", ModulePlanController.PROPERTY_BAG_NAME, this._propertyBag);
 };
 ModulePlanController.prototype.readPropertyBag = function() {
   var a = this;
-  this._trello.get("board", "shared", ModulePlanController.PROPERTY_BAG_NAME, {}).then(function(b) {
+  this.trelloApi.get("board", "shared", ModulePlanController.PROPERTY_BAG_NAME, {}).then(function(b) {
     a._propertyBag = b;
   });
 };
@@ -2566,12 +2835,12 @@ ModulePlanController.prototype.getPropertyByName = function(a, b, c) {
   }
 };
 ModulePlanController.prototype.persist = function(a, b) {
-  return this._trello.set(b || "card", "shared", ModulePlanController.SHARED_NAME, a);
+  return this.trelloApi.set(b || "card", "shared", ModulePlanController.SHARED_NAME, a);
 };
 ModulePlanController.prototype.remove = function() {
   var a = this;
-  return this._trello.remove("board", "shared", ModulePlanController.SHARED_NAME).then(function() {
-    return a._trello.remove("board", "shared", ModulePlanController.PROPERTY_BAG_NAME);
+  return this.trelloApi.remove("board", "shared", ModulePlanController.SHARED_NAME).then(function() {
+    return a.trelloApi.remove("board", "shared", ModulePlanController.PROPERTY_BAG_NAME);
   });
 };
 ModulePlanController.prototype._onChange = function(a) {
@@ -2590,6 +2859,9 @@ ModulePlanController.prototype.clear = function() {
 ModulePlanController.prototype.create = function(a, b) {
   return Plan.create(a);
 };
+ModulePlanController.prototype.getSharedName = function() {
+  return ModulePlanController.SHARED_NAME;
+};
 $jscomp.global.Object.defineProperties(ModulePlanController, {ID:{configurable:!0, enumerable:!0, get:function() {
   return "module.plan";
 }}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
@@ -2597,12 +2869,12 @@ $jscomp.global.Object.defineProperties(ModulePlanController, {ID:{configurable:!
 }}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Plan.PropertyBag";
 }}});
-// Input 20
+// Input 22
 var ModulePlanRepository = function() {
   Repository.call(this);
 };
 $jscomp.inherits(ModulePlanRepository, Repository);
-// Input 21
+// Input 23
 var ClientManager = function(a, b, c) {
   this._window = a;
   this._trello = b;
@@ -2885,7 +3157,7 @@ ClientManager.prototype.sortOnSelect = function(a, b, c, d) {
     return a.id;
   })};
 };
-// Input 22
+// Input 24
 var ColorPickerController = function(a, b, c) {
   this._windowManager = a;
   this._pluginController = b;
@@ -2925,7 +3197,7 @@ ColorPickerController.prototype.getEditable = function(a, b) {
     return a.id === b;
   });
 };
-// Input 23
+// Input 25
 var PluginRepository = function() {
   Repository.call(this);
 };
@@ -2955,7 +3227,7 @@ $jscomp.global.Object.defineProperties(PluginRepository, {INSTANCE:{configurable
   return PluginRepository.instance;
 }}});
 PluginRepository.instance = null;
-// Input 24
+// Input 26
 var BeteiligtRepository = function() {
   Repository.call(this);
 };
@@ -2966,7 +3238,7 @@ BeteiligtRepository.prototype.isNew = function(a) {
     return b._repository[c].id === a.id;
   });
 };
-// Input 25
+// Input 27
 var ArtikelRepository = function() {
   Repository.call(this);
 };
@@ -2980,7 +3252,7 @@ ArtikelRepository.prototype.isNew = function(a) {
     return b._repository[c].id === a.id;
   });
 };
-// Input 26
+// Input 28
 var ModulePlanBinding = function(a, b, c, d, e) {
   Binding.call(this, a, b, c, d, e);
 };
@@ -3079,7 +3351,7 @@ ModulePlanBinding.prototype._initContent = function() {
   }
   return a;
 };
-// Input 27
+// Input 29
 var ArtikelBinding = function(a, b, c, d, e) {
   Binding.call(this, a, b, c, d, e);
 };
@@ -3186,7 +3458,7 @@ ArtikelBinding.prototype.updateConfiguration = function(a) {
   this.updateField(this._form, "form");
   this.updateField(this._location, "place");
 };
-// Input 28
+// Input 30
 var AbstractField = function(a, b, c, d) {
   d = void 0 === d ? !1 : d;
   this._name = a;
@@ -3212,53 +3484,23 @@ $jscomp.global.Object.defineProperties(AbstractField.prototype, {multi:{configur
 }}, name:{configurable:!0, enumerable:!0, get:function() {
   return this._name;
 }}});
-// Input 29
-var AdminService = function(a) {
-  if (!window.hasOwnProperty("Trello")) {
-    throw "Trello not correctly loaded";
-  }
-  this.trello = a;
+// Input 31
+var AdminService = function(a, b) {
+  this.trelloClient = a;
   this.fileReader = new FileReader;
   this.clientManager = ClientManager.getInstance(window);
   this.articleController = this.clientManager.getArticleController();
   this.planController = this.clientManager.getPlanController();
   this.moduleController = this.clientManager.getModuleController();
   this.excelService = this.clientManager.getExcelService();
+  this._loggingService = b;
+  this._context = null;
 };
 AdminService.prototype.hasLabel = function(a, b) {
-  return this.getLabels().map(function(c) {
+  return this.trelloClient.getLabels().map(function(c) {
     return c.name === a && c.color === b;
   }).reduce(function(a, b) {
     return a | b;
-  });
-};
-AdminService.prototype.createLabel = function(a, b) {
-  return this._createLabel(a, b);
-};
-AdminService.prototype.getCurrentCard = function() {
-  return this.trello.card("id");
-};
-AdminService.prototype.withTrelloToken = function() {
-  var a = this;
-  return a.trello.getRestApi().getToken().then(function(b) {
-    return b ? {token:b, key:a.trello.getRestApi().appKey} : (new Promise(function(a, b) {
-      window.Trello.authorize({type:"popup", expiration:"never", scope:{read:"true", write:"true"}, success:function() {
-        console.debug("Auth success");
-        a(!0);
-      }, error:function() {
-        console.error("Auth error");
-        b("Could not authorize");
-      }});
-    })).then(function() {
-      return a.trello.getRestApi().getToken().then(function(b) {
-        return {token:b, key:a.trello.getRestApi().appKey};
-      });
-    });
-  });
-};
-AdminService.prototype.getLabels = function() {
-  return this.trello.board("id", "name", "labels").then(function(a) {
-    return a.labels;
   });
 };
 AdminService.prototype.load = function(a) {
@@ -3268,20 +3510,20 @@ AdminService.prototype.load = function(a) {
       c.push(new Promise(function(c) {
         return function(d, e) {
           var f = a.item(c.$jscomp$loop$prop$index$1);
+          b._loggingService.i("Processing file " + f.name);
           b.fileReader.onload = function(a) {
             b._loadContent(a.target.result).then(function(a) {
-              a ? d({file:f, model:a}) : e("Could not successfully import all cards for file " + f.name);
+              a ? (b._loggingService.i("File " + f.name + " loaded successfully"), d({file:f, model:a})) : (b._loggingService.i("Fehler beim Einlesen der Datei \u00ab" + f.name + "\u00bb"), e("Fehler beim Einlesen der Datei \u00ab" + f.name + "\u00bb"));
             });
           };
-          b.getCurrentCard().then(function(a) {
-            return b.withTrelloToken().then(function(c) {
-              return b._uploadFileToCard(a, f, c);
-            }).then(function(a) {
+          b.trelloClient.getCurrentCard().then(function(a) {
+            return b.uploadFileToCard(a, f).then(function(a) {
               window.setTimeout(function() {
                 return b.fileReader.readAsArrayBuffer(a);
               }, 10);
             }).catch(function(a) {
-              console.error("Got an error while uploading to card: " + a);
+              b._loggingService.e("Fehler beim Hochladen der Datei \u00ab" + f.name + "\u00bb");
+              b._loggingService.d("Details zum Fehler: " + a);
               e(f);
             });
           });
@@ -3291,31 +3533,24 @@ AdminService.prototype.load = function(a) {
   }
   return 0 === c.length ? Promise.reject("No imports") : Promise.all(c);
 };
-AdminService.prototype._uploadFileToCard = function(a, b, c) {
-  return new Promise(function(d, e) {
-    var f = new FormData;
-    f.append("file", b);
-    f.append("name", b.name);
-    f.append("key", c.key);
-    f.append("token", c.token);
-    var g = new XMLHttpRequest;
-    g.onload = function(c) {
-      4 === g.readyState && (200 === g.status ? (console.debug("Successfully attached file to card " + a.id + " at " + g.response.date, g), d(b)) : e("Ein Fehler beim Verarbeiten der Datei \u00ab" + b.name + "\u00bb ist aufgetreten: \n\n" + g.statusText));
-    };
-    g.onerror = function(a) {
-      e("Ein Fehler beim Verarbeiten der Datei \u00ab" + b.name + "\u00bb ist aufgetreten: \n\n" + g.statusText);
-    };
-    g.open("POST", "https://api.trello.com/1/cards/" + a.id + "/attachments", !0);
-    g.send(f);
+AdminService.prototype.getCurrentCard = function() {
+  return this.trelloClient.getCurrentCard();
+};
+AdminService.prototype.uploadFileToCard = function(a, b) {
+  var c = this;
+  return c.trelloClient.getCurrentMember().then(function(d) {
+    return c.trelloClient.attachFile(a, b, d.username);
   });
 };
 AdminService.prototype._loadContent = function(a) {
-  a = this.excelService.read(a);
-  return Promise.resolve(a);
+  return Promise.resolve(this.excelService.read(a));
 };
 AdminService.prototype.importCards = function(a, b) {
   var c = this;
-  return this._createLabels(this._getLabels(b)).then(function(d) {
+  return c.trelloClient.createLabels(this._getLabels(b)).then(function(d) {
+    c._loggingService.d("Die Labels (" + d.map(function(a) {
+      return a.name;
+    }).join(",") + ") sind nun verf\u00fcgbar");
     b.labels = d;
     return c._importCard(a, 0, b);
   });
@@ -3323,110 +3558,130 @@ AdminService.prototype.importCards = function(a, b) {
 AdminService.prototype._importCard = function(a, b, c) {
   var d = this;
   if (b < a.data.length) {
-    return d._createCard(a.data[b], c).then(function() {
-      return new Promise(function(e, f) {
-        window.setTimeout(function() {
-          e(d._importCard(a, b + 1, c));
-        }, 600);
+    return d._createCard(a.data[b], c).then(function(e) {
+      return new Promise(function(e, g) {
+        g = Math.min((b + 1.0) / Math.max(1.0, a.data.length) * 100, 100.0).toFixed(2) + "%";
+        d.context.each.apply(d.context.context, [b + 1, a.data.length, g]);
+        e(d._importCard(a, b + 1, c));
       });
     });
   }
-  console.debug("Import completed");
+  this._loggingService.d("Insgesamt wurden " + this.trelloClient.requests + " Anfragen an Trello geschickt");
   return Promise.resolve(!0);
-};
-AdminService.prototype._createLabels = function(a) {
-  var b = this;
-  return b.trello.board("id", "labels").then(function(c) {
-    var d = c.labels;
-    return Promise.all(a.map(function(a) {
-      var e = d.find(function(b) {
-        return b.name === a.name && b.color === a.source.color;
-      });
-      return e ? Promise.resolve(e) : b._createLabel(a.source.label, a.source.color, c.id);
-    }));
-  });
 };
 AdminService.prototype._createCard = function(a, b) {
   var c = this, d = a.get(c._getList(b).source).value.v;
-  return c._findListByName(d).reduce(function(a, b) {
+  return c.trelloClient.findListByName(d).reduce(function(a, b) {
     return a || b;
   }, null).then(function(e) {
-    return null == e ? c._createList(d).then(function(d) {
-      return c._createCardInternal(d, a, b);
-    }) : c._createCardInternal(e, a, b);
+    if (null == e) {
+      return c._loggingService.i("Liste \u00ab" + d + "\u00bb wird erstellt"), c.trelloClient.createList(d).then(function(d) {
+        return c._createCardInternal(d, a, b);
+      });
+    }
+    c._loggingService.i("Liste \u00ab" + d + "\u00bb exisitert bereits");
+    return c._createCardInternal(e, a, b);
+  }).catch(function(a) {
+    c._loggingService.e("Fehler beim Importieren in die Liste \u00ab" + d + "\u00bb (" + a + ")");
+    return !1;
   });
 };
 AdminService.prototype._createCardInternal = function(a, b, c) {
-  var d = this, e = this, f = c.labels.filter(function(a) {
+  var d = this, e = c.labels.filter(function(a) {
     return 1 === c.get("trello.labels").filter(function(b) {
       return a.name === b.name;
     }).filter(function(a) {
       return a.getValue(b.get(a.source));
     }).length;
-  }), g = this._getFieldValue(b, "trello.title", c), h = this._getFieldValue(b, "trello.description", c), k = this._getFieldValue(b, "trello.duedate", c), l = this._getFieldValue(b, "trello.members", c) || [];
-  return e.withTrelloToken().then(function(m) {
-    return e._findCardByTitle(g).then(function(b) {
-      if (b) {
-        return b;
-      }
-      b = l.map(function(a, b, c) {
-        return new Promise(function(b, c) {
-          window.Trello.get("/search/members", e._createBody(m, {query:"" + a, limit:1}), function(a) {
-            b(a);
-          });
-        });
-      }).reduce(function(a, b) {
-        a.push(b);
+  }), f = this._getFieldValue(b, "trello.title", c), g = this._getFieldValue(b, "trello.description", c), h = this._getFieldValue(b, "trello.duedate", c), k = this._getFieldValue(b, "trello.members", c) || [];
+  return d.trelloClient.findCardByTitle(f, a).then(function(b) {
+    if (b) {
+      return d._loggingService.i("Trello Card \u00ab" + f + "\u00bb ist bereits in \u00ab" + a.id + "\u00bb vorhanden"), b;
+    }
+    b = k.map(function(a, b, c) {
+      return d.trelloClient.searchMember(a).catch(function(b) {
+        d._loggingService.e("Mitglied f\u00fcr \u00ab" + a + "\u00bb nicht gefunden (" + b + ")");
+        return [];
+      });
+    }).reduce(function(a, b) {
+      a.push(b);
+      return a;
+    }, []);
+    return Promise.all(b).then(function(a) {
+      return a.flatMap(function(a) {
         return a;
-      }, []);
-      return Promise.all(b).then(function(a) {
-        return a.flatMap(function(a) {
+      });
+    }).then(function(b) {
+      return d.trelloClient.createCard(f, g, a.id, e.map(function(a) {
+        return a.id;
+      }).join(","), isBlank(h) ? null : h.toISOString(), b.map(function(a) {
+        return a.id;
+      }).join(","));
+    });
+  }).then(function(a) {
+    return Promise.resolve([]).then(function(e) {
+      return d._doImportArtikel(b, c, a).then(function(a) {
+        e.push({id:ArtikelController.ID, card:f, success:!!a});
+        return e;
+      });
+    }).then(function(e) {
+      return d._doImportPlan(b, c, a).then(function(a) {
+        e.push({id:ModulePlanController.ID, card:f, success:!!a});
+        return e;
+      });
+    }).then(function(e) {
+      return d._doImportBeteiligt(b, c, a).then(function(a) {
+        e.push({id:ModuleController.ID, card:f, success:!!a});
+        return e;
+      });
+    });
+  });
+};
+AdminService.prototype._doImportPlan = function(a, b, c) {
+  var d = this;
+  return d.clientManager.isPlanModuleEnabled().then(function(e) {
+    if (e) {
+      var f = d._getFieldValue(a, "module.plan.visual", b), g = d._getFieldValue(a, "module.plan.form", b), h = d._getFieldValue(a, "module.plan.online", b), k = d._getFieldValue(a, "module.plan.season", b), l = d._getFieldValue(a, "module.plan.region", b), m = d._getFieldValue(a, "module.plan.place", b), q = d._getFieldValue(a, "module.plan.field.a", b), n = d._getFieldValue(a, "module.plan.field.b", b), p = d._getFieldValue(a, "module.plan.field.g", b);
+      return d.clientManager.getModuleConfiguration(ModulePlanController.ID).then(function(a) {
+        return new Plan(null, q, n, 0, 0, 0, 0, p, 0, a.getEditableOptionValue("visual", f), a.getEditableOptionValue("form", g), a.getEditableOptionValue("online", h), a.getEditableOptionValue("season", k), a.getEditableOptionValue("region", l), a.getEditableOptionValue("place", m));
+      }).then(function(a) {
+        d._loggingService.d("Plan wird angelegt in Card \u00ab" + c.id + "\u00bb");
+        d._loggingService.t(">> " + JSON.stringify(a));
+        return d.planController.persist(a, c.id).then(function() {
+          d._loggingService.i("Plan erstellt in Trello Card \u00ab" + c.id + "\u00bb");
           return a;
         });
-      }).then(function(b) {
-        return new Promise(function(c, d) {
-          window.Trello.post("/cards", e._createBody(m, {name:g, desc:h, idList:a.id, idLabels:f.map(function(a) {
-            return a.id;
-          }).join(","), due:isBlank(k) ? null : k.toISOString(), idMembers:b.map(function(a) {
-            return a.id;
-          }).join(",")}), function(a) {
-            c(a);
-          });
+      });
+    }
+    d._loggingService.d("Plan Module ist deaktiviert");
+    return !1;
+  }).catch(function(a) {
+    d._loggingService.e("Fehler beim Speichern von Plan in Card \u00ab" + c.id + "\u00bb (" + a + ")");
+    return !1;
+  });
+};
+AdminService.prototype._doImportArtikel = function(a, b, c) {
+  var d = this;
+  return d.clientManager.isArticleModuleEnabled().then(function(e) {
+    if (e) {
+      var f = d._getFieldValue(a, "module.artikel.field.a", b), g = d._getFieldValue(a, "module.artikel.field.b", b), h = d._getFieldValue(a, "module.artikel.field.c", b), k = d._getFieldValue(a, "module.artikel.field.d", b), l = d._getFieldValue(a, "module.artikel.field.e", b), m = d._getFieldValue(a, "module.artikel.field.f", b), q = d._getFieldValue(a, "module.artikel.online", b), n = d._getFieldValue(a, "module.artikel.visual", b), p = d._getFieldValue(a, "module.artikel.region", b), r = d._getFieldValue(a, 
+      "module.artikel.season", b), t = d._getFieldValue(a, "module.artikel.form", b), u = d._getFieldValue(a, "module.artikel.place", b);
+      return d.clientManager.getModuleConfiguration(ArtikelController.ID).then(function(a) {
+        return new Artikel(null, f, l, g, m, 1, a.getEditableOptionValue("online", q), a.getEditableOptionValue("visual", n), a.getEditableOptionValue("region", p), a.getEditableOptionValue("season", r), h, k, a.getEditableOptionValue("form", t), u);
+      }).then(function(a) {
+        d._loggingService.d("Artikel wird angelegt in Card \u00ab" + c.id + "\u00bb");
+        d._loggingService.t(">> " + JSON.stringify(a));
+        return d.articleController.persist(a, c.id).then(function() {
+          d._loggingService.i("Artikel erstellt in Trello Card \u00ab" + c.id + "\u00bb");
+          return a;
         });
       });
-    }).then(function(a) {
-      var f = e.clientManager.isArticleModuleEnabled().then(function(f) {
-        if (f) {
-          var g = d._getFieldValue(b, "module.artikel.field.a", c), h = d._getFieldValue(b, "module.artikel.field.b", c), k = d._getFieldValue(b, "module.artikel.field.c", c), l = d._getFieldValue(b, "module.artikel.field.d", c), m = d._getFieldValue(b, "module.artikel.field.e", c), q = d._getFieldValue(b, "module.artikel.field.f", c), n = d._getFieldValue(b, "module.artikel.online", c), p = d._getFieldValue(b, "module.artikel.visual", c), r = d._getFieldValue(b, "module.artikel.region", c), u = 
-          d._getFieldValue(b, "module.artikel.season", c), v = d._getFieldValue(b, "module.artikel.form", c), w = d._getFieldValue(b, "module.artikel.place", c);
-          return e.clientManager.getModuleConfiguration(ArtikelController.ID).then(function(a) {
-            return new Artikel(null, g, m, h, q, 1, a.getEditableOptionValue("online", n), a.getEditableOptionValue("visual", p), a.getEditableOptionValue("region", r), a.getEditableOptionValue("season", u), k, l, a.getEditableOptionValue("form", v), w);
-          }).then(function(d) {
-            return e.articleController.persist(d, a.id).then(function() {
-              console.debug("Artikel created in card " + a.id);
-              return e._doImportBeteiligt(b, c, a);
-            });
-          });
-        }
-        console.debug("Article Module is not enabled");
-        return e._doImportBeteiligt(b, c, a);
-      }), g = e.clientManager.isPlanModuleEnabled().then(function(f) {
-        if (f) {
-          var g = d._getFieldValue(b, "module.plan.visual", c), h = d._getFieldValue(b, "module.plan.form", c), k = d._getFieldValue(b, "module.plan.online", c), l = d._getFieldValue(b, "module.plan.season", c), m = d._getFieldValue(b, "module.plan.region", c), q = d._getFieldValue(b, "module.plan.place", c), n = d._getFieldValue(b, "module.plan.field.a", c), p = d._getFieldValue(b, "module.plan.field.b", c), r = d._getFieldValue(b, "module.plan.field.g", c);
-          return e.clientManager.getModuleConfiguration(ModulePlanController.ID).then(function(a) {
-            return new Plan(null, n, p, 0, 0, 0, 0, r, 0, a.getEditableOptionValue("visual", g), a.getEditableOptionValue("form", h), a.getEditableOptionValue("online", k), a.getEditableOptionValue("season", l), a.getEditableOptionValue("region", m), a.getEditableOptionValue("place", q));
-          }).then(function(d) {
-            return e.planController.persist(d, a.id).then(function() {
-              console.debug("Plan created in card " + a.id);
-              return e._doImportBeteiligt(b, c, a);
-            });
-          });
-        }
-        console.debug("Plan Module is not enabled");
-        return e._doImportBeteiligt(b, c, a);
-      });
-      return [f, g];
-    });
+    }
+    d._loggingService.d("Artikel Module ist deaktiviert");
+    return !1;
+  }).catch(function(a) {
+    d._loggingService.e("Fehler beim Speichern des Artikels in Card \u00ab" + c.id + "\u00bb (" + a + ")");
+    return !1;
   });
 };
 AdminService.prototype._doImportBeteiligt = function(a, b, c) {
@@ -3459,23 +3714,15 @@ AdminService.prototype._doImportBeteiligt = function(a, b, c) {
         return f;
       }).reduce(Reducers.asKeyValue, {})};
       f.sections = h;
+      d._loggingService.d("Beteiligt wird angelegt in Card \u00ab" + c.id + "\u00bb");
+      d._loggingService.t(">> " + JSON.stringify(f));
       return d.moduleController.persist(f, c.id).then(function() {
-        console.debug("Beteiligt created in card " + c.id);
+        d._loggingService.i("Beteiligt erstellt in Trello Card \u00ab" + c.id + "\u00bb");
         return !0;
       });
     }) : !1;
-  });
-};
-AdminService.prototype._createList = function(a, b) {
-  var c = this;
-  return this.trello.board("id", "name", "labels").then(function(b) {
-    return c.withTrelloToken().then(function(d) {
-      return new Promise(function(e, g) {
-        window.Trello.post("/lists", c._createBody(d, {name:a, idBoard:b.id, pos:"bottom"}), function(a) {
-          e(a);
-        });
-      });
-    });
+  }).catch(function(a) {
+    d._loggingService.e("Fehler beim Speichern von Beteiligt in Card \u00ab" + c.id + "\u00bb (" + a + ")");
   });
 };
 AdminService.prototype._getField = function(a, b) {
@@ -3490,37 +3737,12 @@ AdminService.prototype._getList = function(a) {
 AdminService.prototype._getFieldValue = function(a, b, c) {
   return (b = this._getField(b, c)) && a.get(b.source) ? b.getValue(a.get(b.source)) : null;
 };
-AdminService.prototype._findCardByTitle = function(a) {
-  return this.trello.cards("id", "name").reduce(function(b, c) {
-    return b = c.name === a ? c : b;
-  }, null);
-};
-AdminService.prototype._findListByName = function(a) {
-  return this.trello.lists("all").filter(function(b) {
-    return b.name === a;
-  });
-};
-AdminService.prototype._createLabel = function(a, b, c) {
-  var d = this;
-  return this.withTrelloToken().then(function(e) {
-    return new Promise(function(f, g) {
-      window.Trello.post("/labels", d._createBody(e, {name:a, color:b, idBoard:c}), function(a) {
-        f(a);
-      });
-    });
-  });
-};
-AdminService.prototype._createBody = function(a, b) {
-  b.key = a.key;
-  b.token = a.token;
-  return b;
-};
-AdminService.prototype._getMembersOfBoard = function() {
-  return this.trello.board("members").then(function(a) {
-    console.debug("members are ", a);
-  });
-};
-// Input 30
+$jscomp.global.Object.defineProperties(AdminService.prototype, {context:{configurable:!0, enumerable:!0, set:function(a) {
+  this._context = a;
+}, get:function() {
+  return this._context;
+}}});
+// Input 32
 var HeaderNode = function(a, b, c, d) {
   d = void 0 === d ? [] : d;
   this._parent = a;
@@ -3590,13 +3812,13 @@ $jscomp.global.Object.defineProperties(HeaderNode.prototype, {address:{configura
 }}, color:{configurable:!0, enumerable:!0, get:function() {
   if (isBlank(this._color)) {
     var a = this.getComment(0);
-    return isBlank(a) ? null : a.t.toLowerCase();
+    return isBlank(a) ? null : a.t.toLowerCase().trim();
   }
   return this._color;
 }, set:function(a) {
   this._color = a;
 }}});
-// Input 31
+// Input 33
 var ArrayField = function(a) {
   AbstractField.apply(this, arguments);
 };
@@ -3610,21 +3832,21 @@ ArrayField.prototype.getValue = function(a) {
 ArrayField.prototype.getType = function() {
   return "array";
 };
-// Input 32
+// Input 34
 var BooleanField = function(a) {
   AbstractField.apply(this, arguments);
 };
 $jscomp.inherits(BooleanField, AbstractField);
 BooleanField.getBooleanValue = function(a) {
-  return isNumber(a) && 0.0 !== parseFloat(a);
+  return "0" != a;
 };
 BooleanField.prototype.getValue = function(a) {
-  return BooleanField.getBooleanValue(a.value.v);
+  return a && a.value ? BooleanField.getBooleanValue(a.value.v) : !1;
 };
 BooleanField.prototype.getType = function() {
   return "boolean";
 };
-// Input 33
+// Input 35
 var DateField = function(a) {
   AbstractField.apply(this, arguments);
 };
@@ -3639,7 +3861,7 @@ DateField.prototype.getValue = function(a) {
 DateField.prototype.getType = function() {
   return "date";
 };
-// Input 34
+// Input 36
 var DataNode = function(a) {
   this._row = a;
   this._values = [];
@@ -3657,7 +3879,7 @@ $jscomp.global.Object.defineProperties(DataNode.prototype, {row:{configurable:!0
 }}, values:{configurable:!0, enumerable:!0, get:function() {
   return this._values;
 }}});
-// Input 35
+// Input 37
 var ImportConfiguration = function() {
   this._mapping = [];
   this._labels = [];
@@ -3715,7 +3937,7 @@ $jscomp.global.Object.defineProperties(ImportConfiguration.prototype, {labels:{c
 }, set:function(a) {
   this._mapping = a;
 }}});
-// Input 36
+// Input 38
 var Import = function(a) {
   this._title = a;
   this._header = null;
@@ -3832,7 +4054,7 @@ $jscomp.global.Object.defineProperties(Import.prototype, {data:{configurable:!0,
 }, set:function(a) {
   this._title = a;
 }}});
-// Input 37
+// Input 39
 var TextField = function(a) {
   AbstractField.apply(this, arguments);
 };
@@ -3843,28 +4065,23 @@ TextField.prototype.getValue = function(a) {
 TextField.prototype.getType = function() {
   return "text";
 };
-// Input 38
-var AdminController = function(a, b, c) {
+// Input 40
+var AdminController = function(a, b, c, d) {
   this._trello = a;
   this._adminService = b;
   this._document = c;
   this._clientManager = ClientManager.getInstance(window);
-  this._artikelController = this._clientManager.getArticleController();
-  this._moduleController = this._clientManager.getModuleController();
-  this._planController = this._clientManager.getPlanController();
   this._pluginController = this._clientManager.getPluginController();
   this._model = null;
   this._propertyBag = {};
+  this._loggingService = d;
 };
-AdminController.create = function(a, b, c) {
-  return new AdminController(a, c, b);
+AdminController.create = function(a, b, c, d) {
+  return new AdminController(a, c, b, d);
 };
 AdminController.prototype.render = function(a) {
   this._context = a.page || "home";
-  this._document.querySelectorAll(".js-content").forEach(function(a) {
-    return a.removeChildren();
-  });
-  return "import" === this._context ? this.importPage(a.configuration) : "export" === this._context ? this.exportPage(a.configuration) : "error" === this._context ? this.errorPage(a.error, a.error_details) : this.homePage();
+  return "import" === this._context ? this.importPage(a.configuration) : "export" === this._context ? this.exportPage(a.configuration) : "error" === this._context ? this.errorPage(a.error, a.error_details) : "progress" === this._context ? this.progressPage() : this.homePage();
 };
 AdminController.prototype.errorPage = function(a, b) {
   var c = this, d = createByTemplate(template_admin_errorpage, template_admin_errorpage);
@@ -3891,113 +4108,123 @@ AdminController.prototype.homePage = function() {
   this._document.querySelector("#btn-action-import").setEventListener("click", function(b) {
     b.preventDefault();
     b.stopPropagation();
+    a._trello.closeModal();
     a._trello.modal({title:"Administration - Import", url:"admin.html", accentColor:"blue", fullscreen:!0, actions:[{icon:"./assets/ic_arrow_back.png", callback:function(a) {
       a.modal({title:"Administration", url:"admin.html", accentColor:"blue"});
     }, alt:"Zur\u00fcck", position:"left"}], args:{page:"import"}});
   });
-  this._document.querySelector("#btn-action-export").setEventListener("click", function(a) {
-    a.preventDefault();
-    a.stopPropagation();
+  this._document.querySelector("#btn-action-export").setEventListener("click", function(b) {
+    b.preventDefault();
+    b.stopPropagation();
+    a._trello.closeModal();
+    a._trello.modal({title:"Administration - Export", url:"admin.html", accentColor:"blue", fullscreen:!0, actions:[{icon:"./assets/ic_arrow_back.png", callback:function(a) {
+      a.modal({title:"Administration", url:"admin.html", accentColor:"blue"});
+    }, alt:"Zur\u00fcck", position:"left"}], args:{page:"export"}});
   });
   return Promise.resolve(!0);
 };
 AdminController.prototype.exportPage = function(a) {
-  var b = this;
+  var b = this, c = this;
   this._model = null;
-  var c = createByTemplate(template_admin_export, template_admin_export);
+  var d = createByTemplate(template_admin_export, template_admin_export);
   this._document.querySelectorAll(".js-content").forEach(function(a) {
-    return a.appendChild(c);
+    return a.appendChild(d);
   });
   this._clearContent();
-  return this.renderActions(a).then(function(c) {
-    c = Import.create("Sample", sampleImport);
-    var d = new DataNode(1), f = c.header;
-    d.set(f.get(0), {v:"Test Liste", t:"s"});
-    d.set(f.get(1), {v:43830, w:"31/12/2019", t:"n"});
-    d.set(f.get(2), {v:"me@m3ns1.com", t:"s"});
-    d.set(f.get(3), {v:1, t:"n"});
-    d.set(f.get(4), {v:1, t:"n"});
-    d.set(f.get(5), {v:1, t:"n"});
-    d.set(f.get(6), {v:1, t:"n"});
-    d.set(f.get(7), {v:1, t:"n"});
-    d.set(f.get(8), {v:1, t:"n"});
-    d.set(f.get(9), {v:1, t:"n"});
-    d.set(f.get(10), {v:1, t:"n"});
-    d.set(f.get(11), {v:1, t:"n"});
-    d.set(f.get(12), {v:1, t:"n"});
-    d.set(f.get(13), {v:"A cocktail a day", t:"s"});
-    d.set(f.get(14), {v:"https://a-cocktail-a-day.com/", t:"s"});
-    d.set(f.get(15), {v:"3.Begriff", t:"s"});
-    d.set(f.get(16), {v:"", t:"s"});
-    d.set(f.get(17), {v:"", t:"s"});
-    d.set(f.get(18), {v:"", t:"s"});
-    d.set(f.get(19), {v:"", t:"s"});
-    d.set(f.get(20), {v:"Blog zum Thema: Reisen, Lifestyle, Fliegen", t:"s"});
-    d.set(f.get(21), {v:"Kristina", t:"s"});
-    d.set(f.get(22), {v:"Roder", t:"s"});
-    d.set(f.get(23), {v:"Test Notiz", t:"s"});
-    d.set(f.get(24), {v:"kristina@a-cocktail-a-day.com", t:"s"});
-    d.set(f.get(25), {v:"n.a.", t:"s"});
-    d.set(f.get(26), {v:"", t:"s"});
-    d.set(f.get(27), {v:"Offen f\u00fcr Kooperationen", t:"s"});
-    d.set(f.get(28), {v:"", t:"s"});
-    d.set(f.get(29), {v:"https://facebook.com", t:"s"});
-    d.set(f.get(30), {v:"https://instagram.com", t:"s"});
-    d.set(f.get(31), {v:"https://twitter.com", t:"s"});
-    d.set(f.get(32), {v:"https://youtube.com", t:"s"});
-    d.set(f.get(33), {v:"https://flickr.com", t:"s"});
-    c.data.push(d);
-    b.renderModel(c, a);
-    return !0;
+  return this._pluginController.getEnabledModules().then(function(a) {
+    return Promise.all(a.map(function(a) {
+      return c._adminService.getCurrentCard().then(function(b) {
+        return c._clientManager.getController(a.id).fetchByCard(b, a);
+      });
+    }));
+  }).then(function() {
+    return b.renderActions(a).then(function() {
+      var b = Import.create("Sample", sampleImport), d = new DataNode(1), g = b.header;
+      d.set(g.get(0), {v:"Test Liste", t:"s"});
+      d.set(g.get(1), {v:43830, w:"31/12/2019", t:"n"});
+      d.set(g.get(2), {v:"me@m3ns1.com", t:"s"});
+      d.set(g.get(3), {v:1, t:"n"});
+      d.set(g.get(4), {v:1, t:"n"});
+      d.set(g.get(5), {v:1, t:"n"});
+      d.set(g.get(6), {v:1, t:"n"});
+      d.set(g.get(7), {v:1, t:"n"});
+      d.set(g.get(8), {v:1, t:"n"});
+      d.set(g.get(9), {v:1, t:"n"});
+      d.set(g.get(10), {v:1, t:"n"});
+      d.set(g.get(11), {v:1, t:"n"});
+      d.set(g.get(12), {v:1, t:"n"});
+      d.set(g.get(13), {v:"A cocktail a day", t:"s"});
+      d.set(g.get(14), {v:"https://a-cocktail-a-day.com/", t:"s"});
+      d.set(g.get(15), {v:"3.Begriff", t:"s"});
+      d.set(g.get(16), {v:"", t:"s"});
+      d.set(g.get(17), {v:"", t:"s"});
+      d.set(g.get(18), {v:"", t:"s"});
+      d.set(g.get(19), {v:"", t:"s"});
+      d.set(g.get(20), {v:"Blog zum Thema: Reisen, Lifestyle, Fliegen", t:"s"});
+      d.set(g.get(21), {v:"Kristina", t:"s"});
+      d.set(g.get(22), {v:"Roder", t:"s"});
+      d.set(g.get(23), {v:"Test Notiz", t:"s"});
+      d.set(g.get(24), {v:"kristina@a-cocktail-a-day.com", t:"s"});
+      d.set(g.get(25), {v:"n.a.", t:"s"});
+      d.set(g.get(26), {v:"", t:"s"});
+      d.set(g.get(27), {v:"Offen f\u00fcr Kooperationen", t:"s"});
+      d.set(g.get(28), {v:"", t:"s"});
+      d.set(g.get(29), {v:"https://facebook.com", t:"s"});
+      d.set(g.get(30), {v:"https://instagram.com", t:"s"});
+      d.set(g.get(31), {v:"https://twitter.com", t:"s"});
+      d.set(g.get(32), {v:"https://youtube.com", t:"s"});
+      d.set(g.get(33), {v:"https://flickr.com", t:"s"});
+      b.data.push(d);
+      c.renderModel(b, a);
+      return !0;
+    });
   });
 };
 AdminController.prototype.importPage = function(a) {
-  var b = this;
   this._model = null;
-  var c = createByTemplate(template_admin_import, template_admin_import);
+  var b = createByTemplate(template_admin_import, template_admin_import);
   this._document.querySelectorAll(".js-content").forEach(function(a) {
-    return a.appendChild(c);
+    return a.appendChild(b);
   });
   this._clearContent();
-  return this.renderActions(a).then(function(c) {
-    c = Import.create("Sample", sampleImport);
-    var d = new DataNode(1), f = c.header;
-    d.set(f.get(0), {v:"Test Liste", t:"s"});
-    d.set(f.get(1), {v:43830, w:"31/12/2019", t:"n"});
-    d.set(f.get(2), {v:"me@m3ns1.com", t:"s"});
-    d.set(f.get(3), {v:1, t:"n"});
-    d.set(f.get(4), {v:1, t:"n"});
-    d.set(f.get(5), {v:1, t:"n"});
-    d.set(f.get(6), {v:1, t:"n"});
-    d.set(f.get(7), {v:1, t:"n"});
-    d.set(f.get(8), {v:1, t:"n"});
-    d.set(f.get(9), {v:1, t:"n"});
-    d.set(f.get(10), {v:1, t:"n"});
-    d.set(f.get(11), {v:1, t:"n"});
-    d.set(f.get(12), {v:1, t:"n"});
-    d.set(f.get(13), {v:"A cocktail a day", t:"s"});
-    d.set(f.get(14), {v:"https://a-cocktail-a-day.com/", t:"s"});
-    d.set(f.get(15), {v:"3.Begriff", t:"s"});
-    d.set(f.get(16), {v:"", t:"s"});
-    d.set(f.get(17), {v:"", t:"s"});
-    d.set(f.get(18), {v:"", t:"s"});
-    d.set(f.get(19), {v:"", t:"s"});
-    d.set(f.get(20), {v:"Blog zum Thema: Reisen, Lifestyle, Fliegen", t:"s"});
-    d.set(f.get(21), {v:"Kristina", t:"s"});
-    d.set(f.get(22), {v:"Roder", t:"s"});
-    d.set(f.get(23), {v:"Test Notiz", t:"s"});
-    d.set(f.get(24), {v:"kristina@a-cocktail-a-day.com", t:"s"});
-    d.set(f.get(25), {v:"n.a.", t:"s"});
-    d.set(f.get(26), {v:"", t:"s"});
-    d.set(f.get(27), {v:"Offen f\u00fcr Kooperationen", t:"s"});
-    d.set(f.get(28), {v:"", t:"s"});
-    d.set(f.get(29), {v:"https://facebook.com", t:"s"});
-    d.set(f.get(30), {v:"https://instagram.com", t:"s"});
-    d.set(f.get(31), {v:"https://twitter.com", t:"s"});
-    d.set(f.get(32), {v:"https://youtube.com", t:"s"});
-    d.set(f.get(33), {v:"https://flickr.com", t:"s"});
-    c.data.push(d);
-    b.renderModel(c, a);
+  return this.renderActions(a).then(function(a) {
+    a = Import.create("Sample", sampleImport);
+    var b = new DataNode(1), c = a.header;
+    b.set(c.get(0), {v:"Test Liste", t:"s"});
+    b.set(c.get(1), {v:43830, w:"31/12/2019", t:"n"});
+    b.set(c.get(2), {v:"me@m3ns1.com", t:"s"});
+    b.set(c.get(3), {v:"", t:"n"});
+    b.set(c.get(4), {v:1, t:"n"});
+    b.set(c.get(5), {v:1, t:"n"});
+    b.set(c.get(6), {v:1, t:"n"});
+    b.set(c.get(7), {v:1, t:"n"});
+    b.set(c.get(8), {v:1, t:"n"});
+    b.set(c.get(9), {v:1, t:"n"});
+    b.set(c.get(10), {v:1, t:"n"});
+    b.set(c.get(11), {v:1, t:"n"});
+    b.set(c.get(12), {v:1, t:"n"});
+    b.set(c.get(13), {v:"A cocktail a day", t:"s"});
+    b.set(c.get(14), {v:"https://a-cocktail-a-day.com/", t:"s"});
+    b.set(c.get(15), {v:"3.Begriff", t:"s"});
+    b.set(c.get(16), {v:"", t:"s"});
+    b.set(c.get(17), {v:"", t:"s"});
+    b.set(c.get(18), {v:"", t:"s"});
+    b.set(c.get(19), {v:"", t:"s"});
+    b.set(c.get(20), {v:"Blog zum Thema: Reisen, Lifestyle, Fliegen", t:"s"});
+    b.set(c.get(21), {v:"Kristina", t:"s"});
+    b.set(c.get(22), {v:"Roder", t:"s"});
+    b.set(c.get(23), {v:"Test Notiz", t:"s"});
+    b.set(c.get(24), {v:"kristina@a-cocktail-a-day.com", t:"s"});
+    b.set(c.get(25), {v:"n.a.", t:"s"});
+    b.set(c.get(26), {v:"", t:"s"});
+    b.set(c.get(27), {v:"Offen f\u00fcr Kooperationen", t:"s"});
+    b.set(c.get(28), {v:"", t:"s"});
+    b.set(c.get(29), {v:"https://facebook.com", t:"s"});
+    b.set(c.get(30), {v:"https://instagram.com", t:"s"});
+    b.set(c.get(31), {v:"https://twitter.com", t:"s"});
+    b.set(c.get(32), {v:"https://youtube.com", t:"s"});
+    b.set(c.get(33), {v:"https://flickr.com", t:"s"});
+    a.data.push(b);
     return !0;
   });
 };
@@ -4018,16 +4245,15 @@ AdminController.prototype.renderActions = function(a) {
       try {
         b._adminService.load(d).then(function(c) {
           c.forEach(function(c) {
-            console.log("File " + c.file.name + " loaded", c);
             b.renderModel(c.model, a);
           });
         }).catch(function(a) {
-          b._showErrors(c, "Fehler beim importieren der Datei " + a.name);
+          b._showErrors(c, "Unerwarteter Fehler beim Importieren der Datei \u00ab" + a.name + "\u00bb");
         }).finally(function() {
           e.disabled = !1;
         });
       } catch (g) {
-        console.error("Error while importing files " + d, g), b._showErrors(c, "Fehler beim importieren der Datei " + err.name);
+        b._showErrors(c, "Schwerwiegender Fehler beim Importieren: " + g), e.disabled = !1;
       }
     });
     c.querySelector("#btn-load-config") && c.querySelector("#btn-load-config").setEventListener("click", function(a) {
@@ -4059,30 +4285,91 @@ AdminController.prototype.renderActions = function(a) {
       a.preventDefault();
       var c = a.target;
       c.setAttribute("disabled", "disabled");
-      if (a = b._model) {
-        var d = b._readConfiguration(a);
-        if (d.isValid()) {
-          b._adminService.importCards(a, d).then(function(a) {
-            console.debug("success = " + a);
-            return a ? (b._propertyBag.configuration = d, b._pluginController.setAdminConfiguration(b._propertyBag)) : Promise.reject("See log for more details");
+      b.progressPage().then(function(a) {
+        if (b._model) {
+          var d = b._readConfiguration(b._model);
+          d.isValid() ? (b._adminService.context = a, b._adminService.importCards(b._model, d).then(function(a) {
+            if (a) {
+              return b._loggingService.i("Import Datei(en) wurde(n) erfolgreich importiert"), b._propertyBag.configuration = d, b._loggingService.d("Die Konfiguration wird f\u00fcr zuk\u00fcnftige Imports gespeichert: " + JSON.stringify(b._propertyBag)), b._pluginController.setAdminConfiguration(b._propertyBag);
+            }
+            b._loggingService.i("Es konnten nicht alle Import Dateien korrekt importiert werden");
+            return Promise.reject("See log for more details");
           }).then(function(a) {
-            console.debug("Configuration saved", a);
+            b._loggingService.d("Folgende komprimierte Konfiguration wurde gespeichert: (Base64) " + a);
+            b.finishProgress(!0, "Fertig");
           }).catch(function(a) {
-            console.error("An error occured while importing from file: " + a);
+            b._loggingService.e("Es trat folgender Fehler auf: " + a.stack);
+            b.finishProgress(!1, "Es traten Fehler beim Import auf. Ein detaillierter Rapport wurde dieser Trello Card angeh\u00e4ngt.");
             console.error(a.stack);
           }).finally(function() {
             c.removeAttribute("disabled");
-          });
-        } else {
-          a = d.getValidationErrors();
-          var e = a.join("<br/>");
-          console.warn("Validation errors", a);
-          b._showWarnings(document, "Die Konfiguration ist unvollst\u00e4ndig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>" + e);
+            var a = b._loggingService.flush();
+            b._adminService.getCurrentCard().then(function(c) {
+              return b._adminService.uploadFileToCard(c, a);
+            }).catch(function(a) {
+              console.error("Konnte Log Datei nicht hochladen", a);
+            });
+          })) : (a = d.getValidationErrors().join("<br/>"), b._showWarnings(document, "Die Konfiguration ist unvollst\u00e4ndig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>" + a));
         }
-      }
+      });
     }));
   });
   return Promise.resolve(!0);
+};
+AdminController.prototype.progressPage = function() {
+  var a = this;
+  this._document.querySelectorAll(".js-content").forEach(function(a) {
+    return a.removeClass("hidden");
+  });
+  return new Promise(function(b, c) {
+    var d = createByTemplate(template_admin_progress, template_admin_progress);
+    a._document.querySelectorAll(".js-content").forEach(function(a) {
+      return a.appendChild(d);
+    });
+    a._document.querySelectorAll(".js-panta-progress").forEach(function(a) {
+      a.setEventListener("click", function(a) {
+        a.preventDefault();
+        a.stopPropagation();
+      });
+    });
+    b({each:a.updateProgress, context:a});
+  });
+};
+AdminController.prototype._testProgress = function(a, b) {
+  var c = this;
+  setTimeout(function() {
+    c.updateProgress(a, b, "Eintrag \u00abCard-#" + a + "\u00bb wurde erfolgreich importiert");
+    a < b ? c._testProgress(a + 1, b) : c.finishProgress(!0, "Fertig");
+  }, 750);
+};
+AdminController.prototype.finishProgress = function(a, b) {
+  var c = this;
+  a ? (this._document.querySelectorAll(".progress-overlay").forEach(function(a) {
+    a.addClass("success");
+  }), this._document.querySelectorAll(".js-panta-record-details").forEach(function(a) {
+    a.innerText = b;
+  })) : (this._document.querySelectorAll(".progress-overlay").forEach(function(a) {
+    a.addClass("error");
+  }), this._document.querySelectorAll(".js-panta-record-details").forEach(function(a) {
+    a.innerText = b;
+  }));
+  setTimeout(function() {
+    c._document.querySelectorAll(".js-panta-progress").forEach(function(a) {
+      a.removeSelf();
+      c._trello.closeModal();
+    });
+  }, a ? 600 : 5000);
+};
+AdminController.prototype.updateProgress = function(a, b, c) {
+  this._document.querySelectorAll(".js-panta-current-record").forEach(function(b) {
+    b.innerText = a;
+  });
+  this._document.querySelectorAll(".js-panta-total-records").forEach(function(a) {
+    a.innerText = b;
+  });
+  c && this._document.querySelectorAll(".js-panta-record-details").forEach(function(a) {
+    a.innerText = c;
+  });
 };
 AdminController.prototype._readConfiguration = function(a) {
   var b = this;
@@ -4205,7 +4492,7 @@ AdminController.prototype._createPreviewSection = function(a, b, c) {
 };
 AdminController.prototype._getBoardSample = function(a, b) {
   var c = this;
-  return c._trello.card("id", "name", "desc", "due", "members", "labels", "idList").then(function(d) {
+  return b ? c._trello.card("id", "name", "desc", "due", "members", "labels", "idList").then(function(d) {
     console.debug(b.reference + ": Got card " + JSON.stringify(d));
     switch(b.reference) {
       case "trello.title":
@@ -4229,9 +4516,28 @@ AdminController.prototype._getBoardSample = function(a, b) {
           return a.name;
         });
       default:
-        return "&lt;leer&gt;";
+        return c._getPantaFieldItems().then(function(a) {
+          return (a = a.flatMap(function(a) {
+            return a;
+          }).map(function(a) {
+            var d = a.groupId, e = a.moduleId, f = a.fields.find(function(a) {
+              return d + "." + a.id === b.reference;
+            });
+            if (f) {
+              var l = c._clientManager.getController(e);
+              return c._adminService.getCurrentCard().then(function(a) {
+                var b = l.getByCard(a);
+                console.debug("Current card is " + a.id, f, b);
+                return l.getPropertyByName(b, f.id, "&lt;leer&gt;");
+              });
+            }
+            return null;
+          }).find(function(a) {
+            return null !== a;
+          })) ? a : "&lt;leer&gt;";
+        });
     }
-  });
+  }) : Promise.resolve("&lt;leer&gt;");
 };
 AdminController.prototype._createFieldMappingSection = function(a, b) {
   var c = this, d = this, e = d._document.createElement("div");
@@ -4292,19 +4598,14 @@ AdminController.prototype._getActionButton = function() {
 };
 AdminController.prototype._createColorPicker = function(a) {
   a = void 0 === a ? null : a;
-  var b = this._document.createElement("select");
-  b.appendChild(this._createColorOption("Farbe w\u00e4hlen", "0", a));
-  b.appendChild(this._createColorOption("Blau", "blue", a));
-  b.appendChild(this._createColorOption("Gr\u00fcn", "green", a));
-  b.appendChild(this._createColorOption("Orange", "orange", a));
-  b.appendChild(this._createColorOption("Rot", "red", a));
-  b.appendChild(this._createColorOption("Gelb", "yellow", a));
-  b.appendChild(this._createColorOption("Violett", "purple", a));
-  b.appendChild(this._createColorOption("Pink", "pink", a));
-  b.appendChild(this._createColorOption("Himmelblau", "sky", a));
-  b.appendChild(this._createColorOption("Limette", "lime", a));
-  b.appendChild(this._createColorOption("Grau", "shades", a));
-  return b;
+  var b = this, c = b._document.createElement("select");
+  c.appendChild(b._createColorOption("Farbe w\u00e4hlen...", "0", a));
+  Object.entries(TRELLO_COLORS).map(function(c) {
+    return b._createColorOption(c[0], c[1], a);
+  }).forEach(function(a) {
+    return c.appendChild(a);
+  });
+  return c;
 };
 AdminController.prototype._createColorOption = function(a, b, c) {
   var d = this._document.createElement("option");
@@ -4351,6 +4652,19 @@ AdminController.prototype._getPantaFields = function(a, b) {
     });
   });
 };
+AdminController.prototype._getPantaFieldItems = function() {
+  var a = this;
+  return this._pluginController.getEnabledModules().then(function(b) {
+    return b.flatMap(function(b) {
+      return a._clientManager.getController(b.id).getFields(b);
+    });
+  });
+};
+AdminController.prototype._clear = function() {
+  this._document.querySelectorAll(".js-content").forEach(function(a) {
+    return a.removeChildren();
+  });
+};
 AdminController.prototype._clearContent = function() {
   this._document.getElementsByClassName("mapping-content").forEach(function(a) {
     return a.removeChildren();
@@ -4385,7 +4699,7 @@ AdminController.prototype._hide = function(a, b) {
 $jscomp.global.Object.defineProperties(AdminController, {PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Admin.PropertyBag";
 }}});
-// Input 39
+// Input 41
 var ExcelService = function() {
   this._treatFirstRowAsRoot = !1;
 };
@@ -4393,7 +4707,6 @@ ExcelService.prototype.read = function(a) {
   this.dataRowIndex = 1;
   a = new Uint8Array(a);
   var b = XLSX.read(a, {type:"array"});
-  console.debug("workbook is", b);
   a = b.Sheets[b.SheetNames[0]];
   this.boundary = XLSX.utils.decode_range(a["!ref"]);
   b = new Import(b.Props.Title);
@@ -4404,7 +4717,6 @@ ExcelService.prototype.read = function(a) {
     this._parseImportHeader(a, 0, 0, c);
     b.header = c;
   }
-  console.log("Header", b.header);
   this._readImportData(a, b, 0, this.dataRowIndex);
   return b;
 };
@@ -4445,7 +4757,7 @@ $jscomp.global.Object.defineProperties(ExcelService.prototype, {treatFirstRowAsR
 }, set:function(a) {
   this._treatFirstRowAsRoot = a;
 }}});
-// Input 40
+// Input 42
 var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, q, n, p) {
   this._id = a || uuid();
   this._topic = b;
@@ -4589,7 +4901,7 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, 
 $jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 3;
 }}});
-// Input 41
+// Input 43
 var PluginCardConfig = function(a, b, c) {
   this._title = a;
   this._icon = b;
@@ -4608,7 +4920,7 @@ $jscomp.global.Object.defineProperties(PluginCardConfig.prototype, {title:{confi
 }, set:function(a) {
   this._content = a;
 }}});
-// Input 42
+// Input 44
 var PluginModuleConfig = function(a, b, c) {
   this._id = a;
   this._name = b;
@@ -4644,7 +4956,7 @@ $jscomp.global.Object.defineProperties(PluginModuleConfig.prototype, {config:{co
 }, set:function(a) {
   this._id = a;
 }}});
-// Input 43
+// Input 45
 var ModuleConfig = function(a, b) {
   this._id = a || uuid();
   this._sections = b;
@@ -4827,7 +5139,7 @@ $jscomp.global.Object.defineProperties(BlogBeteiligt.prototype, {date:{configura
 }, set:function(a) {
   this._date = a;
 }}});
-// Input 44
+// Input 46
 var PluginConfiguration = function(a, b, c, d) {
   this._version = a;
   this._description = b;
@@ -4893,7 +5205,7 @@ $jscomp.global.Object.defineProperties(PluginConfiguration.prototype, {card:{con
 $jscomp.global.Object.defineProperties(PluginConfiguration, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
 }}});
-// Input 45
+// Input 47
 var Plan = function(a, b, c, d, e, f, g, h, k, l, m, q, n, p, r) {
   this._id = a || uuid();
   this._fee = d;
@@ -4995,17 +5307,17 @@ $jscomp.global.Object.defineProperties(Plan.prototype, {id:{configurable:!0, enu
 $jscomp.global.Object.defineProperties(Plan, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
 }}});
-// Input 46
+// Input 48
 var sampleImport = {_title:"Test", _header:{_label:"Listen-Name", _children:[{_label:"Listen-Name", _children:[], _properties:[], _address:{c:0, r:0}, _comments:[], _color:null}, {_label:"Frist (Datum)", _children:[], _properties:[], _address:{c:1, r:0}, _comments:[], _color:null}, {_label:"Mitglieder(Mehrere M\u00f6glich)", _children:[], _properties:[], _address:{c:2, r:0}, _comments:[], _color:null}, {_label:"Wasser", _children:[], _properties:[], _address:{c:3, r:0}, _comments:[{a:" ", t:"Sky", 
 r:'<r><rPr><sz val="10"/><color rgb="FF000000"/><rFont val="Arial"/><family val="2"/><charset val="1"/></rPr><t xml:space="preserve">Sky</t></r>', h:'<span style="font-size:10pt;">Sky</span>'}], _color:null}, {_label:"Wiese", _children:[], _properties:[], _address:{c:4, r:0}, _comments:[{a:" ", t:"Lime", r:'<r><rPr><sz val="10"/><color rgb="FF000000"/><rFont val="Arial"/><family val="2"/><charset val="1"/></rPr><t xml:space="preserve">Lime</t></r>', h:'<span style="font-size:10pt;">Lime</span>'}], 
 _color:null}, {_label:"Strasse", _children:[], _properties:[], _address:{c:5, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:6, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:7, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:8, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:9, r:0}, _comments:[], _color:null}, {_label:"Label", 
 _children:[], _properties:[], _address:{c:10, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:11, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:12, r:0}, _comments:[], _color:null}, {_label:"Trello-Feld: TITEL", _children:[], _properties:[], _address:{c:14, r:0}, _comments:[], _color:null}, {_label:"Trello-Feld: Beschreibung", _children:[], _properties:[], _address:{c:15, r:0}, _comments:[], _color:null}, 
-{_label:"1. Auwwahlliste", _children:[], _properties:[], _address:{c:17, r:0}, _comments:[], _color:null}, {_parent:null, _label:"2. Auwwahlliste", _children:[], _properties:[], _address:{c:18, r:0}, _comments:[], _color:null}, {_label:"3. Auwwahlliste", _children:[], _properties:[], _address:{c:19, r:0}, _comments:[], _color:null}, {_label:"4. Auwwahlliste", _children:[], _properties:[], _address:{c:20, r:0}, _comments:[], _color:null}, {_label:"5. Auswahlliste", _children:[], _properties:[], _address:{c:21, 
+{_label:"1. Auswahlliste", _children:[], _properties:[], _address:{c:17, r:0}, _comments:[], _color:null}, {_parent:null, _label:"2. Auswahlliste", _children:[], _properties:[], _address:{c:18, r:0}, _comments:[], _color:null}, {_label:"3. Auswahlliste", _children:[], _properties:[], _address:{c:19, r:0}, _comments:[], _color:null}, {_label:"4. Auswahlliste", _children:[], _properties:[], _address:{c:20, r:0}, _comments:[], _color:null}, {_label:"5. Auswahlliste", _children:[], _properties:[], _address:{c:21, 
 r:0}, _comments:[], _color:null}, {_label:"Feld: Details ", _children:[], _properties:[], _address:{c:23, r:0}, _comments:[], _color:null}, {_label:"Feld: Vorname", _children:[], _properties:[], _address:{c:24, r:0}, _comments:[], _color:null}, {_label:"Feld: Name", _children:[], _properties:[], _address:{c:25, r:0}, _comments:[], _color:null}, {_label:"Noitzen (nur im TRELLO)", _children:[], _properties:[], _address:{c:26, r:0}, _comments:[], _color:null}, {_label:"Feld: E-Mail", _children:[], _properties:[], 
 _address:{c:28, r:0}, _comments:[], _color:null}, {_label:" Feld: Telefon", _children:[], _properties:[], _address:{c:29, r:0}, _comments:[], _color:null}, {_label:"Feld: Adresse", _children:[], _properties:[], _address:{c:30, r:0}, _comments:[], _color:null}, {_label:"Feld: Konditionen", _children:[], _properties:[], _address:{c:31, r:0}, _comments:[], _color:null}, {_label:"Feld: Erfahrungen", _children:[], _properties:[], _address:{c:32, r:0}, _comments:[], _color:null}, {_label:"Facebook Feld: Link", 
 _children:[], _properties:[], _address:{c:34, r:0}, _comments:[], _color:null}, {_label:"Instagram Feld: Link", _children:[], _properties:[], _address:{c:35, r:0}, _comments:[], _color:null}, {_label:"Twitter Feld: Link", _children:[], _properties:[], _address:{c:36, r:0}, _comments:[], _color:null}, {_label:"Youtube Feld: Link", _children:[], _properties:[], _address:{c:37, r:0}, _comments:[], _color:null}, {_label:"Flickr Feld: Link", _children:[], _properties:[], _address:{c:38, r:0}, _comments:[], 
 _color:null}], _properties:[], _address:{c:-1, r:-1}, _comments:[], _color:null}};
-// Input 47
+// Input 49
 HTMLElement.prototype.addClass = function(a) {
   this.hasClass(a) || (this.className += " " + a, this.className = this.className.trim());
   return this;
@@ -5208,7 +5520,7 @@ function extend(a, b) {
   return a;
 }
 ;
-// Input 48
+// Input 50
 var JsonSerialization = function() {
 };
 JsonSerialization.prototype.serialize = function(a) {
@@ -5237,7 +5549,7 @@ JsonSerialization.getProperty = function(a, b) {
 JsonSerialization.prototype.getAllProperties = function(a) {
   return Object.getOwnPropertyNames(a);
 };
-// Input 49
+// Input 51
 var template_regular = '<div id="template">    <div class="row">        <div class="col-6 col-phone-12">            <div class="row">                <div class="col-12 col-phone-12">                    <div class="pa.name"></div>                </div>                <div class="col-12 col-phone-12">                    <div class="pa.social"></div>                </div>            </div>        </div>        <div class="col-6 col-phone-12 line-4 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-6 col-phone-12">            <div class="pa.address"></div>        </div>        <div class="col-6 col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-12 col-phone-12">            <div class="row">                <div class="col-4 col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_regular_mobile = '<div id="template">    <div class="row">        <div class="col-phone-12">            <div class="pa.name"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.social"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.address"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="row">                <div class="col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.notes"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.format"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.placement"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.price"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.name"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.social"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.address"></div>            </div>        </div>    </div></div>', 
@@ -5250,10 +5562,11 @@ template_settings_editable = '<div class="row module-editable-container">    <di
 template_settings_editable_select = '<div class="row module-editable-select-container">   <select class="panta-js-select"></select></div>', template_settings_editable_option = '<div class="row module-editable-option-container">    <div class="col-10 module-editable-option-name">       <input type="text" class="panta-js-name"/>    </div>    <div class="col-2 module-editable-option-actions">       <button class="panta-btn panta-btn-icon panta-js-delete"><img src="assets/ic_trash.svg" width="16px" height="16px"/></button>       <button class="panta-btn panta-btn-icon panta-js-visible hidden"><img src="assets/ic_visible.png" width="16px" height="16px"/></button>    </div></div>', 
 template_beteiligt = '<form id="panta.module">    <div class="js-panta-editable-title">        <div class="row min"><div class="col-12">\u00a0</div></div>        <div class="row min">           <div class="col-12">                <h3 class="js-panta-module js-panta-label"></h3>           </div>        </div>    </div>    <div class="row min navigation-bar">        <div id="pa.involved.onsite" class="col-2 col-phone-4 tab" data-label="vor.Ort" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.text" class="col-2 col-phone-4 tab" data-label="Journalist" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.photo" class="col-phone-4 col-2 tab" data-label="Visual" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.video" class="col-phone-4 col-2 tab" data-label="Event" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.illu" class="col-phone-4 col-2 tab" data-label="MC/Host" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.ad" class="col-phone-4 col-2 tab" data-label="weitere" data-layout="regular"><span>Placeholder</span></div>    </div>    <span id="pa.tab.content"></span></form>', 
 template_admin_actions = '<div class="row full">            <div class="col-12">                <p>Was willst du tun?</p>            </div>        </div>        <div class="row full">            <div class="col-6 space">                <button id="btn-action-import" class="panta-btn action">Import</button>            </div>            <div class="col-6 space">                <button id="btn-action-export" class="panta-btn action js-button-export">Export</button>            </div>        </div>', 
-template_admin_import = '<div class="row">            <div class="col-12">                <p>W\u00e4hle hier die Excel Datei aus, die importiert werden soll.</p>            </div>            <div class="col-12">                <input class="panta-btn" type="file" id="file-import">                <button class="panta-btn" id="btn-load">Laden</button>                <button class="panta-btn panta-bgcolor-yellow" id="btn-load-config">Konfiguration laden</button>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3">                    <b>Excel Feld</b>                </div>                <div class="col-4">                    <b>Trello Feld</b>                </div>                <div class="col-3">                    <b>Beispiel Wert</b>                </div>                <div class="col-2">                    <b>Mehr</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-10">\u00a0</div>                <div class="col-2">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-import">                        Importieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
+template_admin_import = '<div class="row full">            <div class="col-12">                <p>W\u00e4hle hier die Excel Datei aus, die importiert werden soll.</p>            </div>            <div class="col-10">                <input class="panta-btn" type="file" id="file-import">            </div>            <div class="col-2">                <button class="panta-btn" id="btn-load">Laden</button>            </div>            <div class="col-12">                <button class="panta-btn panta-bgcolor-yellow" id="btn-load-config">Konfiguration laden</button>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3">                    <b>Excel Feld</b>                </div>                <div class="col-4">                    <b>Trello Feld</b>                </div>                <div class="col-3">                    <b>Beispiel Wert</b>                </div>                <div class="col-2">                    <b>Mehr</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-10">\u00a0</div>                <div class="col-2">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-import">                        Importieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
 template_admin_export = '<div class="row">            <div class="col-12">                <p>W\u00e4hle hier die Excel Vorlage aus, die f\u00fcr den Export verwendet werden soll.</p>            </div>            <div class="col-12">                <input class="panta-btn" type="file" id="file-import">                <button class="panta-btn" id="btn-load">Laden</button>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3">                    <b>Excel Feld</b>                </div>                <div class="col-4">                    <b>Trello Feld</b>                </div>                <div class="col-3">                    <b>Beispiel Wert</b>                </div>                <div class="col-2">                    <b>Mehr</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-10">\u00a0</div>                <div class="col-2">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-export">                        Exportieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
-template_admin_errorpage = '<div class="row full">   <div class="col-12 hidden error-messages">       <p class="error" id="error-message"></p>   </div>   <div class="col-12 hidden warning-messages">       <p class="warning" id="warning-message"></p>   </div>   <div class="col-12 space">       <button id="btn-reset" class="panta-btn panta-bgcolor-red">Zur\u00fccksetzen</button>   </div></div>';
-// Input 50
+template_admin_errorpage = '<div class="row full">   <div class="col-12 hidden error-messages">       <p class="error" id="error-message"></p>   </div>   <div class="col-12 hidden warning-messages">       <p class="warning" id="warning-message"></p>   </div>   <div class="col-12 space">       <button id="btn-reset" class="panta-btn panta-bgcolor-red">Zur\u00fccksetzen</button>   </div></div>', template_admin_progress = '<div class="overlay js-panta-progress progress-overlay">            <div class="row full">                <div class="col-12">                    <p class="space"><span class="js-panta-current-record"></span>/<span class="js-panta-total-records"></span> Eintr\u00e4ge importiert...</p>                    <p class="details js-panta-record-details"></p>';
+"                </div>            </div>        </div>";
+// Input 52
 var Reducers = function() {
 };
 Reducers.asKeyValue = function(a, b) {
