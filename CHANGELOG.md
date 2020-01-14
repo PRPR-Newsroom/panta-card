@@ -1,5 +1,7 @@
 [UNRELEASED]
 
+[1.5.2-STAGING]
+
 # Changes
 
 * Import feature
