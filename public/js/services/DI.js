@@ -42,6 +42,8 @@ class DI {
                     //  * @type {AdminService}
                     //  */
                     // this.adminService = new AdminService("0bdd0023d8f9b9a23ed80260495bbe9b");
+                    this.loggingService = new LoggingService().open();
+
                 }
 
                 getArticleRepository() {
@@ -53,8 +55,17 @@ class DI {
                 }
 
                 getAdminService(trello) {
-                    return new AdminService(trello);
+                    return new AdminService(this.getTrelloClient(trello), this.loggingService);
                 }
+
+                getLoggingService() {
+                    return this.loggingService;
+                }
+
+                getTrelloClient(trello) {
+                    return new TrelloClient(trello, this.loggingService);
+                }
+
             }
             DI.INSTANCE = new DefaultDI();
         }
@@ -79,6 +90,16 @@ class DI {
      * @return {AdminService}
      */
     getAdminService(trello) {}
+
+    /**
+     * @return {LoggingService}
+     */
+    getLoggingService() {}
+
+    /**
+     * @return {TrelloClient}
+     */
+    getTrelloClient(trello) {}
 
 }
 

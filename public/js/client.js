@@ -4,25 +4,15 @@ TrelloPowerUp.initialize({
         return [{
             icon: './assets/ic_pantarhei.png',
             text: 'Panta.Card.Setup',
+            condition: 'admin',
             callback: function (t) {
                 return t.member('all')
                     .then(function (member) {
-                        if (POWERUP_ADMINS.find(function (admin) {
-                            return member.username === admin;
-                        })) {
-                            return t.popup({
-                                title: "Einstellungen",
-                                url: "settings.html",
-                                height: 184
-                            });
-                        } else {
-                            t.alert({
-                                message: "Du hast keine Berechtigung um Panta.Card zu konfigurieren. Bitte wenden dich an den Administrator, falls du die Berechtigung brauchst.",
-                                duration: 15,
-                                display: "error"
-                            });
-                            return null;
-                        }
+                        return t.popup({
+                            title: "Einstellungen",
+                            url: "settings.html",
+                            height: 184
+                        });
                     });
             }
         }, {
@@ -35,6 +25,9 @@ TrelloPowerUp.initialize({
                     url: "admin.html",
                     accentColor: 'blue',
                     fullscreen: true
+                    // ,args: {
+                    //     "page": 'progress'
+                    // }
                 });
             }
         }];
@@ -44,7 +37,7 @@ TrelloPowerUp.initialize({
         /**
          * @type {ClientManager}
          */
-        let cm = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION).init();
+        const cm = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION).init();
         return t.card('id')
             .then(function (card) {
                 return t.get(card.id, 'shared', ArtikelController.SHARED_NAME)

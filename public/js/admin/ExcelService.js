@@ -21,9 +21,7 @@ class ExcelService {
 
         const data = new Uint8Array(content);
         const wb = XLSX.read(data, {type: "array"});
-        console.debug("workbook is", wb);
         const first_sheet_name = wb.SheetNames[0];
-
         /* Get worksheet */
         const worksheet = wb.Sheets[first_sheet_name];
         this.boundary = XLSX.utils.decode_range(worksheet['!ref']);
@@ -37,7 +35,6 @@ class ExcelService {
         } else {
             this._parseImportHeader(worksheet, 0, 0, null);
         }
-        console.log('Header', root.header);
         this._readImportData(worksheet, root, 0, this.dataRowIndex);
 
         return root;
