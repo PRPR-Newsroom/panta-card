@@ -9,12 +9,18 @@ class AdminController {
         return "panta.Admin.PropertyBag";
     }
 
-    static create(trello, document, adminService) {
-        return new AdminController(trello, adminService, document);
+    static create(trello, document, adminService, loggingService) {
+        return new AdminController(trello, adminService, document, loggingService);
     }
 
 
-    constructor(trello, adminService, document) {
+    /**
+     * @param trello
+     * @param {AdminService} adminService
+     * @param {Document} document
+     * @param {LoggingService} loggingService
+     */
+    constructor(trello, adminService, document, loggingService) {
         this._trello = trello;
         /**
          * @type {AdminService}
@@ -28,19 +34,7 @@ class AdminController {
          * @type {ClientManager}
          */
         this._clientManager = ClientManager.getInstance(window);
-        /**
-         * @type {ArtikelController}
-         */
-        this._artikelController = this._clientManager.getArticleController();
 
-        /**
-         * @type {ModuleController}
-         */
-        this._moduleController = this._clientManager.getModuleController();
-        /**
-         * @type {ModulePlanController}
-         */
-        this._planController = this._clientManager.getPlanController();
         /**
          * @type {PluginController}
          */
@@ -58,6 +52,8 @@ class AdminController {
          * @private
          */
         this._propertyBag = {};
+
+        this._loggingService = loggingService;
     }
 
     /**
@@ -66,13 +62,15 @@ class AdminController {
      */
     render(data) {
         this._context = data.page || 'home';
-        this._document.querySelectorAll('.js-content').forEach(it => it.removeChildren())
+        // this._clear();
         if (this._context === 'import') {
             return this.importPage(data.configuration)
         } else if (this._context === 'export') {
             return this.exportPage(data.configuration);
         } else if (this._context === 'error') {
             return this.errorPage(data.error, data.error_details);
+        } else if (this._context === 'progress') {
+            return this.progressPage();
         } else {
             return this.homePage();
         }
@@ -98,6 +96,7 @@ class AdminController {
         this._document.querySelector('#btn-action-import').setEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
+            that._trello.closeModal();
             that._trello.modal({
                 title: 'Administration - Import',
                 url: "admin.html",
@@ -124,27 +123,28 @@ class AdminController {
         this._document.querySelector('#btn-action-export').setEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            // that._trello.modal({
-            //     title: 'Administration - Export',
-            //     url: "admin.html",
-            //     accentColor: 'blue',
-            //     fullscreen: true,
-            //     actions: [{
-            //         icon: './assets/ic_arrow_back.png',
-            //         callback: (t) => {
-            //             t.modal({
-            //                 title: "Administration",
-            //                 url: "admin.html",
-            //                 accentColor: 'blue'
-            //             })
-            //         },
-            //         alt: 'Zurück',
-            //         position: 'left',
-            //     }],
-            //     args: {
-            //         "page": 'export'
-            //     },
-            // });
+            that._trello.closeModal();
+            that._trello.modal({
+                title: 'Administration - Export',
+                url: "admin.html",
+                accentColor: 'blue',
+                fullscreen: true,
+                actions: [{
+                    icon: './assets/ic_arrow_back.png',
+                    callback: (t) => {
+                        t.modal({
+                            title: "Administration",
+                            url: "admin.html",
+                            accentColor: 'blue'
+                        })
+                    },
+                    alt: 'Zurück',
+                    position: 'left',
+                }],
+                args: {
+                    "page": 'export'
+                },
+            });
         });
         return Promise.resolve(true);
     }
@@ -156,49 +156,61 @@ class AdminController {
         this._document.querySelectorAll('.js-content').forEach(it => it.appendChild(page));
         this._clearContent();
 
-        return this.renderActions(config)
-            .then(it => {
-                // Sample data
-                const model = Import.create('Sample', sampleImport);
-                const sample1 = new DataNode(1);
-                const header = model.header;
-                sample1.set(header.get(0), {v: 'Test Liste', t: 's'});
-                sample1.set(header.get(1), {v: 43830, w: '31/12/2019', t: 'n'});
-                sample1.set(header.get(2), {v: 'me@m3ns1.com', t: 's'});
-                sample1.set(header.get(3), {v: 1, t: 'n'});
-                sample1.set(header.get(4), {v: 1, t: 'n'});
-                sample1.set(header.get(5), {v: 1, t: 'n'});
-                sample1.set(header.get(6), {v: 1, t: 'n'});
-                sample1.set(header.get(7), {v: 1, t: 'n'});
-                sample1.set(header.get(8), {v: 1, t: 'n'});
-                sample1.set(header.get(9), {v: 1, t: 'n'});
-                sample1.set(header.get(10), {v: 1, t: 'n'});
-                sample1.set(header.get(11), {v: 1, t: 'n'});
-                sample1.set(header.get(12), {v: 1, t: 'n'});
-                sample1.set(header.get(13), {v: 'A cocktail a day', t: 's'});
-                sample1.set(header.get(14), {v: 'https://a-cocktail-a-day.com/', t: 's'});
-                sample1.set(header.get(15), {v: '3.Begriff', t: 's'});
-                sample1.set(header.get(16), {v: '', t: 's'});
-                sample1.set(header.get(17), {v: '', t: 's'});
-                sample1.set(header.get(18), {v: '', t: 's'});
-                sample1.set(header.get(19), {v: '', t: 's'});
-                sample1.set(header.get(20), {v: 'Blog zum Thema: Reisen, Lifestyle, Fliegen', t: 's'});
-                sample1.set(header.get(21), {v: 'Kristina', t: 's'});
-                sample1.set(header.get(22), {v: 'Roder', t: 's'});
-                sample1.set(header.get(23), {v: 'Test Notiz', t: 's'});
-                sample1.set(header.get(24), {v: 'kristina@a-cocktail-a-day.com', t: 's'});
-                sample1.set(header.get(25), {v: 'n.a.', t: 's'});
-                sample1.set(header.get(26), {v: '', t: 's'});
-                sample1.set(header.get(27), {v: 'Offen für Kooperationen', t: 's'});
-                sample1.set(header.get(28), {v: '', t: 's'});
-                sample1.set(header.get(29), {v: 'https://facebook.com', t: 's'});
-                sample1.set(header.get(30), {v: 'https://instagram.com', t: 's'});
-                sample1.set(header.get(31), {v: 'https://twitter.com', t: 's'});
-                sample1.set(header.get(32), {v: 'https://youtube.com', t: 's'});
-                sample1.set(header.get(33), {v: 'https://flickr.com', t: 's'});
-                model.data.push(sample1);
-                that.renderModel(model, config);
-                return true;
+        return this._pluginController.getEnabledModules()
+            .then(its => {
+                return Promise.all(its.map(it => {
+                    return that._adminService.getCurrentCard()
+                        .then(card => {
+                            return that._clientManager.getController(it.id).fetchByCard(card, it);
+                        })
+                }));
+            })
+            .then(() => {
+                return this.renderActions(config)
+                    .then(() => {
+                        // Sample data
+                        const model = Import.create('Sample', sampleImport);
+                        const sample1 = new DataNode(1);
+                        const header = model.header;
+                        sample1.set(header.get(0), {v: 'Test Liste', t: 's'});
+                        sample1.set(header.get(1), {v: 43830, w: '31/12/2019', t: 'n'});
+                        sample1.set(header.get(2), {v: 'me@m3ns1.com', t: 's'});
+                        sample1.set(header.get(3), {v: 1, t: 'n'});
+                        sample1.set(header.get(4), {v: 1, t: 'n'});
+                        sample1.set(header.get(5), {v: 1, t: 'n'});
+                        sample1.set(header.get(6), {v: 1, t: 'n'});
+                        sample1.set(header.get(7), {v: 1, t: 'n'});
+                        sample1.set(header.get(8), {v: 1, t: 'n'});
+                        sample1.set(header.get(9), {v: 1, t: 'n'});
+                        sample1.set(header.get(10), {v: 1, t: 'n'});
+                        sample1.set(header.get(11), {v: 1, t: 'n'});
+                        sample1.set(header.get(12), {v: 1, t: 'n'});
+                        sample1.set(header.get(13), {v: 'A cocktail a day', t: 's'});
+                        sample1.set(header.get(14), {v: 'https://a-cocktail-a-day.com/', t: 's'});
+                        sample1.set(header.get(15), {v: '3.Begriff', t: 's'});
+                        sample1.set(header.get(16), {v: '', t: 's'});
+                        sample1.set(header.get(17), {v: '', t: 's'});
+                        sample1.set(header.get(18), {v: '', t: 's'});
+                        sample1.set(header.get(19), {v: '', t: 's'});
+                        sample1.set(header.get(20), {v: 'Blog zum Thema: Reisen, Lifestyle, Fliegen', t: 's'});
+                        sample1.set(header.get(21), {v: 'Kristina', t: 's'});
+                        sample1.set(header.get(22), {v: 'Roder', t: 's'});
+                        sample1.set(header.get(23), {v: 'Test Notiz', t: 's'});
+                        sample1.set(header.get(24), {v: 'kristina@a-cocktail-a-day.com', t: 's'});
+                        sample1.set(header.get(25), {v: 'n.a.', t: 's'});
+                        sample1.set(header.get(26), {v: '', t: 's'});
+                        sample1.set(header.get(27), {v: 'Offen für Kooperationen', t: 's'});
+                        sample1.set(header.get(28), {v: '', t: 's'});
+                        sample1.set(header.get(29), {v: 'https://facebook.com', t: 's'});
+                        sample1.set(header.get(30), {v: 'https://instagram.com', t: 's'});
+                        sample1.set(header.get(31), {v: 'https://twitter.com', t: 's'});
+                        sample1.set(header.get(32), {v: 'https://youtube.com', t: 's'});
+                        sample1.set(header.get(33), {v: 'https://flickr.com', t: 's'});
+                        model.data.push(sample1);
+                        that.renderModel(model, config);
+                        return true;
+                    });
+
             });
     }
 
@@ -221,7 +233,7 @@ class AdminController {
                 sample1.set(header.get(0), {v: 'Test Liste', t: 's'});
                 sample1.set(header.get(1), {v: 43830, w: '31/12/2019', t: 'n'});
                 sample1.set(header.get(2), {v: 'me@m3ns1.com', t: 's'});
-                sample1.set(header.get(3), {v: 1, t: 'n'});
+                sample1.set(header.get(3), {v: '', t: 'n'});
                 sample1.set(header.get(4), {v: 1, t: 'n'});
                 sample1.set(header.get(5), {v: 1, t: 'n'});
                 sample1.set(header.get(6), {v: 1, t: 'n'});
@@ -253,7 +265,7 @@ class AdminController {
                 sample1.set(header.get(32), {v: 'https://youtube.com', t: 's'});
                 sample1.set(header.get(33), {v: 'https://flickr.com', t: 's'});
                 model.data.push(sample1);
-                that.renderModel(model, previousConfig);
+                // that.renderModel(model, previousConfig);
                 return true;
             });
     }
@@ -299,19 +311,18 @@ class AdminController {
                             that._adminService.load(files)
                                 .then(imports => {
                                     imports.forEach(it => {
-                                        console.log(`File ${it.file.name} loaded`, it);
                                         that.renderModel(it.model, previousConfiguration);
                                     });
                                 })
                                 .catch(err => {
-                                    that._showErrors(it, `Fehler beim importieren der Datei ${err.name}`);
+                                    that._showErrors(it, `Unerwarteter Fehler beim Importieren der Datei «${err.name}»`);
                                 })
                                 .finally(() => {
                                     button.disabled = false;
                                 });
                         } catch (ex) {
-                            console.error(`Error while importing files ${files}`, ex);
-                            that._showErrors(it, `Fehler beim importieren der Datei ${err.name}`);
+                            that._showErrors(it, `Schwerwiegender Fehler beim Importieren: ${ex}`);
+                            button.disabled = false;
                         }
                     });
                 }
@@ -352,45 +363,135 @@ class AdminController {
                         e.preventDefault();
                         const button = e.target;
                         button.setAttribute('disabled', 'disabled');
-                        const model = that._model;
-                        if (model) {
-                            /**
-                             * @type {ImportConfiguration}
-                             */
-                            const configuration = that._readConfiguration(model);
-                            if (configuration.isValid()) {
-                                that._adminService.importCards(model, configuration)
-                                    .then(success => {
-                                        console.debug(`success = ${success}`);
-                                        if (success) {
-                                            that._propertyBag['configuration'] = configuration;
-                                            return that._pluginController.setAdminConfiguration(that._propertyBag);
-                                        } else {
-                                            return Promise.reject(`See log for more details`);
-                                        }
-                                    })
-                                    .then(it => {
-                                        console.debug('Configuration saved', it);
-                                    })
-                                    .catch(it => {
-                                        console.error(`An error occured while importing from file: ${it}`);
-                                        console.error(it.stack);
-                                    })
-                                    .finally(() => {
-                                        button.removeAttribute('disabled');
-                                    });
-                            } else {
-                                const validations = configuration.getValidationErrors();
-                                const errors = validations.join('<br/>');
-                                console.warn('Validation errors', validations);
-                                that._showWarnings(document, `Die Konfiguration ist unvollständig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>${errors}`);
-                            }
-                        }
+                        // show progress dialog
+                        that.progressPage()
+                            .then(it => {
+                                if (that._model) {
+                                    /**
+                                     * @type {ImportConfiguration}
+                                     */
+                                    const configuration = that._readConfiguration(that._model);
+                                    if (configuration.isValid()) {
+                                        that._adminService.context = it;
+                                        that._adminService.importCards(that._model, configuration)
+                                            .then(success => {
+                                                if (success) {
+                                                    that._loggingService.i(`Import Datei(en) wurde(n) erfolgreich importiert`);
+                                                    that._propertyBag['configuration'] = configuration;
+                                                    that._loggingService.d(`Die Konfiguration wird für zukünftige Imports gespeichert: ${JSON.stringify(that._propertyBag)}`);
+                                                    return that._pluginController.setAdminConfiguration(that._propertyBag);
+                                                } else {
+                                                    that._loggingService.i(`Es konnten nicht alle Import Dateien korrekt importiert werden`);
+                                                    return Promise.reject(`See log for more details`);
+                                                }
+                                            })
+                                            .then(it => {
+                                                that._loggingService.d(`Folgende komprimierte Konfiguration wurde gespeichert: (Base64) ${it}`);
+                                                that.finishProgress(true, 'Fertig');
+                                            })
+                                            .catch(it => {
+                                                that._loggingService.e(`Es trat folgender Fehler auf: ${it.stack}`);
+                                                that.finishProgress(false, `Es traten Fehler beim Import auf. Ein detaillierter Rapport wurde dieser Trello Card angehängt.`);
+                                                console.error(it.stack);
+                                            })
+                                            .finally(() => {
+                                                button.removeAttribute('disabled');
+                                                const file = that._loggingService.flush();
+                                                that._adminService.getCurrentCard()
+                                                    .then(card => {
+                                                        return that._adminService.uploadFileToCard(card, file);
+                                                    })
+                                                    .catch(err => {
+                                                        console.error(`Konnte Log Datei nicht hochladen`, err);
+                                                    });
+                                            });
+                                    } else {
+                                        const validations = configuration.getValidationErrors();
+                                        const errors = validations.join('<br/>');
+                                        that._showWarnings(document, `Die Konfiguration ist unvollständig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>${errors}`);
+                                    }
+                                }
+                            });
                     });
                 }
 
             });
         return Promise.resolve(true);
+    }
+
+    /**
+     * @return {Promise<{each: function, done: function}>}
+     */
+    progressPage() {
+        const that = this;
+        this._document.querySelectorAll('.js-content').forEach(it => it.removeClass('hidden'));
+        return new Promise(function (resolve, reject) {
+            const page = createByTemplate(template_admin_progress, template_admin_progress);
+            that._document.querySelectorAll('.js-content').forEach(it => it.appendChild(page));
+            that._document.querySelectorAll('.js-panta-progress').forEach(it => {
+                it.setEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            });
+            // that._testProgress(1, 3);
+            resolve({
+                'each': that.updateProgress,
+                'context': that
+            });
+        });
+    }
+
+    _testProgress(current, total) {
+        const that = this;
+        setTimeout(() => {
+            that.updateProgress(current, total, `Eintrag «Card-#${current}» wurde erfolgreich importiert`);
+            if (current < total) {
+                that._testProgress(current + 1, total);
+            } else {
+                that.finishProgress(true, 'Fertig');
+            }
+        }, 750);
+    }
+
+    finishProgress(success, reason) {
+        const that = this;
+        // let the final message still be visible for some time before removing it
+        if (success) {
+            this._document.querySelectorAll('.progress-overlay').forEach(it => {
+                it.addClass('success');
+            });
+            this._document.querySelectorAll('.js-panta-record-details').forEach(it => {
+                it.innerText = reason;
+            });
+        } else {
+            this._document.querySelectorAll('.progress-overlay').forEach(it => {
+                it.addClass('error');
+            });
+            this._document.querySelectorAll('.js-panta-record-details').forEach(it => {
+                it.innerText = reason;
+            });
+        }
+        setTimeout(() => {
+            that._document.querySelectorAll('.js-panta-progress').forEach(it => {
+                it.removeSelf();
+                that._trello.closeModal();
+            });
+        }, success ? 600 : 5000);
+    }
+
+    updateProgress(current, total, details) {
+        this._document.querySelectorAll('.js-panta-current-record').forEach(it => {
+            it.innerText = current;
+        });
+        this._document.querySelectorAll('.js-panta-total-records').forEach(it => {
+            it.innerText = total;
+        });
+        if (details) {
+            this._document.querySelectorAll('.js-panta-record-details').forEach(it => {
+                it.innerText = details;
+            });
+        }
     }
 
     /**
@@ -580,11 +681,14 @@ class AdminController {
     /**
      * @param {HeaderNode} header
      * @param {AbstractField} field
-     * @return {Promise<{header: string, value: {h: string, v: string, t: string}|null}>}
+     * @return {Promise<string>}
      * @private
      */
     _getBoardSample(header, field) {
         const that = this;
+        if (!field) {
+            return Promise.resolve('&lt;leer&gt;');
+        }
         return that._trello.card('id', 'name', 'desc', 'due', 'members', 'labels', 'idList')
             .then(it => {
                 console.debug(`${field.reference}: Got card ${JSON.stringify(it)}`);
@@ -609,7 +713,31 @@ class AdminController {
                                 return it.name;
                             });
                     default:
-                        return '&lt;leer&gt;';
+                        return that._getPantaFieldItems()
+                            .then(its => {
+                                /**
+                                 * @type {{id: string, desc: string, visible: boolean, type: string, values?: string[]}}
+                                 */
+                                const it = its
+                                    .flatMap(its => its)
+                                    .map(it => {
+                                        const groupId = it.groupId;
+                                        const moduleId = it.moduleId;
+                                        const found = it.fields.find(it => `${groupId}.${it.id}` === field.reference);
+                                        if (found) {
+                                            const controller = that._clientManager.getController(moduleId);
+                                            return that._adminService.getCurrentCard()
+                                                .then(card => {
+                                                    const entity = controller.getByCard(card);
+                                                    console.debug(`Current card is ${card.id}`, found, entity);
+                                                    return controller.getPropertyByName(entity, found.id, '&lt;leer&gt;');
+                                                });
+                                        }
+                                        return null;
+                                    })
+                                    .find(it => it !== null);
+                                return it ? it : '&lt;leer&gt;';
+                            });
                 }
             });
     }
@@ -711,17 +839,9 @@ class AdminController {
     _createColorPicker(selected = null) {
         const that = this;
         const colorPicker = that._document.createElement('select');
-        colorPicker.appendChild(that._createColorOption('Farbe wählen', '0', selected));
-        colorPicker.appendChild(that._createColorOption('Blau', 'blue', selected));
-        colorPicker.appendChild(that._createColorOption('Grün', 'green', selected));
-        colorPicker.appendChild(that._createColorOption('Orange', 'orange', selected));
-        colorPicker.appendChild(that._createColorOption('Rot', 'red', selected));
-        colorPicker.appendChild(that._createColorOption('Gelb', 'yellow', selected));
-        colorPicker.appendChild(that._createColorOption('Violett', 'purple', selected));
-        colorPicker.appendChild(that._createColorOption('Pink', 'pink', selected));
-        colorPicker.appendChild(that._createColorOption('Himmelblau', 'sky', selected));
-        colorPicker.appendChild(that._createColorOption('Limette', 'lime', selected));
-        colorPicker.appendChild(that._createColorOption('Grau', 'shades', selected));
+        colorPicker.appendChild(that._createColorOption('Farbe wählen...', '0', selected));
+        Object.entries(TRELLO_COLORS).map(it => that._createColorOption(it[0], it[1], selected))
+            .forEach(it => colorPicker.appendChild(it));
         return colorPicker;
     }
 
@@ -814,8 +934,33 @@ class AdminController {
     }
 
     /**
+     *
+     * @return {PromiseLike<{group: string, groupId: string, fields: {id: string, desc: string, visible: boolean, type: string, values?: string[]}[]}[][] | never> | Promise<{group: string, groupId: string, fields: {id: string, desc: string, visible: boolean, type: string, values?: string[]}[]}[][] | never>}
+     * @private
+     */
+    _getPantaFieldItems() {
+        const that = this;
+        return this._pluginController.getEnabledModules()
+            .then(its => {
+                return its.flatMap(it => {
+                    const controller = that._clientManager.getController(it.id);
+                    return controller.getFields(it);
+                });
+            });
+    }
+
+    /**
      * Clear the content of the settings page completely by removing all child nodes from the
      * container
+     * @private
+     */
+    _clear() {
+        this._document.querySelectorAll('.js-content').forEach(it => it.removeChildren());
+    }
+
+    /**
+     * Clear the mapping content
+     * @private
      */
     _clearContent() {
         this._document.getElementsByClassName("mapping-content").forEach(it => it.removeChildren());

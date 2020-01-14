@@ -523,7 +523,7 @@ class ClientManager {
      * @return {{condition: PromiseLike<T>|Promise<T>, on: on, card: card}}
      */
     getArticleModuleContext(card) {
-        let that = this;
+        const that = this;
         return {
             "id": "module.artikel",
             "shared": ArtikelController.SHARED_NAME,

@@ -26,8 +26,7 @@ class ModulePlanController extends Controller {
     }
 
     constructor(windowManager, trelloApi, telephone) {
-        super(windowManager, new ModulePlanRepository());
-        this._trello = trelloApi;
+        super(windowManager, new ModulePlanRepository(), trelloApi);
         /**
          * The wire to the client manager
          * @type {MessagePort}
@@ -145,7 +144,7 @@ class ModulePlanController extends Controller {
      */
     setProperty(propertyName, propertyValue) {
         this._propertyBag[propertyName] = propertyValue;
-        this._trello.set('board', 'shared', ModulePlanController.PROPERTY_BAG_NAME, this._propertyBag);
+        this.trelloApi.set('board', 'shared', ModulePlanController.PROPERTY_BAG_NAME, this._propertyBag);
     }
 
     /**
@@ -154,7 +153,7 @@ class ModulePlanController extends Controller {
      */
     readPropertyBag() {
         let that = this;
-        this._trello.get('board', 'shared', ModulePlanController.PROPERTY_BAG_NAME, {})
+        this.trelloApi.get('board', 'shared', ModulePlanController.PROPERTY_BAG_NAME, {})
             .then(function (bag) {
                 that._propertyBag = bag;
             });
@@ -224,14 +223,14 @@ class ModulePlanController extends Controller {
     }
 
     persist(entity, cardId) {
-        return this._trello.set(cardId || 'card', 'shared', ModulePlanController.SHARED_NAME, entity);
+        return this.trelloApi.set(cardId || 'card', 'shared', ModulePlanController.SHARED_NAME, entity);
     }
 
     remove() {
         let that = this;
-        return this._trello.remove('board', 'shared', ModulePlanController.SHARED_NAME)
+        return this.trelloApi.remove('board', 'shared', ModulePlanController.SHARED_NAME)
             .then(function () {
-                return that._trello.remove('board', 'shared', ModulePlanController.PROPERTY_BAG_NAME);
+                return that.trelloApi.remove('board', 'shared', ModulePlanController.PROPERTY_BAG_NAME);
             });
     }
 
@@ -255,4 +254,7 @@ class ModulePlanController extends Controller {
         return Plan.create(json);
     }
 
+    getSharedName() {
+        return ModulePlanController.SHARED_NAME;
+    }
 }

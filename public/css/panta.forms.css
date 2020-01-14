@@ -1,7 +1,7 @@
-form, .settings-content {
+form, .settings-content, .settings-import-export {
   padding-top: 5px;
 }
-form .input-overlay, .settings-content .input-overlay {
+form .input-overlay, .settings-content .input-overlay, .settings-import-export .input-overlay {
   box-sizing: border-box;
   -webkit-appearance: none;
   padding-right: 12px;
@@ -10,35 +10,52 @@ form .input-overlay, .settings-content .input-overlay {
   transition-duration: 85ms;
   transition-timing-function: ease;
 }
-form .input-overlay .placeholder, .settings-content .input-overlay .placeholder {
+form .input-overlay .placeholder, .settings-content .input-overlay .placeholder, .settings-import-export .input-overlay .placeholder {
   color: #B2B3B3;
 }
-form textarea, form .input-overlay, .settings-content textarea, .settings-content .input-overlay {
+form textarea, form .input-overlay, .settings-content textarea, .settings-content .input-overlay, .settings-import-export textarea, .settings-import-export .input-overlay {
   resize: vertical;
   width: 100%;
   /* We need to override the Trello default */
   min-height: 26px;
   padding-bottom: 2px;
 }
-form .u-border.no-resize, .settings-content .u-border.no-resize {
+form .u-border.no-resize, .settings-content .u-border.no-resize, .settings-import-export .u-border.no-resize {
   resize: none;
   overflow-wrap: normal;
 }
-form textarea.u-border.no-resize, form .input-overlay.u-border.no-resize, .settings-content textarea.u-border.no-resize, .settings-content .input-overlay.u-border.no-resize {
+form textarea.u-border.no-resize, form .input-overlay.u-border.no-resize, .settings-content textarea.u-border.no-resize, .settings-content .input-overlay.u-border.no-resize, .settings-import-export textarea.u-border.no-resize, .settings-import-export .input-overlay.u-border.no-resize {
   overflow: hidden;
 }
-form label.focused-fix, .settings-content label.focused-fix {
+form label.focused-fix, .settings-content label.focused-fix, .settings-import-export label.focused-fix {
   border-color: #798d99;
 }
-form label.hovered:not(.prop-select), .settings-content label.hovered:not(.prop-select) {
+form label.hovered:not(.prop-select), .settings-content label.hovered:not(.prop-select), .settings-import-export label.hovered:not(.prop-select) {
   border-color: #b6bbbf;
 }
-form label.focused:not(.prop-select), .settings-content label.focused:not(.prop-select) {
+form label.focused:not(.prop-select), .settings-content label.focused:not(.prop-select), .settings-import-export label.focused:not(.prop-select) {
   border-color: #a5acb0;
 }
-form label, .settings-content label {
+form label, .settings-content label, .settings-import-export label {
   margin-top: 0;
   font-size: 13px;
+}
+form input[type=file], .settings-content input[type=file], .settings-import-export input[type=file] {
+  width: 99%;
+  border-radius: 3px;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  margin: 8px 4px 0 0;
+  padding: 3px 12px;
+  text-align: center;
+  -webkit-appearance: none;
+  background-color: rgba(9, 30, 66, 0.04);
+  box-shadow: none;
+  border: 1px solid transparent;
 }
 
 /*# sourceMappingURL=panta.forms.css.map */

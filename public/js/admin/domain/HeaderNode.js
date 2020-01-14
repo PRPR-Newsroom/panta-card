@@ -60,7 +60,7 @@ class HeaderNode {
         } else {
             let comment = this.getComment(0);
             if (!isBlank(comment)) {
-                return comment.t.toLowerCase();
+                return comment.t.toLowerCase().trim();
             }
             return null;
         }

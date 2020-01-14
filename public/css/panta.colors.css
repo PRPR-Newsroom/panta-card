@@ -5,13 +5,6 @@
   color: #fff;
 }
 
-[class*=panta-bgcolor-shades] {
-  color: #000;
-}
-[class*=panta-bgcolor-shades] p {
-  color: #000;
-}
-
 .panta-bgcolor-blue {
   background-color: #026AA7 !important;
 }

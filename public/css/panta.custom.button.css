@@ -25,4 +25,8 @@
   margin: 8px;
 }
 
+.panta-btn:hover {
+  border: 1px solid transparent;
+}
+
 /*# sourceMappingURL=panta.custom.button.css.map */

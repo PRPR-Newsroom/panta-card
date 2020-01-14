@@ -408,140 +408,152 @@ let template_beteiligt = '<form id="panta.module">' +
     '    <span id="pa.tab.content"></span>' +
     '</form>';
 
-const template_admin_actions = '<div class="row full">'+
-    '            <div class="col-12">'+
-    '                <p>Was willst du tun?</p>'+
-    '            </div>'+
-    '        </div>'+
-    '        <div class="row full">'+
-    '            <div class="col-6 space">'+
-    '                <button id="btn-action-import" class="panta-btn action">Import</button>'+
-    '            </div>'+
-    '            <div class="col-6 space">'+
-    '                <button id="btn-action-export" class="panta-btn action js-button-export">Export</button>'+
-    '            </div>'+
+const template_admin_actions = '<div class="row full">' +
+    '            <div class="col-12">' +
+    '                <p>Was willst du tun?</p>' +
+    '            </div>' +
+    '        </div>' +
+    '        <div class="row full">' +
+    '            <div class="col-6 space">' +
+    '                <button id="btn-action-import" class="panta-btn action">Import</button>' +
+    '            </div>' +
+    '            <div class="col-6 space">' +
+    '                <button id="btn-action-export" class="panta-btn action js-button-export">Export</button>' +
+    '            </div>' +
     '        </div>';
 
-const template_admin_import = '<div class="row">'+
-    '            <div class="col-12">'+
-    '                <p>Wähle hier die Excel Datei aus, die importiert werden soll.</p>'+
-    '            </div>'+
-    '            <div class="col-12">'+
-    '                <input class="panta-btn" type="file" id="file-import">'+
+const template_admin_import = '<div class="row full">' +
+    '            <div class="col-12">' +
+    '                <p>Wähle hier die Excel Datei aus, die importiert werden soll.</p>' +
+    '            </div>' +
+    '            <div class="col-10">' +
+    '                <input class="panta-btn" type="file" id="file-import">' +
+    '            </div>' +
+    '            <div class="col-2">' +
     '                <button class="panta-btn" id="btn-load">Laden</button>' +
-    '                <button class="panta-btn panta-bgcolor-yellow" id="btn-load-config">Konfiguration laden</button>'+
-    '            </div>'+
-    ''+
-    '        </div>'+
-    ''+
-    '        <div class="hidden mapping-content-header">'+
-    '            <div class="row full">'+
-    '                <div class="col-12">'+
-    '                    <hr/>'+
-    '                </div>'+
-    '            </div>'+
-    '            <div class="row space full">'+
-    '                <div class="col-3">'+
-    '                    <b>Excel Feld</b>'+
-    '                </div>'+
-    '                <div class="col-4">'+
-    '                    <b>Trello Feld</b>'+
-    '                </div>'+
-    '                <div class="col-3">'+
-    '                    <b>Beispiel Wert</b>'+
-    '                </div>'+
-    '                <div class="col-2">'+
-    '                    <b>Mehr</b>'+
-    '                </div>'+
-    '            </div>'+
-    '        </div>'+
-    '        <form>'+
-    '            <div class="hidden mapping-content">'+
-    '            </div>'+
-    ''+
-    '            <div class="row space full">'+
-    '                <div class="col-10"> </div>'+
-    '                <div class="col-2">'+
-    '                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-import">'+
-    '                        Importieren'+
-    '                    </button>'+
-    '                </div>'+
-    '            </div>'+
-    ''+
-    '            <div class="row">'+
-    '                <div class="col-12 hidden error-messages">'+
-    '                    <p class="error" id="error-message"></p>'+
-    '                </div>'+
-    '                <div class="col-12 hidden warning-messages">'+
-    '                    <p class="warning" id="warning-message"></p>'+
-    '                </div>'+
-    '            </div>'+
+    '            </div>' +
+    '            <div class="col-12">' +
+    '                <button class="panta-btn panta-bgcolor-yellow" id="btn-load-config">Konfiguration laden</button>' +
+    '            </div>' +
+    '        </div>' +
+    '' +
+    '        <div class="hidden mapping-content-header">' +
+    '            <div class="row full">' +
+    '                <div class="col-12">' +
+    '                    <hr/>' +
+    '                </div>' +
+    '            </div>' +
+    '            <div class="row space full">' +
+    '                <div class="col-3">' +
+    '                    <b>Excel Feld</b>' +
+    '                </div>' +
+    '                <div class="col-4">' +
+    '                    <b>Trello Feld</b>' +
+    '                </div>' +
+    '                <div class="col-3">' +
+    '                    <b>Beispiel Wert</b>' +
+    '                </div>' +
+    '                <div class="col-2">' +
+    '                    <b>Mehr</b>' +
+    '                </div>' +
+    '            </div>' +
+    '        </div>' +
+    '        <form>' +
+    '            <div class="hidden mapping-content">' +
+    '            </div>' +
+    '' +
+    '            <div class="row space full">' +
+    '                <div class="col-10"> </div>' +
+    '                <div class="col-2">' +
+    '                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-import">' +
+    '                        Importieren' +
+    '                    </button>' +
+    '                </div>' +
+    '            </div>' +
+    '' +
+    '            <div class="row">' +
+    '                <div class="col-12 hidden error-messages">' +
+    '                    <p class="error" id="error-message"></p>' +
+    '                </div>' +
+    '                <div class="col-12 hidden warning-messages">' +
+    '                    <p class="warning" id="warning-message"></p>' +
+    '                </div>' +
+    '            </div>' +
     '        </form>';
 
-const template_admin_export = '<div class="row">'+
-    '            <div class="col-12">'+
-    '                <p>Wähle hier die Excel Vorlage aus, die für den Export verwendet werden soll.</p>'+
-    '            </div>'+
-    '            <div class="col-12">'+
-    '                <input class="panta-btn" type="file" id="file-import">'+
-    '                <button class="panta-btn" id="btn-load">Laden</button>'+
-    '            </div>'+
-    ''+
-    '        </div>'+
-    ''+
-    '        <div class="hidden mapping-content-header">'+
-    '            <div class="row full">'+
-    '                <div class="col-12">'+
-    '                    <hr/>'+
-    '                </div>'+
-    '            </div>'+
-    '            <div class="row space full">'+
-    '                <div class="col-3">'+
-    '                    <b>Excel Feld</b>'+
-    '                </div>'+
-    '                <div class="col-4">'+
-    '                    <b>Trello Feld</b>'+
-    '                </div>'+
-    '                <div class="col-3">'+
-    '                    <b>Beispiel Wert</b>'+
-    '                </div>'+
-    '                <div class="col-2">'+
-    '                    <b>Mehr</b>'+
-    '                </div>'+
-    '            </div>'+
-    '        </div>'+
-    '        <form>'+
-    '            <div class="hidden mapping-content">'+
-    '            </div>'+
-    ''+
-    '            <div class="row space full">'+
-    '                <div class="col-10"> </div>'+
-    '                <div class="col-2">'+
-    '                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-export">'+
-    '                        Exportieren'+
-    '                    </button>'+
-    '                </div>'+
-    '            </div>'+
-    ''+
-    '            <div class="row">'+
-    '                <div class="col-12 hidden error-messages">'+
-    '                    <p class="error" id="error-message"></p>'+
-    '                </div>'+
-    '                <div class="col-12 hidden warning-messages">'+
-    '                    <p class="warning" id="warning-message"></p>'+
-    '                </div>'+
-    '            </div>'+
+const template_admin_export = '<div class="row">' +
+    '            <div class="col-12">' +
+    '                <p>Wähle hier die Excel Vorlage aus, die für den Export verwendet werden soll.</p>' +
+    '            </div>' +
+    '            <div class="col-12">' +
+    '                <input class="panta-btn" type="file" id="file-import">' +
+    '                <button class="panta-btn" id="btn-load">Laden</button>' +
+    '            </div>' +
+    '' +
+    '        </div>' +
+    '' +
+    '        <div class="hidden mapping-content-header">' +
+    '            <div class="row full">' +
+    '                <div class="col-12">' +
+    '                    <hr/>' +
+    '                </div>' +
+    '            </div>' +
+    '            <div class="row space full">' +
+    '                <div class="col-3">' +
+    '                    <b>Excel Feld</b>' +
+    '                </div>' +
+    '                <div class="col-4">' +
+    '                    <b>Trello Feld</b>' +
+    '                </div>' +
+    '                <div class="col-3">' +
+    '                    <b>Beispiel Wert</b>' +
+    '                </div>' +
+    '                <div class="col-2">' +
+    '                    <b>Mehr</b>' +
+    '                </div>' +
+    '            </div>' +
+    '        </div>' +
+    '        <form>' +
+    '            <div class="hidden mapping-content">' +
+    '            </div>' +
+    '' +
+    '            <div class="row space full">' +
+    '                <div class="col-10"> </div>' +
+    '                <div class="col-2">' +
+    '                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-export">' +
+    '                        Exportieren' +
+    '                    </button>' +
+    '                </div>' +
+    '            </div>' +
+    '' +
+    '            <div class="row">' +
+    '                <div class="col-12 hidden error-messages">' +
+    '                    <p class="error" id="error-message"></p>' +
+    '                </div>' +
+    '                <div class="col-12 hidden warning-messages">' +
+    '                    <p class="warning" id="warning-message"></p>' +
+    '                </div>' +
+    '            </div>' +
     '        </form>';
 
 const template_admin_errorpage =
-    '<div class="row full">'+
-    '   <div class="col-12 hidden error-messages">'+
-    '       <p class="error" id="error-message"></p>'+
-    '   </div>'+
-    '   <div class="col-12 hidden warning-messages">'+
-    '       <p class="warning" id="warning-message"></p>'+
+    '<div class="row full">' +
+    '   <div class="col-12 hidden error-messages">' +
+    '       <p class="error" id="error-message"></p>' +
+    '   </div>' +
+    '   <div class="col-12 hidden warning-messages">' +
+    '       <p class="warning" id="warning-message"></p>' +
     '   </div>' +
     '   <div class="col-12 space">' +
     '       <button id="btn-reset" class="panta-btn panta-bgcolor-red">Zurücksetzen</button>' +
-    '   </div>'+
+    '   </div>' +
     '</div>';
+
+const template_admin_progress = '<div class="overlay js-panta-progress progress-overlay">' +
+    '            <div class="row full">' +
+    '                <div class="col-12">' +
+    '                    <p class="space"><span class="js-panta-current-record"></span>/<span class="js-panta-total-records"></span> Einträge importiert...</p>' +
+    '                    <p class="details js-panta-record-details"></p>'
+    '                </div>' +
+    '            </div>' +
+    '        </div>';

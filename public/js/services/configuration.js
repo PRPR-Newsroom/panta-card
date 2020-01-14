@@ -3,7 +3,8 @@ const VERSION = "1.5.3-STAGING";
 
 const APP_NAME = "Panta.Cards";
 // when changing this API Key you should also change the key parameter where you load the Trello client.js
-const APP_KEY = "86a73cafa11d3834d4768a20a96b6786";
+// const APP_KEY = "86b7da26cc27ae039a161c97dfa56156";
+const APP_KEY = "0bdd0023d8f9b9a23ed80260495bbe9b";
 
 const PLUGIN_CONFIGURATION = {
     'module.artikel.enabled': false, // 1
@@ -144,3 +145,16 @@ const TRELLO_FIELDS = [{
     'type': 'boolean',
     'multi': true
 }];
+
+const TRELLO_COLORS = {
+    'Blue': 'blue',
+    'Green': 'green',
+    'Orange': 'orange',
+    'Red': 'red',
+    'Yellow': 'yellow',
+    'Purple': 'purple',
+    'Pink': 'pink',
+    'Sky': 'sky',
+    'Lime': 'lime',
+    'Shades': 'shades'
+};

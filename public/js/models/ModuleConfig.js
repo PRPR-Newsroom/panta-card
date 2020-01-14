@@ -27,7 +27,7 @@ class ModuleConfig {
     /**
      * Get the section factory depending on the id and configuration
      *
-     * @param configuration
+     * @param {PluginModuleConfig} configuration
      * @param id
      * @returns {function(): CommonBeteiligt}
      * @private
