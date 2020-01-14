@@ -1,4 +1,14 @@
 class AdminService {
+    /**
+     * @param {{each: function, done: function}} value
+     */
+    set context(value) {
+        this._context = value;
+    }
+
+    get context() {
+        return this._context;
+    }
 
     /**
      * @param {TrelloClient} trelloClient
@@ -20,6 +30,11 @@ class AdminService {
          * @private
          */
         this._loggingService = loggingService;
+        /**
+         * @type {{each: function, done: function}}
+         * @private
+         */
+        this._context = null;
     }
 
     hasLabel(label, color) {
@@ -129,8 +144,11 @@ class AdminService {
         const that = this;
         if (index < model.data.length) {
             return that._createCard(model.data[index], configuration)
-                .then(() => {
+                .then((it) => {
                     return new Promise(function (resolve, reject) {
+                        const percent = Math.min(((index+1.0)/Math.max(1.0, model.data.length))*100, 100.0);
+                        const progress = `${percent.toFixed(2)}%`;
+                        that.context.each.apply(that.context.context, [index+1, model.data.length, progress]);
                         resolve(that._importCard(model, index + 1, configuration));
                     });
                 });

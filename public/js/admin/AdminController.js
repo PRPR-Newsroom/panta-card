@@ -62,13 +62,15 @@ class AdminController {
      */
     render(data) {
         this._context = data.page || 'home';
-        this._document.querySelectorAll('.js-content').forEach(it => it.removeChildren())
+        // this._clear();
         if (this._context === 'import') {
             return this.importPage(data.configuration)
         } else if (this._context === 'export') {
             return this.exportPage(data.configuration);
         } else if (this._context === 'error') {
             return this.errorPage(data.error, data.error_details);
+        } else if (this._context === 'progress') {
+            return this.progressPage();
         } else {
             return this.homePage();
         }
@@ -94,6 +96,7 @@ class AdminController {
         this._document.querySelector('#btn-action-import').setEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
+            that._trello.closeModal();
             that._trello.modal({
                 title: 'Administration - Import',
                 url: "admin.html",
@@ -120,6 +123,7 @@ class AdminController {
         this._document.querySelector('#btn-action-export').setEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
+            that._trello.closeModal();
             that._trello.modal({
                 title: 'Administration - Export',
                 url: "admin.html",
@@ -261,7 +265,7 @@ class AdminController {
                 sample1.set(header.get(32), {v: 'https://youtube.com', t: 's'});
                 sample1.set(header.get(33), {v: 'https://flickr.com', t: 's'});
                 model.data.push(sample1);
-                that.renderModel(model, previousConfig);
+                // that.renderModel(model, previousConfig);
                 return true;
             });
     }
@@ -359,54 +363,135 @@ class AdminController {
                         e.preventDefault();
                         const button = e.target;
                         button.setAttribute('disabled', 'disabled');
-                        const model = that._model;
-                        if (model) {
-                            /**
-                             * @type {ImportConfiguration}
-                             */
-                            const configuration = that._readConfiguration(model);
-                            if (configuration.isValid()) {
-                                that._adminService.importCards(model, configuration)
-                                    .then(success => {
-                                        if (success) {
-                                            that._loggingService.i(`Import Datei(en) wurde(n) erfolgreich importiert`);
-                                            that._propertyBag['configuration'] = configuration;
-                                            that._loggingService.d(`Die Konfiguration wird für zukünftige Imports gespeichert: ${JSON.stringify(that._propertyBag)}`);
-                                            return that._pluginController.setAdminConfiguration(that._propertyBag);
-                                        } else {
-                                            that._loggingService.i(`Es konnten nicht alle Import Dateien korrekt importiert werden`);
-                                            return Promise.reject(`See log for more details`);
-                                        }
-                                    })
-                                    .then(it => {
-                                        that._loggingService.d(`Folgende komprimierte Konfiguration wurde gespeichert: (Base64) ${it}`);
-                                    })
-                                    .catch(it => {
-                                        that._loggingService.e(`Es trat folgender Fehler auf: ${it.stack}`);
-                                        console.error(it.stack);
-                                    })
-                                    .finally(() => {
-                                        button.removeAttribute('disabled');
-                                        const file = that._loggingService.flush();
-                                        that._adminService.getCurrentCard()
-                                            .then(card => {
-                                                return that._adminService.uploadFileToCard(card, file);
+                        // show progress dialog
+                        that.progressPage()
+                            .then(it => {
+                                if (that._model) {
+                                    /**
+                                     * @type {ImportConfiguration}
+                                     */
+                                    const configuration = that._readConfiguration(that._model);
+                                    if (configuration.isValid()) {
+                                        that._adminService.context = it;
+                                        that._adminService.importCards(that._model, configuration)
+                                            .then(success => {
+                                                if (success) {
+                                                    that._loggingService.i(`Import Datei(en) wurde(n) erfolgreich importiert`);
+                                                    that._propertyBag['configuration'] = configuration;
+                                                    that._loggingService.d(`Die Konfiguration wird für zukünftige Imports gespeichert: ${JSON.stringify(that._propertyBag)}`);
+                                                    return that._pluginController.setAdminConfiguration(that._propertyBag);
+                                                } else {
+                                                    that._loggingService.i(`Es konnten nicht alle Import Dateien korrekt importiert werden`);
+                                                    return Promise.reject(`See log for more details`);
+                                                }
                                             })
-                                            .catch(err => {
-                                                console.error(`Konnte Log Datei nicht hochladen`, err);
+                                            .then(it => {
+                                                that._loggingService.d(`Folgende komprimierte Konfiguration wurde gespeichert: (Base64) ${it}`);
+                                                that.finishProgress(true, 'Fertig');
+                                            })
+                                            .catch(it => {
+                                                that._loggingService.e(`Es trat folgender Fehler auf: ${it.stack}`);
+                                                that.finishProgress(false, `Es traten Fehler beim Import auf. Ein detaillierter Rapport wurde dieser Trello Card angehängt.`);
+                                                console.error(it.stack);
+                                            })
+                                            .finally(() => {
+                                                button.removeAttribute('disabled');
+                                                const file = that._loggingService.flush();
+                                                that._adminService.getCurrentCard()
+                                                    .then(card => {
+                                                        return that._adminService.uploadFileToCard(card, file);
+                                                    })
+                                                    .catch(err => {
+                                                        console.error(`Konnte Log Datei nicht hochladen`, err);
+                                                    });
                                             });
-                                    });
-                            } else {
-                                const validations = configuration.getValidationErrors();
-                                const errors = validations.join('<br/>');
-                                that._showWarnings(document, `Die Konfiguration ist unvollständig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>${errors}`);
-                            }
-                        }
+                                    } else {
+                                        const validations = configuration.getValidationErrors();
+                                        const errors = validations.join('<br/>');
+                                        that._showWarnings(document, `Die Konfiguration ist unvollständig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>${errors}`);
+                                    }
+                                }
+                            });
                     });
                 }
 
             });
         return Promise.resolve(true);
+    }
+
+    /**
+     * @return {Promise<{each: function, done: function}>}
+     */
+    progressPage() {
+        const that = this;
+        this._document.querySelectorAll('.js-content').forEach(it => it.removeClass('hidden'));
+        return new Promise(function (resolve, reject) {
+            const page = createByTemplate(template_admin_progress, template_admin_progress);
+            that._document.querySelectorAll('.js-content').forEach(it => it.appendChild(page));
+            that._document.querySelectorAll('.js-panta-progress').forEach(it => {
+                it.setEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            });
+            // that._testProgress(1, 3);
+            resolve({
+                'each': that.updateProgress,
+                'context': that
+            });
+        });
+    }
+
+    _testProgress(current, total) {
+        const that = this;
+        setTimeout(() => {
+            that.updateProgress(current, total, `Eintrag «Card-#${current}» wurde erfolgreich importiert`);
+            if (current < total) {
+                that._testProgress(current + 1, total);
+            } else {
+                that.finishProgress(true, 'Fertig');
+            }
+        }, 750);
+    }
+
+    finishProgress(success, reason) {
+        const that = this;
+        // let the final message still be visible for some time before removing it
+        if (success) {
+            this._document.querySelectorAll('.progress-overlay').forEach(it => {
+                it.addClass('success');
+            });
+            this._document.querySelectorAll('.js-panta-record-details').forEach(it => {
+                it.innerText = reason;
+            });
+        } else {
+            this._document.querySelectorAll('.progress-overlay').forEach(it => {
+                it.addClass('error');
+            });
+            this._document.querySelectorAll('.js-panta-record-details').forEach(it => {
+                it.innerText = reason;
+            });
+        }
+        setTimeout(() => {
+            that._document.querySelectorAll('.js-panta-progress').forEach(it => {
+                it.removeSelf();
+                that._trello.closeModal();
+            });
+        }, success ? 600 : 5000);
+    }
+
+    updateProgress(current, total, details) {
+        this._document.querySelectorAll('.js-panta-current-record').forEach(it => {
+            it.innerText = current;
+        });
+        this._document.querySelectorAll('.js-panta-total-records').forEach(it => {
+            it.innerText = total;
+        });
+        if (details) {
+            this._document.querySelectorAll('.js-panta-record-details').forEach(it => {
+                it.innerText = details;
+            });
+        }
     }
 
     /**
@@ -867,6 +952,15 @@ class AdminController {
     /**
      * Clear the content of the settings page completely by removing all child nodes from the
      * container
+     * @private
+     */
+    _clear() {
+        this._document.querySelectorAll('.js-content').forEach(it => it.removeChildren());
+    }
+
+    /**
+     * Clear the mapping content
+     * @private
      */
     _clearContent() {
         this._document.getElementsByClassName("mapping-content").forEach(it => it.removeChildren());

@@ -3494,6 +3494,7 @@ var AdminService = function(a, b) {
   this.moduleController = this.clientManager.getModuleController();
   this.excelService = this.clientManager.getExcelService();
   this._loggingService = b;
+  this._context = null;
 };
 AdminService.prototype.hasLabel = function(a, b) {
   return this.trelloClient.getLabels().map(function(c) {
@@ -3557,8 +3558,10 @@ AdminService.prototype.importCards = function(a, b) {
 AdminService.prototype._importCard = function(a, b, c) {
   var d = this;
   if (b < a.data.length) {
-    return d._createCard(a.data[b], c).then(function() {
-      return new Promise(function(e, f) {
+    return d._createCard(a.data[b], c).then(function(e) {
+      return new Promise(function(e, g) {
+        g = Math.min((b + 1.0) / Math.max(1.0, a.data.length) * 100, 100.0).toFixed(2) + "%";
+        d.context.each.apply(d.context.context, [b + 1, a.data.length, g]);
         e(d._importCard(a, b + 1, c));
       });
     });
@@ -3734,6 +3737,11 @@ AdminService.prototype._getList = function(a) {
 AdminService.prototype._getFieldValue = function(a, b, c) {
   return (b = this._getField(b, c)) && a.get(b.source) ? b.getValue(a.get(b.source)) : null;
 };
+$jscomp.global.Object.defineProperties(AdminService.prototype, {context:{configurable:!0, enumerable:!0, set:function(a) {
+  this._context = a;
+}, get:function() {
+  return this._context;
+}}});
 // Input 32
 var HeaderNode = function(a, b, c, d) {
   d = void 0 === d ? [] : d;
@@ -4073,10 +4081,7 @@ AdminController.create = function(a, b, c, d) {
 };
 AdminController.prototype.render = function(a) {
   this._context = a.page || "home";
-  this._document.querySelectorAll(".js-content").forEach(function(a) {
-    return a.removeChildren();
-  });
-  return "import" === this._context ? this.importPage(a.configuration) : "export" === this._context ? this.exportPage(a.configuration) : "error" === this._context ? this.errorPage(a.error, a.error_details) : this.homePage();
+  return "import" === this._context ? this.importPage(a.configuration) : "export" === this._context ? this.exportPage(a.configuration) : "error" === this._context ? this.errorPage(a.error, a.error_details) : "progress" === this._context ? this.progressPage() : this.homePage();
 };
 AdminController.prototype.errorPage = function(a, b) {
   var c = this, d = createByTemplate(template_admin_errorpage, template_admin_errorpage);
@@ -4103,6 +4108,7 @@ AdminController.prototype.homePage = function() {
   this._document.querySelector("#btn-action-import").setEventListener("click", function(b) {
     b.preventDefault();
     b.stopPropagation();
+    a._trello.closeModal();
     a._trello.modal({title:"Administration - Import", url:"admin.html", accentColor:"blue", fullscreen:!0, actions:[{icon:"./assets/ic_arrow_back.png", callback:function(a) {
       a.modal({title:"Administration", url:"admin.html", accentColor:"blue"});
     }, alt:"Zur\u00fcck", position:"left"}], args:{page:"import"}});
@@ -4110,6 +4116,7 @@ AdminController.prototype.homePage = function() {
   this._document.querySelector("#btn-action-export").setEventListener("click", function(b) {
     b.preventDefault();
     b.stopPropagation();
+    a._trello.closeModal();
     a._trello.modal({title:"Administration - Export", url:"admin.html", accentColor:"blue", fullscreen:!0, actions:[{icon:"./assets/ic_arrow_back.png", callback:function(a) {
       a.modal({title:"Administration", url:"admin.html", accentColor:"blue"});
     }, alt:"Zur\u00fcck", position:"left"}], args:{page:"export"}});
@@ -4174,52 +4181,50 @@ AdminController.prototype.exportPage = function(a) {
   });
 };
 AdminController.prototype.importPage = function(a) {
-  var b = this;
   this._model = null;
-  var c = createByTemplate(template_admin_import, template_admin_import);
+  var b = createByTemplate(template_admin_import, template_admin_import);
   this._document.querySelectorAll(".js-content").forEach(function(a) {
-    return a.appendChild(c);
+    return a.appendChild(b);
   });
   this._clearContent();
-  return this.renderActions(a).then(function(c) {
-    c = Import.create("Sample", sampleImport);
-    var d = new DataNode(1), f = c.header;
-    d.set(f.get(0), {v:"Test Liste", t:"s"});
-    d.set(f.get(1), {v:43830, w:"31/12/2019", t:"n"});
-    d.set(f.get(2), {v:"me@m3ns1.com", t:"s"});
-    d.set(f.get(3), {v:"", t:"n"});
-    d.set(f.get(4), {v:1, t:"n"});
-    d.set(f.get(5), {v:1, t:"n"});
-    d.set(f.get(6), {v:1, t:"n"});
-    d.set(f.get(7), {v:1, t:"n"});
-    d.set(f.get(8), {v:1, t:"n"});
-    d.set(f.get(9), {v:1, t:"n"});
-    d.set(f.get(10), {v:1, t:"n"});
-    d.set(f.get(11), {v:1, t:"n"});
-    d.set(f.get(12), {v:1, t:"n"});
-    d.set(f.get(13), {v:"A cocktail a day", t:"s"});
-    d.set(f.get(14), {v:"https://a-cocktail-a-day.com/", t:"s"});
-    d.set(f.get(15), {v:"3.Begriff", t:"s"});
-    d.set(f.get(16), {v:"", t:"s"});
-    d.set(f.get(17), {v:"", t:"s"});
-    d.set(f.get(18), {v:"", t:"s"});
-    d.set(f.get(19), {v:"", t:"s"});
-    d.set(f.get(20), {v:"Blog zum Thema: Reisen, Lifestyle, Fliegen", t:"s"});
-    d.set(f.get(21), {v:"Kristina", t:"s"});
-    d.set(f.get(22), {v:"Roder", t:"s"});
-    d.set(f.get(23), {v:"Test Notiz", t:"s"});
-    d.set(f.get(24), {v:"kristina@a-cocktail-a-day.com", t:"s"});
-    d.set(f.get(25), {v:"n.a.", t:"s"});
-    d.set(f.get(26), {v:"", t:"s"});
-    d.set(f.get(27), {v:"Offen f\u00fcr Kooperationen", t:"s"});
-    d.set(f.get(28), {v:"", t:"s"});
-    d.set(f.get(29), {v:"https://facebook.com", t:"s"});
-    d.set(f.get(30), {v:"https://instagram.com", t:"s"});
-    d.set(f.get(31), {v:"https://twitter.com", t:"s"});
-    d.set(f.get(32), {v:"https://youtube.com", t:"s"});
-    d.set(f.get(33), {v:"https://flickr.com", t:"s"});
-    c.data.push(d);
-    b.renderModel(c, a);
+  return this.renderActions(a).then(function(a) {
+    a = Import.create("Sample", sampleImport);
+    var b = new DataNode(1), c = a.header;
+    b.set(c.get(0), {v:"Test Liste", t:"s"});
+    b.set(c.get(1), {v:43830, w:"31/12/2019", t:"n"});
+    b.set(c.get(2), {v:"me@m3ns1.com", t:"s"});
+    b.set(c.get(3), {v:"", t:"n"});
+    b.set(c.get(4), {v:1, t:"n"});
+    b.set(c.get(5), {v:1, t:"n"});
+    b.set(c.get(6), {v:1, t:"n"});
+    b.set(c.get(7), {v:1, t:"n"});
+    b.set(c.get(8), {v:1, t:"n"});
+    b.set(c.get(9), {v:1, t:"n"});
+    b.set(c.get(10), {v:1, t:"n"});
+    b.set(c.get(11), {v:1, t:"n"});
+    b.set(c.get(12), {v:1, t:"n"});
+    b.set(c.get(13), {v:"A cocktail a day", t:"s"});
+    b.set(c.get(14), {v:"https://a-cocktail-a-day.com/", t:"s"});
+    b.set(c.get(15), {v:"3.Begriff", t:"s"});
+    b.set(c.get(16), {v:"", t:"s"});
+    b.set(c.get(17), {v:"", t:"s"});
+    b.set(c.get(18), {v:"", t:"s"});
+    b.set(c.get(19), {v:"", t:"s"});
+    b.set(c.get(20), {v:"Blog zum Thema: Reisen, Lifestyle, Fliegen", t:"s"});
+    b.set(c.get(21), {v:"Kristina", t:"s"});
+    b.set(c.get(22), {v:"Roder", t:"s"});
+    b.set(c.get(23), {v:"Test Notiz", t:"s"});
+    b.set(c.get(24), {v:"kristina@a-cocktail-a-day.com", t:"s"});
+    b.set(c.get(25), {v:"n.a.", t:"s"});
+    b.set(c.get(26), {v:"", t:"s"});
+    b.set(c.get(27), {v:"Offen f\u00fcr Kooperationen", t:"s"});
+    b.set(c.get(28), {v:"", t:"s"});
+    b.set(c.get(29), {v:"https://facebook.com", t:"s"});
+    b.set(c.get(30), {v:"https://instagram.com", t:"s"});
+    b.set(c.get(31), {v:"https://twitter.com", t:"s"});
+    b.set(c.get(32), {v:"https://youtube.com", t:"s"});
+    b.set(c.get(33), {v:"https://flickr.com", t:"s"});
+    a.data.push(b);
     return !0;
   });
 };
@@ -4280,32 +4285,91 @@ AdminController.prototype.renderActions = function(a) {
       a.preventDefault();
       var c = a.target;
       c.setAttribute("disabled", "disabled");
-      if (a = b._model) {
-        var d = b._readConfiguration(a);
-        d.isValid() ? b._adminService.importCards(a, d).then(function(a) {
-          if (a) {
-            return b._loggingService.i("Import Datei(en) wurde(n) erfolgreich importiert"), b._propertyBag.configuration = d, b._loggingService.d("Die Konfiguration wird f\u00fcr zuk\u00fcnftige Imports gespeichert: " + JSON.stringify(b._propertyBag)), b._pluginController.setAdminConfiguration(b._propertyBag);
-          }
-          b._loggingService.i("Es konnten nicht alle Import Dateien korrekt importiert werden");
-          return Promise.reject("See log for more details");
-        }).then(function(a) {
-          b._loggingService.d("Folgende komprimierte Konfiguration wurde gespeichert: (Base64) " + a);
-        }).catch(function(a) {
-          b._loggingService.e("Es trat folgender Fehler auf: " + a.stack);
-          console.error(a.stack);
-        }).finally(function() {
-          c.removeAttribute("disabled");
-          var a = b._loggingService.flush();
-          b._adminService.getCurrentCard().then(function(c) {
-            return b._adminService.uploadFileToCard(c, a);
+      b.progressPage().then(function(a) {
+        if (b._model) {
+          var d = b._readConfiguration(b._model);
+          d.isValid() ? (b._adminService.context = a, b._adminService.importCards(b._model, d).then(function(a) {
+            if (a) {
+              return b._loggingService.i("Import Datei(en) wurde(n) erfolgreich importiert"), b._propertyBag.configuration = d, b._loggingService.d("Die Konfiguration wird f\u00fcr zuk\u00fcnftige Imports gespeichert: " + JSON.stringify(b._propertyBag)), b._pluginController.setAdminConfiguration(b._propertyBag);
+            }
+            b._loggingService.i("Es konnten nicht alle Import Dateien korrekt importiert werden");
+            return Promise.reject("See log for more details");
+          }).then(function(a) {
+            b._loggingService.d("Folgende komprimierte Konfiguration wurde gespeichert: (Base64) " + a);
+            b.finishProgress(!0, "Fertig");
           }).catch(function(a) {
-            console.error("Konnte Log Datei nicht hochladen", a);
-          });
-        }) : (a = d.getValidationErrors().join("<br/>"), b._showWarnings(document, "Die Konfiguration ist unvollst\u00e4ndig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>" + a));
-      }
+            b._loggingService.e("Es trat folgender Fehler auf: " + a.stack);
+            b.finishProgress(!1, "Es traten Fehler beim Import auf. Ein detaillierter Rapport wurde dieser Trello Card angeh\u00e4ngt.");
+            console.error(a.stack);
+          }).finally(function() {
+            c.removeAttribute("disabled");
+            var a = b._loggingService.flush();
+            b._adminService.getCurrentCard().then(function(c) {
+              return b._adminService.uploadFileToCard(c, a);
+            }).catch(function(a) {
+              console.error("Konnte Log Datei nicht hochladen", a);
+            });
+          })) : (a = d.getValidationErrors().join("<br/>"), b._showWarnings(document, "Die Konfiguration ist unvollst\u00e4ndig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>" + a));
+        }
+      });
     }));
   });
   return Promise.resolve(!0);
+};
+AdminController.prototype.progressPage = function() {
+  var a = this;
+  this._document.querySelectorAll(".js-content").forEach(function(a) {
+    return a.removeClass("hidden");
+  });
+  return new Promise(function(b, c) {
+    var d = createByTemplate(template_admin_progress, template_admin_progress);
+    a._document.querySelectorAll(".js-content").forEach(function(a) {
+      return a.appendChild(d);
+    });
+    a._document.querySelectorAll(".js-panta-progress").forEach(function(a) {
+      a.setEventListener("click", function(a) {
+        a.preventDefault();
+        a.stopPropagation();
+      });
+    });
+    b({each:a.updateProgress, context:a});
+  });
+};
+AdminController.prototype._testProgress = function(a, b) {
+  var c = this;
+  setTimeout(function() {
+    c.updateProgress(a, b, "Eintrag \u00abCard-#" + a + "\u00bb wurde erfolgreich importiert");
+    a < b ? c._testProgress(a + 1, b) : c.finishProgress(!0, "Fertig");
+  }, 750);
+};
+AdminController.prototype.finishProgress = function(a, b) {
+  var c = this;
+  a ? (this._document.querySelectorAll(".progress-overlay").forEach(function(a) {
+    a.addClass("success");
+  }), this._document.querySelectorAll(".js-panta-record-details").forEach(function(a) {
+    a.innerText = b;
+  })) : (this._document.querySelectorAll(".progress-overlay").forEach(function(a) {
+    a.addClass("error");
+  }), this._document.querySelectorAll(".js-panta-record-details").forEach(function(a) {
+    a.innerText = b;
+  }));
+  setTimeout(function() {
+    c._document.querySelectorAll(".js-panta-progress").forEach(function(a) {
+      a.removeSelf();
+      c._trello.closeModal();
+    });
+  }, a ? 600 : 5000);
+};
+AdminController.prototype.updateProgress = function(a, b, c) {
+  this._document.querySelectorAll(".js-panta-current-record").forEach(function(b) {
+    b.innerText = a;
+  });
+  this._document.querySelectorAll(".js-panta-total-records").forEach(function(a) {
+    a.innerText = b;
+  });
+  c && this._document.querySelectorAll(".js-panta-record-details").forEach(function(a) {
+    a.innerText = c;
+  });
 };
 AdminController.prototype._readConfiguration = function(a) {
   var b = this;
@@ -4594,6 +4658,11 @@ AdminController.prototype._getPantaFieldItems = function() {
     return b.flatMap(function(b) {
       return a._clientManager.getController(b.id).getFields(b);
     });
+  });
+};
+AdminController.prototype._clear = function() {
+  this._document.querySelectorAll(".js-content").forEach(function(a) {
+    return a.removeChildren();
   });
 };
 AdminController.prototype._clearContent = function() {
@@ -5495,7 +5564,8 @@ template_beteiligt = '<form id="panta.module">    <div class="js-panta-editable-
 template_admin_actions = '<div class="row full">            <div class="col-12">                <p>Was willst du tun?</p>            </div>        </div>        <div class="row full">            <div class="col-6 space">                <button id="btn-action-import" class="panta-btn action">Import</button>            </div>            <div class="col-6 space">                <button id="btn-action-export" class="panta-btn action js-button-export">Export</button>            </div>        </div>', 
 template_admin_import = '<div class="row full">            <div class="col-12">                <p>W\u00e4hle hier die Excel Datei aus, die importiert werden soll.</p>            </div>            <div class="col-10">                <input class="panta-btn" type="file" id="file-import">            </div>            <div class="col-2">                <button class="panta-btn" id="btn-load">Laden</button>            </div>            <div class="col-12">                <button class="panta-btn panta-bgcolor-yellow" id="btn-load-config">Konfiguration laden</button>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3">                    <b>Excel Feld</b>                </div>                <div class="col-4">                    <b>Trello Feld</b>                </div>                <div class="col-3">                    <b>Beispiel Wert</b>                </div>                <div class="col-2">                    <b>Mehr</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-10">\u00a0</div>                <div class="col-2">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-import">                        Importieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
 template_admin_export = '<div class="row">            <div class="col-12">                <p>W\u00e4hle hier die Excel Vorlage aus, die f\u00fcr den Export verwendet werden soll.</p>            </div>            <div class="col-12">                <input class="panta-btn" type="file" id="file-import">                <button class="panta-btn" id="btn-load">Laden</button>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3">                    <b>Excel Feld</b>                </div>                <div class="col-4">                    <b>Trello Feld</b>                </div>                <div class="col-3">                    <b>Beispiel Wert</b>                </div>                <div class="col-2">                    <b>Mehr</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-10">\u00a0</div>                <div class="col-2">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-export">                        Exportieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
-template_admin_errorpage = '<div class="row full">   <div class="col-12 hidden error-messages">       <p class="error" id="error-message"></p>   </div>   <div class="col-12 hidden warning-messages">       <p class="warning" id="warning-message"></p>   </div>   <div class="col-12 space">       <button id="btn-reset" class="panta-btn panta-bgcolor-red">Zur\u00fccksetzen</button>   </div></div>';
+template_admin_errorpage = '<div class="row full">   <div class="col-12 hidden error-messages">       <p class="error" id="error-message"></p>   </div>   <div class="col-12 hidden warning-messages">       <p class="warning" id="warning-message"></p>   </div>   <div class="col-12 space">       <button id="btn-reset" class="panta-btn panta-bgcolor-red">Zur\u00fccksetzen</button>   </div></div>', template_admin_progress = '<div class="overlay js-panta-progress progress-overlay">            <div class="row full">                <div class="col-12">                    <p class="space"><span class="js-panta-current-record"></span>/<span class="js-panta-total-records"></span> Eintr\u00e4ge importiert...</p>                    <p class="details js-panta-record-details"></p>';
+"                </div>            </div>        </div>";
 // Input 52
 var Reducers = function() {
 };

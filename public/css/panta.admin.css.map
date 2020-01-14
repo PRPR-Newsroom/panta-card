@@ -1,1 +1,1 @@
-{"version":3,"sourceRoot":"","sources":[],"names":[],"mappings":"","file":"panta.admin.css"}
+{"version":3,"sourceRoot":"","sources":["panta.admin.scss","variables.scss"],"names":[],"mappings":"AAME;AAEE;;AAKE;EACE,kBCLQ;;ADOR;EACE,OCQF;;ADFF;EACE,kBCbM;;ADeN;EACE,OCFF;;ADOJ;EACE,kBCRE;;ADaF;EACE;EACA,OCXK","file":"panta.admin.css"}

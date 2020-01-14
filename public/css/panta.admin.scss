@@ -1,2 +1,45 @@
+@import "variables";
+
 body {
+}
+
+.settings-import-export {
+  .progress-overlay {
+
+    /* Add the blur effect */
+    //filter: blur(8px);
+    //-webkit-filter: blur(8px);
+
+    &.success {
+      .row {
+        background-color: $trello-green;
+
+        p {
+          color: $white;
+        }
+      }
+
+    }
+    &.error {
+      .row {
+        background-color: $trello-red;
+
+        p {
+          color: $white;
+        }
+      }
+    }
+
+    .row {
+      background-color: $white;
+
+      //filter: blur(0px);
+      //-webkit-filter: blur(8px);
+
+      .details {
+        font-size: small;
+        color: $color-chip;
+      }
+    }
+  }
 }

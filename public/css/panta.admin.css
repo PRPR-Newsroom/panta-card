@@ -1,3 +1,24 @@
-
+.settings-import-export .progress-overlay {
+  /* Add the blur effect */
+}
+.settings-import-export .progress-overlay.success .row {
+  background-color: #5AAC44;
+}
+.settings-import-export .progress-overlay.success .row p {
+  color: #fff;
+}
+.settings-import-export .progress-overlay.error .row {
+  background-color: #eb5a46;
+}
+.settings-import-export .progress-overlay.error .row p {
+  color: #fff;
+}
+.settings-import-export .progress-overlay .row {
+  background-color: #fff;
+}
+.settings-import-export .progress-overlay .row .details {
+  font-size: small;
+  color: #4F5254;
+}
 
 /*# sourceMappingURL=panta.admin.css.map */
