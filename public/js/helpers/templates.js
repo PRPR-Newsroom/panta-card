@@ -444,16 +444,16 @@ const template_admin_import = '<div class="row full">' +
     '                </div>' +
     '            </div>' +
     '            <div class="row space full">' +
-    '                <div class="col-3">' +
+    '                <div class="col-3 align-right">' +
     '                    <b>Excel Feld</b>' +
     '                </div>' +
-    '                <div class="col-4">' +
+    '                <div class="col-3">' +
     '                    <b>Trello Feld</b>' +
     '                </div>' +
-    '                <div class="col-3">' +
+    '                <div class="col-4 align-left">' +
     '                    <b>Beispiel Wert</b>' +
     '                </div>' +
-    '                <div class="col-2">' +
+    '                <div class="col-2 align-left">' +
     '                    <b>Mehr</b>' +
     '                </div>' +
     '            </div>' +

@@ -401,6 +401,15 @@ $jscomp.polyfill("Array.prototype.find", function(a) {
     return $jscomp.findInternal(this, a, c).v;
   };
 }, "es6", "es3");
+$jscomp.polyfill("Object.entries", function(a) {
+  return a ? a : function(a) {
+    var b = [], d;
+    for (d in a) {
+      $jscomp.owns(a, d) && b.push([d, a[d]]);
+    }
+    return b;
+  };
+}, "es8", "es3");
 $jscomp.checkStringArgs = function(a, b, c) {
   if (null == a) {
     throw new TypeError("The 'this' value for String.prototype." + c + " must not be null or undefined");
@@ -424,15 +433,6 @@ $jscomp.polyfill("String.prototype.startsWith", function(a) {
     return g >= f;
   };
 }, "es6", "es3");
-$jscomp.polyfill("Object.entries", function(a) {
-  return a ? a : function(a) {
-    var b = [], d;
-    for (d in a) {
-      $jscomp.owns(a, d) && b.push([d, a[d]]);
-    }
-    return b;
-  };
-}, "es8", "es3");
 $jscomp.polyfill("Array.prototype.flatMap", function(a) {
   return a ? a : function(a, c) {
     for (var b = [], e = 0; e < this.length; e++) {
@@ -722,7 +722,7 @@ TrelloClient.prototype.createLabels = function(a) {
         return b.name === a.name && b.color === a.source.color;
       });
       return g ? Promise.resolve(g) : b.createLabel(e, a.source.color, c.id).catch(function(a) {
-        b._loggingService.e("Label \u00ab" + e + "\u00bb konnte nicht erstellt werden: " + a);
+        b._loggingService.w("Label \u00ab" + e + "\u00bb konnte nicht erstellt werden: " + a);
         return !1;
       });
     })).then(function(a) {
@@ -814,6 +814,9 @@ LoggingService.prototype.d = function(a) {
 LoggingService.prototype.t = function(a) {
   return this._log(this._logs, a, "TRACE");
 };
+LoggingService.prototype.w = function(a) {
+  return this._log(this._logs, a, "WARN");
+};
 LoggingService.prototype.e = function(a) {
   return this._log(this._logs, a, "ERROR");
 };
@@ -826,7 +829,7 @@ LoggingService.prototype._log = function(a, b, c) {
   return this;
 };
 // Input 5
-var VERSION = "1.5.1-STAGING", APP_NAME = "Panta.Cards", APP_KEY = "0bdd0023d8f9b9a23ed80260495bbe9b", PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.settings.hint":"Folgende MODULE sind f\u00fcr dieses BOARD verf\u00fcgbar:<br/>Sobald mindestens ein MODUL aktiviert ist, wird dieses in jeder CARD auf dem BOARD dargestellt.", "module.artikel.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.", 
+var VERSION = "1.5.2-STAGING", APP_NAME = "Panta.Cards", APP_KEY = "0bdd0023d8f9b9a23ed80260495bbe9b", PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.settings.hint":"Folgende MODULE sind f\u00fcr dieses BOARD verf\u00fcgbar:<br/>Sobald mindestens ein MODUL aktiviert ist, wird dieses in jeder CARD auf dem BOARD dargestellt.", "module.artikel.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.", 
 "module.artikel.desc":"ARTIKEL-Eingabefelder und LISTEN f\u00fcr dieses BOARD konfigurieren:<br/>F\u00fcr jedes Feld kann eine Farbe definiert werden.<br/>Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf der CARD Vorderseite \u2013 ansonsten wird es nur auf der CARD Innenseite dargestellt.", "module.artikel.editable.desc":"Beschriftung und Stichworte der maximal sechs LISTEN definieren:<br/>Die Reihenfolge der Stichwort muss fix erfasst werden.<br/>Die Zahl der Stichwort ist NICHT begrenzt.<br/>Maximal vier der sechs LISTEN lassen sich sortieren.<br/>LISTEN ohne Beschriftung werden auf der CARD nicht dargestellt.", 
 "module.artikel.field-a.desc":"Das Textfeld \u00abA\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-b.desc":"Das Textfeld \u00abB\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-c.desc":"Das Textfeld \u00abC\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-d.desc":"Das Textfeld \u00abD\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
 "module.artikel.field-e.desc":"Das Textfeld \u00abE\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-f.desc":"Das Textfeld \u00abF\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-g.desc":"Das Textfeld \u00abG\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.beteiligt.desc":"BETEILIGT kann als Erg\u00e4nzung zum ARTIKEL oder PLAN aktiviert werden.<br/>Hier die Eingabefelder und LISTEN f\u00fcr das ganze BOARD konfigurieren:", 
@@ -839,8 +842,9 @@ var VERSION = "1.5.1-STAGING", APP_NAME = "Panta.Cards", APP_KEY = "0bdd0023d8f9
 "module.beteiligt.field-notes.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-deadline.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-a.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-b.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
 "module.beteiligt.field-c.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-total.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-price.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-placement.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
 "module.beteiligt.field-format.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-sujet.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-link.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-follower.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
-"module.beteiligt.field-date.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "trello.list.desc":"Liste", "trello.title.desc":"Card Titel", "trello.description.desc":"Card Beschreibung", "trello.members.desc":"Card Mitglieder", "trello.duedate.desc":"Card Frist", "trello.labels.desc":"Card Label"}, POWERUP_ADMINS = ["manu29494020", "koni_nordmann", "ray2505"], TRELLO_FIELDS = [{id:"trello.list", desc:"trello.list.desc"}, {id:"trello.title", 
-desc:"trello.title.desc"}, {id:"trello.description", desc:"trello.description.desc"}, {id:"trello.members", desc:"trello.members.desc", type:"array"}, {id:"trello.duedate", desc:"trello.duedate.desc", type:"date"}, {id:"trello.labels", desc:"trello.labels.desc", type:"boolean", multi:!0}], TRELLO_COLORS = {Blue:"blue", Green:"green", Orange:"orange", Red:"red", Yellow:"yellow", Purple:"purple", Pink:"pink", Sky:"sky", Lime:"lime", Shades:"shades"};
+"module.beteiligt.field-date.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "trello.list.desc":"Trello.Liste", "trello.title.desc":"Card Titel", "trello.description.desc":"Card Beschreibung", "trello.members.desc":"Card Mitglieder", "trello.duedate.desc":"Card Frist", "trello.labels.desc":"Card Label", "admin.import.select.label.text":"Felder", "admin.import.select.label.select":"Listen"}, POWERUP_ADMINS = ["manu29494020", "koni_nordmann", 
+"ray2505"], TRELLO_FIELDS = [{id:"trello.list", desc:"trello.list.desc"}, {id:"trello.title", desc:"trello.title.desc"}, {id:"trello.description", desc:"trello.description.desc"}, {id:"trello.members", desc:"trello.members.desc", type:"array"}, {id:"trello.duedate", desc:"trello.duedate.desc", type:"date"}, {id:"trello.labels", desc:"trello.labels.desc", type:"boolean", multi:!0}], TRELLO_COLORS = {Blue:"blue", Green:"green", Orange:"orange", Red:"red", Yellow:"yellow", Purple:"purple", Pink:"pink", 
+Sky:"sky", Lime:"lime", Black:"black"};
 // Input 6
 var DI = function() {
 };
@@ -961,7 +965,14 @@ Controller.prototype.getMapping = function(a, b, c) {
 Controller.prototype.getPropertyByName = function(a, b, c) {
 };
 Controller.prototype.getFields = function(a) {
-  return [[{group:"Felder", moduleId:"" + a.id, groupId:"" + a.id, fields:a.config.editables.filter(this.isImportableField)}]];
+  return [Object.entries(a.config.editables.filter(this.isImportableField).reduce(function(a, c) {
+    a.hasOwnProperty(c.type) || (a[c.type] = []);
+    a[c.type].push(c);
+    return a;
+  }, {})).map(function(b) {
+    var c = b[1];
+    return {group:__("admin.import.select.label." + b[0]), moduleId:"" + a.id, groupId:"" + a.id, fields:c};
+  })];
 };
 Controller.prototype.isImportableField = function(a) {
   return a.visible && ("text" === a.type || "select" === a.type);
@@ -3516,17 +3527,9 @@ AdminService.prototype.load = function(a) {
               a ? (b._loggingService.i("File " + f.name + " loaded successfully"), d({file:f, model:a})) : (b._loggingService.i("Fehler beim Einlesen der Datei \u00ab" + f.name + "\u00bb"), e("Fehler beim Einlesen der Datei \u00ab" + f.name + "\u00bb"));
             });
           };
-          b.trelloClient.getCurrentCard().then(function(a) {
-            return b.uploadFileToCard(a, f).then(function(a) {
-              window.setTimeout(function() {
-                return b.fileReader.readAsArrayBuffer(a);
-              }, 10);
-            }).catch(function(a) {
-              b._loggingService.e("Fehler beim Hochladen der Datei \u00ab" + f.name + "\u00bb");
-              b._loggingService.d("Details zum Fehler: " + a);
-              e(f);
-            });
-          });
+          window.setTimeout(function() {
+            b.fileReader.readAsArrayBuffer(f);
+          }, 10);
         };
       }(d)));
     }
@@ -3743,7 +3746,7 @@ $jscomp.global.Object.defineProperties(AdminService.prototype, {context:{configu
   return this._context;
 }}});
 // Input 32
-var HeaderNode = function(a, b, c, d) {
+var HeaderNode = function(a, b, c, d, e) {
   d = void 0 === d ? [] : d;
   this._parent = a;
   this._label = b;
@@ -3751,10 +3754,10 @@ var HeaderNode = function(a, b, c, d) {
   this._properties = [];
   this._address = c ? {c:c.c, r:c.r, constant:c.constant} : null;
   this._comments = d ? d : [];
-  this._color = null;
+  this._color = e;
 };
 HeaderNode.create = function(a) {
-  return a ? new HeaderNode(null, JsonSerialization.getProperty(a, "label"), JsonSerialization.getProperty(a, "address"), JsonSerialization.getProperty(a, "comments")) : null;
+  return a ? new HeaderNode(null, JsonSerialization.getProperty(a, "label"), JsonSerialization.getProperty(a, "address"), JsonSerialization.getProperty(a, "comments"), JsonSerialization.getProperty(a, "color")) : null;
 };
 HeaderNode.prototype.isSameAddress = function(a) {
   return a ? a.c === this.address.c && a.r === this.address.r : !1;
@@ -3947,9 +3950,9 @@ Import.create = function(a, b) {
   a = new Import("Import");
   if (b) {
     b = JsonSerialization.getProperty(b, "header");
-    var c = new HeaderNode(null, b._label, b._address, b._comments);
+    var c = new HeaderNode(null, b._label, b._address, b._comments, b._color);
     c.addAll(b._children.map(function(a) {
-      return new HeaderNode(c, a._label, a._address, a._comments);
+      return new HeaderNode(c, a._label, a._address, a._comments, a._color);
     }));
     a.header = c;
   }
@@ -4075,6 +4078,7 @@ var AdminController = function(a, b, c, d) {
   this._model = null;
   this._propertyBag = {};
   this._loggingService = d;
+  this._files = [];
 };
 AdminController.create = function(a, b, c, d) {
   return new AdminController(a, c, b, d);
@@ -4245,6 +4249,7 @@ AdminController.prototype.renderActions = function(a) {
       try {
         b._adminService.load(d).then(function(c) {
           c.forEach(function(c) {
+            b._files.push(c.file);
             b.renderModel(c.model, a);
           });
         }).catch(function(a) {
@@ -4301,13 +4306,29 @@ AdminController.prototype.renderActions = function(a) {
             b._loggingService.e("Es trat folgender Fehler auf: " + a.stack);
             b.finishProgress(!1, "Es traten Fehler beim Import auf. Ein detaillierter Rapport wurde dieser Trello Card angeh\u00e4ngt.");
             console.error(a.stack);
+          }).catch(function(a) {
+            b._loggingService.e("Es trat folgender Fehler auf: " + a.stack);
+            b.finishProgress(!1, "Es traten Fehler beim Hochladen der Datei(en) auf. Ein detaillierter Rapport wurde dieser Trello Card angeh\u00e4ngt.");
+            console.error(a.stack);
           }).finally(function() {
             c.removeAttribute("disabled");
-            var a = b._loggingService.flush();
-            b._adminService.getCurrentCard().then(function(c) {
-              return b._adminService.uploadFileToCard(c, a);
+            return b._adminService.getCurrentCard().then(function(a) {
+              var c = b._files.map(function(c) {
+                return b._adminService.uploadFileToCard(a, c);
+              });
+              return Promise.all(c).then(function(b) {
+                return a;
+              });
+            }).then(function(a) {
+              b._files = [];
+              var c = b._loggingService.flush();
+              return b._adminService.uploadFileToCard(a, c);
+            }).then(function(a) {
+              b.closeImport(!0);
             }).catch(function(a) {
-              console.error("Konnte Log Datei nicht hochladen", a);
+              console.error("Konnte Datei(en) nicht hochladen", a);
+              b._showErrors(document, "Konnte Datei(en) nicht hochladen");
+              b.closeImport(!1);
             });
           })) : (a = d.getValidationErrors().join("<br/>"), b._showWarnings(document, "Die Konfiguration ist unvollst\u00e4ndig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>" + a));
         }
@@ -4343,7 +4364,6 @@ AdminController.prototype._testProgress = function(a, b) {
   }, 750);
 };
 AdminController.prototype.finishProgress = function(a, b) {
-  var c = this;
   a ? (this._document.querySelectorAll(".progress-overlay").forEach(function(a) {
     a.addClass("success");
   }), this._document.querySelectorAll(".js-panta-record-details").forEach(function(a) {
@@ -4353,10 +4373,13 @@ AdminController.prototype.finishProgress = function(a, b) {
   }), this._document.querySelectorAll(".js-panta-record-details").forEach(function(a) {
     a.innerText = b;
   }));
+};
+AdminController.prototype.closeImport = function(a) {
+  var b = this;
   setTimeout(function() {
-    c._document.querySelectorAll(".js-panta-progress").forEach(function(a) {
+    b._document.querySelectorAll(".js-panta-progress").forEach(function(a) {
       a.removeSelf();
-      c._trello.closeModal();
+      b._trello.closeModal();
     });
   }, a ? 600 : 5000);
 };
@@ -4375,6 +4398,9 @@ AdminController.prototype._readConfiguration = function(a) {
   var b = this;
   return Object.values(a.getNormalizedHeaders()).map(function(a) {
     var c = b._document.querySelector("#field-mapping-" + a.getAddressAsText());
+    if (null === c) {
+      return null;
+    }
     c = c.item(c.selectedIndex);
     if (null === c) {
       return null;
@@ -4391,13 +4417,13 @@ AdminController.prototype._readConfiguration = function(a) {
 AdminController.prototype._createFieldOfType = function(a, b, c, d) {
   switch(a) {
     case "boolean":
-      return new BooleanField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments), d);
+      return new BooleanField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments, b.color), d);
     case "date":
-      return new DateField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments), d);
+      return new DateField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments, b.color), d);
     case "array":
-      return new ArrayField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments), d);
+      return new ArrayField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments, b.color), d);
     default:
-      return new TextField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments), d);
+      return new TextField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments, b.color), d);
   }
 };
 AdminController.prototype.renderModel = function(a, b) {
@@ -4455,7 +4481,7 @@ AdminController.prototype._createMore = function(a) {
 };
 AdminController.prototype._createChipsSection = function(a) {
   var b = this, c = b._document.createElement("div");
-  c.addClass("col-3");
+  c.addClass("col-3").addClass("align-right");
   a.getPathItems().map(function(c, e, f) {
     var d = b._document.createElement("div");
     d.setAttribute("id", "chip-" + a.getAddressAsText() + "-" + (e + 1 < f.length ? e : "last"));
@@ -4476,7 +4502,7 @@ AdminController.prototype._createChipsSection = function(a) {
 AdminController.prototype._createPreviewSection = function(a, b, c) {
   var d = this, e = d._document.createElement("div");
   e.setAttribute("id", "preview-" + a.getAddressAsText());
-  e.addClass("col-3 js-preview");
+  e.addClass("col-4 js-preview").addClass("align-left");
   e.setEventListener("update", function(f) {
     var g = f.item || c.mapping.find(function(b) {
       return b.source.isSameAddress(a.address);
@@ -4541,7 +4567,7 @@ AdminController.prototype._getBoardSample = function(a, b) {
 };
 AdminController.prototype._createFieldMappingSection = function(a, b) {
   var c = this, d = this, e = d._document.createElement("div");
-  e.addClass("col-4");
+  e.addClass("col-3");
   var f = d._document.createElement("select");
   f.setAttribute("id", "field-mapping-" + a.getAddressAsText());
   f.setEventListener("change", function(b) {
@@ -4616,7 +4642,7 @@ AdminController.prototype._createColorOption = function(a, b, c) {
 };
 AdminController.prototype._getTrelloFields = function(a, b) {
   var c = this, d = this._document.createElement("optgroup");
-  d.setAttribute("label", "Trello Felder");
+  d.setAttribute("label", "Trello.Felder");
   return Promise.resolve(TRELLO_FIELDS.map(function(d) {
     return c._createFieldOption(a, d.id, __(d.desc), d.type, d.multi, b);
   }).reduce(function(a, b) {
@@ -4640,7 +4666,7 @@ AdminController.prototype._getPantaFields = function(a, b) {
       return c._clientManager.getController(d.id).getFields(d).flatMap(function(d) {
         return d.map(function(d) {
           var f = d.groupId, g = c._document.createElement("optgroup");
-          g.setAttribute("label", e + ": " + d.group);
+          g.setAttribute("label", e + "." + d.group);
           return d.fields.map(function(d) {
             return c._createFieldOption(a, f + "." + d.id, d.label, d.type, "false", b);
           }).reduce(function(a, b) {
@@ -4713,7 +4739,7 @@ ExcelService.prototype.read = function(a) {
   if (this._treatFirstRowAsRoot) {
     this._parseImportHeader(a, 0, 0, null);
   } else {
-    var c = new HeaderNode(null, "Panta.Card", {constant:"/"});
+    var c = new HeaderNode(null, "Panta.Card", {constant:"/"}, null);
     this._parseImportHeader(a, 0, 0, c);
     b.header = c;
   }
@@ -4726,7 +4752,7 @@ ExcelService.prototype._parseImportHeader = function(a, b, c, d) {
     if (null == f) {
       return this.treatFirstRowAsRoot ? null : this._parseImportHeader(a, b + 1, c, d);
     }
-    e = new HeaderNode(d, f.v, e, f.c ? f.c : []);
+    e = new HeaderNode(d, f.v, e, f.c ? f.c : [], null);
     if (0 === c && this._treatFirstRowAsRoot) {
       for (d = b + 1; d <= this.boundary.e.c; d++) {
         f = a[XLSX.utils.encode_cell({c:d, r:c})], null != f && e.put(f.h);
@@ -5562,7 +5588,7 @@ template_settings_editable = '<div class="row module-editable-container">    <di
 template_settings_editable_select = '<div class="row module-editable-select-container">   <select class="panta-js-select"></select></div>', template_settings_editable_option = '<div class="row module-editable-option-container">    <div class="col-10 module-editable-option-name">       <input type="text" class="panta-js-name"/>    </div>    <div class="col-2 module-editable-option-actions">       <button class="panta-btn panta-btn-icon panta-js-delete"><img src="assets/ic_trash.svg" width="16px" height="16px"/></button>       <button class="panta-btn panta-btn-icon panta-js-visible hidden"><img src="assets/ic_visible.png" width="16px" height="16px"/></button>    </div></div>', 
 template_beteiligt = '<form id="panta.module">    <div class="js-panta-editable-title">        <div class="row min"><div class="col-12">\u00a0</div></div>        <div class="row min">           <div class="col-12">                <h3 class="js-panta-module js-panta-label"></h3>           </div>        </div>    </div>    <div class="row min navigation-bar">        <div id="pa.involved.onsite" class="col-2 col-phone-4 tab" data-label="vor.Ort" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.text" class="col-2 col-phone-4 tab" data-label="Journalist" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.photo" class="col-phone-4 col-2 tab" data-label="Visual" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.video" class="col-phone-4 col-2 tab" data-label="Event" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.illu" class="col-phone-4 col-2 tab" data-label="MC/Host" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.ad" class="col-phone-4 col-2 tab" data-label="weitere" data-layout="regular"><span>Placeholder</span></div>    </div>    <span id="pa.tab.content"></span></form>', 
 template_admin_actions = '<div class="row full">            <div class="col-12">                <p>Was willst du tun?</p>            </div>        </div>        <div class="row full">            <div class="col-6 space">                <button id="btn-action-import" class="panta-btn action">Import</button>            </div>            <div class="col-6 space">                <button id="btn-action-export" class="panta-btn action js-button-export">Export</button>            </div>        </div>', 
-template_admin_import = '<div class="row full">            <div class="col-12">                <p>W\u00e4hle hier die Excel Datei aus, die importiert werden soll.</p>            </div>            <div class="col-10">                <input class="panta-btn" type="file" id="file-import">            </div>            <div class="col-2">                <button class="panta-btn" id="btn-load">Laden</button>            </div>            <div class="col-12">                <button class="panta-btn panta-bgcolor-yellow" id="btn-load-config">Konfiguration laden</button>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3">                    <b>Excel Feld</b>                </div>                <div class="col-4">                    <b>Trello Feld</b>                </div>                <div class="col-3">                    <b>Beispiel Wert</b>                </div>                <div class="col-2">                    <b>Mehr</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-10">\u00a0</div>                <div class="col-2">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-import">                        Importieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
+template_admin_import = '<div class="row full">            <div class="col-12">                <p>W\u00e4hle hier die Excel Datei aus, die importiert werden soll.</p>            </div>            <div class="col-10">                <input class="panta-btn" type="file" id="file-import">            </div>            <div class="col-2">                <button class="panta-btn" id="btn-load">Laden</button>            </div>            <div class="col-12">                <button class="panta-btn panta-bgcolor-yellow" id="btn-load-config">Konfiguration laden</button>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3 align-right">                    <b>Excel Feld</b>                </div>                <div class="col-3">                    <b>Trello Feld</b>                </div>                <div class="col-4 align-left">                    <b>Beispiel Wert</b>                </div>                <div class="col-2 align-left">                    <b>Mehr</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-10">\u00a0</div>                <div class="col-2">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-import">                        Importieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
 template_admin_export = '<div class="row">            <div class="col-12">                <p>W\u00e4hle hier die Excel Vorlage aus, die f\u00fcr den Export verwendet werden soll.</p>            </div>            <div class="col-12">                <input class="panta-btn" type="file" id="file-import">                <button class="panta-btn" id="btn-load">Laden</button>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3">                    <b>Excel Feld</b>                </div>                <div class="col-4">                    <b>Trello Feld</b>                </div>                <div class="col-3">                    <b>Beispiel Wert</b>                </div>                <div class="col-2">                    <b>Mehr</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-10">\u00a0</div>                <div class="col-2">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-export">                        Exportieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
 template_admin_errorpage = '<div class="row full">   <div class="col-12 hidden error-messages">       <p class="error" id="error-message"></p>   </div>   <div class="col-12 hidden warning-messages">       <p class="warning" id="warning-message"></p>   </div>   <div class="col-12 space">       <button id="btn-reset" class="panta-btn panta-bgcolor-red">Zur\u00fccksetzen</button>   </div></div>', template_admin_progress = '<div class="overlay js-panta-progress progress-overlay">            <div class="row full">                <div class="col-12">                    <p class="space"><span class="js-panta-current-record"></span>/<span class="js-panta-total-records"></span> Eintr\u00e4ge importiert...</p>                    <p class="details js-panta-record-details"></p>';
 "                </div>            </div>        </div>";

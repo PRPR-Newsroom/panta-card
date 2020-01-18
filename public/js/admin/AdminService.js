@@ -73,18 +73,9 @@ class AdminService {
                                 }
                             });
                     };
-                    that.trelloClient.getCurrentCard()
-                        .then((card) => {
-                            return that.uploadFileToCard(card, file)
-                                .then(file => {
-                                    window.setTimeout(() => that.fileReader.readAsArrayBuffer(file), 10);
-                                })
-                                .catch(err => {
-                                    that._loggingService.e(`Fehler beim Hochladen der Datei «${file.name}»`);
-                                    that._loggingService.d(`Details zum Fehler: ${err}`);
-                                    reject(file);
-                                });
-                        })
+                    window.setTimeout(() => {
+                        that.fileReader.readAsArrayBuffer(file);
+                    }, 10);
                 }));
             }
         }

@@ -232,12 +232,26 @@ class Controller {
      */
     getFields(pluginModuleConfig) {
         const that = this;
-        return [[{
-            'group': 'Felder',
-            'moduleId': `${pluginModuleConfig.id}`,
-            'groupId': `${pluginModuleConfig.id}`,
-            'fields': pluginModuleConfig.config.editables.filter(that.isImportableField)
-        }]];
+
+        // this grouping came from Input 22
+        return [Object.entries(pluginModuleConfig.config.editables
+            .filter(that.isImportableField)
+            .reduce((prev, cur) => {
+                if (!prev.hasOwnProperty(cur.type)) {
+                    prev[cur.type] = [];
+                }
+                prev[cur.type].push(cur);
+                return prev;
+        }, {})).map(it => {
+            const type = it[0];
+            const fields = it[1];
+            return {
+                'group': __(`admin.import.select.label.${type}`),
+                'moduleId': `${pluginModuleConfig.id}`,
+                'groupId': `${pluginModuleConfig.id}`,
+                'fields': fields
+            };
+        })];
     }
 
     /**

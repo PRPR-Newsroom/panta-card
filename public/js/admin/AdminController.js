@@ -54,6 +54,8 @@ class AdminController {
         this._propertyBag = {};
 
         this._loggingService = loggingService;
+
+        this._files = [];
     }
 
     /**
@@ -311,6 +313,7 @@ class AdminController {
                             that._adminService.load(files)
                                 .then(imports => {
                                     imports.forEach(it => {
+                                        that._files.push(it.file);
                                         that.renderModel(it.model, previousConfiguration);
                                     });
                                 })
@@ -394,15 +397,33 @@ class AdminController {
                                                 that.finishProgress(false, `Es traten Fehler beim Import auf. Ein detaillierter Rapport wurde dieser Trello Card angehängt.`);
                                                 console.error(it.stack);
                                             })
+                                            .catch(it => {
+                                                that._loggingService.e(`Es trat folgender Fehler auf: ${it.stack}`);
+                                                that.finishProgress(false, `Es traten Fehler beim Hochladen der Datei(en) auf. Ein detaillierter Rapport wurde dieser Trello Card angehängt.`);
+                                                console.error(it.stack);
+                                            })
                                             .finally(() => {
                                                 button.removeAttribute('disabled');
-                                                const file = that._loggingService.flush();
-                                                that._adminService.getCurrentCard()
+                                                return that._adminService.getCurrentCard()
                                                     .then(card => {
+                                                        const attachements = that._files.map(it => that._adminService.uploadFileToCard(card, it));
+                                                        return Promise.all(attachements)
+                                                            .then(its => {
+                                                                return card;
+                                                            });
+                                                    })
+                                                    .then(card => {
+                                                        that._files = [];
+                                                        const file = that._loggingService.flush();
                                                         return that._adminService.uploadFileToCard(card, file);
                                                     })
+                                                    .then(it => {
+                                                        that.closeImport(true);
+                                                    })
                                                     .catch(err => {
-                                                        console.error(`Konnte Log Datei nicht hochladen`, err);
+                                                        console.error(`Konnte Datei(en) nicht hochladen`, err);
+                                                        that._showErrors(document, `Konnte Datei(en) nicht hochladen`);
+                                                        that.closeImport(false);
                                                     });
                                             });
                                     } else {
@@ -472,6 +493,10 @@ class AdminController {
                 it.innerText = reason;
             });
         }
+    }
+
+    closeImport(success) {
+        const that = this;
         setTimeout(() => {
             that._document.querySelectorAll('.js-panta-progress').forEach(it => {
                 it.removeSelf();
@@ -506,6 +531,9 @@ class AdminController {
              * @type {HTMLSelectElement}
              */
             const select = that._document.querySelector(`#field-mapping-${it.getAddressAsText()}`);
+            if (select === null) {
+                return null;
+            }
             const option = select.item(select.selectedIndex);
             if (option === null) {
                 return null;
@@ -532,13 +560,13 @@ class AdminController {
     _createFieldOfType(type, header, value, multi) {
         switch (type) {
             case "boolean":
-                return new BooleanField(header.label, value, new HeaderNode(null, header.label, header.address, header.comments), multi);
+                return new BooleanField(header.label, value, new HeaderNode(null, header.label, header.address, header.comments, header.color), multi);
             case 'date':
-                return new DateField(header.label, value, new HeaderNode(null, header.label, header.address, header.comments), multi);
+                return new DateField(header.label, value, new HeaderNode(null, header.label, header.address, header.comments, header.color), multi);
             case 'array':
-                return new ArrayField(header.label, value, new HeaderNode(null, header.label, header.address, header.comments), multi);
+                return new ArrayField(header.label, value, new HeaderNode(null, header.label, header.address, header.comments, header.color), multi);
             default:
-                return new TextField(header.label, value, new HeaderNode(null, header.label, header.address, header.comments), multi);
+                return new TextField(header.label, value, new HeaderNode(null, header.label, header.address, header.comments, header.color), multi);
         }
     }
 
@@ -627,7 +655,7 @@ class AdminController {
     _createChipsSection(header) {
         const that = this;
         const chips = that._document.createElement('div');
-        chips.addClass('col-3');
+        chips.addClass('col-3').addClass('align-right');
         header.getPathItems().map((it, index, arr) => {
             let chip = that._document.createElement('div');
             chip.setAttribute('id', `chip-${header.getAddressAsText()}-${index + 1 < arr.length ? index : 'last'}`);
@@ -663,7 +691,7 @@ class AdminController {
         const that = this;
         const preview = that._document.createElement('div');
         preview.setAttribute('id', `preview-${header.getAddressAsText()}`);
-        preview.addClass(`col-3 js-preview`);
+        preview.addClass(`col-4 js-preview`).addClass('align-left');
         preview.setEventListener('update', e => {
             const field = e.item || configuration.mapping.find(it => it.source.isSameAddress(header.address));
 
@@ -752,7 +780,7 @@ class AdminController {
     _createFieldMappingSection(header, configuration) {
         const that = this;
         const linking = that._document.createElement('div');
-        linking.addClass('col-4');
+        linking.addClass('col-3');
 
         const fields = that._document.createElement('select');
         fields.setAttribute('id', `field-mapping-${header.getAddressAsText()}`);
@@ -813,7 +841,6 @@ class AdminController {
                 lastchip.removeClassByPrefix('panta-bgcolor-');
                 if (color !== '0') {
                     lastchip.addClass(`panta-bgcolor-${color}`);
-
                 }
                 header.color = color;
             });
@@ -871,7 +898,7 @@ class AdminController {
     _getTrelloFields(header, previousConfiguration) {
         const that = this;
         const group = this._document.createElement('optgroup');
-        group.setAttribute('label', 'Trello Felder');
+        group.setAttribute('label', 'Trello.Felder');
         return Promise.resolve(TRELLO_FIELDS.map(it => that._createFieldOption(header, it.id, __(it.desc), it.type, it.multi, previousConfiguration))
             .reduce((prev, cur) => {
                 prev.appendChild(cur);
@@ -920,7 +947,7 @@ class AdminController {
                             return its.map(it => {
                                 const groupId = it.groupId;
                                 const subgrp = that._document.createElement('optgroup');
-                                subgrp.setAttribute('label', `${modulename}: ${it.group}`);
+                                subgrp.setAttribute('label', `${modulename}.${it.group}`);
                                 return it.fields
                                     .map(it => that._createFieldOption(header, `${groupId}.${it.id}`, it.label, it.type, 'false', previousConfiguration))
                                     .reduce((prev, cur) => {

@@ -29,7 +29,7 @@ class ExcelService {
         const root = new Import(wb.Props.Title);
 
         if (!this._treatFirstRowAsRoot) {
-            let header = new HeaderNode(null, 'Panta.Card', {constant: '/'});
+            let header = new HeaderNode(null, 'Panta.Card', {constant: '/'}, null);
             this._parseImportHeader(worksheet, 0, 0, header);
             root.header = header;
         } else {
@@ -59,7 +59,7 @@ class ExcelService {
                     return this.treatFirstRowAsRoot ? null : this._parseImportHeader(worksheet, column + 1, row, parent);
                 }
 
-                const node = new HeaderNode(parent, cell.v, address, cell.c ? cell.c : []);
+                const node = new HeaderNode(parent, cell.v, address, cell.c ? cell.c : [], null);
                 if (row === 0 && this._treatFirstRowAsRoot) {
                     // first row is special: all values on the same row are properties
                     for (let c = column + 1; c <= this.boundary.e.c; c++) {

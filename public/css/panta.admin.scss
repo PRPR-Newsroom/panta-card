@@ -4,11 +4,14 @@ body {
 }
 
 .settings-import-export {
-  .progress-overlay {
+  .align-right {
+    padding-right: 1em;
+  }
+  .align-left {
+    padding-left: 1em;
+  }
 
-    /* Add the blur effect */
-    //filter: blur(8px);
-    //-webkit-filter: blur(8px);
+  .progress-overlay {
 
     &.success {
       .row {
@@ -32,9 +35,6 @@ body {
 
     .row {
       background-color: $white;
-
-      //filter: blur(0px);
-      //-webkit-filter: blur(8px);
 
       .details {
         font-size: small;

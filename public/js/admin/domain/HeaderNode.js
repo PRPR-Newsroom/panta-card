@@ -5,7 +5,9 @@ class HeaderNode {
             return new HeaderNode(null,
                 JsonSerialization.getProperty(json, 'label'),
                 JsonSerialization.getProperty(json, 'address'),
-                JsonSerialization.getProperty(json, 'comments'))
+                JsonSerialization.getProperty(json, 'comments'),
+                JsonSerialization.getProperty(json, 'color')
+            );
         } else {
             return null;
         }
@@ -16,8 +18,9 @@ class HeaderNode {
      * @param {string} label the label of that cell
      * @param {{c: number, r: number, constant: string?}} address
      * @param {{a: string, h: string, r: string, t: string}[]|null} comments
+     * @param {string?} color the trello color
      */
-    constructor(parent, label, address, comments = []) {
+    constructor(parent, label, address, comments = [], color) {
         this._parent = parent;
         this._label = label;
         /**
@@ -27,7 +30,7 @@ class HeaderNode {
         this._properties = [];
         this._address = address ? { c: address.c, r: address.r, constant: address.constant } : null;
         this._comments = comments ? comments : [];
-        this._color = null;
+        this._color = color;
     }
 
     get address() {

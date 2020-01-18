@@ -262,7 +262,7 @@ class TrelloClient {
                     if (!found) {
                         return that.createLabel(labelName, it.source.color, board.id)
                             .catch(it => {
-                                that._loggingService.e(`Label «${labelName}» konnte nicht erstellt werden: ${it}`);
+                                that._loggingService.w(`Label «${labelName}» konnte nicht erstellt werden: ${it}`);
                                 return false;
                             });
                     } else {
