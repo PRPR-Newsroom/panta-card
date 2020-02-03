@@ -57,5 +57,8 @@ form input[type=file], .settings-content input[type=file], .settings-import-expo
   box-shadow: none;
   border: 1px solid transparent;
 }
+form select, .settings-content select, .settings-import-export select {
+  width: 100%;
+}
 
 /*# sourceMappingURL=panta.forms.css.map */

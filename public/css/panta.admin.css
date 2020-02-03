@@ -1,14 +1,17 @@
-.settings-import-export .progress-overlay {
-  /* Add the blur effect */
+.settings-import-export .align-right {
+  padding-right: 1em;
+}
+.settings-import-export .align-left {
+  padding-left: 1em;
 }
 .settings-import-export .progress-overlay.success .row {
-  background-color: #5AAC44;
+  background-color: #61BD4F;
 }
 .settings-import-export .progress-overlay.success .row p {
   color: #fff;
 }
 .settings-import-export .progress-overlay.error .row {
-  background-color: #eb5a46;
+  background-color: #EB5A46;
 }
 .settings-import-export .progress-overlay.error .row p {
   color: #fff;

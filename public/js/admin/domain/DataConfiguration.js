@@ -1,11 +1,11 @@
-class ImportConfiguration {
+class DataConfiguration {
 
     /**
      * @param {string?} json
-     * @return {ImportConfiguration}
+     * @return {DataConfiguration}
      */
     static create(json) {
-        const config = new ImportConfiguration();
+        const config = new DataConfiguration();
         if (json) {
             // config.mapping = JsonSerialization.getProperty(json, 'mapping');
             config.mapping = JsonSerialization.getProperty(json, 'mapping').map(it => {
@@ -40,6 +40,12 @@ class ImportConfiguration {
             });
             config.labels = JsonSerialization.getProperty(json, 'labels');
         }
+        return config;
+    }
+
+    static createExport() {
+        const config = new DataConfiguration();
+
         return config;
     }
 
@@ -92,19 +98,6 @@ class ImportConfiguration {
         return errors;
     }
 
-    constructor() {
-        /**
-         * @type {AbstractField[]}
-         * @private
-         */
-        this._mapping = [];
-        /**
-         * @type {{id: string, color: string, idBoard: string, name: string}[]}
-         * @private
-         */
-        this._labels = [];
-    }
-
     /**
      * @param {string} field name of that field
      * @return {AbstractField[]}
@@ -123,6 +116,32 @@ class ImportConfiguration {
     single(field) {
         const fields = this.get(field);
         return fields && fields.length === 1 ? fields[0] : null;
+    }
+
+    /**
+     * @param address
+     * @return {AbstractField}
+     */
+    findByAddress(address) {
+        return this.mapping
+            .filter(it => it.source.isSameAddress(address))
+            .reduce((prev, cur) => {
+                prev = cur;
+                return prev;
+            }, null);
+    }
+
+    constructor() {
+        /**
+         * @type {AbstractField[]}
+         * @private
+         */
+        this._mapping = [];
+        /**
+         * @type {{id: string, color: string, idBoard: string, name: string}[]}
+         * @private
+         */
+        this._labels = [];
     }
 
 }

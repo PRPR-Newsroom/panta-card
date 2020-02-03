@@ -401,6 +401,24 @@ $jscomp.polyfill("Array.prototype.find", function(a) {
     return $jscomp.findInternal(this, a, c).v;
   };
 }, "es6", "es3");
+$jscomp.polyfill("Object.entries", function(a) {
+  return a ? a : function(a) {
+    var b = [], d;
+    for (d in a) {
+      $jscomp.owns(a, d) && b.push([d, a[d]]);
+    }
+    return b;
+  };
+}, "es8", "es3");
+$jscomp.polyfill("Array.prototype.flatMap", function(a) {
+  return a ? a : function(a, c) {
+    for (var b = [], e = 0; e < this.length; e++) {
+      var f = a.call(c, this[e], e, this);
+      Array.isArray(f) ? b.push.apply(b, f) : b.push(f);
+    }
+    return b;
+  };
+}, "es9", "es5");
 $jscomp.checkStringArgs = function(a, b, c) {
   if (null == a) {
     throw new TypeError("The 'this' value for String.prototype." + c + " must not be null or undefined");
@@ -424,24 +442,6 @@ $jscomp.polyfill("String.prototype.startsWith", function(a) {
     return g >= f;
   };
 }, "es6", "es3");
-$jscomp.polyfill("Object.entries", function(a) {
-  return a ? a : function(a) {
-    var b = [], d;
-    for (d in a) {
-      $jscomp.owns(a, d) && b.push([d, a[d]]);
-    }
-    return b;
-  };
-}, "es8", "es3");
-$jscomp.polyfill("Array.prototype.flatMap", function(a) {
-  return a ? a : function(a, c) {
-    for (var b = [], e = 0; e < this.length; e++) {
-      var f = a.call(c, this[e], e, this);
-      Array.isArray(f) ? b.push.apply(b, f) : b.push(f);
-    }
-    return b;
-  };
-}, "es9", "es5");
 $jscomp.polyfill("Promise.prototype.finally", function(a) {
   return a ? a : function(a) {
     return this.then(function(b) {
@@ -592,6 +592,20 @@ TrelloClient.prototype.getCurrentCard = function() {
     return b;
   });
 };
+TrelloClient.prototype.getAllBoardCards = function() {
+  return this.trello.cards("id", "name", "desc", "due", "members", "labels", "idList");
+};
+TrelloClient.prototype.getListById = function(a) {
+  var b = this;
+  return this.withTrelloToken().then(function(c) {
+    var d = b._createBody(c, {fields:"name"});
+    return new Promise(function(b, c) {
+      window.Trello.get("/lists/" + a, d, function(a) {
+        b(a);
+      });
+    });
+  });
+};
 TrelloClient.prototype.attachFile = function(a, b, c) {
   var d = this;
   return d.withTrelloToken().then(function(e) {
@@ -722,7 +736,7 @@ TrelloClient.prototype.createLabels = function(a) {
         return b.name === a.name && b.color === a.source.color;
       });
       return g ? Promise.resolve(g) : b.createLabel(e, a.source.color, c.id).catch(function(a) {
-        b._loggingService.e("Label \u00ab" + e + "\u00bb konnte nicht erstellt werden: " + a);
+        b._loggingService.w("Label \u00ab" + e + "\u00bb konnte nicht erstellt werden: " + a);
         return !1;
       });
     })).then(function(a) {
@@ -814,6 +828,9 @@ LoggingService.prototype.d = function(a) {
 LoggingService.prototype.t = function(a) {
   return this._log(this._logs, a, "TRACE");
 };
+LoggingService.prototype.w = function(a) {
+  return this._log(this._logs, a, "WARN");
+};
 LoggingService.prototype.e = function(a) {
   return this._log(this._logs, a, "ERROR");
 };
@@ -826,7 +843,7 @@ LoggingService.prototype._log = function(a, b, c) {
   return this;
 };
 // Input 5
-var VERSION = "1.5.4-STAGING", APP_NAME = "Panta.Cards", APP_KEY = "0bdd0023d8f9b9a23ed80260495bbe9b", PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.settings.hint":"Folgende MODULE sind f\u00fcr dieses BOARD verf\u00fcgbar:<br/>Sobald mindestens ein MODUL aktiviert ist, wird dieses in jeder CARD auf dem BOARD dargestellt.", "module.artikel.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.", 
+var VERSION = "1.5.2-STAGING", APP_NAME = "Panta.Cards", APP_KEY = "0bdd0023d8f9b9a23ed80260495bbe9b", PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.settings.hint":"Folgende MODULE sind f\u00fcr dieses BOARD verf\u00fcgbar:<br/>Sobald mindestens ein MODUL aktiviert ist, wird dieses in jeder CARD auf dem BOARD dargestellt.", "module.artikel.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.", 
 "module.artikel.desc":"ARTIKEL-Eingabefelder und LISTEN f\u00fcr dieses BOARD konfigurieren:<br/>F\u00fcr jedes Feld kann eine Farbe definiert werden.<br/>Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf der CARD Vorderseite \u2013 ansonsten wird es nur auf der CARD Innenseite dargestellt.", "module.artikel.editable.desc":"Beschriftung und Stichworte der maximal sechs LISTEN definieren:<br/>Die Reihenfolge der Stichwort muss fix erfasst werden.<br/>Die Zahl der Stichwort ist NICHT begrenzt.<br/>Maximal vier der sechs LISTEN lassen sich sortieren.<br/>LISTEN ohne Beschriftung werden auf der CARD nicht dargestellt.", 
 "module.artikel.field-a.desc":"Das Textfeld \u00abA\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-b.desc":"Das Textfeld \u00abB\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-c.desc":"Das Textfeld \u00abC\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-d.desc":"Das Textfeld \u00abD\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
 "module.artikel.field-e.desc":"Das Textfeld \u00abE\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-f.desc":"Das Textfeld \u00abF\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-g.desc":"Das Textfeld \u00abG\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.beteiligt.desc":"BETEILIGT kann als Erg\u00e4nzung zum ARTIKEL oder PLAN aktiviert werden.<br/>Hier die Eingabefelder und LISTEN f\u00fcr das ganze BOARD konfigurieren:", 
@@ -839,8 +856,9 @@ var VERSION = "1.5.4-STAGING", APP_NAME = "Panta.Cards", APP_KEY = "0bdd0023d8f9
 "module.beteiligt.field-notes.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-deadline.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-a.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-b.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
 "module.beteiligt.field-c.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-total.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-price.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-placement.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
 "module.beteiligt.field-format.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-sujet.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-link.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-follower.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
-"module.beteiligt.field-date.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "trello.list.desc":"Liste", "trello.title.desc":"Card Titel", "trello.description.desc":"Card Beschreibung", "trello.members.desc":"Card Mitglieder", "trello.duedate.desc":"Card Frist", "trello.labels.desc":"Card Label"}, POWERUP_ADMINS = ["manu29494020", "koni_nordmann", "ray2505"], TRELLO_FIELDS = [{id:"trello.list", desc:"trello.list.desc"}, {id:"trello.title", 
-desc:"trello.title.desc"}, {id:"trello.description", desc:"trello.description.desc"}, {id:"trello.members", desc:"trello.members.desc", type:"array"}, {id:"trello.duedate", desc:"trello.duedate.desc", type:"date"}, {id:"trello.labels", desc:"trello.labels.desc", type:"boolean", multi:!0}], TRELLO_COLORS = {Blue:"blue", Green:"green", Orange:"orange", Red:"red", Yellow:"yellow", Purple:"purple", Pink:"pink", Sky:"sky", Lime:"lime", Shades:"shades"};
+"module.beteiligt.field-date.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "trello.list.desc":"Trello.Liste", "trello.title.desc":"Card.Titel", "trello.description.desc":"Card.Beschreibung", "trello.members.desc":"Card.Mitglieder", "trello.duedate.desc":"Card.Frist", "trello.labels.desc":"Card.Label", "admin.import.select.label.text":"Felder", "admin.import.select.label.select":"Listen"}, POWERUP_ADMINS = ["manu29494020", "koni_nordmann", 
+"ray2505"], TRELLO_FIELDS = [{id:"trello.list", desc:"trello.list.desc"}, {id:"trello.title", desc:"trello.title.desc"}, {id:"trello.description", desc:"trello.description.desc"}, {id:"trello.members", desc:"trello.members.desc", type:"array"}, {id:"trello.duedate", desc:"trello.duedate.desc", type:"date"}, {id:"trello.labels", desc:"trello.labels.desc", type:"boolean", multi:!0}], TRELLO_COLORS = {Blue:"blue", Green:"green", Orange:"orange", Red:"red", Yellow:"yellow", Purple:"purple", Pink:"pink", 
+Sky:"sky", Lime:"lime", Black:"black"};
 // Input 6
 var DI = function() {
 };
@@ -950,23 +968,96 @@ Controller.prototype.getByCard = function(a) {
 Controller.prototype.hasContent = function(a) {
   return !a.isEmpty();
 };
-Controller.prototype.getMapping = function(a, b, c) {
+Controller.prototype.getMapping = function(a, b, c, d) {
   switch(a.type) {
     case "select":
-      return b = this.getPropertyByName(b, a.id, -1), -1 !== b ? a.values[b] : c;
+      return b = this.getPropertyByName(b, c, a.id, -1), -1 !== b ? a.values[b] : d;
     default:
-      return this.getPropertyByName(b, a.id, c);
+      return this.getPropertyByName(b, c, a.id, d);
   }
 };
-Controller.prototype.getPropertyByName = function(a, b, c) {
+Controller.prototype.getPropertyByName = function(a, b, c, d) {
 };
 Controller.prototype.getFields = function(a) {
-  return [[{group:"Felder", moduleId:"" + a.id, groupId:"" + a.id, fields:a.config.editables.filter(this.isImportableField)}]];
+  return [Object.entries(a.config.editables.filter(this.isImportableField).reduce(function(a, c) {
+    a.hasOwnProperty(c.type) || (a[c.type] = []);
+    a[c.type].push(c);
+    return a;
+  }, {})).map(function(b) {
+    var c = b[1];
+    return {group:__("admin.import.select.label." + b[0]), section:"main", moduleId:"" + a.id, groupId:"" + a.id, fields:c};
+  })];
 };
 Controller.prototype.isImportableField = function(a) {
   return a.visible && ("text" === a.type || "select" === a.type);
 };
 // Input 8
+var FieldMapping = function(a, b, c) {
+  this._trello = a;
+  this._adminService = b;
+  this._clientManager = ClientManager.getInstance(window);
+  this._pantaFields = c;
+};
+FieldMapping.prototype.map = function(a, b) {
+  var c = this;
+  switch(b.reference) {
+    case "trello.title":
+      return a.name;
+    case "trello.description":
+      return a.desc;
+    case "trello.duedate":
+      return a.due;
+    case "trello.members":
+      return c.mapArray(a.members.map(c.mapMember));
+    case "trello.labels":
+      return c.mapArray(a.labels.filter(function(a) {
+        return c.labelFilter(a, b);
+      }).map(function(a) {
+        return c.mapLabel(a);
+      })) || c.emptyValue();
+    case "trello.list":
+      return c._adminService.getListById(a.idList).then(function(a) {
+        return a.name;
+      });
+    default:
+      return c._getPantaFields().then(function(d) {
+        return (d = d.flatMap(function(a) {
+          return a;
+        }).map(function(d) {
+          var e = d.groupId, g = d.moduleId, h = d.section;
+          if (d = d.fields.find(function(a) {
+            return e + "." + a.id === b.reference;
+          })) {
+            g = c._clientManager.getController(g);
+            var k = g.getByCard(a);
+            return g.getPropertyByName(k, h, d.id, c.emptyValue());
+          }
+          return null;
+        }).find(function(a) {
+          return null !== a;
+        })) ? d : c.emptyValue();
+      });
+  }
+};
+FieldMapping.prototype.emptyValue = function() {
+  return "";
+};
+FieldMapping.prototype.mapLabel = function(a) {
+  return "";
+};
+FieldMapping.prototype.labelFilter = function(a, b) {
+  return !!a;
+};
+FieldMapping.prototype.mapMember = function(a) {
+  return "";
+};
+FieldMapping.prototype.mapArray = function(a) {
+  return a;
+};
+FieldMapping.prototype._getPantaFields = function() {
+  return this._pantaFields;
+};
+// Input 9
 var AbstractItem = function() {
 };
 AbstractItem.prototype.decorate = function(a) {
@@ -979,7 +1070,7 @@ AbstractItem.prototype.decorate = function(a) {
   });
   return this;
 };
-// Input 9
+// Input 10
 var PModuleConfig = function(a, b) {
   this.document = a;
   this.valueHolder = b;
@@ -1032,7 +1123,7 @@ PModuleConfig.prototype.endEditing = function() {
 PModuleConfig.prototype.hasContent = function() {
   return this._entity.sections[this._property];
 };
-// Input 10
+// Input 11
 var ModuleEditableSelectItem = function(a) {
   AbstractItem.call(this);
   this._options = [];
@@ -1070,7 +1161,7 @@ $jscomp.global.Object.defineProperties(ModuleEditableSelectItem.prototype, {valu
 }, set:function(a) {
   this._value = a;
 }}});
-// Input 11
+// Input 12
 var ModuleEditableItem = function(a, b) {
   AbstractItem.call(this);
   this._module = a;
@@ -1153,7 +1244,7 @@ $jscomp.global.Object.defineProperties(ModuleEditableItem.prototype, {module:{co
 }, set:function(a) {
   this._editable = a;
 }}});
-// Input 12
+// Input 13
 var ModuleSettingsItem = function(a, b) {
   AbstractItem.call(this);
   this._document = a;
@@ -1210,7 +1301,7 @@ $jscomp.global.Object.defineProperties(ModuleSettingsItem.prototype, {module:{co
 }}, document:{configurable:!0, enumerable:!0, get:function() {
   return this._document;
 }}});
-// Input 13
+// Input 14
 var SwitchItem = function(a, b, c, d) {
   d = void 0 === d ? !1 : d;
   AbstractItem.call(this);
@@ -1265,7 +1356,7 @@ $jscomp.global.Object.defineProperties(SwitchItem.prototype, {additionalStyles:{
 }}, document:{configurable:!0, enumerable:!0, get:function() {
   return this._document;
 }}});
-// Input 14
+// Input 15
 var ModuleEditableTextItem = function(a, b, c) {
   AbstractItem.call(this);
   this._value = a;
@@ -1315,7 +1406,7 @@ $jscomp.global.Object.defineProperties(ModuleEditableTextItem.prototype, {value:
 }, set:function(a) {
   this._value = a;
 }}});
-// Input 15
+// Input 16
 var PInput = function(a, b, c, d, e, f, g, h) {
   this._document = a;
   this._label = 0 === b.length ? "" : b;
@@ -1638,7 +1729,7 @@ SingleSelectInput.prototype.invalidate = function() {
   this._inputOverlay.removeChildren();
   this.doCustomization(this._input, this._labelInput, this._inputOverlay);
 };
-// Input 16
+// Input 17
 var PluginController = function(a, b) {
   this._window = b;
   this._trelloApi = a;
@@ -1686,18 +1777,24 @@ PluginController.prototype.resetAdminConfiguration = function() {
   });
 };
 PluginController.prototype.parseAdminConfiguration = function(a) {
-  return Promise.resolve(this._parseAdminConfiguration(Base64.decode(a)));
+  return Promise.resolve(this._createAdminConfiguration(JSON.parse(a)));
 };
 PluginController.prototype._parseAdminConfiguration = function(a) {
   try {
     if (isString(a) && !isBlank(a)) {
       var b = JSON.parse(LZString.decompress(a) || '{ "configuration": null }');
-      return {configuration:ImportConfiguration.create(b.configuration)};
+      return this._createAdminConfiguration(b);
     }
-    return {configuration:ImportConfiguration.create()};
+    return this._createAdminConfiguration();
   } catch (c) {
     throw Error("Could not read configuration: " + Base64.encode(a));
   }
+};
+PluginController.prototype._createAdminConfiguration = function(a) {
+  var b = {};
+  a && a.hasOwnProperty("configuration") ? b.configuration = DataConfiguration.create(a.configuration) : b.configuration = DataConfiguration.create();
+  b.export_configuration = DataConfiguration.createExport();
+  return b;
 };
 PluginController.prototype.setPluginModuleConfig = function(a, b) {
   var c = this;
@@ -1802,7 +1899,7 @@ $jscomp.global.Object.defineProperties(PluginController, {VERSION:{configurable:
 }}, CONFIGURATION_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.App.Configuration";
 }}});
-// Input 17
+// Input 18
 var ModuleController = function(a, b, c) {
   Controller.call(this, a, new BeteiligtRepository, b);
   this.document = a.document;
@@ -2028,11 +2125,29 @@ ModuleController.prototype.getFields = function(a) {
   return a.config.editables.filter(function(a) {
     return "layout" === a.type && a.show;
   }).map(function(c) {
-    return [{group:c.label, moduleId:"" + a.id, groupId:a.id + "." + c.id, fields:a.config.layouts[c.layout].fields.filter(b.isImportableField)}];
+    return [{group:c.label, section:c.id, moduleId:"" + a.id, groupId:a.id + "." + c.id, fields:a.config.layouts[c.layout].fields.filter(b.isImportableField)}];
   });
 };
-ModuleController.prototype.getPropertyByName = function(a, b, c) {
-  return "not_yet_implemented";
+ModuleController.prototype.getPropertyByName = function(a, b, c, d) {
+  return this._getSectionByName(a, b).getByEditable(c);
+};
+ModuleController.prototype._getSectionByName = function(a, b) {
+  switch(b) {
+    case "ad":
+      return a.sections.ad;
+    case "illu":
+      return a.sections.illu;
+    case "onsite":
+      return a.sections.onsite;
+    case "photo":
+      return a.sections.photo;
+    case "text":
+      return a.sections.text;
+    case "video":
+      return a.sections.video;
+    default:
+      throw "invalid configuration";
+  }
 };
 ModuleController.prototype.getSharedName = function() {
   return ModuleController.SHARED_NAME;
@@ -2048,7 +2163,7 @@ $jscomp.global.Object.defineProperties(ModuleController, {ID:{configurable:!0, e
 }}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Beteiligt.PropertyBag";
 }}});
-// Input 18
+// Input 19
 var ModuleSettingsController = function(a, b, c, d, e, f) {
   this.trello = a;
   this.pluginController = b;
@@ -2340,7 +2455,7 @@ ModuleSettingsController.prototype.hideVersion = function() {
     a.addClass("hidden");
   });
 };
-// Input 19
+// Input 20
 var BeteiligtBinding = function(a, b, c, d, e) {
   Binding.call(this, a, b, c, d, e);
   this._activated = this._ad = this._illu = this._video = this._photo = this._text = this._onsite = null;
@@ -2610,7 +2725,7 @@ BeteiligtBinding.prototype.getLayoutConfigurationFor = function(a, b) {
 $jscomp.global.Object.defineProperties(BeteiligtBinding.prototype, {configuration:{configurable:!0, enumerable:!0, get:function() {
   return this._configuration;
 }}});
-// Input 20
+// Input 21
 var ArtikelController = function(a, b, c, d) {
   Controller.call(this, a, c, b);
   this.document = a.document;
@@ -2632,36 +2747,36 @@ ArtikelController.prototype.getVersionInfo = function() {
 ArtikelController.prototype.create = function(a, b) {
   return Artikel.create(a);
 };
-ArtikelController.prototype.getPropertyByName = function(a, b, c) {
-  switch(b) {
+ArtikelController.prototype.getPropertyByName = function(a, b, c, d) {
+  switch(c) {
     case "visual":
-      return a.visual || c;
+      return a.visual || d;
     case "form":
-      return a.form || c;
+      return a.form || d;
     case "online":
-      return a.tags || c;
+      return a.tags || d;
     case "season":
-      return a.season || c;
+      return a.season || d;
     case "region":
-      return a.region || c;
+      return a.region || d;
     case "place":
-      return a.location || c;
+      return a.location || d;
     case "field.a":
-      return a.topic || c;
+      return a.topic || d;
     case "field.b":
-      return a.from || c;
+      return a.from || d;
     case "field.c":
-      return a.author || c;
+      return a.author || d;
     case "field.d":
-      return a.text || c;
+      return a.text || d;
     case "field.e":
-      return a.pagina || c;
+      return a.pagina || d;
     case "field.f":
-      return a.layout || c;
+      return a.layout || d;
     case "field.g":
-      return a.total || c;
+      return a.total || d;
     default:
-      return a.hasOwnProperty(b), a[b];
+      return a.hasOwnProperty(c), a[c];
   }
 };
 ArtikelController.prototype.list = function() {
@@ -2723,7 +2838,7 @@ $jscomp.global.Object.defineProperties(ArtikelController, {ID:{configurable:!0, 
 }}, SHARED_META:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Meta";
 }}});
-// Input 21
+// Input 22
 var ModulePlanController = function(a, b, c) {
   Controller.call(this, a, new ModulePlanRepository, b);
   this._telephone = c;
@@ -2800,38 +2915,38 @@ ModulePlanController.prototype.getCapOnDepenses = function() {
   var a = this.getProperty("cap_on_depenses");
   return isNaN(a) ? null : parseFloat(a);
 };
-ModulePlanController.prototype.getPropertyByName = function(a, b, c) {
-  switch(b) {
+ModulePlanController.prototype.getPropertyByName = function(a, b, c, d) {
+  switch(c) {
     case "field.a":
-      return a.measures || c;
+      return a.measures || d;
     case "field.b":
-      return a.description || c;
+      return a.description || d;
     case "field.c":
-      return a.fee || c;
+      return a.fee || d;
     case "field.d":
-      return a.projectFee || c;
+      return a.projectFee || d;
     case "field.e":
-      return a.thirdPartyCharges || c;
+      return a.thirdPartyCharges || d;
     case "field.f":
-      return a.thirdPartyTotalCosts || c;
+      return a.thirdPartyTotalCosts || d;
     case "field.g":
-      return a = this.getCapOnDepenses(), isBlank(a) ? c : a;
+      return a = this.getCapOnDepenses(), isBlank(a) ? d : a;
     case "field.h":
-      return a.totalCosts || c;
+      return a.totalCosts || d;
     case "visual":
-      return a.visual || c;
+      return a.visual || d;
     case "form":
-      return a.form || c;
+      return a.form || d;
     case "online":
-      return a.online || c;
+      return a.online || d;
     case "season":
-      return a.season || c;
+      return a.season || d;
     case "region":
-      return a.region || c;
+      return a.region || d;
     case "place":
-      return a.place || c;
+      return a.place || d;
     default:
-      return a.hasOwnProperty(b), a[b];
+      return a.hasOwnProperty(c), a[c];
   }
 };
 ModulePlanController.prototype.persist = function(a, b) {
@@ -2869,12 +2984,12 @@ $jscomp.global.Object.defineProperties(ModulePlanController, {ID:{configurable:!
 }}, PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Plan.PropertyBag";
 }}});
-// Input 22
+// Input 23
 var ModulePlanRepository = function() {
   Repository.call(this);
 };
 $jscomp.inherits(ModulePlanRepository, Repository);
-// Input 23
+// Input 24
 var ClientManager = function(a, b, c) {
   this._window = a;
   this._trello = b;
@@ -3094,9 +3209,9 @@ ClientManager.prototype.getPlanModuleContext = function(a) {
     return b.getModuleConfiguration("module.plan").then(function(a) {
       return a.config.editables;
     }).filter(function(a) {
-      return null !== b.getPlanController().getMapping(a, d, null) && !0 === a.show;
+      return null !== b.getPlanController().getMapping(a, d, "main", null) && !0 === a.show;
     }).map(function(a) {
-      return {text:a.label + ": " + b.getPlanController().getMapping(a, d, "-"), color:a.color};
+      return {text:a.label + ": " + b.getPlanController().getMapping(a, d, "main", "-"), color:a.color};
     }).reduce(function(a, b) {
       a.push(b);
       return a;
@@ -3113,15 +3228,15 @@ ClientManager.prototype.getBeteiligtModuleContext = function(a) {
 };
 ClientManager.prototype.getArticleModuleContext = function(a) {
   var b = this;
-  return {id:"module.artikel", shared:ArtikelController.SHARED_NAME, card:a, configuration:b.getModuleConfiguration("module.artikel"), condition:b.isArticleModuleEnabled(), on:function() {
+  return {id:ArtikelController.ID, shared:ArtikelController.SHARED_NAME, card:a, configuration:b.getModuleConfiguration(ArtikelController.ID), condition:b.isArticleModuleEnabled(), on:function() {
     var c = [], d = b.getArticleController().getByCard(a);
     b.getArticleController().hasContent(d) && c.push({text:"", icon:"./assets/ic_artikel.png"});
-    return b.getModuleConfiguration("module.artikel").then(function(a) {
+    return b.getModuleConfiguration(ArtikelController.ID).then(function(a) {
       return a.config.editables;
     }).filter(function(a) {
-      return b.getArticleController().getMapping(a, d, null) && !0 === a.show;
+      return b.getArticleController().getMapping(a, d, "main", null) && !0 === a.show;
     }).map(function(a) {
-      return {text:a.label + ": " + b.getArticleController().getMapping(a, d, ""), color:a.color};
+      return {text:a.label + ": " + b.getArticleController().getMapping(a, d, "main", ""), color:a.color};
     }).reduce(function(a, b) {
       a.push(b);
       return a;
@@ -3157,7 +3272,7 @@ ClientManager.prototype.sortOnSelect = function(a, b, c, d) {
     return a.id;
   })};
 };
-// Input 24
+// Input 25
 var ColorPickerController = function(a, b, c) {
   this._windowManager = a;
   this._pluginController = b;
@@ -3197,7 +3312,7 @@ ColorPickerController.prototype.getEditable = function(a, b) {
     return a.id === b;
   });
 };
-// Input 25
+// Input 26
 var PluginRepository = function() {
   Repository.call(this);
 };
@@ -3227,7 +3342,7 @@ $jscomp.global.Object.defineProperties(PluginRepository, {INSTANCE:{configurable
   return PluginRepository.instance;
 }}});
 PluginRepository.instance = null;
-// Input 26
+// Input 27
 var BeteiligtRepository = function() {
   Repository.call(this);
 };
@@ -3238,7 +3353,7 @@ BeteiligtRepository.prototype.isNew = function(a) {
     return b._repository[c].id === a.id;
   });
 };
-// Input 27
+// Input 28
 var ArtikelRepository = function() {
   Repository.call(this);
 };
@@ -3252,7 +3367,7 @@ ArtikelRepository.prototype.isNew = function(a) {
     return b._repository[c].id === a.id;
   });
 };
-// Input 28
+// Input 29
 var ModulePlanBinding = function(a, b, c, d, e) {
   Binding.call(this, a, b, c, d, e);
 };
@@ -3351,7 +3466,7 @@ ModulePlanBinding.prototype._initContent = function() {
   }
   return a;
 };
-// Input 29
+// Input 30
 var ArtikelBinding = function(a, b, c, d, e) {
   Binding.call(this, a, b, c, d, e);
 };
@@ -3458,7 +3573,7 @@ ArtikelBinding.prototype.updateConfiguration = function(a) {
   this.updateField(this._form, "form");
   this.updateField(this._location, "place");
 };
-// Input 30
+// Input 31
 var AbstractField = function(a, b, c, d) {
   d = void 0 === d ? !1 : d;
   this._name = a;
@@ -3484,7 +3599,7 @@ $jscomp.global.Object.defineProperties(AbstractField.prototype, {multi:{configur
 }}, name:{configurable:!0, enumerable:!0, get:function() {
   return this._name;
 }}});
-// Input 31
+// Input 32
 var AdminService = function(a, b) {
   this.trelloClient = a;
   this.fileReader = new FileReader;
@@ -3495,6 +3610,9 @@ var AdminService = function(a, b) {
   this.excelService = this.clientManager.getExcelService();
   this._loggingService = b;
   this._context = null;
+};
+AdminService.prototype.getLabels = function() {
+  return this.trelloClient.getLabels();
 };
 AdminService.prototype.hasLabel = function(a, b) {
   return this.trelloClient.getLabels().map(function(c) {
@@ -3516,17 +3634,9 @@ AdminService.prototype.load = function(a) {
               a ? (b._loggingService.i("File " + f.name + " loaded successfully"), d({file:f, model:a})) : (b._loggingService.i("Fehler beim Einlesen der Datei \u00ab" + f.name + "\u00bb"), e("Fehler beim Einlesen der Datei \u00ab" + f.name + "\u00bb"));
             });
           };
-          b.trelloClient.getCurrentCard().then(function(a) {
-            return b.uploadFileToCard(a, f).then(function(a) {
-              window.setTimeout(function() {
-                return b.fileReader.readAsArrayBuffer(a);
-              }, 10);
-            }).catch(function(a) {
-              b._loggingService.e("Fehler beim Hochladen der Datei \u00ab" + f.name + "\u00bb");
-              b._loggingService.d("Details zum Fehler: " + a);
-              e(f);
-            });
-          });
+          window.setTimeout(function() {
+            b.fileReader.readAsArrayBuffer(f);
+          }, 10);
         };
       }(d)));
     }
@@ -3535,6 +3645,12 @@ AdminService.prototype.load = function(a) {
 };
 AdminService.prototype.getCurrentCard = function() {
   return this.trelloClient.getCurrentCard();
+};
+AdminService.prototype.getBoardCards = function() {
+  return this.trelloClient.getAllBoardCards();
+};
+AdminService.prototype.getListById = function(a) {
+  return this.trelloClient.getListById(a);
 };
 AdminService.prototype.uploadFileToCard = function(a, b) {
   var c = this;
@@ -3561,7 +3677,7 @@ AdminService.prototype._importCard = function(a, b, c) {
     return d._createCard(a.data[b], c).then(function(e) {
       return new Promise(function(e, g) {
         g = Math.min((b + 1.0) / Math.max(1.0, a.data.length) * 100, 100.0).toFixed(2) + "%";
-        d.context.each.apply(d.context.context, [b + 1, a.data.length, g]);
+        d.context.each.apply(d.context.context, [b + 1, a.data.length, "Eintr\u00e4ge importiert...", g]);
         e(d._importCard(a, b + 1, c));
       });
     });
@@ -3742,8 +3858,29 @@ $jscomp.global.Object.defineProperties(AdminService.prototype, {context:{configu
 }, get:function() {
   return this._context;
 }}});
-// Input 32
-var HeaderNode = function(a, b, c, d) {
+// Input 33
+var ImportFieldMapping = function(a, b, c, d) {
+  FieldMapping.call(this, a, b, c);
+  this.header = d;
+};
+$jscomp.inherits(ImportFieldMapping, FieldMapping);
+ImportFieldMapping.prototype.mapMember = function(a) {
+  return a.fullName + " (" + a.username + ")";
+};
+ImportFieldMapping.prototype.labelFilter = function(a, b) {
+  return a.name === this.header.label && a.color === this.header.color;
+};
+ImportFieldMapping.prototype.mapLabel = function(a) {
+  return a.name + " (" + a.color + ")";
+};
+ImportFieldMapping.prototype.emptyValue = function() {
+  return "&nbsp;";
+};
+ImportFieldMapping.prototype.mapArray = function(a) {
+  return a.join("<br/>");
+};
+// Input 34
+var HeaderNode = function(a, b, c, d, e) {
   d = void 0 === d ? [] : d;
   this._parent = a;
   this._label = b;
@@ -3751,10 +3888,10 @@ var HeaderNode = function(a, b, c, d) {
   this._properties = [];
   this._address = c ? {c:c.c, r:c.r, constant:c.constant} : null;
   this._comments = d ? d : [];
-  this._color = null;
+  this._color = e;
 };
 HeaderNode.create = function(a) {
-  return a ? new HeaderNode(null, JsonSerialization.getProperty(a, "label"), JsonSerialization.getProperty(a, "address"), JsonSerialization.getProperty(a, "comments")) : null;
+  return a ? new HeaderNode(null, JsonSerialization.getProperty(a, "label"), JsonSerialization.getProperty(a, "address"), JsonSerialization.getProperty(a, "comments"), JsonSerialization.getProperty(a, "color")) : null;
 };
 HeaderNode.prototype.isSameAddress = function(a) {
   return a ? a.c === this.address.c && a.r === this.address.r : !1;
@@ -3818,7 +3955,7 @@ $jscomp.global.Object.defineProperties(HeaderNode.prototype, {address:{configura
 }, set:function(a) {
   this._color = a;
 }}});
-// Input 33
+// Input 35
 var ArrayField = function(a) {
   AbstractField.apply(this, arguments);
 };
@@ -3832,7 +3969,7 @@ ArrayField.prototype.getValue = function(a) {
 ArrayField.prototype.getType = function() {
   return "array";
 };
-// Input 34
+// Input 36
 var BooleanField = function(a) {
   AbstractField.apply(this, arguments);
 };
@@ -3846,7 +3983,7 @@ BooleanField.prototype.getValue = function(a) {
 BooleanField.prototype.getType = function() {
   return "boolean";
 };
-// Input 35
+// Input 37
 var DateField = function(a) {
   AbstractField.apply(this, arguments);
 };
@@ -3861,7 +3998,7 @@ DateField.prototype.getValue = function(a) {
 DateField.prototype.getType = function() {
   return "date";
 };
-// Input 36
+// Input 38
 var DataNode = function(a) {
   this._row = a;
   this._values = [];
@@ -3879,77 +4016,19 @@ $jscomp.global.Object.defineProperties(DataNode.prototype, {row:{configurable:!0
 }}, values:{configurable:!0, enumerable:!0, get:function() {
   return this._values;
 }}});
-// Input 37
-var ImportConfiguration = function() {
-  this._mapping = [];
-  this._labels = [];
-};
-ImportConfiguration.create = function(a) {
-  var b = new ImportConfiguration;
-  a && (b.mapping = JsonSerialization.getProperty(a, "mapping").map(function(a) {
-    switch(JsonSerialization.getProperty(a, "type")) {
-      case "date":
-        return new DateField(JsonSerialization.getProperty(a, "name"), JsonSerialization.getProperty(a, "reference"), HeaderNode.create(JsonSerialization.getProperty(a, "source")));
-      case "text":
-        return new TextField(JsonSerialization.getProperty(a, "name"), JsonSerialization.getProperty(a, "reference"), HeaderNode.create(JsonSerialization.getProperty(a, "source")));
-      case "boolean":
-        return new BooleanField(JsonSerialization.getProperty(a, "name"), JsonSerialization.getProperty(a, "reference"), HeaderNode.create(JsonSerialization.getProperty(a, "source")));
-      case "array":
-        return new ArrayField(JsonSerialization.getProperty(a, "name"), JsonSerialization.getProperty(a, "reference"), HeaderNode.create(JsonSerialization.getProperty(a, "source")));
-      default:
-        return null;
-    }
-  }), b.labels = JsonSerialization.getProperty(a, "labels"));
-  return b;
-};
-ImportConfiguration.prototype.isValid = function() {
-  return 0 === this.getValidationErrors().length;
-};
-ImportConfiguration.prototype.getValidationErrors = function() {
-  var a = [], b = this.single("trello.list");
-  null !== b && null !== b.source || a.push({id:"validation.error.trello-list", details:""});
-  b = Object.entries(this.mapping.filter(function(a) {
-    return !a.multi;
-  }).map(function(a) {
-    return a.reference;
-  }).reduce(Reducers.asOccurrenceMap, {})).filter(function(a) {
-    return "-1" !== a[0] && 1 < a[1];
-  });
-  0 < b.length && a.push({id:"validation.error.multiple-mapping", details:"" + b.map(function(a) {
-    return a[0];
-  }).join(",")});
-  return a;
-};
-ImportConfiguration.prototype.get = function(a) {
-  return this.mapping.filter(function(b) {
-    return b.reference === a;
-  });
-};
-ImportConfiguration.prototype.single = function(a) {
-  return (a = this.get(a)) && 1 === a.length ? a[0] : null;
-};
-$jscomp.global.Object.defineProperties(ImportConfiguration.prototype, {labels:{configurable:!0, enumerable:!0, get:function() {
-  return this._labels;
-}, set:function(a) {
-  this._labels = a;
-}}, mapping:{configurable:!0, enumerable:!0, get:function() {
-  return this._mapping;
-}, set:function(a) {
-  this._mapping = a;
-}}});
-// Input 38
+// Input 39
 var Import = function(a) {
   this._title = a;
   this._header = null;
   this._data = [];
 };
 Import.create = function(a, b) {
-  a = new Import("Import");
+  a = new Import(a);
   if (b) {
     b = JsonSerialization.getProperty(b, "header");
-    var c = new HeaderNode(null, b._label, b._address, b._comments);
+    var c = new HeaderNode(null, b._label, b._address, b._comments, b._color);
     c.addAll(b._children.map(function(a) {
-      return new HeaderNode(c, a._label, a._address, a._comments);
+      return new HeaderNode(c, a._label, a._address, a._comments, a._color);
     }));
     a.header = c;
   }
@@ -4054,7 +4133,75 @@ $jscomp.global.Object.defineProperties(Import.prototype, {data:{configurable:!0,
 }, set:function(a) {
   this._title = a;
 }}});
-// Input 39
+// Input 40
+var DataConfiguration = function() {
+  this._mapping = [];
+  this._labels = [];
+};
+DataConfiguration.create = function(a) {
+  var b = new DataConfiguration;
+  a && (b.mapping = JsonSerialization.getProperty(a, "mapping").map(function(a) {
+    switch(JsonSerialization.getProperty(a, "type")) {
+      case "date":
+        return new DateField(JsonSerialization.getProperty(a, "name"), JsonSerialization.getProperty(a, "reference"), HeaderNode.create(JsonSerialization.getProperty(a, "source")));
+      case "text":
+        return new TextField(JsonSerialization.getProperty(a, "name"), JsonSerialization.getProperty(a, "reference"), HeaderNode.create(JsonSerialization.getProperty(a, "source")));
+      case "boolean":
+        return new BooleanField(JsonSerialization.getProperty(a, "name"), JsonSerialization.getProperty(a, "reference"), HeaderNode.create(JsonSerialization.getProperty(a, "source")));
+      case "array":
+        return new ArrayField(JsonSerialization.getProperty(a, "name"), JsonSerialization.getProperty(a, "reference"), HeaderNode.create(JsonSerialization.getProperty(a, "source")));
+      default:
+        return null;
+    }
+  }), b.labels = JsonSerialization.getProperty(a, "labels"));
+  return b;
+};
+DataConfiguration.createExport = function() {
+  return new DataConfiguration;
+};
+DataConfiguration.prototype.isValid = function() {
+  return 0 === this.getValidationErrors().length;
+};
+DataConfiguration.prototype.getValidationErrors = function() {
+  var a = [], b = this.single("trello.list");
+  null !== b && null !== b.source || a.push({id:"validation.error.trello-list", details:""});
+  b = Object.entries(this.mapping.filter(function(a) {
+    return !a.multi;
+  }).map(function(a) {
+    return a.reference;
+  }).reduce(Reducers.asOccurrenceMap, {})).filter(function(a) {
+    return "-1" !== a[0] && 1 < a[1];
+  });
+  0 < b.length && a.push({id:"validation.error.multiple-mapping", details:"" + b.map(function(a) {
+    return a[0];
+  }).join(",")});
+  return a;
+};
+DataConfiguration.prototype.get = function(a) {
+  return this.mapping.filter(function(b) {
+    return b.reference === a;
+  });
+};
+DataConfiguration.prototype.single = function(a) {
+  return (a = this.get(a)) && 1 === a.length ? a[0] : null;
+};
+DataConfiguration.prototype.findByAddress = function(a) {
+  return this.mapping.filter(function(b) {
+    return b.source.isSameAddress(a);
+  }).reduce(function(a, c) {
+    return c;
+  }, null);
+};
+$jscomp.global.Object.defineProperties(DataConfiguration.prototype, {labels:{configurable:!0, enumerable:!0, get:function() {
+  return this._labels;
+}, set:function(a) {
+  this._labels = a;
+}}, mapping:{configurable:!0, enumerable:!0, get:function() {
+  return this._mapping;
+}, set:function(a) {
+  this._mapping = a;
+}}});
+// Input 41
 var TextField = function(a) {
   AbstractField.apply(this, arguments);
 };
@@ -4065,7 +4212,7 @@ TextField.prototype.getValue = function(a) {
 TextField.prototype.getType = function() {
   return "text";
 };
-// Input 40
+// Input 42
 var AdminController = function(a, b, c, d) {
   this._trello = a;
   this._adminService = b;
@@ -4075,13 +4222,14 @@ var AdminController = function(a, b, c, d) {
   this._model = null;
   this._propertyBag = {};
   this._loggingService = d;
+  this._files = [];
 };
 AdminController.create = function(a, b, c, d) {
   return new AdminController(a, c, b, d);
 };
 AdminController.prototype.render = function(a) {
   this._context = a.page || "home";
-  return "import" === this._context ? this.importPage(a.configuration) : "export" === this._context ? this.exportPage(a.configuration) : "error" === this._context ? this.errorPage(a.error, a.error_details) : "progress" === this._context ? this.progressPage() : this.homePage();
+  return "import" === this._context ? this.importPage(a.configuration) : "export" === this._context ? this.exportPage(a) : "error" === this._context ? this.errorPage(a.error, a.error_details) : "progress" === this._context ? this.progressPage() : this.homePage();
 };
 AdminController.prototype.errorPage = function(a, b) {
   var c = this, d = createByTemplate(template_admin_errorpage, template_admin_errorpage);
@@ -4124,61 +4272,7 @@ AdminController.prototype.homePage = function() {
   return Promise.resolve(!0);
 };
 AdminController.prototype.exportPage = function(a) {
-  var b = this, c = this;
-  this._model = null;
-  var d = createByTemplate(template_admin_export, template_admin_export);
-  this._document.querySelectorAll(".js-content").forEach(function(a) {
-    return a.appendChild(d);
-  });
-  this._clearContent();
-  return this._pluginController.getEnabledModules().then(function(a) {
-    return Promise.all(a.map(function(a) {
-      return c._adminService.getCurrentCard().then(function(b) {
-        return c._clientManager.getController(a.id).fetchByCard(b, a);
-      });
-    }));
-  }).then(function() {
-    return b.renderActions(a).then(function() {
-      var b = Import.create("Sample", sampleImport), d = new DataNode(1), g = b.header;
-      d.set(g.get(0), {v:"Test Liste", t:"s"});
-      d.set(g.get(1), {v:43830, w:"31/12/2019", t:"n"});
-      d.set(g.get(2), {v:"me@m3ns1.com", t:"s"});
-      d.set(g.get(3), {v:1, t:"n"});
-      d.set(g.get(4), {v:1, t:"n"});
-      d.set(g.get(5), {v:1, t:"n"});
-      d.set(g.get(6), {v:1, t:"n"});
-      d.set(g.get(7), {v:1, t:"n"});
-      d.set(g.get(8), {v:1, t:"n"});
-      d.set(g.get(9), {v:1, t:"n"});
-      d.set(g.get(10), {v:1, t:"n"});
-      d.set(g.get(11), {v:1, t:"n"});
-      d.set(g.get(12), {v:1, t:"n"});
-      d.set(g.get(13), {v:"A cocktail a day", t:"s"});
-      d.set(g.get(14), {v:"https://a-cocktail-a-day.com/", t:"s"});
-      d.set(g.get(15), {v:"3.Begriff", t:"s"});
-      d.set(g.get(16), {v:"", t:"s"});
-      d.set(g.get(17), {v:"", t:"s"});
-      d.set(g.get(18), {v:"", t:"s"});
-      d.set(g.get(19), {v:"", t:"s"});
-      d.set(g.get(20), {v:"Blog zum Thema: Reisen, Lifestyle, Fliegen", t:"s"});
-      d.set(g.get(21), {v:"Kristina", t:"s"});
-      d.set(g.get(22), {v:"Roder", t:"s"});
-      d.set(g.get(23), {v:"Test Notiz", t:"s"});
-      d.set(g.get(24), {v:"kristina@a-cocktail-a-day.com", t:"s"});
-      d.set(g.get(25), {v:"n.a.", t:"s"});
-      d.set(g.get(26), {v:"", t:"s"});
-      d.set(g.get(27), {v:"Offen f\u00fcr Kooperationen", t:"s"});
-      d.set(g.get(28), {v:"", t:"s"});
-      d.set(g.get(29), {v:"https://facebook.com", t:"s"});
-      d.set(g.get(30), {v:"https://instagram.com", t:"s"});
-      d.set(g.get(31), {v:"https://twitter.com", t:"s"});
-      d.set(g.get(32), {v:"https://youtube.com", t:"s"});
-      d.set(g.get(33), {v:"https://flickr.com", t:"s"});
-      b.data.push(d);
-      c.renderModel(b, a);
-      return !0;
-    });
-  });
+  return (new ExportController(this._trello, this._document, this._adminService, this._loggingService)).render(a);
 };
 AdminController.prototype.importPage = function(a) {
   this._model = null;
@@ -4188,7 +4282,7 @@ AdminController.prototype.importPage = function(a) {
   });
   this._clearContent();
   return this.renderActions(a).then(function(a) {
-    a = Import.create("Sample", sampleImport);
+    a = Import.create("Sample", SAMPLE_IMPORT);
     var b = new DataNode(1), c = a.header;
     b.set(c.get(0), {v:"Test Liste", t:"s"});
     b.set(c.get(1), {v:43830, w:"31/12/2019", t:"n"});
@@ -4229,92 +4323,124 @@ AdminController.prototype.importPage = function(a) {
   });
 };
 AdminController.prototype.renderActions = function(a) {
-  var b = this;
-  this._document.querySelectorAll(".js-content").forEach(function(c) {
-    c.removeClass("hidden");
-    c.querySelector("#btn-export") && c.querySelector("#btn-export").setEventListener("click", function(a) {
-      console.debug("Do export");
+  var b = this, c = this;
+  this._document.querySelectorAll(".js-content").forEach(function(b) {
+    b.removeClass("hidden");
+    b.querySelector("#btn-load") && b.querySelector("#btn-load").setEventListener("click", function(d) {
+      c._doLoad(d, b, a);
     });
-    c.querySelector("#btn-load") && c.querySelector("#btn-load").setEventListener("click", function(d) {
-      d.preventDefault();
-      var e = d.target;
-      b._hideErrors(c);
-      b._hideWarnings(c);
-      e.disabled = !0;
-      d = b._document.querySelector("#file-import").files;
-      try {
-        b._adminService.load(d).then(function(c) {
-          c.forEach(function(c) {
-            b.renderModel(c.model, a);
-          });
-        }).catch(function(a) {
-          b._showErrors(c, "Unerwarteter Fehler beim Importieren der Datei \u00ab" + a.name + "\u00bb");
-        }).finally(function() {
-          e.disabled = !1;
-        });
-      } catch (g) {
-        b._showErrors(c, "Schwerwiegender Fehler beim Importieren: " + g), e.disabled = !1;
-      }
-    });
-    c.querySelector("#btn-load-config") && c.querySelector("#btn-load-config").setEventListener("click", function(a) {
+    b.querySelector("#btn-load-config") && b.querySelector("#btn-load-config").setEventListener("click", function(a) {
       a.preventDefault();
-      a = prompt("Bitte gib hier die Konfiguration als Base64 Text ein: ");
-      isString(a) && !isBlank(a) && b._pluginController.parseAdminConfiguration(a).then(function(a) {
-        b.renderModel(b._model, a.configuration);
+      a = prompt("Bitte gib hier die Konfiguration: ");
+      isString(a) && !isBlank(a) && c._pluginController.parseAdminConfiguration(a).then(function(a) {
+        c.renderModel(c._model, a.configuration);
       });
     });
-    var d = c.querySelector("#btn-import");
-    d && (d.setEventListener("update", function(a) {
-      a = b._readConfiguration(b._model);
-      if (a.isValid()) {
-        b._hideWarnings(document), d.removeAttribute("disabled"), d.removeAttribute("title"), d.removeAttribute("data-validation");
-      } else {
-        if (!d.hasAttribute("data-validation")) {
-          a = a.getValidationErrors();
-          var c = a.map(function(a) {
-            return a.id;
-          }).join("<br/>");
-          d.setAttribute("disabled", "disabled");
-          d.setAttribute("data-validation", "invalid");
-          d.setAttribute("title", "Es sind noch nicht alle notwendingen Felder konfiguriert.");
-          console.warn("Validation errors", a);
-          b._showWarnings(document, "Es sind noch nicht alle notwendingen Felder konfiguriert.<br/>" + c);
-        }
-      }
-    }), d.setEventListener("click", function(a) {
-      a.preventDefault();
-      var c = a.target;
-      c.setAttribute("disabled", "disabled");
-      b.progressPage().then(function(a) {
-        if (b._model) {
-          var d = b._readConfiguration(b._model);
-          d.isValid() ? (b._adminService.context = a, b._adminService.importCards(b._model, d).then(function(a) {
-            if (a) {
-              return b._loggingService.i("Import Datei(en) wurde(n) erfolgreich importiert"), b._propertyBag.configuration = d, b._loggingService.d("Die Konfiguration wird f\u00fcr zuk\u00fcnftige Imports gespeichert: " + JSON.stringify(b._propertyBag)), b._pluginController.setAdminConfiguration(b._propertyBag);
-            }
-            b._loggingService.i("Es konnten nicht alle Import Dateien korrekt importiert werden");
-            return Promise.reject("See log for more details");
-          }).then(function(a) {
-            b._loggingService.d("Folgende komprimierte Konfiguration wurde gespeichert: (Base64) " + a);
-            b.finishProgress(!0, "Fertig");
-          }).catch(function(a) {
-            b._loggingService.e("Es trat folgender Fehler auf: " + a.stack);
-            b.finishProgress(!1, "Es traten Fehler beim Import auf. Ein detaillierter Rapport wurde dieser Trello Card angeh\u00e4ngt.");
-            console.error(a.stack);
-          }).finally(function() {
-            c.removeAttribute("disabled");
-            var a = b._loggingService.flush();
-            b._adminService.getCurrentCard().then(function(c) {
-              return b._adminService.uploadFileToCard(c, a);
-            }).catch(function(a) {
-              console.error("Konnte Log Datei nicht hochladen", a);
-            });
-          })) : (a = d.getValidationErrors().join("<br/>"), b._showWarnings(document, "Die Konfiguration ist unvollst\u00e4ndig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>" + a));
-        }
-      });
-    }));
   });
+  var d = c._getActionButton();
+  d && (d.setEventListener("update", function(a) {
+    b.onUpdateActionButton(d);
+  }), d.setEventListener("click", function(a) {
+    c._doImport(a);
+  }));
   return Promise.resolve(!0);
+};
+AdminController.prototype.onUpdateActionButton = function(a) {
+  var b = this._readConfiguration(this._model);
+  if (b.isValid()) {
+    this._hideWarnings(document), a.removeAttribute("disabled"), a.removeAttribute("title"), a.removeAttribute("data-validation");
+  } else {
+    if (!a.hasAttribute("data-validation")) {
+      b = b.getValidationErrors();
+      var c = b.map(function(a) {
+        return a.id;
+      }).join("<br/>");
+      a.setAttribute("disabled", "disabled");
+      a.setAttribute("data-validation", "invalid");
+      a.setAttribute("title", "Es sind noch nicht alle notwendingen Felder konfiguriert.");
+      console.warn("Validation errors", b);
+      this._showWarnings(document, "Es sind noch nicht alle notwendingen Felder konfiguriert.<br/>" + c);
+    }
+  }
+};
+AdminController.prototype._doImport = function(a) {
+  var b = this;
+  a.preventDefault();
+  var c = a.target;
+  c.setAttribute("disabled", "disabled");
+  b.progressPage().then(function(a) {
+    if (b._model) {
+      var d = b._readConfiguration(b._model);
+      d.isValid() ? (b._adminService.context = a, b._adminService.importCards(b._model, d).then(function(a) {
+        if (a) {
+          return b._loggingService.i("Import Datei(en) wurde(n) erfolgreich importiert"), b._propertyBag.configuration = d, b._loggingService.d("Die Konfiguration wird f\u00fcr zuk\u00fcnftige Imports gespeichert: " + JSON.stringify(b._propertyBag)), b._pluginController.setAdminConfiguration(b._propertyBag);
+        }
+        b._loggingService.i("Es konnten nicht alle Import Dateien korrekt importiert werden");
+        return Promise.reject("See log for more details");
+      }).then(function(a) {
+        b._loggingService.d("Folgende komprimierte Konfiguration wurde gespeichert: (Base64) " + a);
+        b.finishProgress(!0, "Fertig");
+      }).catch(function(a) {
+        b._loggingService.e("Es trat folgender Fehler auf: " + a.stack);
+        b.finishProgress(!1, "Es traten Fehler beim Import auf. Ein detaillierter Rapport wurde dieser Trello Card angeh\u00e4ngt.");
+        console.error(a.stack);
+      }).catch(function(a) {
+        b._loggingService.e("Es trat folgender Fehler auf: " + a.stack);
+        b.finishProgress(!1, "Es traten Fehler beim Hochladen der Datei(en) auf. Ein detaillierter Rapport wurde dieser Trello Card angeh\u00e4ngt.");
+        console.error(a.stack);
+      }).finally(function() {
+        c.removeAttribute("disabled");
+        return b._adminService.getCurrentCard().then(function(a) {
+          var c = b._files.map(function(c) {
+            return b._adminService.uploadFileToCard(a, c);
+          });
+          return Promise.all(c).then(function(b) {
+            return a;
+          });
+        }).then(function(a) {
+          b._files = [];
+          var c = b._loggingService.flush();
+          return b._adminService.uploadFileToCard(a, c);
+        }).then(function(a) {
+          b.closeImport(!0);
+        }).catch(function(a) {
+          console.error("Konnte Datei(en) nicht hochladen", a);
+          b._showErrors(document, "Konnte Datei(en) nicht hochladen");
+          b.closeImport(!1);
+        });
+      })) : (a = d.getValidationErrors().join("<br/>"), b._showWarnings(document, "Die Konfiguration ist unvollst\u00e4ndig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>" + a));
+    }
+  });
+};
+AdminController.prototype._doLoad = function(a, b, c) {
+  var d = this;
+  a.preventDefault();
+  var e = a.target;
+  d._hideErrors(b);
+  d._hideWarnings(b);
+  e.disabled = !0;
+  d.progressPage().then(function(a) {
+    var b = d._document.querySelector("#file-import").files;
+    try {
+      d.updateProgress(0, b.length, "Datei(en) eingelesen", "Datei(en) werden eingelesen"), d._adminService.load(b).then(function(a) {
+        a.forEach(function(a, e) {
+          d._files.push(a.file);
+          d.renderModel(a.model, c);
+          d.updateProgress(e, b.length, "Datei(en) eingelesen", "Datei \u00ab" + a.file.name + "\u00bb geladen");
+        });
+      }).catch(function(b) {
+        d._showErrors(a, "Unerwarteter Fehler beim Einlesen der Datei \u00ab" + b.name + "\u00bb");
+        d.finishProgress(!1, "Fehler beim Einlesen");
+      }).finally(function() {
+        e.disabled = !1;
+        d.finishProgress(!0, "Fertig");
+      });
+    } catch (h) {
+      d._showErrors(a, "Schwerwiegender Fehler beim Einlesen: " + h), e.disabled = !1, d.finishProgress(!1, "Fehler beim Einlesen");
+    } finally {
+      d.endProgress();
+    }
+  });
 };
 AdminController.prototype.progressPage = function() {
   var a = this;
@@ -4338,12 +4464,11 @@ AdminController.prototype.progressPage = function() {
 AdminController.prototype._testProgress = function(a, b) {
   var c = this;
   setTimeout(function() {
-    c.updateProgress(a, b, "Eintrag \u00abCard-#" + a + "\u00bb wurde erfolgreich importiert");
+    c.updateProgress(a, b, "Datei(en) importiert", "Eintrag \u00abCard-#" + a + "\u00bb wurde erfolgreich importiert");
     a < b ? c._testProgress(a + 1, b) : c.finishProgress(!0, "Fertig");
   }, 750);
 };
 AdminController.prototype.finishProgress = function(a, b) {
-  var c = this;
   a ? (this._document.querySelectorAll(".progress-overlay").forEach(function(a) {
     a.addClass("success");
   }), this._document.querySelectorAll(".js-panta-record-details").forEach(function(a) {
@@ -4353,28 +4478,43 @@ AdminController.prototype.finishProgress = function(a, b) {
   }), this._document.querySelectorAll(".js-panta-record-details").forEach(function(a) {
     a.innerText = b;
   }));
+};
+AdminController.prototype.endProgress = function() {
+  this._closeImport(!0, !1);
+};
+AdminController.prototype.closeImport = function(a) {
+  this._closeImport(a, !0);
+};
+AdminController.prototype._closeImport = function(a, b) {
+  var c = this;
   setTimeout(function() {
     c._document.querySelectorAll(".js-panta-progress").forEach(function(a) {
       a.removeSelf();
-      c._trello.closeModal();
     });
+    b && c._trello.closeModal();
   }, a ? 600 : 5000);
 };
-AdminController.prototype.updateProgress = function(a, b, c) {
+AdminController.prototype.updateProgress = function(a, b, c, d) {
   this._document.querySelectorAll(".js-panta-current-record").forEach(function(b) {
     b.innerText = a;
   });
   this._document.querySelectorAll(".js-panta-total-records").forEach(function(a) {
     a.innerText = b;
   });
-  c && this._document.querySelectorAll(".js-panta-record-details").forEach(function(a) {
+  this._document.querySelectorAll(".js-panta-progress-postfix").forEach(function(a) {
     a.innerText = c;
+  });
+  d && this._document.querySelectorAll(".js-panta-record-details").forEach(function(a) {
+    a.innerText = d;
   });
 };
 AdminController.prototype._readConfiguration = function(a) {
   var b = this;
   return Object.values(a.getNormalizedHeaders()).map(function(a) {
     var c = b._document.querySelector("#field-mapping-" + a.getAddressAsText());
+    if (null === c) {
+      return null;
+    }
     c = c.item(c.selectedIndex);
     if (null === c) {
       return null;
@@ -4386,18 +4526,18 @@ AdminController.prototype._readConfiguration = function(a) {
   }).reduce(function(a, b) {
     a.mapping.push(b);
     return a;
-  }, new ImportConfiguration);
+  }, new DataConfiguration);
 };
 AdminController.prototype._createFieldOfType = function(a, b, c, d) {
   switch(a) {
     case "boolean":
-      return new BooleanField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments), d);
+      return new BooleanField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments, b.color), d);
     case "date":
-      return new DateField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments), d);
+      return new DateField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments, b.color), d);
     case "array":
-      return new ArrayField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments), d);
+      return new ArrayField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments, b.color), d);
     default:
-      return new TextField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments), d);
+      return new TextField(b.label, c, new HeaderNode(null, b.label, b.address, b.comments, b.color), d);
   }
 };
 AdminController.prototype.renderModel = function(a, b) {
@@ -4442,9 +4582,6 @@ AdminController.prototype.renderModel = function(a, b) {
         }));
       });
     });
-    Promise.all(d).then(function(a) {
-      return c._trello.sizeTo("#content");
-    });
   }
 };
 AdminController.prototype._createMore = function(a) {
@@ -4455,7 +4592,7 @@ AdminController.prototype._createMore = function(a) {
 };
 AdminController.prototype._createChipsSection = function(a) {
   var b = this, c = b._document.createElement("div");
-  c.addClass("col-3");
+  c.addClass("col-3").addClass("align-right");
   a.getPathItems().map(function(c, e, f) {
     var d = b._document.createElement("div");
     d.setAttribute("id", "chip-" + a.getAddressAsText() + "-" + (e + 1 < f.length ? e : "last"));
@@ -4476,7 +4613,7 @@ AdminController.prototype._createChipsSection = function(a) {
 AdminController.prototype._createPreviewSection = function(a, b, c) {
   var d = this, e = d._document.createElement("div");
   e.setAttribute("id", "preview-" + a.getAddressAsText());
-  e.addClass("col-3 js-preview");
+  e.addClass("col-4 js-preview").addClass("align-left");
   e.setEventListener("update", function(f) {
     var g = f.item || c.mapping.find(function(b) {
       return b.source.isSameAddress(a.address);
@@ -4491,57 +4628,14 @@ AdminController.prototype._createPreviewSection = function(a, b, c) {
   return Promise.resolve(e);
 };
 AdminController.prototype._getBoardSample = function(a, b) {
-  var c = this;
-  return b ? c._trello.card("id", "name", "desc", "due", "members", "labels", "idList").then(function(d) {
-    console.debug(b.reference + ": Got card " + JSON.stringify(d));
-    switch(b.reference) {
-      case "trello.title":
-        return d.name;
-      case "trello.description":
-        return d.desc;
-      case "trello.duedate":
-        return d.due;
-      case "trello.members":
-        return d.members.map(function(a) {
-          return a.fullName + " (" + a.username + ")";
-        }).join("<br/>");
-      case "trello.labels":
-        return d.labels.filter(function(b) {
-          return b.name === a.label && b.color === a.color;
-        }).map(function(a) {
-          return a.name + " (" + a.color + ")";
-        }).join("<br/>") || "&nbsp;";
-      case "trello.list":
-        return c._trello.list("id", "name").then(function(a) {
-          return a.name;
-        });
-      default:
-        return c._getPantaFieldItems().then(function(a) {
-          return (a = a.flatMap(function(a) {
-            return a;
-          }).map(function(a) {
-            var d = a.groupId, e = a.moduleId, f = a.fields.find(function(a) {
-              return d + "." + a.id === b.reference;
-            });
-            if (f) {
-              var l = c._clientManager.getController(e);
-              return c._adminService.getCurrentCard().then(function(a) {
-                var b = l.getByCard(a);
-                console.debug("Current card is " + a.id, f, b);
-                return l.getPropertyByName(b, f.id, "&lt;leer&gt;");
-              });
-            }
-            return null;
-          }).find(function(a) {
-            return null !== a;
-          })) ? a : "&lt;leer&gt;";
-        });
-    }
-  }) : Promise.resolve("&lt;leer&gt;");
+  var c = new ImportFieldMapping(this._trello, this._adminService, this._getPantaFieldItems(), a);
+  return b ? this._trello.card("id", "name", "desc", "due", "members", "labels", "idList").then(function(a) {
+    return c.map(a, b);
+  }) : Promise.resolve(c.emptyValue());
 };
 AdminController.prototype._createFieldMappingSection = function(a, b) {
   var c = this, d = this, e = d._document.createElement("div");
-  e.addClass("col-4");
+  e.addClass("col-3");
   var f = d._document.createElement("select");
   f.setAttribute("id", "field-mapping-" + a.getAddressAsText());
   f.setEventListener("change", function(b) {
@@ -4551,11 +4645,11 @@ AdminController.prototype._createFieldMappingSection = function(a, b) {
   g.setAttribute("value", "-1");
   g.innerText = "Feld ausw\u00e4hlen...";
   f.appendChild(g);
-  return d._getTrelloFields(a, b).then(function(a) {
+  return d._getTrelloFieldOptions().then(function(a) {
     f.appendChild(a);
     return f;
-  }).then(function(c) {
-    return d._getPantaFields(a, b).then(function(a) {
+  }).then(function(a) {
+    return d._getPantaFieldOptions().then(function(a) {
       return a.reduce(function(a, b) {
         a.appendChild(b);
         return a;
@@ -4614,39 +4708,39 @@ AdminController.prototype._createColorOption = function(a, b, c) {
   d.innerText = a;
   return d;
 };
-AdminController.prototype._getTrelloFields = function(a, b) {
-  var c = this, d = this._document.createElement("optgroup");
-  d.setAttribute("label", "Trello Felder");
-  return Promise.resolve(TRELLO_FIELDS.map(function(d) {
-    return c._createFieldOption(a, d.id, __(d.desc), d.type, d.multi, b);
+AdminController.prototype._getTrelloFieldOptions = function() {
+  var a = this, b = this._document.createElement("optgroup");
+  b.setAttribute("label", "Trello.Felder");
+  return Promise.resolve(TRELLO_FIELDS.map(function(b) {
+    return a._createFieldOption(b.id, __(b.desc), b.type, b.multi);
   }).reduce(function(a, b) {
     a.appendChild(b);
     return a;
-  }, d));
+  }, b));
 };
-AdminController.prototype._createFieldOption = function(a, b, c, d, e, f) {
-  a = this._document.createElement("option");
-  a.setAttribute("value", b);
-  a.innerText = c;
-  a.setAttribute("data-type", d || "text");
-  a.setAttribute("data-multi", e || "false");
-  return a;
+AdminController.prototype._createFieldOption = function(a, b, c, d) {
+  var e = this._document.createElement("option");
+  e.setAttribute("value", a);
+  e.innerText = b;
+  e.setAttribute("data-type", c || "text");
+  e.setAttribute("data-multi", d || "false");
+  return e;
 };
-AdminController.prototype._getPantaFields = function(a, b) {
-  var c = this;
-  return this._pluginController.getEnabledModules().then(function(d) {
-    return d.flatMap(function(d) {
-      var e = d.name;
-      return c._clientManager.getController(d.id).getFields(d).flatMap(function(d) {
-        return d.map(function(d) {
-          var f = d.groupId, g = c._document.createElement("optgroup");
-          g.setAttribute("label", e + ": " + d.group);
-          return d.fields.map(function(d) {
-            return c._createFieldOption(a, f + "." + d.id, d.label, d.type, "false", b);
+AdminController.prototype._getPantaFieldOptions = function() {
+  var a = this;
+  return this._pluginController.getEnabledModules().then(function(b) {
+    return b.flatMap(function(b) {
+      var c = b.name;
+      return a._clientManager.getController(b.id).getFields(b).flatMap(function(b) {
+        return b.map(function(b) {
+          var d = b.groupId, e = a._document.createElement("optgroup");
+          e.setAttribute("label", c + "." + b.group);
+          return b.fields.map(function(b) {
+            return a._createFieldOption(d + "." + b.id, b.label, b.type, "false");
           }).reduce(function(a, b) {
             a.appendChild(b);
             return a;
-          }, g);
+          }, e);
         });
       });
     });
@@ -4699,7 +4793,210 @@ AdminController.prototype._hide = function(a, b) {
 $jscomp.global.Object.defineProperties(AdminController, {PROPERTY_BAG_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.Admin.PropertyBag";
 }}});
-// Input 41
+// Input 43
+var ExportFieldMapping = function(a) {
+  FieldMapping.apply(this, arguments);
+};
+$jscomp.inherits(ExportFieldMapping, FieldMapping);
+ExportFieldMapping.prototype.mapLabel = function(a) {
+  return !!a;
+};
+ExportFieldMapping.prototype.labelFilter = function(a, b) {
+  return a.name === b.name;
+};
+ExportFieldMapping.prototype.mapMember = function(a) {
+  return a.name;
+};
+ExportFieldMapping.prototype.emptyValue = function() {
+  return "";
+};
+ExportFieldMapping.prototype.mapArray = function(a) {
+  return a;
+};
+// Input 44
+var ExportController = function(a, b, c, d) {
+  AdminController.call(this, a, c, b, d);
+};
+$jscomp.inherits(ExportController, AdminController);
+ExportController.prototype.render = function(a) {
+  var b = this;
+  this._model = null;
+  var c = createByTemplate(template_admin_export, template_admin_export);
+  this._document.querySelectorAll(".js-content").forEach(function(a) {
+    return a.appendChild(c);
+  });
+  this._clearContent();
+  return this._pluginController.getEnabledModules().then(function(a) {
+    return Promise.all(a.map(function(a) {
+      return b._adminService.getCurrentCard().then(function(c) {
+        return b._clientManager.getController(a.id).fetchByCard(c, a);
+      });
+    }));
+  }).then(function() {
+    return b._adminService.getLabels().then(function(b) {
+      a.export_configuration.labels = b;
+    });
+  }).then(function() {
+    var a = Import.create("Export");
+    a.header = new HeaderNode(null, "Root", {c:-1, r:-1, constant:"Virtual Node"});
+    return b._getTemplate(a).then(function(b) {
+      a.header.addAll(b);
+      return a;
+    });
+  }).then(function(c) {
+    a.export_configuration.mapping;
+    return b.renderActions(a).then(function() {
+      return b.renderModel(c, a.export_configuration);
+    });
+  });
+};
+ExportController.prototype.renderModel = function(a, b) {
+  var c = this;
+  c._clearContent();
+  this._document.getElementsByClassName("mapping-content-header").forEach(function(a) {
+    a.removeClass("hidden");
+  });
+  this._document.getElementsByClassName("mapping-content").forEach(function(d) {
+    d.removeClass("hidden");
+    Object.values(a.getNormalizedHeaders()).map(function(e) {
+      var f = c._document.createElement("div");
+      f.addClass("row space full");
+      return c._createChipsSection(e).then(function(a) {
+        f.appendChild(a);
+        return c._createFieldMappingSection(e, b);
+      }).then(function(d) {
+        f.appendChild(d);
+        return c._createPreviewSection(e, a, b);
+      }).then(function(a) {
+        f.appendChild(a);
+        return c._createMore(e);
+      }).then(function(a) {
+        f.appendChild(a);
+        return f;
+      }).then(function(a) {
+        d.appendChild(a);
+        return Array.from(a.querySelectorAll("select").values());
+      }).then(function(b) {
+        c._model = a;
+        b.forEach(function(a) {
+          a.dispatchEvent(new Event("change"));
+        });
+        return Array.from(f.querySelectorAll(".js-preview").values());
+      }).then(function(a) {
+        a.forEach(function(a) {
+          a.dispatchEvent(new Event("update"));
+        });
+        return d;
+      });
+    });
+  });
+};
+ExportController.prototype.renderActions = function(a) {
+  var b = this;
+  this._document.querySelectorAll(".js-content").forEach(function(a) {
+    a.removeClass("hidden");
+  });
+  var c = b._getActionButton();
+  c && (c.setEventListener("click", function(a) {
+    a.preventDefault();
+    a.stopPropagation();
+    b.progressPage().then(function(a) {
+      return b._doExport();
+    }).then(function(a) {
+      b.finishProgress(!0);
+    }).finally(function() {
+      b.endProgress();
+    });
+  }), c.setEventListener("update", function(a) {
+    b.onUpdateActionButton(c);
+  }));
+  return Promise.resolve(!0);
+};
+ExportController.prototype._doExport = function() {
+  var a = this, b = a._readConfiguration(a._model), c = new ExportFieldMapping(this._trello, this._adminService, this._getPantaFieldItems());
+  return a._adminService.getBoardCards().then(function(b) {
+    return a._pluginController.getEnabledModules().then(function(c) {
+      return c.flatMap(function(c) {
+        var d = a._clientManager.getController(c.id);
+        return b.map(function(a) {
+          return d.fetchByCard(a, c).then(function(b) {
+            d.insert(b, a);
+            return b;
+          });
+        });
+      });
+    }).then(function() {
+      return b;
+    });
+  }).then(function(d) {
+    return Promise.resolve(Object.values(a._model.getNormalizedHeaders()).map(function(a) {
+      return b.findByAddress(a.address);
+    })).then(function(b) {
+      return Promise.all(b.flatMap(function(b) {
+        return b.multi && "trello.labels" === b.reference ? a._adminService.getLabels().then(function(a) {
+          return a.map(function(a) {
+            return new BooleanField(a.name, b.reference, b.source, !0);
+          });
+        }) : Promise.all([b]);
+      }));
+    }).then(function(a) {
+      return a.flat();
+    }).then(function(a) {
+      return Promise.all(d.map(function(b) {
+        return Promise.all(a.filter(function(a) {
+          return null != a;
+        }).map(function(a) {
+          return c.map(b, a);
+        }));
+      }));
+    }).reduce(function(a, b, c) {
+      var d = new DataNode(c + 1);
+      b.forEach(function(a) {
+        d.set(null, a);
+      });
+      a.push(d);
+      return a;
+    }, []).then(function(b) {
+      a._model.data = b;
+      var c = a._adminService.excelService.write(a._model);
+      a._adminService.getCurrentCard().then(function(b) {
+        return a._adminService.uploadFileToCard(b, c);
+      });
+    });
+  });
+};
+ExportController.prototype._getTemplate = function(a) {
+  return Promise.all([this._getTrelloHeaders(a.header), this._getPantaHeaders(a.header)]).then(function(a) {
+    return a.flat();
+  });
+};
+ExportController.prototype._getTrelloHeaders = function(a) {
+  return Promise.resolve(TRELLO_FIELDS.map(function(b, c) {
+    return new HeaderNode(a, __(b.desc), {c:c, r:1});
+  }));
+};
+ExportController.prototype._getPantaHeaders = function(a) {
+  var b = this, c = a.children.length, d = a.address.r;
+  return this._getPantaFieldItems().then(function(e) {
+    return Promise.all(e.flat().flatMap(function(e) {
+      return e.fields.map(function(f) {
+        var g = e.group;
+        return b._pluginController.findPluginModuleConfigByModuleId(e.moduleId).then(function(b) {
+          return new HeaderNode(a, b.name + "." + g + "." + f.label, {c:c++, r:d});
+        });
+      });
+    }));
+  });
+};
+ExportController.prototype._clearContent = function() {
+  this._document.getElementsByClassName("mapping-content").forEach(function(a) {
+    return a.removeChildren();
+  });
+};
+ExportController.prototype._createMore = function(a) {
+  return AdminController.prototype._createMore.call(this, a);
+};
+// Input 45
 var ExcelService = function() {
   this._treatFirstRowAsRoot = !1;
 };
@@ -4713,12 +5010,37 @@ ExcelService.prototype.read = function(a) {
   if (this._treatFirstRowAsRoot) {
     this._parseImportHeader(a, 0, 0, null);
   } else {
-    var c = new HeaderNode(null, "Panta.Card", {constant:"/"});
+    var c = new HeaderNode(null, "Panta.Card", {constant:"/"}, null);
     this._parseImportHeader(a, 0, 0, c);
     b.header = c;
   }
   this._readImportData(a, b, 0, this.dataRowIndex);
   return b;
+};
+ExcelService.prototype.write = function(a) {
+  var b = XLSX.utils.book_new();
+  b.Props = {Title:"Sample Export", Subject:"Panta.Card Export", Author:"PantaRhei", CreatedDate:new Date};
+  b.SheetNames.push(a.title);
+  var c = [], d = Object.values(a.getNormalizedHeaders()).reduce(function(a, b) {
+    a.push(b.label);
+    return a;
+  }, []);
+  c.push(d);
+  a.data.map(function(a) {
+    return a.values.map(function(a) {
+      return a.value;
+    });
+  }).forEach(function(a) {
+    c.push(a);
+  });
+  b.Sheets[a.title] = XLSX.utils.aoa_to_sheet(c);
+  a = XLSX.write(b, {bookType:"xlsx", type:"binary"});
+  return new File([function(a) {
+    for (var b = new ArrayBuffer(a.length), c = new Uint8Array(b), d = 0; d < a.length; d++) {
+      c[d] = a.charCodeAt(d) & 255;
+    }
+    return b;
+  }(a)], "test.xlsx");
 };
 ExcelService.prototype._parseImportHeader = function(a, b, c, d) {
   if (c < this.dataRowIndex && b <= this.boundary.e.c) {
@@ -4726,7 +5048,7 @@ ExcelService.prototype._parseImportHeader = function(a, b, c, d) {
     if (null == f) {
       return this.treatFirstRowAsRoot ? null : this._parseImportHeader(a, b + 1, c, d);
     }
-    e = new HeaderNode(d, f.v, e, f.c ? f.c : []);
+    e = new HeaderNode(d, f.v, e, f.c ? f.c : [], null);
     if (0 === c && this._treatFirstRowAsRoot) {
       for (d = b + 1; d <= this.boundary.e.c; d++) {
         f = a[XLSX.utils.encode_cell({c:d, r:c})], null != f && e.put(f.h);
@@ -4757,7 +5079,7 @@ $jscomp.global.Object.defineProperties(ExcelService.prototype, {treatFirstRowAsR
 }, set:function(a) {
   this._treatFirstRowAsRoot = a;
 }}});
-// Input 42
+// Input 46
 var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, q, n, p) {
   this._id = a || uuid();
   this._topic = b;
@@ -4901,7 +5223,7 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, 
 $jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 3;
 }}});
-// Input 43
+// Input 47
 var PluginCardConfig = function(a, b, c) {
   this._title = a;
   this._icon = b;
@@ -4920,7 +5242,7 @@ $jscomp.global.Object.defineProperties(PluginCardConfig.prototype, {title:{confi
 }, set:function(a) {
   this._content = a;
 }}});
-// Input 44
+// Input 48
 var PluginModuleConfig = function(a, b, c) {
   this._id = a;
   this._name = b;
@@ -4956,7 +5278,7 @@ $jscomp.global.Object.defineProperties(PluginModuleConfig.prototype, {config:{co
 }, set:function(a) {
   this._id = a;
 }}});
-// Input 45
+// Input 49
 var ModuleConfig = function(a, b) {
   this._id = a || uuid();
   this._sections = b;
@@ -5014,6 +5336,9 @@ CommonBeteiligt.create = function(a, b) {
 CommonBeteiligt.prototype.isEmpty = function() {
   return isBlank(this.name) && isBlank(this.social) && isBlank(this.address) && isBlank(this.notes);
 };
+CommonBeteiligt.prototype.getByEditable = function(a) {
+  return "<" + a + ">";
+};
 $jscomp.global.Object.defineProperties(CommonBeteiligt.prototype, {id:{configurable:!0, enumerable:!0, get:function() {
   return this._id;
 }}, name:{configurable:!0, enumerable:!0, get:function() {
@@ -5063,6 +5388,32 @@ OtherBeteiligt._create = function(a) {
 OtherBeteiligt.prototype.isEmpty = function() {
   return CommonBeteiligt.prototype.isEmpty.call(this) && !this.duedate && !this.fee && !this.charges;
 };
+OtherBeteiligt.prototype.getByEditable = function(a) {
+  switch(a) {
+    case "field.id":
+      return this.id;
+    case "field.name":
+      return this.name;
+    case "field.social":
+      return this.social;
+    case "field.address":
+      return this.address;
+    case "field.notes":
+      return this.notes;
+    case "field.duedate":
+      return this.duedate;
+    case "field.fee":
+      return this.fee;
+    case "field.charges":
+      return this.charges;
+    case "field.project":
+      return this.project;
+    case "field.capOnDepenses":
+      return this.capOnDepenses;
+    default:
+      return CommonBeteiligt.prototype.getByEditable.call(this, a);
+  }
+};
 $jscomp.global.Object.defineProperties(OtherBeteiligt.prototype, {duedate:{configurable:!0, enumerable:!0, get:function() {
   return this._duedate;
 }, set:function(a) {
@@ -5102,6 +5453,30 @@ AdBeteiligt._create = function(a) {
 AdBeteiligt.prototype.isEmpty = function() {
   return CommonBeteiligt.prototype.isEmpty.call(this) && !this.format && !this.placement && !this.price;
 };
+AdBeteiligt.prototype.getByEditable = function(a) {
+  switch(a) {
+    case "field.id":
+      return this.id;
+    case "field.name":
+      return this.name;
+    case "field.social":
+      return this.social;
+    case "field.address":
+      return this.address;
+    case "field.notes":
+      return this.notes;
+    case "field.format":
+      return this.format;
+    case "field.placement":
+      return this.placement;
+    case "field.price":
+      return this.price;
+    case "field.total":
+      return this.total;
+    default:
+      return CommonBeteiligt.prototype.getByEditable.call(this, a);
+  }
+};
 $jscomp.global.Object.defineProperties(AdBeteiligt.prototype, {format:{configurable:!0, enumerable:!0, get:function() {
   return this._format;
 }, set:function(a) {
@@ -5134,12 +5509,28 @@ BlogBeteiligt._create = function(a) {
 BlogBeteiligt.prototype.isEmpty = function() {
   return CommonBeteiligt.prototype.isEmpty.call(this) && isBlank(this.date);
 };
+BlogBeteiligt.prototype.getByEditable = function(a) {
+  switch(a) {
+    case "field.id":
+      return this.id;
+    case "field.social":
+      return this.social;
+    case "field.address":
+      return this.address;
+    case "field.notes":
+      return this.notes;
+    case "field.date":
+      return this.date;
+    default:
+      return CommonBeteiligt.prototype.getByEditable.call(this, a);
+  }
+};
 $jscomp.global.Object.defineProperties(BlogBeteiligt.prototype, {date:{configurable:!0, enumerable:!0, get:function() {
   return this._date;
 }, set:function(a) {
   this._date = a;
 }}});
-// Input 46
+// Input 50
 var PluginConfiguration = function(a, b, c, d) {
   this._version = a;
   this._description = b;
@@ -5205,7 +5596,7 @@ $jscomp.global.Object.defineProperties(PluginConfiguration.prototype, {card:{con
 $jscomp.global.Object.defineProperties(PluginConfiguration, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
 }}});
-// Input 47
+// Input 51
 var Plan = function(a, b, c, d, e, f, g, h, k, l, m, q, n, p, r) {
   this._id = a || uuid();
   this._fee = d;
@@ -5307,8 +5698,8 @@ $jscomp.global.Object.defineProperties(Plan.prototype, {id:{configurable:!0, enu
 $jscomp.global.Object.defineProperties(Plan, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
 }}});
-// Input 48
-var sampleImport = {_title:"Test", _header:{_label:"Listen-Name", _children:[{_label:"Listen-Name", _children:[], _properties:[], _address:{c:0, r:0}, _comments:[], _color:null}, {_label:"Frist (Datum)", _children:[], _properties:[], _address:{c:1, r:0}, _comments:[], _color:null}, {_label:"Mitglieder(Mehrere M\u00f6glich)", _children:[], _properties:[], _address:{c:2, r:0}, _comments:[], _color:null}, {_label:"Wasser", _children:[], _properties:[], _address:{c:3, r:0}, _comments:[{a:" ", t:"Sky", 
+// Input 52
+var SAMPLE_IMPORT = {_title:"Test", _header:{_label:"Listen-Name", _children:[{_label:"Listen-Name", _children:[], _properties:[], _address:{c:0, r:0}, _comments:[], _color:null}, {_label:"Frist (Datum)", _children:[], _properties:[], _address:{c:1, r:0}, _comments:[], _color:null}, {_label:"Mitglieder(Mehrere M\u00f6glich)", _children:[], _properties:[], _address:{c:2, r:0}, _comments:[], _color:null}, {_label:"Wasser", _children:[], _properties:[], _address:{c:3, r:0}, _comments:[{a:" ", t:"Sky", 
 r:'<r><rPr><sz val="10"/><color rgb="FF000000"/><rFont val="Arial"/><family val="2"/><charset val="1"/></rPr><t xml:space="preserve">Sky</t></r>', h:'<span style="font-size:10pt;">Sky</span>'}], _color:null}, {_label:"Wiese", _children:[], _properties:[], _address:{c:4, r:0}, _comments:[{a:" ", t:"Lime", r:'<r><rPr><sz val="10"/><color rgb="FF000000"/><rFont val="Arial"/><family val="2"/><charset val="1"/></rPr><t xml:space="preserve">Lime</t></r>', h:'<span style="font-size:10pt;">Lime</span>'}], 
 _color:null}, {_label:"Strasse", _children:[], _properties:[], _address:{c:5, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:6, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:7, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:8, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:9, r:0}, _comments:[], _color:null}, {_label:"Label", 
 _children:[], _properties:[], _address:{c:10, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:11, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:12, r:0}, _comments:[], _color:null}, {_label:"Trello-Feld: TITEL", _children:[], _properties:[], _address:{c:14, r:0}, _comments:[], _color:null}, {_label:"Trello-Feld: Beschreibung", _children:[], _properties:[], _address:{c:15, r:0}, _comments:[], _color:null}, 
@@ -5317,7 +5708,7 @@ r:0}, _comments:[], _color:null}, {_label:"Feld: Details ", _children:[], _prope
 _address:{c:28, r:0}, _comments:[], _color:null}, {_label:" Feld: Telefon", _children:[], _properties:[], _address:{c:29, r:0}, _comments:[], _color:null}, {_label:"Feld: Adresse", _children:[], _properties:[], _address:{c:30, r:0}, _comments:[], _color:null}, {_label:"Feld: Konditionen", _children:[], _properties:[], _address:{c:31, r:0}, _comments:[], _color:null}, {_label:"Feld: Erfahrungen", _children:[], _properties:[], _address:{c:32, r:0}, _comments:[], _color:null}, {_label:"Facebook Feld: Link", 
 _children:[], _properties:[], _address:{c:34, r:0}, _comments:[], _color:null}, {_label:"Instagram Feld: Link", _children:[], _properties:[], _address:{c:35, r:0}, _comments:[], _color:null}, {_label:"Twitter Feld: Link", _children:[], _properties:[], _address:{c:36, r:0}, _comments:[], _color:null}, {_label:"Youtube Feld: Link", _children:[], _properties:[], _address:{c:37, r:0}, _comments:[], _color:null}, {_label:"Flickr Feld: Link", _children:[], _properties:[], _address:{c:38, r:0}, _comments:[], 
 _color:null}], _properties:[], _address:{c:-1, r:-1}, _comments:[], _color:null}};
-// Input 49
+// Input 53
 HTMLElement.prototype.addClass = function(a) {
   this.hasClass(a) || (this.className += " " + a, this.className = this.className.trim());
   return this;
@@ -5501,6 +5892,24 @@ Window.prototype.createByTemplate = function(a, b) {
   c.innerHTML = isMobileBrowser() ? b : a;
   return c.cloneNode(!0);
 };
+Array.prototype.switch = function() {
+  var a = [];
+  this.forEach(function(b) {
+    Array.isArray(b) && b.forEach(function(b, d) {
+      a[d] || (a[d] = []);
+      a[d].push(b);
+    });
+  });
+  return a;
+};
+Promise.prototype.reduce = function(a, b) {
+  return this.then(function(c) {
+    c.forEach(function(c, e) {
+      a(b, c, e);
+    });
+    return b;
+  });
+};
 function newOption(a, b) {
   return {value:a, text:b};
 }
@@ -5508,7 +5917,7 @@ function isNumber(a) {
   return !(!a || isNaN(a));
 }
 function __(a) {
-  return TEXTS[a];
+  return TEXTS[a] || a;
 }
 function isSet(a) {
   return !("undefined" === typeof a || null === a);
@@ -5520,7 +5929,7 @@ function extend(a, b) {
   return a;
 }
 ;
-// Input 50
+// Input 54
 var JsonSerialization = function() {
 };
 JsonSerialization.prototype.serialize = function(a) {
@@ -5549,7 +5958,7 @@ JsonSerialization.getProperty = function(a, b) {
 JsonSerialization.prototype.getAllProperties = function(a) {
   return Object.getOwnPropertyNames(a);
 };
-// Input 51
+// Input 55
 var template_regular = '<div id="template">    <div class="row">        <div class="col-6 col-phone-12">            <div class="row">                <div class="col-12 col-phone-12">                    <div class="pa.name"></div>                </div>                <div class="col-12 col-phone-12">                    <div class="pa.social"></div>                </div>            </div>        </div>        <div class="col-6 col-phone-12 line-4 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-6 col-phone-12">            <div class="pa.address"></div>        </div>        <div class="col-6 col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-12 col-phone-12">            <div class="row">                <div class="col-4 col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_regular_mobile = '<div id="template">    <div class="row">        <div class="col-phone-12">            <div class="pa.name"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.social"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.address"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="row">                <div class="col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.notes"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.format"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.placement"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.price"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.name"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.social"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.address"></div>            </div>        </div>    </div></div>', 
@@ -5562,11 +5971,11 @@ template_settings_editable = '<div class="row module-editable-container">    <di
 template_settings_editable_select = '<div class="row module-editable-select-container">   <select class="panta-js-select"></select></div>', template_settings_editable_option = '<div class="row module-editable-option-container">    <div class="col-10 module-editable-option-name">       <input type="text" class="panta-js-name"/>    </div>    <div class="col-2 module-editable-option-actions">       <button class="panta-btn panta-btn-icon panta-js-delete"><img src="assets/ic_trash.svg" width="16px" height="16px"/></button>       <button class="panta-btn panta-btn-icon panta-js-visible hidden"><img src="assets/ic_visible.png" width="16px" height="16px"/></button>    </div></div>', 
 template_beteiligt = '<form id="panta.module">    <div class="js-panta-editable-title">        <div class="row min"><div class="col-12">\u00a0</div></div>        <div class="row min">           <div class="col-12">                <h3 class="js-panta-module js-panta-label"></h3>           </div>        </div>    </div>    <div class="row min navigation-bar">        <div id="pa.involved.onsite" class="col-2 col-phone-4 tab" data-label="vor.Ort" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.text" class="col-2 col-phone-4 tab" data-label="Journalist" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.photo" class="col-phone-4 col-2 tab" data-label="Visual" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.video" class="col-phone-4 col-2 tab" data-label="Event" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.illu" class="col-phone-4 col-2 tab" data-label="MC/Host" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.ad" class="col-phone-4 col-2 tab" data-label="weitere" data-layout="regular"><span>Placeholder</span></div>    </div>    <span id="pa.tab.content"></span></form>', 
 template_admin_actions = '<div class="row full">            <div class="col-12">                <p>Was willst du tun?</p>            </div>        </div>        <div class="row full">            <div class="col-6 space">                <button id="btn-action-import" class="panta-btn action">Import</button>            </div>            <div class="col-6 space">                <button id="btn-action-export" class="panta-btn action js-button-export">Export</button>            </div>        </div>', 
-template_admin_import = '<div class="row full">            <div class="col-12">                <p>W\u00e4hle hier die Excel Datei aus, die importiert werden soll.</p>            </div>            <div class="col-10">                <input class="panta-btn" type="file" id="file-import">            </div>            <div class="col-2">                <button class="panta-btn" id="btn-load">Laden</button>            </div>            <div class="col-12">                <button class="panta-btn panta-bgcolor-yellow" id="btn-load-config">Konfiguration laden</button>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3">                    <b>Excel Feld</b>                </div>                <div class="col-4">                    <b>Trello Feld</b>                </div>                <div class="col-3">                    <b>Beispiel Wert</b>                </div>                <div class="col-2">                    <b>Mehr</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-10">\u00a0</div>                <div class="col-2">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-import">                        Importieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
-template_admin_export = '<div class="row">            <div class="col-12">                <p>W\u00e4hle hier die Excel Vorlage aus, die f\u00fcr den Export verwendet werden soll.</p>            </div>            <div class="col-12">                <input class="panta-btn" type="file" id="file-import">                <button class="panta-btn" id="btn-load">Laden</button>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3">                    <b>Excel Feld</b>                </div>                <div class="col-4">                    <b>Trello Feld</b>                </div>                <div class="col-3">                    <b>Beispiel Wert</b>                </div>                <div class="col-2">                    <b>Mehr</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-10">\u00a0</div>                <div class="col-2">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-export">                        Exportieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
-template_admin_errorpage = '<div class="row full">   <div class="col-12 hidden error-messages">       <p class="error" id="error-message"></p>   </div>   <div class="col-12 hidden warning-messages">       <p class="warning" id="warning-message"></p>   </div>   <div class="col-12 space">       <button id="btn-reset" class="panta-btn panta-bgcolor-red">Zur\u00fccksetzen</button>   </div></div>', template_admin_progress = '<div class="overlay js-panta-progress progress-overlay">            <div class="row full">                <div class="col-12">                    <p class="space"><span class="js-panta-current-record"></span>/<span class="js-panta-total-records"></span> Eintr\u00e4ge importiert...</p>                    <p class="details js-panta-record-details"></p>';
+template_admin_import = '<div class="row full">            <div class="col-12">                <p>W\u00e4hle hier die Excel Datei aus, die importiert werden soll.</p>            </div>            <div class="col-10">                <input class="panta-btn" type="file" id="file-import">            </div>            <div class="col-2">                <button class="panta-btn" id="btn-load">Laden</button>            </div>            <div class="col-12">                <button class="panta-btn panta-bgcolor-yellow" id="btn-load-config">Konfiguration laden</button>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3 align-right">                    <b>Excel Feld</b>                </div>                <div class="col-3">                    <b>Trello Feld</b>                </div>                <div class="col-4 align-left">                    <b>Beispiel Wert</b>                </div>                <div class="col-2 align-left">                    <b>Mehr</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-10">\u00a0</div>                <div class="col-2">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-import">                        Importieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
+template_admin_export = '<div class="row">            <div class="col-12">                <p>Standardm\u00e4ssig werden alle Trello und Panta.Card Felder exportiert</p>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3 align-right">                    <b>Excel Feld</b>                </div>                <div class="col-3">                    <b>Trello Feld</b>                </div>                <div class="col-4 align-left">                    <b>Beispiel Wert</b>                </div>                <div class="col-2 align-left">                    <b>Mehr</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-10">\u00a0</div>                <div class="col-2">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-export">                        Exportieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
+template_admin_errorpage = '<div class="row full">   <div class="col-12 hidden error-messages">       <p class="error" id="error-message"></p>   </div>   <div class="col-12 hidden warning-messages">       <p class="warning" id="warning-message"></p>   </div>   <div class="col-12 space">       <button id="btn-reset" class="panta-btn panta-bgcolor-red">Zur\u00fccksetzen</button>   </div></div>', template_admin_progress = '<div class="overlay js-panta-progress progress-overlay">            <div class="row full">                <div class="col-12">                    <p class="space"><span class="js-panta-current-record">?</span>/<span class="js-panta-total-records">?</span> <span class="js-panta-progress-postfix"></span></p>                    <p class="details js-panta-record-details"></p>';
 "                </div>            </div>        </div>";
-// Input 52
+// Input 56
 var Reducers = function() {
 };
 Reducers.asKeyValue = function(a, b) {

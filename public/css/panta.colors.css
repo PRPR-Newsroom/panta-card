@@ -6,74 +6,88 @@
 }
 
 .panta-bgcolor-blue {
-  background-color: #026AA7 !important;
+  background-color: #0079BF !important;
 }
 
 .panta-bgcolor-green {
-  background-color: #5AAC44 !important;
+  background-color: #61BD4F !important;
 }
 
 .panta-bgcolor-orange {
-  background-color: #E99E40 !important;
+  background-color: #FFAB4A !important;
 }
 
 .panta-bgcolor-red {
-  background-color: #eb5a46 !important;
+  background-color: #EB5A46 !important;
 }
 
 .panta-bgcolor-yellow {
-  background-color: #E6C60D !important;
+  background-color: #F2D600 !important;
 }
 
 .panta-bgcolor-purple {
-  background-color: #A86CC1 !important;
+  background-color: #C377E0 !important;
 }
 
 .panta-bgcolor-pink {
-  background-color: #E76EB1 !important;
+  background-color: #FF80CE !important;
 }
 
 .panta-bgcolor-sky {
-  background-color: #00AECC !important;
+  background-color: #00C2E0 !important;
 }
 
 .panta-bgcolor-lime {
-  background-color: #4FD683 !important;
+  background-color: #51E898 !important;
 }
 
 .panta-bgcolor-shades {
   background-color: #676D70 !important;
 }
 
+.panta-bgcolor-gray {
+  background-color: #C4C9CC !important;
+}
+
+.panta-bgcolor-black {
+  background-color: #254659 !important;
+}
+
 .panta-btn.panta-bgcolor-blue:hover {
-  background-color: #014a75;
+  background-color: #00598c;
 }
 .panta-btn.panta-bgcolor-green:hover {
-  background-color: #478736;
+  background-color: #4b9e3b;
 }
 .panta-btn.panta-bgcolor-orange:hover {
-  background-color: #dd8619;
+  background-color: #ff9317;
 }
 .panta-btn.panta-bgcolor-red:hover {
   background-color: #e53219;
 }
 .panta-btn.panta-bgcolor-yellow:hover {
-  background-color: #b69c0a;
+  background-color: #bfa900;
 }
 .panta-btn.panta-bgcolor-purple:hover {
-  background-color: #924ab0;
+  background-color: #b14dd7;
 }
 .panta-btn.panta-bgcolor-pink:hover {
-  background-color: #e04299;
+  background-color: #ff4dba;
 }
 .panta-btn.panta-bgcolor-sky:hover {
-  background-color: #008399;
+  background-color: #0096ad;
 }
 .panta-btn.panta-bgcolor-lime:hover {
-  background-color: #2ec468;
+  background-color: #24e27d;
 }
 .panta-btn.panta-bgcolor-shades:hover {
   background-color: #4f5355;
+}
+.panta-btn.panta-bgcolor-black:hover {
+  background-color: #162a35;
+}
+.panta-btn.panta-bgcolor-gray:hover {
+  background-color: #a9b0b4;
 }
 .panta-btn[disabled], .panta-btn[disabled]:hover {
   color: white;
