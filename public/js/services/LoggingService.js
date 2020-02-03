@@ -36,6 +36,10 @@ class LoggingService {
         return this._log(this._logs, trace, 'TRACE');
     }
 
+    w(warn) {
+       return this._log(this._logs, warn, 'WARN');
+    }
+
     e(error) {
         return this._log(this._logs, error, 'ERROR');
     }

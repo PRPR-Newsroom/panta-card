@@ -47,6 +47,13 @@
 .panta-bgcolor-shades {
   background-color: $trello-shades !important;
 }
+.panta-bgcolor-gray {
+  background-color: $trello-gray !important;
+}
+
+.panta-bgcolor-black {
+  background-color: $trello-black !important;
+}
 
 .panta-btn {
   &.panta-bgcolor-blue:hover {
@@ -78,6 +85,12 @@
   }
   &.panta-bgcolor-shades:hover {
     background-color: darken($trello-shades, 10%);
+  }
+  &.panta-bgcolor-black:hover {
+    background-color: darken($trello-black, 10%);
+  }
+  &.panta-bgcolor-gray:hover {
+    background-color: darken($trello-gray, 10%);
   }
 
   &[disabled], &[disabled]:hover {

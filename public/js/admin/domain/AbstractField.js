@@ -9,7 +9,10 @@
  * @abstract
  */
 class AbstractField {
-    
+
+    /**
+     * @return {boolean}
+     */
     get multi() {
         return this._multi;
     }
@@ -60,6 +63,10 @@ class AbstractField {
 
         this._type = this.getType();
 
+        /**
+         * @type {boolean}
+         * @private
+         */
         this._multi = multi || false;
     }
 

@@ -203,27 +203,29 @@ class Controller {
      *
      * @param {} editable
      * @param {Artikel|Plan|ModuleConfig} entity
+     * @param context
      * @param defaultValue
      * @return {*}
      */
-    getMapping(editable, entity, defaultValue) {
+    getMapping(editable, entity, context, defaultValue) {
         switch (editable.type) {
             case "select":
-                let index = this.getPropertyByName(entity, editable.id, -1);
+                const index = this.getPropertyByName(entity, context, editable.id, -1);
                 return index !== -1 ? editable.values[index] : defaultValue;
             default:
-                return this.getPropertyByName(entity, editable.id, defaultValue);
+                return this.getPropertyByName(entity, context, editable.id, defaultValue);
         }
     }
 
     /**
      * @param {Artikel|Plan|ModuleConfig} entity
+     * @param context
      * @param editableId
      * @param defaultValue
      * @return {*} the property value
      * @abstract
      */
-    getPropertyByName(entity, editableId, defaultValue) {
+    getPropertyByName(entity, context, editableId, defaultValue) {
     }
 
     /**
@@ -232,12 +234,27 @@ class Controller {
      */
     getFields(pluginModuleConfig) {
         const that = this;
-        return [[{
-            'group': 'Felder',
-            'moduleId': `${pluginModuleConfig.id}`,
-            'groupId': `${pluginModuleConfig.id}`,
-            'fields': pluginModuleConfig.config.editables.filter(that.isImportableField)
-        }]];
+
+        // this grouping came from Input 22
+        return [Object.entries(pluginModuleConfig.config.editables
+            .filter(that.isImportableField)
+            .reduce((prev, cur) => {
+                if (!prev.hasOwnProperty(cur.type)) {
+                    prev[cur.type] = [];
+                }
+                prev[cur.type].push(cur);
+                return prev;
+        }, {})).map(it => {
+            const type = it[0];
+            const fields = it[1];
+            return {
+                'group': __(`admin.import.select.label.${type}`),
+                'section': 'main',
+                'moduleId': `${pluginModuleConfig.id}`,
+                'groupId': `${pluginModuleConfig.id}`,
+                'fields': fields
+            };
+        })];
     }
 
     /**

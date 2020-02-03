@@ -1,5 +1,5 @@
 
-const sampleImport = {
+const SAMPLE_IMPORT = {
     "_title": "Test",
     "_header": {
         "_label": "Listen-Name",

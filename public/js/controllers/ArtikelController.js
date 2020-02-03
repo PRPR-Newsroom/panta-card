@@ -103,11 +103,12 @@ class ArtikelController extends Controller {
     /**
      * Get a property value by its name
      * @param {Artikel|Plan|ModuleConfig} entity
+     * @param context
      * @param name
      * @param defaultValue
      * @return {*}
      */
-    getPropertyByName(entity, name, defaultValue) {
+    getPropertyByName(entity, context, name, defaultValue) {
         switch (name) {
             case "visual":
                 return entity.visual || defaultValue;

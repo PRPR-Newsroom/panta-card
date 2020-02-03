@@ -444,16 +444,16 @@ const template_admin_import = '<div class="row full">' +
     '                </div>' +
     '            </div>' +
     '            <div class="row space full">' +
-    '                <div class="col-3">' +
+    '                <div class="col-3 align-right">' +
     '                    <b>Excel Feld</b>' +
     '                </div>' +
-    '                <div class="col-4">' +
+    '                <div class="col-3">' +
     '                    <b>Trello Feld</b>' +
     '                </div>' +
-    '                <div class="col-3">' +
+    '                <div class="col-4 align-left">' +
     '                    <b>Beispiel Wert</b>' +
     '                </div>' +
-    '                <div class="col-2">' +
+    '                <div class="col-2 align-left">' +
     '                    <b>Mehr</b>' +
     '                </div>' +
     '            </div>' +
@@ -483,15 +483,9 @@ const template_admin_import = '<div class="row full">' +
 
 const template_admin_export = '<div class="row">' +
     '            <div class="col-12">' +
-    '                <p>Wähle hier die Excel Vorlage aus, die für den Export verwendet werden soll.</p>' +
+    '                <p>Standardmässig werden alle Trello und Panta.Card Felder exportiert</p>' +
     '            </div>' +
-    '            <div class="col-12">' +
-    '                <input class="panta-btn" type="file" id="file-import">' +
-    '                <button class="panta-btn" id="btn-load">Laden</button>' +
-    '            </div>' +
-    '' +
     '        </div>' +
-    '' +
     '        <div class="hidden mapping-content-header">' +
     '            <div class="row full">' +
     '                <div class="col-12">' +
@@ -499,16 +493,16 @@ const template_admin_export = '<div class="row">' +
     '                </div>' +
     '            </div>' +
     '            <div class="row space full">' +
-    '                <div class="col-3">' +
+    '                <div class="col-3 align-right">' +
     '                    <b>Excel Feld</b>' +
     '                </div>' +
-    '                <div class="col-4">' +
+    '                <div class="col-3">' +
     '                    <b>Trello Feld</b>' +
     '                </div>' +
-    '                <div class="col-3">' +
+    '                <div class="col-4 align-left">' +
     '                    <b>Beispiel Wert</b>' +
     '                </div>' +
-    '                <div class="col-2">' +
+    '                <div class="col-2 align-left">' +
     '                    <b>Mehr</b>' +
     '                </div>' +
     '            </div>' +
@@ -516,7 +510,6 @@ const template_admin_export = '<div class="row">' +
     '        <form>' +
     '            <div class="hidden mapping-content">' +
     '            </div>' +
-    '' +
     '            <div class="row space full">' +
     '                <div class="col-10"> </div>' +
     '                <div class="col-2">' +
@@ -525,7 +518,6 @@ const template_admin_export = '<div class="row">' +
     '                    </button>' +
     '                </div>' +
     '            </div>' +
-    '' +
     '            <div class="row">' +
     '                <div class="col-12 hidden error-messages">' +
     '                    <p class="error" id="error-message"></p>' +
@@ -552,8 +544,8 @@ const template_admin_errorpage =
 const template_admin_progress = '<div class="overlay js-panta-progress progress-overlay">' +
     '            <div class="row full">' +
     '                <div class="col-12">' +
-    '                    <p class="space"><span class="js-panta-current-record"></span>/<span class="js-panta-total-records"></span> Einträge importiert...</p>' +
+    '                    <p class="space"><span class="js-panta-current-record">?</span>/<span class="js-panta-total-records">?</span> <span class="js-panta-progress-postfix"></span></p>' +
     '                    <p class="details js-panta-record-details"></p>'
-    '                </div>' +
-    '            </div>' +
-    '        </div>';
+'                </div>' +
+'            </div>' +
+'        </div>';

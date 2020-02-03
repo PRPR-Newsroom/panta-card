@@ -173,11 +173,12 @@ class ModulePlanController extends Controller {
 
     /**
      * @param {Plan} entity
+     * @param context
      * @param name
      * @param defaultValue
      * @return {*}
      */
-    getPropertyByName(entity, name, defaultValue) {
+    getPropertyByName(entity, context, name, defaultValue) {
         // TODO calculated fields cannot yet be shown as card badges because the value is actually not really stored on the entity
         switch (name) {
             case "field.a":

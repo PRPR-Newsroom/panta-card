@@ -1,16 +1,19 @@
 class Import {
 
     static create(name, json) {
-        const instance = new Import('Import');
+        const instance = new Import(name);
         if (json) {
             const _header = JsonSerialization.getProperty(json, 'header');
-            const header = new HeaderNode(null, _header._label, _header._address, _header._comments);
-            header.addAll(_header._children.map(it => new HeaderNode(header, it._label, it._address, it._comments)));
+            const header = new HeaderNode(null, _header._label, _header._address, _header._comments, _header._color);
+            header.addAll(_header._children.map(it => new HeaderNode(header, it._label, it._address, it._comments, it._color)));
             instance.header = header;
         }
         return instance;
     }
 
+    /**
+     * @return {DataNode[]}
+     */
     get data() {
         return this._data;
     }
@@ -94,6 +97,9 @@ class Import {
         return this.getHeaders(this.header);
     }
 
+    /**
+     * @param {DataNode} node
+     */
     put(node) {
        this.data.push(node);
     }

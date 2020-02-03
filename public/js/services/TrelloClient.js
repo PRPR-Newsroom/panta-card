@@ -42,6 +42,29 @@ class TrelloClient {
     }
 
     /**
+     *
+     * @return {{id: string, name: string, desc: string, due: Date?, members: string[], labels: {}[], idList: string}[]}
+     */
+    getAllBoardCards() {
+        return this.trello.cards('id', 'name', 'desc', 'due', 'members', 'labels', 'idList');
+    }
+
+    getListById(id) {
+        const that = this;
+        return this.withTrelloToken()
+            .then(token => {
+                const request = that._createBody(token, {
+                    'fields': 'name'
+                });
+                return new Promise(function (resolve, reject) {
+                    window.Trello.get(`/lists/${id}`, request, data => {
+                        resolve(data);
+                    });
+                });
+            })
+    }
+
+    /**
      * @param {{id: string}} card
      * @param {File} file
      * @param {string} username
@@ -93,7 +116,7 @@ class TrelloClient {
                 })
             });
     }
-    
+
     /**
      *
      * @return {Promise<{token: string, key: string}>}
@@ -147,7 +170,7 @@ class TrelloClient {
                 return {token: it, key: that.trello.getRestApi().appKey};
             }));
     }
-    
+
     resetToken() {
         this._requests++;
         return this.trello.getRestApi()
@@ -221,7 +244,7 @@ class TrelloClient {
         const that = this;
         return that.withTrelloToken()
             .then(appToken => {
-                return new Promise(function(resolve, reject) {
+                return new Promise(function (resolve, reject) {
                     that._requests++;
                     window.Trello.get('/search/members', that._createBody(appToken, {
                         query: `${it}`,
@@ -234,7 +257,7 @@ class TrelloClient {
                 });
             });
     }
-    
+
     getLabels() {
         const that = this;
         return that.trello.board("id", "name", "labels")
@@ -262,7 +285,7 @@ class TrelloClient {
                     if (!found) {
                         return that.createLabel(labelName, it.source.color, board.id)
                             .catch(it => {
-                                that._loggingService.e(`Label «${labelName}» konnte nicht erstellt werden: ${it}`);
+                                that._loggingService.w(`Label «${labelName}» konnte nicht erstellt werden: ${it}`);
                                 return false;
                             });
                     } else {

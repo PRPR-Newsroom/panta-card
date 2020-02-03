@@ -467,13 +467,13 @@ class ClientManager {
                         return pmc.config.editables;
                     })
                     .filter(function(editable) {
-                        let val = that.getPlanController().getMapping(editable, entity, null);
+                        let val = that.getPlanController().getMapping(editable, entity, 'main',null);
                         return val !== null && editable.show === true;
                     })
                     .map(function(editable) {
 
                         return {
-                            "text": editable.label + ": " + that.getPlanController().getMapping(editable, entity, "-"),
+                            "text": editable.label + ": " + that.getPlanController().getMapping(editable, entity, 'main',"-"),
                             "color": editable.color
                         };
                     })
@@ -525,10 +525,10 @@ class ClientManager {
     getArticleModuleContext(card) {
         const that = this;
         return {
-            "id": "module.artikel",
+            "id": ArtikelController.ID,
             "shared": ArtikelController.SHARED_NAME,
             "card": card,
-            "configuration": that.getModuleConfiguration("module.artikel"),
+            "configuration": that.getModuleConfiguration(ArtikelController.ID),
             "condition": that.isArticleModuleEnabled(),
             "on": function () {
                 let badges = [];
@@ -540,18 +540,17 @@ class ClientManager {
                     });
                 }
 
-                return that.getModuleConfiguration("module.artikel")
+                return that.getModuleConfiguration(ArtikelController.ID)
                     .then(function(pmc) {
                         return pmc.config.editables;
                     })
                     .filter(function(editable) {
-                        let val = that.getArticleController().getMapping(editable, entity, null);
+                        const val = that.getArticleController().getMapping(editable, entity, 'main', null);
                         return val && editable.show === true;
                     })
                     .map(function(editable) {
-
                         return {
-                            "text": editable.label + ": " + that.getArticleController().getMapping(editable, entity, ""),
+                            "text": editable.label + ": " + that.getArticleController().getMapping(editable, entity, 'main',""),
                             "color": editable.color
                         };
                     })
