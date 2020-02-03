@@ -103,7 +103,7 @@ class PluginController {
     }
 
     /**
-     * @return {Promise<{configuration: ImportConfiguration}>}
+     * @return {Promise<{configuration: DataConfiguration}>}
      */
     getAdminConfiguration() {
         const that = this;
@@ -131,7 +131,7 @@ class PluginController {
     }
 
     /**
-     * @return {Promise<{configuration: ImportConfiguration}>}
+     * @return {Promise<{configuration: DataConfiguration}>}
      */
     resetAdminConfiguration() {
         const that = this;
@@ -140,30 +140,37 @@ class PluginController {
     }
 
     /**
-     * @return {Promise<{configuration: ImportConfiguration}>}
+     * @return {Promise<{configuration: DataConfiguration}>}
      */
     parseAdminConfiguration(str) {
-        return Promise.resolve(this._parseAdminConfiguration(Base64.decode(str)));
+        return Promise.resolve(this._createAdminConfiguration(JSON.parse(str)));
     }
 
     /**
-     * @return {{configuration: ImportConfiguration}}
+     * @return {{configuration: DataConfiguration}}
      */
     _parseAdminConfiguration(data) {
         try {
             if (isString(data) && !isBlank(data)) {
                 const raw = JSON.parse(LZString.decompress(data) || '{ "configuration": null }');
-                return {
-                    configuration: ImportConfiguration.create(raw.configuration)
-                }
+                return this._createAdminConfiguration(raw);
             } else {
-                return {
-                    configuration: ImportConfiguration.create()
-                };
+                return this._createAdminConfiguration();
             }
         } catch (ex) {
             throw new Error(`Could not read configuration: ${Base64.encode(data)}`);
         }
+    }
+
+    _createAdminConfiguration(raw) {
+        const config = {};
+        if (raw && raw.hasOwnProperty('configuration')) {
+            config.configuration = DataConfiguration.create(raw.configuration);
+        } else {
+            config.configuration = DataConfiguration.create();
+        }
+        config.export_configuration = DataConfiguration.createExport();
+        return config;
     }
 
     /**
@@ -193,7 +200,7 @@ class PluginController {
 
     /**
      * @param id
-     * @return {PluginModuleConfig}
+     * @return {PromiseLike<PluginModuleConfig>}
      */
     findPluginModuleConfigByModuleId(id) {
         return this.getPluginConfiguration()

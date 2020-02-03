@@ -519,6 +519,7 @@ class ModuleController extends Controller {
             .map(it => {
                 return [{
                     'group': it.label,
+                    'section': it.id,
                     'moduleId': `${pluginModuleConfig.id}`,
                     'groupId': `${pluginModuleConfig.id}.${it.id}`,
                     'fields': pluginModuleConfig.config.layouts[it.layout]
@@ -527,12 +528,41 @@ class ModuleController extends Controller {
             });
     }
 
-    getPropertyByName(entity, editableId, defaultValue) {
-        // switch (editableId) {
-        //     case "field.name":
-        //         return entity.sections
-        // }
-        return "not_yet_implemented";
+    /**
+     * @param {ModuleConfig} entity
+     * @param context
+     * @param editableId
+     * @param defaultValue
+     * @return {string}
+     */
+    getPropertyByName(entity, context, editableId, defaultValue) {
+        const section = this._getSectionByName(entity, context);
+        return section.getByEditable(editableId);
+    }
+
+    /**
+     * @param entity
+     * @param section
+     * @return {CommonBeteiligt} the section for that name
+     * @private
+     */
+    _getSectionByName(entity, section) {
+        switch (section) {
+            case 'ad':
+                return entity.sections.ad;
+            case 'illu':
+                return entity.sections.illu;
+            case 'onsite':
+                return entity.sections.onsite;
+            case 'photo':
+                return entity.sections.photo;
+            case 'text':
+                return entity.sections.text;
+            case 'video':
+                return entity.sections.video;
+            default:
+                throw 'invalid configuration';
+        }
     }
 
     getSharedName() {

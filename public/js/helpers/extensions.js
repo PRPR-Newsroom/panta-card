@@ -397,6 +397,35 @@ Window.prototype.createByTemplate = function (desktop_template, mobile_template)
     return virtual.cloneNode(true);
 };
 
+Array.prototype.switch = function() {
+    const rows = [];
+    this.forEach(cols => {
+        if (Array.isArray(cols)) {
+            cols.forEach((it, ri) => {
+                if (!rows[ri]) {
+                    rows[ri] = [];
+                }
+                rows[ri].push(it);
+            });
+        }
+    });
+    return rows;
+};
+
+/**
+ * @param callbackfn
+ * @param initialValue
+ */
+Promise.prototype.reduce = function(callbackfn, initialValue) {
+    return this.then(its => {
+        const data = initialValue;
+        its.forEach((row, index) => {
+            callbackfn(data, row, index);
+        });
+        return data;
+    });
+};
+
 /**
  * A helper function to create new options
  * @param value
@@ -420,7 +449,7 @@ function isNumber(number) {
  * @private
  */
 function __(id) {
-    return TEXTS[id];
+    return TEXTS[id] || id;
 }
 
 /**

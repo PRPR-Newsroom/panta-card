@@ -41,6 +41,47 @@ class ExcelService {
     }
 
     /**
+     * @param {Import} model
+     * @return {File}
+     */
+    write(model) {
+        const wb = XLSX.utils.book_new();
+        wb.Props = {
+            Title: 'Sample Export',
+            Subject: 'Panta.Card Export',
+            Author: 'PantaRhei',
+            CreatedDate: new Date()
+        };
+        wb.SheetNames.push(model.title);
+
+        const rows = [];
+        const cols = Object.values(model.getNormalizedHeaders()).reduce((prev, cur) => {
+            prev.push(cur.label);
+            return prev;
+        }, []);
+        rows.push(cols);
+        model.data.map(it => {
+            return it.values.map(it => it.value);
+        }).forEach(it => {
+            rows.push(it);
+        });
+
+        wb.Sheets[model.title] = XLSX.utils.aoa_to_sheet(rows);
+
+        const bin = XLSX.write(wb, {bookType: 'xlsx', type: 'binary'});
+
+        function s2ab(s) {
+            const buf = new ArrayBuffer(s.length);
+            const view = new Uint8Array(buf);
+            for(let i=0;i<s.length;i++) {
+                view[i] = s.charCodeAt(i) & 0xFF;
+            }
+            return buf;
+        }
+        return new File([s2ab(bin)], 'test.xlsx');
+    }
+
+    /**
      * Parse the headers of that worksheet
      * @param worksheet
      * @param column

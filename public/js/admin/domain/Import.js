@@ -1,7 +1,7 @@
 class Import {
 
     static create(name, json) {
-        const instance = new Import('Import');
+        const instance = new Import(name);
         if (json) {
             const _header = JsonSerialization.getProperty(json, 'header');
             const header = new HeaderNode(null, _header._label, _header._address, _header._comments, _header._color);
@@ -11,6 +11,9 @@ class Import {
         return instance;
     }
 
+    /**
+     * @return {DataNode[]}
+     */
     get data() {
         return this._data;
     }
@@ -94,6 +97,9 @@ class Import {
         return this.getHeaders(this.header);
     }
 
+    /**
+     * @param {DataNode} node
+     */
     put(node) {
        this.data.push(node);
     }

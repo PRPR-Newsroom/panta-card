@@ -172,6 +172,13 @@ class CommonBeteiligt {
     set version(value) {
         this._version = value;
     }
+
+    /**
+     * @param {string} editable
+     */
+    getByEditable(editable) {
+        return `<${editable}>`;
+    }
 }
 
 class OtherBeteiligt extends CommonBeteiligt {
@@ -261,6 +268,33 @@ class OtherBeteiligt extends CommonBeteiligt {
     isEmpty() {
         return super.isEmpty() && !this.duedate && !this.fee && !this.charges;
     }
+
+    getByEditable(editable) {
+        switch (editable) {
+            case 'field.id':
+                return this.id;
+            case 'field.name':
+                return this.name;
+            case 'field.social':
+                return this.social;
+            case 'field.address':
+                return this.address;
+            case 'field.notes':
+                return this.notes;
+            case 'field.duedate':
+                return this.duedate;
+            case 'field.fee':
+                return this.fee;
+            case 'field.charges':
+                return this.charges;
+            case 'field.project':
+                return this.project;
+            case 'field.capOnDepenses':
+                return this.capOnDepenses;
+            default:
+                return super.getByEditable(editable);
+        }
+    }
 }
 
 class AdBeteiligt extends CommonBeteiligt {
@@ -341,6 +375,31 @@ class AdBeteiligt extends CommonBeteiligt {
     isEmpty() {
         return super.isEmpty() && !this.format && !this.placement && !this.price;
     }
+
+    getByEditable(editable) {
+        switch (editable) {
+            case 'field.id':
+                return this.id;
+            case 'field.name':
+                return this.name;
+            case 'field.social':
+                return this.social;
+            case 'field.address':
+                return this.address;
+            case 'field.notes':
+                return this.notes;
+            case 'field.format':
+                return this.format;
+            case 'field.placement':
+                return this.placement;
+            case 'field.price':
+                return this.price;
+            case 'field.total':
+                return this.total;
+            default:
+                return super.getByEditable(editable);
+        }
+    }
 }
 
 class BlogBeteiligt extends CommonBeteiligt {
@@ -390,6 +449,24 @@ class BlogBeteiligt extends CommonBeteiligt {
 
     isEmpty() {
         return super.isEmpty() && isBlank(this.date);
+    }
+
+
+    getByEditable(editable) {
+        switch (editable) {
+            case 'field.id':
+                return this.id;
+            case 'field.social':
+                return this.social;
+            case 'field.address':
+                return this.address;
+            case 'field.notes':
+                return this.notes;
+            case 'field.date':
+                return this.date;
+            default:
+                return super.getByEditable(editable);
+        }
     }
 }
 

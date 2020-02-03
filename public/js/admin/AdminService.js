@@ -37,6 +37,10 @@ class AdminService {
         this._context = null;
     }
 
+    getLabels() {
+        return this.trelloClient.getLabels();
+    }
+
     hasLabel(label, color) {
         return this.trelloClient.getLabels()
             .map(it => it.name === label && it.color === color)
@@ -87,6 +91,17 @@ class AdminService {
     }
 
     /**
+     * @return {{id: string, name: string, desc: string, due?: Date, members: string[], labels: {}[], idList: string}[]}
+     */
+    getBoardCards() {
+        return this.trelloClient.getAllBoardCards();
+    }
+
+    getListById(id) {
+        return this.trelloClient.getListById(id)
+    }
+
+    /**
      * @param {{id: string}} card
      * @param {File} file
      * @return {Promise<Blob>}
@@ -109,7 +124,7 @@ class AdminService {
 
     /**
      * @param {Import} model
-     * @param {ImportConfiguration} configuration
+     * @param {DataConfiguration} configuration
      * @return {Promise<any>}
      */
     importCards(model, configuration) {
@@ -127,7 +142,7 @@ class AdminService {
      * Import the data at index and when the import was successful it will proceed to the next one
      * @param {Import} model
      * @param index
-     * @param {ImportConfiguration} configuration
+     * @param {DataConfiguration} configuration
      * @return {Promise<boolean>}
      * @private
      */
@@ -139,7 +154,7 @@ class AdminService {
                     return new Promise(function (resolve, reject) {
                         const percent = Math.min(((index+1.0)/Math.max(1.0, model.data.length))*100, 100.0);
                         const progress = `${percent.toFixed(2)}%`;
-                        that.context.each.apply(that.context.context, [index+1, model.data.length, progress]);
+                        that.context.each.apply(that.context.context, [index+1, model.data.length, 'Einträge importiert...', progress]);
                         resolve(that._importCard(model, index + 1, configuration));
                     });
                 });
@@ -153,7 +168,7 @@ class AdminService {
     /**
      *
      * @param {DataNode} data
-     * @param {ImportConfiguration} configuration
+     * @param {DataConfiguration} configuration
      * @return {Promise<T>}
      * @private
      */
@@ -183,7 +198,7 @@ class AdminService {
     /**
      * @param {{id: string}} list
      * @param {DataNode} data
-     * @param {ImportConfiguration} configuration
+     * @param {DataConfiguration} configuration
      * @return {Promise<any>}
      * @private
      */
@@ -275,7 +290,7 @@ class AdminService {
     /**
      * Import Plan if the module is enabled
      * @param data
-     * @param {ImportConfiguration} configuration
+     * @param {DataConfiguration} configuration
      * @param {{id: string}} card
      * @return {PromiseLike<T | never> | Promise<T | never>}
      * @private
@@ -328,7 +343,7 @@ class AdminService {
     /**
      * Import the Artikel if the module is enabled
      * @param data
-     * @param {ImportConfiguration} configuration
+     * @param {DataConfiguration} configuration
      * @param {{id: string}} card
      * @return {PromiseLike<T | never> | Promise<T | never>}
      * @private
@@ -454,7 +469,7 @@ class AdminService {
 
     /**
      * @param name
-     * @param {ImportConfiguration} configuration
+     * @param {DataConfiguration} configuration
      * @return {AbstractField}
      * @private
      */
@@ -463,7 +478,7 @@ class AdminService {
     }
 
     /**
-     * @param {ImportConfiguration} configuration
+     * @param {DataConfiguration} configuration
      * @return {AbstractField[]} all trello label fields
      * @private
      */
@@ -473,7 +488,7 @@ class AdminService {
 
     /**
      *
-     * @param {ImportConfiguration} configuration
+     * @param {DataConfiguration} configuration
      * @return {AbstractField} all trello list fields
      * @private
      */
@@ -485,7 +500,7 @@ class AdminService {
      *
      * @param {DataNode} data
      * @param name
-     * @param {ImportConfiguration} configuration
+     * @param {DataConfiguration} configuration
      * @return {null}
      * @private
      */

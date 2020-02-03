@@ -105,11 +105,11 @@ const TEXTS = {
     "module.beteiligt.field-date.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
 
     'trello.list.desc': 'Trello.Liste',
-    'trello.title.desc': 'Card Titel',
-    'trello.description.desc': 'Card Beschreibung',
-    'trello.members.desc': 'Card Mitglieder',
-    'trello.duedate.desc': 'Card Frist',
-    'trello.labels.desc': 'Card Label',
+    'trello.title.desc': 'Card.Titel',
+    'trello.description.desc': 'Card.Beschreibung',
+    'trello.members.desc': 'Card.Mitglieder',
+    'trello.duedate.desc': 'Card.Frist',
+    'trello.labels.desc': 'Card.Label',
 
     'admin.import.select.label.text': 'Felder',
     'admin.import.select.label.select': 'Listen',
