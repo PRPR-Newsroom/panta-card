@@ -34,21 +34,24 @@ class FieldMapping {
         const that = this;
         switch (field.reference) {
             case 'trello.title':
-                return card.name;
+                return Promise.resolve(card.name);
             case 'trello.description':
-                return card.desc;
+                return Promise.resolve(card.desc);
             case 'trello.duedate':
-                return card.due;
+                return Promise.resolve(card.due);
             case 'trello.members':
-                return that.mapArray(card.members.map(that.mapMember));
+                return Promise.resolve(that.mapArray(card.members.map(that.mapMember)));
             case 'trello.labels':
-                return that.mapArray(card.labels
+                return Promise.resolve(that.mapArray(card.labels
                     .filter(it => that.labelFilter(it, field))
-                    .map(it => that.mapLabel(it))) || that.emptyValue();
+                    .map(it => that.mapLabel(it))) || that.emptyValue());
             case 'trello.list':
                 return that._adminService.getListById(card.idList)
-                    .then(it => {
-                        return it.name;
+                    .then(its => {
+                        if (its.length === 1) {
+                            return its[0].name;
+                        }
+                        return that.emptyValue();
                     });
             default:
                 return that._getPantaFields()

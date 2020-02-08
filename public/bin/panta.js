@@ -596,14 +596,8 @@ TrelloClient.prototype.getAllBoardCards = function() {
   return this.trello.cards("id", "name", "desc", "due", "members", "labels", "idList");
 };
 TrelloClient.prototype.getListById = function(a) {
-  var b = this;
-  return this.withTrelloToken().then(function(c) {
-    var d = b._createBody(c, {fields:"name"});
-    return new Promise(function(b, c) {
-      window.Trello.get("/lists/" + a, d, function(a) {
-        b(a);
-      });
-    });
+  return this.trello.lists("id", "name").filter(function(b) {
+    return b.id === a;
   });
 };
 TrelloClient.prototype.attachFile = function(a, b, c) {
@@ -843,7 +837,7 @@ LoggingService.prototype._log = function(a, b, c) {
   return this;
 };
 // Input 5
-var VERSION = "1.5.5-STAGING", APP_NAME = "Panta.Cards", APP_KEY = "0bdd0023d8f9b9a23ed80260495bbe9b", PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.settings.hint":"Folgende MODULE sind f\u00fcr dieses BOARD verf\u00fcgbar:<br/>Sobald mindestens ein MODUL aktiviert ist, wird dieses in jeder CARD auf dem BOARD dargestellt.", "module.artikel.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.", 
+var VERSION = "1.5.6-STAGING", APP_NAME = "Panta.Cards", APP_KEY = "0bdd0023d8f9b9a23ed80260495bbe9b", PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.settings.hint":"Folgende MODULE sind f\u00fcr dieses BOARD verf\u00fcgbar:<br/>Sobald mindestens ein MODUL aktiviert ist, wird dieses in jeder CARD auf dem BOARD dargestellt.", "module.artikel.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.",
 "module.artikel.desc":"ARTIKEL-Eingabefelder und LISTEN f\u00fcr dieses BOARD konfigurieren:<br/>F\u00fcr jedes Feld kann eine Farbe definiert werden.<br/>Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf der CARD Vorderseite \u2013 ansonsten wird es nur auf der CARD Innenseite dargestellt.", "module.artikel.editable.desc":"Beschriftung und Stichworte der maximal sechs LISTEN definieren:<br/>Die Reihenfolge der Stichwort muss fix erfasst werden.<br/>Die Zahl der Stichwort ist NICHT begrenzt.<br/>Maximal vier der sechs LISTEN lassen sich sortieren.<br/>LISTEN ohne Beschriftung werden auf der CARD nicht dargestellt.", 
 "module.artikel.field-a.desc":"Das Textfeld \u00abA\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-b.desc":"Das Textfeld \u00abB\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-c.desc":"Das Textfeld \u00abC\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-d.desc":"Das Textfeld \u00abD\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
 "module.artikel.field-e.desc":"Das Textfeld \u00abE\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-f.desc":"Das Textfeld \u00abF\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-g.desc":"Das Textfeld \u00abG\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.beteiligt.desc":"BETEILIGT kann als Erg\u00e4nzung zum ARTIKEL oder PLAN aktiviert werden.<br/>Hier die Eingabefelder und LISTEN f\u00fcr das ganze BOARD konfigurieren:", 
@@ -1002,22 +996,22 @@ FieldMapping.prototype.map = function(a, b) {
   var c = this;
   switch(b.reference) {
     case "trello.title":
-      return a.name;
+      return Promise.resolve(a.name);
     case "trello.description":
-      return a.desc;
+      return Promise.resolve(a.desc);
     case "trello.duedate":
-      return a.due;
+      return Promise.resolve(a.due);
     case "trello.members":
-      return c.mapArray(a.members.map(c.mapMember));
+      return Promise.resolve(c.mapArray(a.members.map(c.mapMember)));
     case "trello.labels":
-      return c.mapArray(a.labels.filter(function(a) {
+      return Promise.resolve(c.mapArray(a.labels.filter(function(a) {
         return c.labelFilter(a, b);
       }).map(function(a) {
         return c.mapLabel(a);
-      })) || c.emptyValue();
+      })) || c.emptyValue());
     case "trello.list":
       return c._adminService.getListById(a.idList).then(function(a) {
-        return a.name;
+        return 1 === a.length ? a[0].name : c.emptyValue();
       });
     default:
       return c._getPantaFields().then(function(d) {
