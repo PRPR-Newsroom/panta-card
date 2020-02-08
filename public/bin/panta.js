@@ -596,14 +596,8 @@ TrelloClient.prototype.getAllBoardCards = function() {
   return this.trello.cards("id", "name", "desc", "due", "members", "labels", "idList");
 };
 TrelloClient.prototype.getListById = function(a) {
-  var b = this;
-  return this.withTrelloToken().then(function(c) {
-    var d = b._createBody(c, {fields:"name"});
-    return new Promise(function(b, c) {
-      window.Trello.get("/lists/" + a, d, function(a) {
-        b(a);
-      });
-    });
+  return this.trello.lists("id", "name").filter(function(b) {
+    return b.id === a;
   });
 };
 TrelloClient.prototype.attachFile = function(a, b, c) {
@@ -1002,22 +996,22 @@ FieldMapping.prototype.map = function(a, b) {
   var c = this;
   switch(b.reference) {
     case "trello.title":
-      return a.name;
+      return Promise.resolve(a.name);
     case "trello.description":
-      return a.desc;
+      return Promise.resolve(a.desc);
     case "trello.duedate":
-      return a.due;
+      return Promise.resolve(a.due);
     case "trello.members":
-      return c.mapArray(a.members.map(c.mapMember));
+      return Promise.resolve(c.mapArray(a.members.map(c.mapMember)));
     case "trello.labels":
-      return c.mapArray(a.labels.filter(function(a) {
+      return Promise.resolve(c.mapArray(a.labels.filter(function(a) {
         return c.labelFilter(a, b);
       }).map(function(a) {
         return c.mapLabel(a);
-      })) || c.emptyValue();
+      })) || c.emptyValue());
     case "trello.list":
       return c._adminService.getListById(a.idList).then(function(a) {
-        return a.name;
+        return 1 === a.length ? a[0].name : c.emptyValue();
       });
     default:
       return c._getPantaFields().then(function(d) {

@@ -245,7 +245,10 @@ class ExportController extends AdminController {
                             const group = it.group;
                             return that._pluginController.findPluginModuleConfigByModuleId(it.moduleId)
                                 .then(config => {
-                                    return new HeaderNode(root, `${config.name}.${group}.${field.label}`, {c: column++, r: row});
+                                    return new HeaderNode(root, `${config.name}.${group}.${field.label}`, {
+                                        c: column++,
+                                        r: row
+                                    });
                                 });
                         });
                     }));

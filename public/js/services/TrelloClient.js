@@ -51,17 +51,8 @@ class TrelloClient {
 
     getListById(id) {
         const that = this;
-        return this.withTrelloToken()
-            .then(token => {
-                const request = that._createBody(token, {
-                    'fields': 'name'
-                });
-                return new Promise(function (resolve, reject) {
-                    window.Trello.get(`/lists/${id}`, request, data => {
-                        resolve(data);
-                    });
-                });
-            })
+        return that.trello.lists('id','name')
+            .filter(it => it.id === id);
     }
 
     /**
