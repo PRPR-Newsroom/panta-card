@@ -43,12 +43,6 @@ class DataConfiguration {
         return config;
     }
 
-    static createExport() {
-        const config = new DataConfiguration();
-
-        return config;
-    }
-
     /**
      * @return {{id: string, color: string, idBoard: string, name: string}[]}
      */

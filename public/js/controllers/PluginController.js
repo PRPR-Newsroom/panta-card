@@ -152,7 +152,7 @@ class PluginController {
     _parseAdminConfiguration(data) {
         try {
             if (isString(data) && !isBlank(data)) {
-                const raw = JSON.parse(LZString.decompress(data) || '{ "configuration": null }');
+                const raw = JSON.parse(LZString.decompress(data) || '{ "configuration": null, "export_configuration": null }');
                 return this._createAdminConfiguration(raw);
             } else {
                 return this._createAdminConfiguration();
@@ -169,7 +169,13 @@ class PluginController {
         } else {
             config.configuration = DataConfiguration.create();
         }
-        config.export_configuration = DataConfiguration.createExport();
+
+        if (raw && raw.hasOwnProperty('export_configuration')) {
+            config.export_configuration = DataConfiguration.create(raw.export_configuration);
+        } else {
+            config.export_configuration = DataConfiguration.create();
+        }
+
         return config;
     }
 

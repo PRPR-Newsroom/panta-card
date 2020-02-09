@@ -320,11 +320,6 @@ class AdminController {
                                 that.finishProgress(false, `Es traten Fehler beim Import auf. Ein detaillierter Rapport wurde dieser Trello Card angehängt.`);
                                 console.error(it.stack);
                             })
-                            .catch(it => {
-                                that._loggingService.e(`Es trat folgender Fehler auf: ${it.stack}`);
-                                that.finishProgress(false, `Es traten Fehler beim Hochladen der Datei(en) auf. Ein detaillierter Rapport wurde dieser Trello Card angehängt.`);
-                                console.error(it.stack);
-                            })
                             .finally(() => {
                                 button.removeAttribute('disabled');
                                 return that._adminService.getCurrentCard()

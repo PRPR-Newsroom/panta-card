@@ -20,12 +20,12 @@ class ExportController extends AdminController {
                         })
                 }));
             })
-            .then(() => {
-                return that._adminService.getLabels()
-                    .then(its => {
-                        config.export_configuration.labels = its;
-                    });
-            })
+            // .then(() => {
+            //     return that._adminService.getLabels()
+            //         .then(its => {
+            //             config.export_configuration.labels = its;
+            //         });
+            // })
             .then(() => {
                 const model = Import.create('Export');
                 model.header = new HeaderNode(null, 'Root', {c: -1, r: -1, constant: 'Virtual Node'});
@@ -37,7 +37,6 @@ class ExportController extends AdminController {
             })
             .then((model) => {
                 // TODO create default mapping header <-> field
-                config.export_configuration.mapping
                 return that.renderActions(config)
                     .then(() => {
                         return that.renderModel(model, config.export_configuration);
@@ -47,6 +46,7 @@ class ExportController extends AdminController {
 
     renderModel(model, config) {
         const that = this;
+        console.debug('renderModel with config', config);
         that._clearContent();
         this._document.getElementsByClassName("mapping-content-header").forEach(it => {
             it.removeClass("hidden");
@@ -113,16 +113,21 @@ class ExportController extends AdminController {
             actionButton.setEventListener('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                // TODO start progress
+                e.target.disabled = true;
                 that.progressPage()
                     .then(it => {
-                        return that._doExport();
+                        return that._doExport(it);
+                    })
+                    .catch(reason => {
+                        console.debug('got an error', reason);
+                        that.finishProgress(false, reason);
                     })
                     .then(it => {
-                        that.finishProgress(true);
+                        that.finishProgress(true, 'Fertig');
                     })
                     .finally(() => {
-                        that.endProgress();
+                        // that.endProgress();
+                        e.target.disabled = false;
                     });
             });
             actionButton.setEventListener('update', e => {
@@ -133,74 +138,106 @@ class ExportController extends AdminController {
         return Promise.resolve(true);
     }
 
-    _doExport() {
+    _doExport(progress) {
         const that = this;
         // read the data row by row
         // get all cards on this board
         const config = that._readConfiguration(that._model);
-        const mapping = new ExportFieldMapping(this._trello, this._adminService, this._getPantaFieldItems());
-        return that._adminService.getBoardCards()
-            .then(cards => {
+        if (config.isValid()) {
+            const mapping = new ExportFieldMapping(this._trello, this._adminService, this._getPantaFieldItems());
+            return that._adminService.getBoardCards()
+                .then(cards => {
 
-                return that._pluginController.getEnabledModules()
-                    .then(its => {
-                        return its.flatMap(it => {
-                            const controller = that._clientManager.getController(it.id);
-                            return cards.map(card => {
-                                return controller.fetchByCard(card, it)
-                                    .then(it => {
-                                        controller.insert(it, card);
-                                        return it;
-                                    });
-                            });
-                        });
-                    })
-                    .then(() => {
-                        return cards;
-                    });
-            })
-            .then(cards => {
-                return Promise.resolve(Object.values(that._model.getNormalizedHeaders()).map(it => {
-                    return config.findByAddress(it.address);
-                })).then(fields => {
-                    return Promise.all(fields.flatMap(field => {
-                        if (field.multi && field.reference === 'trello.labels') {
-                            return that._adminService.getLabels()
-                                .then(its => {
-                                    return its.map(it => {
-                                        return new BooleanField(it.name, field.reference, field.source, true);
-                                    });
+                    return that._pluginController.getEnabledModules()
+                        .then(its => {
+                            return its.flatMap(it => {
+                                const controller = that._clientManager.getController(it.id);
+                                return cards.map(card => {
+                                    return controller.fetchByCard(card, it)
+                                        .then(it => {
+                                            controller.insert(it, card);
+                                            return it;
+                                        });
                                 });
-                        } else {
-                            return Promise.all([field]);
-                        }
-                    }));
-                }).then(its => its.flat())
-                    .then(fields => {
-                        return Promise.all(cards.map(card => {
-                            return Promise.all(fields.filter(it => it != null).map(field => {
-                                return mapping.map(card, field);
-                            }));
-                        }));
-                    })
-                    .reduce((prev, cur, index) => {
-                        const node = new DataNode(index + 1);
-                        cur.forEach(it => {
-                            node.set(null, it);
-                        });
-                        prev.push(node);
-                        return prev;
-                    }, [])
-                    .then(rows => {
-                        that._model.data = rows;
-                        // TODO headers must be extended with dynamic labels
-                        const binary = that._adminService.excelService.write(that._model);
-                        that._adminService.getCurrentCard()
-                            .then(it => {
-                                return that._adminService.uploadFileToCard(it, binary);
                             });
-                    });
-            });
+                        })
+                        .then(() => {
+                            return cards;
+                        });
+                })
+                .then(cards => {
+                    progress.each.apply(that, [0, cards.length, 'Einträge exportiert...', '0.00%']);
+                    return Promise.resolve(Object.values(that._model.getNormalizedHeaders()).map(it => {
+                        return config.findByAddress(it.address);
+                    })).then(fields => {
+                        return Promise.all(fields.flatMap(field => {
+                            if (field.multi && field.reference === 'trello.labels') {
+                                return that._adminService.getLabels()
+                                    .then(its => {
+                                        its.forEach((it, index) => {
+                                            if (index > 0) {
+                                                const labeledHeader = new HeaderNode(field.source.parent, `${it.name}`, {
+                                                    c: field.source.address.c + 100 + index,
+                                                    r: field.source.address.r
+                                                }, null, it.color);
+                                                that._model.insertAt(field.source, labeledHeader);
+                                            } else {
+                                                // rename first label
+                                                that._model.getHeader(field.source.address).label = it.name;
+                                                that._model.getHeader(field.source.address).color = it.color;
+                                            }
+                                        });
+                                        return its;
+                                    })
+                                    .then(its => {
+                                        return its.map(it => {
+                                            return new BooleanField(it.name, field.reference, field.source, true);
+                                        });
+                                    });
+                            } else {
+                                return Promise.all([field]);
+                            }
+                        }));
+                    }).then(its => its.flat())
+                        .then(fields => {
+                            return Promise.all(cards.map(card => {
+                                return Promise.all(fields.filter(it => it != null).map(field => {
+                                    return mapping.map(card, field);
+                                }));
+                            }));
+                        })
+                        .reduce((prev, cur, index) => {
+                            const node = new DataNode(index + 1);
+                            cur.forEach(it => {
+                                node.set(null, it);
+                            });
+                            prev.push(node);
+
+                            const percent = Math.min(((index+1.0)/Math.max(1.0, cards.length))*100, 100.0);
+                            const details = `${percent.toFixed(2)}%`;
+                            progress.each.apply(that, [index+1, cards.length, 'Einträge exportiert...', details]);
+
+                            return prev;
+                        }, [])
+                        .then(rows => {
+                            that._model.data = rows;
+                            const binary = that._adminService.excelService.write(that._model);
+                            that._adminService.getCurrentCard()
+                                .then(it => {
+                                    return that._adminService.uploadFileToCard(it, binary);
+                                });
+                        });
+                })
+                .then(it => {
+                    console.debug('Saving configuration', config);
+                    that._propertyBag['export_configuration'] = config;
+                    return that._pluginController.setAdminConfiguration(that._propertyBag);
+                });
+        } else {
+            const validations = config.getValidationErrors();
+            const errors = validations.join('<br/>');
+            that._showWarnings(document, `Die Konfiguration ist unvollständig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>${errors}`);
+        }
     }
 
     /**

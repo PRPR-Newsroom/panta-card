@@ -28,7 +28,7 @@ class HeaderNode {
          */
         this._children = [];
         this._properties = [];
-        this._address = address ? { c: address.c, r: address.r, constant: address.constant } : null;
+        this._address = address ? {c: address.c, r: address.r, constant: address.constant} : null;
         this._comments = comments ? comments : [];
         this._color = color;
     }
@@ -37,10 +37,16 @@ class HeaderNode {
         return this._address;
     }
 
+    /**
+     * @return {HeaderNode}
+     */
     get parent() {
         return this._parent;
     }
 
+    /**
+     * @return {HeaderNode[]}
+     */
     get children() {
         return this._children;
     }
@@ -51,6 +57,10 @@ class HeaderNode {
 
     get label() {
         return this._label;
+    }
+
+    set label(label) {
+        this._label = label;
     }
 
     get comments() {

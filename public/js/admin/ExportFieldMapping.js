@@ -1,6 +1,6 @@
 class ExportFieldMapping extends FieldMapping {
 
-    mapLabel(label) {
+    mapLabel(label, field) {
         return !!label;
     }
 
@@ -9,7 +9,7 @@ class ExportFieldMapping extends FieldMapping {
     }
 
     mapMember(member) {
-        return member.name;
+        return member.email;
     }
 
     emptyValue() {
@@ -19,5 +19,13 @@ class ExportFieldMapping extends FieldMapping {
 
     mapArray(array) {
         return array;
+    }
+
+    /**
+     * @param {Iterable} members
+     * @return {*}
+     */
+    mapMembers(members) {
+        return members.join(',');
     }
 }

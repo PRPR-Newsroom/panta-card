@@ -281,16 +281,14 @@ class OtherBeteiligt extends CommonBeteiligt {
                 return this.address;
             case 'field.notes':
                 return this.notes;
-            case 'field.duedate':
+            case 'field.deadline':
                 return this.duedate;
-            case 'field.fee':
+            case 'field.a':
                 return this.fee;
-            case 'field.charges':
+            case 'field.b':
                 return this.charges;
-            case 'field.project':
+            case 'field.c':
                 return this.project;
-            case 'field.capOnDepenses':
-                return this.capOnDepenses;
             default:
                 return super.getByEditable(editable);
         }
@@ -380,13 +378,7 @@ class AdBeteiligt extends CommonBeteiligt {
         switch (editable) {
             case 'field.id':
                 return this.id;
-            case 'field.name':
-                return this.name;
-            case 'field.social':
-                return this.social;
-            case 'field.address':
-                return this.address;
-            case 'field.notes':
+            case 'field.sujet':
                 return this.notes;
             case 'field.format':
                 return this.format;
@@ -396,6 +388,12 @@ class AdBeteiligt extends CommonBeteiligt {
                 return this.price;
             case 'field.total':
                 return this.total;
+            case 'field.name':
+                return this.name;
+            case 'field.social':
+                return this.social;
+            case 'field.address':
+                return this.address;
             default:
                 return super.getByEditable(editable);
         }
@@ -456,14 +454,14 @@ class BlogBeteiligt extends CommonBeteiligt {
         switch (editable) {
             case 'field.id':
                 return this.id;
-            case 'field.social':
+            case 'field.follower':
                 return this.social;
-            case 'field.address':
-                return this.address;
             case 'field.notes':
                 return this.notes;
             case 'field.date':
                 return this.date;
+            case 'field.link':
+                return this.address;
             default:
                 return super.getByEditable(editable);
         }
