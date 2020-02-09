@@ -1,5 +1,5 @@
 // SEE ALSO VERSION FILE
-const VERSION = "1.5.6-STAGING";
+const VERSION = "1.5.7-STAGING";
 
 const APP_NAME = "Panta.Cards";
 // when changing this API Key you should also change the key parameter where you load the Trello client.js
