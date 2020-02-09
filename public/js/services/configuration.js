@@ -115,13 +115,6 @@ const TEXTS = {
     'admin.import.select.label.select': 'Listen',
 };
 
-// TODO: can be replace by the new Trello condtion 'admin'
-const POWERUP_ADMINS = [
-    "manu29494020",
-    "koni_nordmann",
-    "ray2505",
-];
-
 /**
  * @type {{id: string, desc: string, type: string?, multi: string?}[]}
  */
