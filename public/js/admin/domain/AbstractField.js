@@ -43,6 +43,10 @@ class AbstractField {
         return this._name;
     }
 
+    set name(name) {
+        this._name = name;
+    }
+
     /**
      * @param name a human readable name
      * @param {string} reference the referenced, target field (e.g. the trello field but also any panta.card field)

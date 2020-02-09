@@ -13,7 +13,7 @@ class ImportFieldMapping extends FieldMapping {
         return label.name === this.header.label && label.color === this.header.color;
     }
 
-    mapLabel(label) {
+    mapLabel(label, field) {
         return `${label.name} (${label.color})`;
     }
 
@@ -23,5 +23,9 @@ class ImportFieldMapping extends FieldMapping {
 
     mapArray(array) {
         return array.join('<br/>');
+    }
+
+    mapMembers(members) {
+        return members;
     }
 }

@@ -105,6 +105,21 @@ class Import {
     }
 
     /**
+     *
+     * @param {HeaderNode} afterHeader
+     * @param {HeaderNode} headerToInsert
+     */
+    insertAt(afterHeader, headerToInsert) {
+        const parent = this.getHeader(afterHeader.address).parent;
+        const idx = parent.children.findIndex(it => {
+            return it.isSameAddress(afterHeader.address);
+        });
+        if (idx !== -1) {
+            parent.children.splice(idx + 1, 0, headerToInsert);
+        }
+    }
+
+    /**
      * Get a sample value if there's one at the given position
      * @param {HeaderNode} header
      * @return {Promise<{header: string, value: {h: string, v: string, t: string}}|null>}

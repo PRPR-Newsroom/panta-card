@@ -49,10 +49,19 @@ class TrelloClient {
         return this.trello.cards('id', 'name', 'desc', 'due', 'members', 'labels', 'idList');
     }
 
+    /**
+     * Get the list by its id
+     * @param id
+     * @return {*}
+     */
     getListById(id) {
         const that = this;
         return that.trello.lists('id','name')
-            .filter(it => it.id === id);
+            .filter(it => it.id === id)
+            .reduce((prev, cur) => {
+                prev = cur;
+                return prev;
+            }, null);
     }
 
     /**

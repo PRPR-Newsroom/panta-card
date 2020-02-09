@@ -442,6 +442,11 @@ $jscomp.polyfill("String.prototype.startsWith", function(a) {
     return g >= f;
   };
 }, "es6", "es3");
+$jscomp.polyfill("Array.prototype.findIndex", function(a) {
+  return a ? a : function(a, c) {
+    return $jscomp.findInternal(this, a, c).i;
+  };
+}, "es6", "es3");
 $jscomp.polyfill("Promise.prototype.finally", function(a) {
   return a ? a : function(a) {
     return this.then(function(b) {
@@ -598,7 +603,9 @@ TrelloClient.prototype.getAllBoardCards = function() {
 TrelloClient.prototype.getListById = function(a) {
   return this.trello.lists("id", "name").filter(function(b) {
     return b.id === a;
-  });
+  }).reduce(function(a, c) {
+    return c;
+  }, null);
 };
 TrelloClient.prototype.attachFile = function(a, b, c) {
   var d = this;
@@ -850,9 +857,8 @@ var VERSION = "1.5.6-STAGING", APP_NAME = "Panta.Cards", APP_KEY = "0bdd0023d8f9
 "module.beteiligt.field-notes.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-deadline.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-a.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-b.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
 "module.beteiligt.field-c.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-total.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-price.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-placement.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
 "module.beteiligt.field-format.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-sujet.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-link.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-follower.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
-"module.beteiligt.field-date.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "trello.list.desc":"Trello.Liste", "trello.title.desc":"Card.Titel", "trello.description.desc":"Card.Beschreibung", "trello.members.desc":"Card.Mitglieder", "trello.duedate.desc":"Card.Frist", "trello.labels.desc":"Card.Label", "admin.import.select.label.text":"Felder", "admin.import.select.label.select":"Listen"}, POWERUP_ADMINS = ["manu29494020", "koni_nordmann", 
-"ray2505"], TRELLO_FIELDS = [{id:"trello.list", desc:"trello.list.desc"}, {id:"trello.title", desc:"trello.title.desc"}, {id:"trello.description", desc:"trello.description.desc"}, {id:"trello.members", desc:"trello.members.desc", type:"array"}, {id:"trello.duedate", desc:"trello.duedate.desc", type:"date"}, {id:"trello.labels", desc:"trello.labels.desc", type:"boolean", multi:!0}], TRELLO_COLORS = {Blue:"blue", Green:"green", Orange:"orange", Red:"red", Yellow:"yellow", Purple:"purple", Pink:"pink", 
-Sky:"sky", Lime:"lime", Black:"black"};
+"module.beteiligt.field-date.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "trello.list.desc":"Trello.Liste", "trello.title.desc":"Card.Titel", "trello.description.desc":"Card.Beschreibung", "trello.members.desc":"Card.Mitglieder", "trello.duedate.desc":"Card.Frist", "trello.labels.desc":"Card.Label", "admin.import.select.label.text":"Felder", "admin.import.select.label.select":"Listen"}, TRELLO_FIELDS = [{id:"trello.list", desc:"trello.list.desc"}, 
+{id:"trello.title", desc:"trello.title.desc"}, {id:"trello.description", desc:"trello.description.desc"}, {id:"trello.members", desc:"trello.members.desc", type:"array"}, {id:"trello.duedate", desc:"trello.duedate.desc", type:"date"}, {id:"trello.labels", desc:"trello.labels.desc", type:"boolean", multi:!0}], TRELLO_COLORS = {Blue:"blue", Green:"green", Orange:"orange", Red:"red", Yellow:"yellow", Purple:"purple", Pink:"pink", Sky:"sky", Lime:"lime", Black:"black"};
 // Input 6
 var DI = function() {
 };
@@ -1002,20 +1008,20 @@ FieldMapping.prototype.map = function(a, b) {
     case "trello.duedate":
       return Promise.resolve(a.due);
     case "trello.members":
-      return Promise.resolve(c.mapArray(a.members.map(c.mapMember)));
+      return Promise.resolve(c.mapMembers(a.members.map(c.mapMember)));
     case "trello.labels":
       return Promise.resolve(c.mapArray(a.labels.filter(function(a) {
         return c.labelFilter(a, b);
       }).map(function(a) {
-        return c.mapLabel(a);
+        return c.mapLabel(a, b);
       })) || c.emptyValue());
     case "trello.list":
       return c._adminService.getListById(a.idList).then(function(a) {
-        return 1 === a.length ? a[0].name : c.emptyValue();
+        return a.name;
       });
     default:
       return c._getPantaFields().then(function(d) {
-        return (d = d.flatMap(function(a) {
+        d = d.flatMap(function(a) {
           return a;
         }).map(function(d) {
           var e = d.groupId, g = d.moduleId, h = d.section;
@@ -1029,14 +1035,15 @@ FieldMapping.prototype.map = function(a, b) {
           return null;
         }).find(function(a) {
           return null !== a;
-        })) ? d : c.emptyValue();
+        });
+        return Promise.resolve(d ? d : c.emptyValue());
       });
   }
 };
 FieldMapping.prototype.emptyValue = function() {
   return "";
 };
-FieldMapping.prototype.mapLabel = function(a) {
+FieldMapping.prototype.mapLabel = function(a, b) {
   return "";
 };
 FieldMapping.prototype.labelFilter = function(a, b) {
@@ -1044,6 +1051,9 @@ FieldMapping.prototype.labelFilter = function(a, b) {
 };
 FieldMapping.prototype.mapMember = function(a) {
   return "";
+};
+FieldMapping.prototype.mapMembers = function(a) {
+  return a;
 };
 FieldMapping.prototype.mapArray = function(a) {
   return a;
@@ -1776,7 +1786,7 @@ PluginController.prototype.parseAdminConfiguration = function(a) {
 PluginController.prototype._parseAdminConfiguration = function(a) {
   try {
     if (isString(a) && !isBlank(a)) {
-      var b = JSON.parse(LZString.decompress(a) || '{ "configuration": null }');
+      var b = JSON.parse(LZString.decompress(a) || '{ "configuration": null, "export_configuration": null }');
       return this._createAdminConfiguration(b);
     }
     return this._createAdminConfiguration();
@@ -1787,7 +1797,7 @@ PluginController.prototype._parseAdminConfiguration = function(a) {
 PluginController.prototype._createAdminConfiguration = function(a) {
   var b = {};
   a && a.hasOwnProperty("configuration") ? b.configuration = DataConfiguration.create(a.configuration) : b.configuration = DataConfiguration.create();
-  b.export_configuration = DataConfiguration.createExport();
+  a && a.hasOwnProperty("export_configuration") ? b.export_configuration = DataConfiguration.create(a.export_configuration) : b.export_configuration = DataConfiguration.create();
   return b;
 };
 PluginController.prototype.setPluginModuleConfig = function(a, b) {
@@ -3592,6 +3602,8 @@ $jscomp.global.Object.defineProperties(AbstractField.prototype, {multi:{configur
   this._reference = a;
 }}, name:{configurable:!0, enumerable:!0, get:function() {
   return this._name;
+}, set:function(a) {
+  this._name = a;
 }}});
 // Input 32
 var AdminService = function(a, b) {
@@ -3864,7 +3876,7 @@ ImportFieldMapping.prototype.mapMember = function(a) {
 ImportFieldMapping.prototype.labelFilter = function(a, b) {
   return a.name === this.header.label && a.color === this.header.color;
 };
-ImportFieldMapping.prototype.mapLabel = function(a) {
+ImportFieldMapping.prototype.mapLabel = function(a, b) {
   return a.name + " (" + a.color + ")";
 };
 ImportFieldMapping.prototype.emptyValue = function() {
@@ -3872,6 +3884,9 @@ ImportFieldMapping.prototype.emptyValue = function() {
 };
 ImportFieldMapping.prototype.mapArray = function(a) {
   return a.join("<br/>");
+};
+ImportFieldMapping.prototype.mapMembers = function(a) {
+  return a;
 };
 // Input 34
 var HeaderNode = function(a, b, c, d, e) {
@@ -3938,6 +3953,8 @@ $jscomp.global.Object.defineProperties(HeaderNode.prototype, {address:{configura
   return this._properties;
 }}, label:{configurable:!0, enumerable:!0, get:function() {
   return this._label;
+}, set:function(a) {
+  this._label = a;
 }}, comments:{configurable:!0, enumerable:!0, get:function() {
   return this._comments;
 }}, color:{configurable:!0, enumerable:!0, get:function() {
@@ -4051,6 +4068,12 @@ Import.prototype.getNormalizedHeaders = function() {
 Import.prototype.put = function(a) {
   this.data.push(a);
 };
+Import.prototype.insertAt = function(a, b) {
+  var c = this.getHeader(a.address).parent, d = c.children.findIndex(function(b) {
+    return b.isSameAddress(a.address);
+  });
+  -1 !== d && c.children.splice(d + 1, 0, b);
+};
 Import.prototype.getSample = function(a) {
   return 0 < this.data.length ? Promise.resolve(this.data[0].get(a)) : Promise.resolve(null);
 };
@@ -4149,9 +4172,6 @@ DataConfiguration.create = function(a) {
     }
   }), b.labels = JsonSerialization.getProperty(a, "labels"));
   return b;
-};
-DataConfiguration.createExport = function() {
-  return new DataConfiguration;
 };
 DataConfiguration.prototype.isValid = function() {
   return 0 === this.getValidationErrors().length;
@@ -4377,10 +4397,6 @@ AdminController.prototype._doImport = function(a) {
       }).catch(function(a) {
         b._loggingService.e("Es trat folgender Fehler auf: " + a.stack);
         b.finishProgress(!1, "Es traten Fehler beim Import auf. Ein detaillierter Rapport wurde dieser Trello Card angeh\u00e4ngt.");
-        console.error(a.stack);
-      }).catch(function(a) {
-        b._loggingService.e("Es trat folgender Fehler auf: " + a.stack);
-        b.finishProgress(!1, "Es traten Fehler beim Hochladen der Datei(en) auf. Ein detaillierter Rapport wurde dieser Trello Card angeh\u00e4ngt.");
         console.error(a.stack);
       }).finally(function() {
         c.removeAttribute("disabled");
@@ -4792,20 +4808,23 @@ var ExportFieldMapping = function(a) {
   FieldMapping.apply(this, arguments);
 };
 $jscomp.inherits(ExportFieldMapping, FieldMapping);
-ExportFieldMapping.prototype.mapLabel = function(a) {
+ExportFieldMapping.prototype.mapLabel = function(a, b) {
   return !!a;
 };
 ExportFieldMapping.prototype.labelFilter = function(a, b) {
   return a.name === b.name;
 };
 ExportFieldMapping.prototype.mapMember = function(a) {
-  return a.name;
+  return a.email;
 };
 ExportFieldMapping.prototype.emptyValue = function() {
   return "";
 };
 ExportFieldMapping.prototype.mapArray = function(a) {
   return a;
+};
+ExportFieldMapping.prototype.mapMembers = function(a) {
+  return a.join(",");
 };
 // Input 44
 var ExportController = function(a, b, c, d) {
@@ -4827,10 +4846,6 @@ ExportController.prototype.render = function(a) {
       });
     }));
   }).then(function() {
-    return b._adminService.getLabels().then(function(b) {
-      a.export_configuration.labels = b;
-    });
-  }).then(function() {
     var a = Import.create("Export");
     a.header = new HeaderNode(null, "Root", {c:-1, r:-1, constant:"Virtual Node"});
     return b._getTemplate(a).then(function(b) {
@@ -4838,7 +4853,6 @@ ExportController.prototype.render = function(a) {
       return a;
     });
   }).then(function(c) {
-    a.export_configuration.mapping;
     return b.renderActions(a).then(function() {
       return b.renderModel(c, a.export_configuration);
     });
@@ -4846,6 +4860,7 @@ ExportController.prototype.render = function(a) {
 };
 ExportController.prototype.renderModel = function(a, b) {
   var c = this;
+  console.debug("renderModel with config", b);
   c._clearContent();
   this._document.getElementsByClassName("mapping-content-header").forEach(function(a) {
     a.removeClass("hidden");
@@ -4894,70 +4909,91 @@ ExportController.prototype.renderActions = function(a) {
   c && (c.setEventListener("click", function(a) {
     a.preventDefault();
     a.stopPropagation();
+    a.target.disabled = !0;
     b.progressPage().then(function(a) {
-      return b._doExport();
+      return b._doExport(a);
+    }).catch(function(a) {
+      console.debug("got an error", a);
+      b.finishProgress(!1, a);
     }).then(function(a) {
-      b.finishProgress(!0);
+      b.finishProgress(!0, "Fertig");
     }).finally(function() {
-      b.endProgress();
+      a.target.disabled = !1;
     });
   }), c.setEventListener("update", function(a) {
     b.onUpdateActionButton(c);
   }));
   return Promise.resolve(!0);
 };
-ExportController.prototype._doExport = function() {
-  var a = this, b = a._readConfiguration(a._model), c = new ExportFieldMapping(this._trello, this._adminService, this._getPantaFieldItems());
-  return a._adminService.getBoardCards().then(function(b) {
-    return a._pluginController.getEnabledModules().then(function(c) {
-      return c.flatMap(function(c) {
-        var d = a._clientManager.getController(c.id);
-        return b.map(function(a) {
-          return d.fetchByCard(a, c).then(function(b) {
-            d.insert(b, a);
-            return b;
+ExportController.prototype._doExport = function(a) {
+  var b = this, c = b._readConfiguration(b._model);
+  if (c.isValid()) {
+    var d = new ExportFieldMapping(this._trello, this._adminService, this._getPantaFieldItems());
+    return b._adminService.getBoardCards().then(function(a) {
+      return b._pluginController.getEnabledModules().then(function(c) {
+        return c.flatMap(function(c) {
+          var d = b._clientManager.getController(c.id);
+          return a.map(function(a) {
+            return d.fetchByCard(a, c).then(function(b) {
+              d.insert(b, a);
+              return b;
+            });
           });
         });
+      }).then(function() {
+        return a;
       });
-    }).then(function() {
-      return b;
-    });
-  }).then(function(d) {
-    return Promise.resolve(Object.values(a._model.getNormalizedHeaders()).map(function(a) {
-      return b.findByAddress(a.address);
-    })).then(function(b) {
-      return Promise.all(b.flatMap(function(b) {
-        return b.multi && "trello.labels" === b.reference ? a._adminService.getLabels().then(function(a) {
-          return a.map(function(a) {
-            return new BooleanField(a.name, b.reference, b.source, !0);
-          });
-        }) : Promise.all([b]);
-      }));
-    }).then(function(a) {
-      return a.flat();
-    }).then(function(a) {
-      return Promise.all(d.map(function(b) {
-        return Promise.all(a.filter(function(a) {
-          return null != a;
-        }).map(function(a) {
-          return c.map(b, a);
+    }).then(function(e) {
+      a.each.apply(b, [0, e.length, "Eintr\u00e4ge exportiert...", "0.00%"]);
+      return Promise.resolve(Object.values(b._model.getNormalizedHeaders()).map(function(a) {
+        return c.findByAddress(a.address);
+      })).then(function(a) {
+        return Promise.all(a.flatMap(function(a) {
+          return a.multi && "trello.labels" === a.reference ? b._adminService.getLabels().then(function(c) {
+            c.forEach(function(c, d) {
+              0 < d ? (c = new HeaderNode(a.source.parent, "" + c.name, {c:a.source.address.c + 100 + d, r:a.source.address.r}, null, c.color), b._model.insertAt(a.source, c)) : (b._model.getHeader(a.source.address).label = c.name, b._model.getHeader(a.source.address).color = c.color);
+            });
+            return c;
+          }).then(function(b) {
+            return b.map(function(b) {
+              return new BooleanField(b.name, a.reference, a.source, !0);
+            });
+          }) : Promise.all([a]);
         }));
-      }));
-    }).reduce(function(a, b, c) {
-      var d = new DataNode(c + 1);
-      b.forEach(function(a) {
-        d.set(null, a);
+      }).then(function(a) {
+        return a.flat();
+      }).then(function(a) {
+        return Promise.all(e.map(function(b) {
+          return Promise.all(a.filter(function(a) {
+            return null != a;
+          }).map(function(a) {
+            return d.map(b, a);
+          }));
+        }));
+      }).reduce(function(c, d, f) {
+        var g = new DataNode(f + 1);
+        d.forEach(function(a) {
+          g.set(null, a);
+        });
+        c.push(g);
+        d = Math.min((f + 1.0) / Math.max(1.0, e.length) * 100, 100.0).toFixed(2) + "%";
+        a.each.apply(b, [f + 1, e.length, "Eintr\u00e4ge exportiert...", d]);
+        return c;
+      }, []).then(function(a) {
+        b._model.data = a;
+        var c = b._adminService.excelService.write(b._model);
+        b._adminService.getCurrentCard().then(function(a) {
+          return b._adminService.uploadFileToCard(a, c);
+        });
       });
-      a.push(d);
-      return a;
-    }, []).then(function(b) {
-      a._model.data = b;
-      var c = a._adminService.excelService.write(a._model);
-      a._adminService.getCurrentCard().then(function(b) {
-        return a._adminService.uploadFileToCard(b, c);
-      });
+    }).then(function(a) {
+      console.debug("Saving configuration", c);
+      b._propertyBag.export_configuration = c;
+      return b._pluginController.setAdminConfiguration(b._propertyBag);
     });
-  });
+  }
+  var e = c.getValidationErrors().join("<br/>");
+  b._showWarnings(document, "Die Konfiguration ist unvollst\u00e4ndig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>" + e);
 };
 ExportController.prototype._getTemplate = function(a) {
   return Promise.all([this._getTrelloHeaders(a.header), this._getPantaHeaders(a.header)]).then(function(a) {
@@ -5394,16 +5430,14 @@ OtherBeteiligt.prototype.getByEditable = function(a) {
       return this.address;
     case "field.notes":
       return this.notes;
-    case "field.duedate":
+    case "field.deadline":
       return this.duedate;
-    case "field.fee":
+    case "field.a":
       return this.fee;
-    case "field.charges":
+    case "field.b":
       return this.charges;
-    case "field.project":
+    case "field.c":
       return this.project;
-    case "field.capOnDepenses":
-      return this.capOnDepenses;
     default:
       return CommonBeteiligt.prototype.getByEditable.call(this, a);
   }
@@ -5451,13 +5485,7 @@ AdBeteiligt.prototype.getByEditable = function(a) {
   switch(a) {
     case "field.id":
       return this.id;
-    case "field.name":
-      return this.name;
-    case "field.social":
-      return this.social;
-    case "field.address":
-      return this.address;
-    case "field.notes":
+    case "field.sujet":
       return this.notes;
     case "field.format":
       return this.format;
@@ -5467,6 +5495,12 @@ AdBeteiligt.prototype.getByEditable = function(a) {
       return this.price;
     case "field.total":
       return this.total;
+    case "field.name":
+      return this.name;
+    case "field.social":
+      return this.social;
+    case "field.address":
+      return this.address;
     default:
       return CommonBeteiligt.prototype.getByEditable.call(this, a);
   }
@@ -5507,14 +5541,14 @@ BlogBeteiligt.prototype.getByEditable = function(a) {
   switch(a) {
     case "field.id":
       return this.id;
-    case "field.social":
+    case "field.follower":
       return this.social;
-    case "field.address":
-      return this.address;
     case "field.notes":
       return this.notes;
     case "field.date":
       return this.date;
+    case "field.link":
+      return this.address;
     default:
       return CommonBeteiligt.prototype.getByEditable.call(this, a);
   }

@@ -27,8 +27,10 @@ class FieldMapping {
     }
 
     /**
-     * @param {{id: string, name: string, desc: string, due: string, members: {}[], labels: {}[], idList: string}} card
-     * @param {AbstractField} field
+     *
+     * {{id: string, name: string, desc: string, due: string, members: {}[], labels: {}[], idList: string}} card
+     * @param field
+     * @return {Promise<string>}
      */
     map(card, field) {
         const that = this;
@@ -40,19 +42,14 @@ class FieldMapping {
             case 'trello.duedate':
                 return Promise.resolve(card.due);
             case 'trello.members':
-                return Promise.resolve(that.mapArray(card.members.map(that.mapMember)));
+                return Promise.resolve(that.mapMembers(card.members.map(that.mapMember)));
             case 'trello.labels':
                 return Promise.resolve(that.mapArray(card.labels
                     .filter(it => that.labelFilter(it, field))
-                    .map(it => that.mapLabel(it))) || that.emptyValue());
+                    .map(it => that.mapLabel(it, field))) || that.emptyValue());
             case 'trello.list':
                 return that._adminService.getListById(card.idList)
-                    .then(its => {
-                        if (its.length === 1) {
-                            return its[0].name;
-                        }
-                        return that.emptyValue();
-                    });
+                    .then(it => it.name);
             default:
                 return that._getPantaFields()
                     .then(its => {
@@ -74,7 +71,7 @@ class FieldMapping {
                                 return null;
                             })
                             .find(it => it !== null);
-                        return it ? it : that.emptyValue();
+                        return Promise.resolve(it ? it : that.emptyValue());
                     });
         }
     }
@@ -83,7 +80,7 @@ class FieldMapping {
         return "";
     }
 
-    mapLabel(label) {
+    mapLabel(label, field) {
         return '';
     }
 
@@ -98,6 +95,15 @@ class FieldMapping {
      */
     mapMember(member) {
         return ``;
+    }
+
+    /**
+     * @param {Iterable} members
+     * @return {*}
+     * @abstract
+     */
+    mapMembers(members) {
+        return members;
     }
 
     /**
