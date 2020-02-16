@@ -1,6 +1,6 @@
 [UNRELEASED]
 
-[0.99-SNAPSHOT]
+[1.5.8-STAGING]
 
 # Changes
 
