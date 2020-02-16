@@ -72,3 +72,9 @@ form, .settings-content, .settings-import-export {
     width: 100%;
   }
 }
+
+.settings-import-export {
+  input[type=text] {
+    height: 26px;
+  }
+}

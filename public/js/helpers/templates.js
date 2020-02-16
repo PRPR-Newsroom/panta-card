@@ -410,7 +410,7 @@ let template_beteiligt = '<form id="panta.module">' +
 
 const template_admin_actions = '<div class="row full">' +
     '            <div class="col-12">' +
-    '                <p>Was willst du tun?</p>' +
+    '                <p class="topic">Was willst du tun?</p>' +
     '            </div>' +
     '        </div>' +
     '        <div class="row full">' +
@@ -424,7 +424,7 @@ const template_admin_actions = '<div class="row full">' +
 
 const template_admin_import = '<div class="row full">' +
     '            <div class="col-12">' +
-    '                <p>Wähle hier die Excel Datei aus, die importiert werden soll.</p>' +
+    '                <p class="topic">Wähle hier die Excel Datei aus, die importiert werden soll.</p>' +
     '            </div>' +
     '            <div class="col-10">' +
     '                <input class="panta-btn" type="file" id="file-import">' +
@@ -481,9 +481,9 @@ const template_admin_import = '<div class="row full">' +
     '            </div>' +
     '        </form>';
 
-const template_admin_export = '<div class="row">' +
+const template_admin_export = '<div class="row full">' +
     '            <div class="col-12">' +
-    '                <p>Standardmässig werden alle Trello und Panta.Card Felder exportiert</p>' +
+    '                <p class="topic">Standardmässig werden alle Trello und Panta.Card Felder exportiert</p>' +
     '            </div>' +
     '        </div>' +
     '        <div class="hidden mapping-content-header">' +
@@ -499,11 +499,11 @@ const template_admin_export = '<div class="row">' +
     '                <div class="col-3">' +
     '                    <b>Trello Feld</b>' +
     '                </div>' +
-    '                <div class="col-4 align-left">' +
+    '                <div class="col-3 align-left">' +
     '                    <b>Beispiel Wert</b>' +
     '                </div>' +
-    '                <div class="col-2 align-left">' +
-    '                    <b>Mehr</b>' +
+    '                <div class="col-3 align-left">' +
+    '                    <b>Beschriftung überschreiben</b>' +
     '                </div>' +
     '            </div>' +
     '        </div>' +
@@ -511,8 +511,8 @@ const template_admin_export = '<div class="row">' +
     '            <div class="hidden mapping-content">' +
     '            </div>' +
     '            <div class="row space full">' +
-    '                <div class="col-10"> </div>' +
-    '                <div class="col-2">' +
+    '                <div class="col-9"> </div>' +
+    '                <div class="col-3">' +
     '                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-export">' +
     '                        Exportieren' +
     '                    </button>' +
