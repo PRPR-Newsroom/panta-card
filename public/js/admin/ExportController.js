@@ -20,12 +20,6 @@ class ExportController extends AdminController {
                         })
                 }));
             })
-            // .then(() => {
-            //     return that._adminService.getLabels()
-            //         .then(its => {
-            //             config.export_configuration.labels = its;
-            //         });
-            // })
             .then(() => {
                 const model = Import.create('Export');
                 model.header = new HeaderNode(null, 'Root', {c: -1, r: -1, constant: 'Virtual Node'});
@@ -65,11 +59,11 @@ class ExportController extends AdminController {
                     })
                     .then(it => {
                         row.appendChild(it);
-                        return that._createPreviewSection(header, model, config);
+                        return that._createPreviewSection(header, model, config, 3);
                     })
                     .then(it => {
                         row.appendChild(it);
-                        return that._createMore(header);
+                        return that._createMore(header, config);
                     })
                     .then(it => {
                         row.appendChild(it);
@@ -116,18 +110,34 @@ class ExportController extends AdminController {
                 e.target.disabled = true;
                 that.progressPage()
                     .then(it => {
+                        that._loggingService.i(`Export um ${new Date()} gestartet`);
                         return that._doExport(it);
                     })
                     .catch(reason => {
-                        console.debug('got an error', reason);
-                        that.finishProgress(false, reason);
+                        that._loggingService.e(`Ein Fehler beim Exportieren des Boards ist aufgetreten: ${reason.stack}`);
+                        that.finishProgress(false, `Es traten Fehler beim Export auf. Ein detaillierter Rapport wurde dieser Trello Card angehängt.`);
+                        console.error(reason.stack);
                     })
                     .then(it => {
+                        that._loggingService.i(`Export erfolgreich abgeschlossen`);
                         that.finishProgress(true, 'Fertig');
                     })
                     .finally(() => {
                         // that.endProgress();
                         e.target.disabled = false;
+                        return that._adminService.getCurrentCard()
+                            .then(card => {
+                                const file = that._loggingService.flush();
+                                return that._adminService.uploadFileToCard(card, file);
+                            })
+                            .then(it => {
+                                that.closeProgress(true);
+                            })
+                            .catch(err => {
+                                console.error(`Konnte Datei(en) nicht hochladen`, err);
+                                that._showErrors(document, `Konnte Datei(en) nicht hochladen`);
+                                that.closeProgress(false);
+                            })
                     });
             });
             actionButton.setEventListener('update', e => {
@@ -138,16 +148,53 @@ class ExportController extends AdminController {
         return Promise.resolve(true);
     }
 
+
+    /**
+     * @param {HTMLOptionElement} item
+     * @param {HeaderNode} header
+     */
+    onFieldMappingChange(item, header) {
+        if (item === null) {
+            return;
+        }
+        const that = this;
+        const address = header.getAddressAsText();
+        const more = that._document.querySelector(`#more-${address}`);
+        const event = new Event('update');
+        more.removeChildren();
+
+        if (item.getAttribute('value') === 'trello.labels') {
+            // labels are added dynamically and thus cannot be overridden
+            const hint = that._document.createElement('p');
+            // TODO externalize
+            hint.setAttribute('title', 'Labels werden dynamisch anhand den verfügbaren Board Labels erstellt.');
+            hint.innerHTML = `<i>Dynamisch erstellt</i>`;
+            more.appendChild(hint);
+            return null;
+        }
+        const renamer = that._document.createElement('input');
+        renamer.setAttribute('id', `renamer-${header.address.r}-${header.address.c}`)
+        renamer.setAttribute('type', 'text');
+        const lastchip = that._document.querySelector(`#chip-${address}-last > p`);
+        const saved = header.properties.find(it => it.hasOwnProperty('name'));
+        renamer.value = saved ? saved.name : lastchip.innerText;
+        renamer.addClass(saved && saved.name !== lastchip.innerText ? 'overridden-value' : 'default-value');
+        more.appendChild(renamer);
+        that._getActionButton().dispatchEvent(event);
+
+    }
+
     _doExport(progress) {
         const that = this;
         // read the data row by row
         // get all cards on this board
         const config = that._readConfiguration(that._model);
+        that._loggingService.d('Konfiguration für den Export: ' + JSON.stringify(config));
         if (config.isValid()) {
-            const mapping = new ExportFieldMapping(this._trello, this._adminService, this._getPantaFieldItems());
+            const mapper = new ExportFieldMapping(this._trello, this._adminService, this._getPantaFieldItems());
             return that._adminService.getBoardCards()
                 .then(cards => {
-
+                    // load the content of all cards
                     return that._pluginController.getEnabledModules()
                         .then(its => {
                             return its.flatMap(it => {
@@ -174,10 +221,12 @@ class ExportController extends AdminController {
                             if (field.multi && field.reference === 'trello.labels') {
                                 return that._adminService.getLabels()
                                     .then(its => {
-                                        its.forEach((it, index) => {
+                                        // reverse is necessary because otherwise the order in the model must be the same as the
+                                        // fields returned here in this 'then' block
+                                        its.reverse().forEach((it, index) => {
                                             if (index > 0) {
                                                 const labeledHeader = new HeaderNode(field.source.parent, `${it.name}`, {
-                                                    c: field.source.address.c + 100 + index,
+                                                    c: field.source.address.c + 1000 + index,
                                                     r: field.source.address.r
                                                 }, null, it.color);
                                                 that._model.insertAt(field.source, labeledHeader);
@@ -191,19 +240,31 @@ class ExportController extends AdminController {
                                     })
                                     .then(its => {
                                         return its.map(it => {
-                                            return new BooleanField(it.name, field.reference, field.source, true);
+                                            return new BooleanField(it.name, field.reference, it, true);
                                         });
                                     });
                             } else {
+                                /**
+                                 * @type {HeaderNode}
+                                 */
+                                const header = that._model.getHeader(field.source.address);
+                                // override label of model.header with user input
+                                const renamer = that._document.querySelector(`#renamer-${header.address.r}-${header.address.c}`);
+                                header.label = renamer && !isBlank(renamer.value) ? renamer.value : header.label;
+                                config.findByAddress(field.source.address).name = header.label;
                                 return Promise.all([field]);
                             }
                         }));
-                    }).then(its => its.flat())
+                    })
+                        .then(its => its.flat())
                         .then(fields => {
                             return Promise.all(cards.map(card => {
-                                return Promise.all(fields.filter(it => it != null).map(field => {
-                                    return mapping.map(card, field);
-                                }));
+                                const cardfields = fields.filter(it => it != null);
+                                that._loggingService.i(`Trello Card «${card.name}» wird mit den Feldern ${JSON.stringify(cardfields)} exportiert`);
+                                return Promise.all(cardfields
+                                    .map(field => {
+                                        return mapper.map(card, field);
+                                    }));
                             }));
                         })
                         .reduce((prev, cur, index) => {
@@ -213,24 +274,30 @@ class ExportController extends AdminController {
                             });
                             prev.push(node);
 
-                            const percent = Math.min(((index+1.0)/Math.max(1.0, cards.length))*100, 100.0);
+                            const percent = Math.min(((index + 1.0) / Math.max(1.0, cards.length)) * 100, 100.0);
                             const details = `${percent.toFixed(2)}%`;
-                            progress.each.apply(that, [index+1, cards.length, 'Einträge exportiert...', details]);
+                            progress.each.apply(that, [index + 1, cards.length, 'Einträge exportiert...', details]);
 
                             return prev;
                         }, [])
                         .then(rows => {
                             that._model.data = rows;
-                            const binary = that._adminService.excelService.write(that._model);
-                            that._adminService.getCurrentCard()
-                                .then(it => {
-                                    return that._adminService.uploadFileToCard(it, binary);
+                            return that._adminService.getCurrentBoard()
+                                .then(board => {
+                                    const filename = `Export ${board.name}`;
+                                    that._loggingService.i(`${rows.length} Einträge in die Export-Datei «${filename}» exportiert`);
+                                    const binary = that._adminService.excelService.write(that._model, filename);
+                                    return that._adminService.getCurrentCard()
+                                        .then(it => {
+                                            return that._adminService.uploadFileToCard(it, binary);
+                                        });
                                 });
                         });
                 })
                 .then(it => {
                     console.debug('Saving configuration', config);
                     that._propertyBag['export_configuration'] = config;
+                    that._loggingService.d(`Die Konfiguration wird für zukünftige Exports gespeichert: ${JSON.stringify(config)}`);
                     return that._pluginController.setAdminConfiguration(that._propertyBag);
                 });
         } else {
@@ -246,9 +313,13 @@ class ExportController extends AdminController {
      * @private
      */
     _getTemplate(model) {
-        return Promise.all([this._getTrelloHeaders(model.header), this._getPantaHeaders(model.header)])
+        const that = this;
+        return this._getTrelloHeaders(model.header)
             .then(its => {
-                return its.flat();
+                return that._getPantaHeaders(model.header, its.length, 1)
+                    .then(pantas => {
+                        return its.concat(pantas);
+                    });
             });
     }
 
@@ -269,10 +340,8 @@ class ExportController extends AdminController {
      * @return {PromiseLike<HeaderNode[] | never> | Promise<HeaderNode[] | never>}
      * @private
      */
-    _getPantaHeaders(root) {
+    _getPantaHeaders(root, column, row) {
         const that = this;
-        let column = root.children.length;
-        const row = root.address.r;
         return this._getPantaFieldItems()
             .then(its => {
                 return Promise.all(its
@@ -282,6 +351,10 @@ class ExportController extends AdminController {
                             const group = it.group;
                             return that._pluginController.findPluginModuleConfigByModuleId(it.moduleId)
                                 .then(config => {
+                                    // const first = new HeaderNode(root, config.name, {c: column++, r: row});
+                                    // const second = new HeaderNode(first, group, {c: column, r: row});
+                                    // const last = new HeaderNode(second, field.label, {c: column, r: row});
+                                    // return last;
                                     return new HeaderNode(root, `${config.name}.${group}.${field.label}`, {
                                         c: column++,
                                         r: row
@@ -300,8 +373,16 @@ class ExportController extends AdminController {
         this._document.getElementsByClassName("mapping-content").forEach(it => it.removeChildren());
     }
 
-    _createMore(header) {
+    /**
+     * @param {HeaderNode} header
+     * @param {DataConfiguration} config
+     * @param {number} columns
+     * @return {HTMLElement | HTMLDivElement | any}
+     * @protected
+     */
+    _createMore(header, config = null, columns = 3) {
         // TODO for export it must be possible to override the header column label
-        return super._createMore(header);
+        header.put({'name': config.findByAddress(header.address).name});
+        return super._createMore(header, config, columns);
     }
 }

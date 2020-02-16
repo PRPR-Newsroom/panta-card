@@ -29,7 +29,7 @@ class AbstractField {
     }
 
     /**
-     * @return {string}
+     * @return {string} the target trello/panta field
      */
     get reference() {
         return this._reference;

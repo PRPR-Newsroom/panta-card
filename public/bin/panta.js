@@ -621,7 +621,7 @@ TrelloClient.prototype.attachFile = function(a, b, c) {
         if (4 === m.readyState) {
           switch(m.status) {
             case 200:
-              d._loggingService.i("Datei als \u00ab" + l + "\u00bb in \u00ab" + a.id + "\u00bb gespeichert");
+              d._loggingService.i('Datei als "' + l + '" in Card \u00ab' + a.id + "\u00bb gespeichert");
               f(b);
               break;
             case 401:
@@ -726,6 +726,9 @@ TrelloClient.prototype.getLabels = function() {
     a._requests++;
     return b.labels;
   });
+};
+TrelloClient.prototype.getCurrentBoard = function() {
+  return this.trello.board("id", "name");
 };
 TrelloClient.prototype.createLabels = function(a) {
   var b = this;
@@ -3652,6 +3655,9 @@ AdminService.prototype.load = function(a) {
 AdminService.prototype.getCurrentCard = function() {
   return this.trelloClient.getCurrentCard();
 };
+AdminService.prototype.getCurrentBoard = function() {
+  return this.trelloClient.getCurrentBoard();
+};
 AdminService.prototype.getBoardCards = function() {
   return this.trelloClient.getAllBoardCards();
 };
@@ -4412,11 +4418,11 @@ AdminController.prototype._doImport = function(a) {
           var c = b._loggingService.flush();
           return b._adminService.uploadFileToCard(a, c);
         }).then(function(a) {
-          b.closeImport(!0);
+          b.closeProgress(!0);
         }).catch(function(a) {
           console.error("Konnte Datei(en) nicht hochladen", a);
           b._showErrors(document, "Konnte Datei(en) nicht hochladen");
-          b.closeImport(!1);
+          b.closeProgress(!1);
         });
       })) : (a = d.getValidationErrors().join("<br/>"), b._showWarnings(document, "Die Konfiguration ist unvollst\u00e4ndig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>" + a));
     }
@@ -4490,12 +4496,12 @@ AdminController.prototype.finishProgress = function(a, b) {
   }));
 };
 AdminController.prototype.endProgress = function() {
-  this._closeImport(!0, !1);
+  this._closeProgress(!0, !1);
 };
-AdminController.prototype.closeImport = function(a) {
-  this._closeImport(a, !0);
+AdminController.prototype.closeProgress = function(a) {
+  this._closeProgress(a, !0);
 };
-AdminController.prototype._closeImport = function(a, b) {
+AdminController.prototype._closeProgress = function(a, b) {
   var c = this;
   setTimeout(function() {
     c._document.querySelectorAll(".js-panta-progress").forEach(function(a) {
@@ -4594,10 +4600,11 @@ AdminController.prototype.renderModel = function(a, b) {
     });
   }
 };
-AdminController.prototype._createMore = function(a) {
-  var b = this._document.createElement("div");
+AdminController.prototype._createMore = function(a, b, c) {
+  c = void 0 === c ? 2 : c;
+  b = this._document.createElement("div");
   b.setAttribute("id", "more-" + a.getAddressAsText());
-  b.addClass("col-2");
+  b.addClass("col-" + c);
   return b;
 };
 AdminController.prototype._createChipsSection = function(a) {
@@ -4612,6 +4619,7 @@ AdminController.prototype._createChipsSection = function(a) {
       d.addClass("panta-bgcolor-" + a.t.toLowerCase());
     });
     e = b._document.createElement("p");
+    e.setAttribute("title", c.label);
     e.appendChild(b._document.createTextNode(c.label));
     d.appendChild(e);
     return d;
@@ -4620,22 +4628,24 @@ AdminController.prototype._createChipsSection = function(a) {
   });
   return Promise.resolve(c);
 };
-AdminController.prototype._createPreviewSection = function(a, b, c) {
-  var d = this, e = d._document.createElement("div");
-  e.setAttribute("id", "preview-" + a.getAddressAsText());
-  e.addClass("col-4 js-preview").addClass("align-left");
-  e.setEventListener("update", function(f) {
-    var g = f.item || c.mapping.find(function(b) {
+AdminController.prototype._createPreviewSection = function(a, b, c, d) {
+  d = void 0 === d ? 4 : d;
+  var e = this, f = e._document.createElement("div");
+  f.setAttribute("id", "preview-" + a.getAddressAsText());
+  f.addClass("col-" + d + " preview-section js-preview").addClass("align-left");
+  f.setEventListener("update", function(d) {
+    var g = d.item || c.mapping.find(function(b) {
       return b.source.isSameAddress(a.address);
     });
-    ("import" === d._context ? b.getSample(a).then(function(a) {
-      return b.getSampleHtml(a, d._document, g) || "<p>&nbsp;</p>";
-    }) : d._getBoardSample(a, g)).then(function(a) {
-      e.innerHTML = a;
+    ("import" === e._context ? b.getSample(a).then(function(a) {
+      return b.getSampleHtml(a, e._document, g) || "<p>&nbsp;</p>";
+    }) : e._getBoardSample(a, g)).then(function(a) {
+      f.setAttribute("title", a);
+      f.innerHTML = "<p>" + a + "</p>";
     });
   });
-  e.innerHTML = "<p>&nbsp;</p>";
-  return Promise.resolve(e);
+  f.innerHTML = "<p>&nbsp;</p>";
+  return Promise.resolve(f);
 };
 AdminController.prototype._getBoardSample = function(a, b) {
   var c = new ImportFieldMapping(this._trello, this._adminService, this._getPantaFieldItems(), a);
@@ -4649,7 +4659,7 @@ AdminController.prototype._createFieldMappingSection = function(a, b) {
   var f = d._document.createElement("select");
   f.setAttribute("id", "field-mapping-" + a.getAddressAsText());
   f.setEventListener("change", function(b) {
-    c._onFieldMappingChange(b.target.item(b.target.selectedIndex), a);
+    c.onFieldMappingChange(b.target.item(b.target.selectedIndex), a);
   });
   var g = d._document.createElement("option");
   g.setAttribute("value", "-1");
@@ -4675,7 +4685,7 @@ AdminController.prototype._createFieldMappingSection = function(a, b) {
     return e;
   });
 };
-AdminController.prototype._onFieldMappingChange = function(a, b) {
+AdminController.prototype.onFieldMappingChange = function(a, b) {
   if (null !== a) {
     var c = this, d = b.getAddressAsText(), e = c._document.querySelector("#more-" + d), f = new Event("update");
     e.removeChildren();
@@ -4812,7 +4822,7 @@ ExportFieldMapping.prototype.mapLabel = function(a, b) {
   return !!a;
 };
 ExportFieldMapping.prototype.labelFilter = function(a, b) {
-  return a.name === b.name;
+  return a.name === b.name && a.color === b.source.color;
 };
 ExportFieldMapping.prototype.mapMember = function(a) {
   return a.email;
@@ -4821,7 +4831,7 @@ ExportFieldMapping.prototype.emptyValue = function() {
   return "";
 };
 ExportFieldMapping.prototype.mapArray = function(a) {
-  return a;
+  return 1 === a.length;
 };
 ExportFieldMapping.prototype.mapMembers = function(a) {
   return a.join(",");
@@ -4875,10 +4885,10 @@ ExportController.prototype.renderModel = function(a, b) {
         return c._createFieldMappingSection(e, b);
       }).then(function(d) {
         f.appendChild(d);
-        return c._createPreviewSection(e, a, b);
+        return c._createPreviewSection(e, a, b, 3);
       }).then(function(a) {
         f.appendChild(a);
-        return c._createMore(e);
+        return c._createMore(e, b);
       }).then(function(a) {
         f.appendChild(a);
         return f;
@@ -4911,22 +4921,56 @@ ExportController.prototype.renderActions = function(a) {
     a.stopPropagation();
     a.target.disabled = !0;
     b.progressPage().then(function(a) {
+      b._loggingService.i("Export um " + new Date + " gestartet");
       return b._doExport(a);
     }).catch(function(a) {
-      console.debug("got an error", a);
-      b.finishProgress(!1, a);
+      b._loggingService.e("Ein Fehler beim Exportieren des Boards ist aufgetreten: " + a.stack);
+      b.finishProgress(!1, "Es traten Fehler beim Export auf. Ein detaillierter Rapport wurde dieser Trello Card angeh\u00e4ngt.");
+      console.error(a.stack);
     }).then(function(a) {
+      b._loggingService.i("Export erfolgreich abgeschlossen");
       b.finishProgress(!0, "Fertig");
     }).finally(function() {
       a.target.disabled = !1;
+      return b._adminService.getCurrentCard().then(function(a) {
+        var c = b._loggingService.flush();
+        return b._adminService.uploadFileToCard(a, c);
+      }).then(function(a) {
+        b.closeProgress(!0);
+      }).catch(function(a) {
+        console.error("Konnte Datei(en) nicht hochladen", a);
+        b._showErrors(document, "Konnte Datei(en) nicht hochladen");
+        b.closeProgress(!1);
+      });
     });
   }), c.setEventListener("update", function(a) {
     b.onUpdateActionButton(c);
   }));
   return Promise.resolve(!0);
 };
+ExportController.prototype.onFieldMappingChange = function(a, b) {
+  if (null !== a) {
+    var c = b.getAddressAsText(), d = this._document.querySelector("#more-" + c), e = new Event("update");
+    d.removeChildren();
+    if ("trello.labels" === a.getAttribute("value")) {
+      return e = this._document.createElement("p"), e.setAttribute("title", "Labels werden dynamisch anhand den verf\u00fcgbaren Board Labels erstellt."), e.innerHTML = "<i>Dynamisch erstellt</i>", d.appendChild(e), null;
+    }
+    a = this._document.createElement("input");
+    a.setAttribute("id", "renamer-" + b.address.r + "-" + b.address.c);
+    a.setAttribute("type", "text");
+    c = this._document.querySelector("#chip-" + c + "-last > p");
+    b = b.properties.find(function(a) {
+      return a.hasOwnProperty("name");
+    });
+    a.value = b ? b.name : c.innerText;
+    a.addClass(b && b.name !== c.innerText ? "overridden-value" : "default-value");
+    d.appendChild(a);
+    this._getActionButton().dispatchEvent(e);
+  }
+};
 ExportController.prototype._doExport = function(a) {
   var b = this, c = b._readConfiguration(b._model);
+  b._loggingService.d("Konfiguration f\u00fcr den Export: " + JSON.stringify(c));
   if (c.isValid()) {
     var d = new ExportFieldMapping(this._trello, this._adminService, this._getPantaFieldItems());
     return b._adminService.getBoardCards().then(function(a) {
@@ -4949,25 +4993,33 @@ ExportController.prototype._doExport = function(a) {
         return c.findByAddress(a.address);
       })).then(function(a) {
         return Promise.all(a.flatMap(function(a) {
-          return a.multi && "trello.labels" === a.reference ? b._adminService.getLabels().then(function(c) {
-            c.forEach(function(c, d) {
-              0 < d ? (c = new HeaderNode(a.source.parent, "" + c.name, {c:a.source.address.c + 100 + d, r:a.source.address.r}, null, c.color), b._model.insertAt(a.source, c)) : (b._model.getHeader(a.source.address).label = c.name, b._model.getHeader(a.source.address).color = c.color);
+          if (a.multi && "trello.labels" === a.reference) {
+            return b._adminService.getLabels().then(function(c) {
+              c.reverse().forEach(function(c, d) {
+                0 < d ? (c = new HeaderNode(a.source.parent, "" + c.name, {c:a.source.address.c + 1000 + d, r:a.source.address.r}, null, c.color), b._model.insertAt(a.source, c)) : (b._model.getHeader(a.source.address).label = c.name, b._model.getHeader(a.source.address).color = c.color);
+              });
+              return c;
+            }).then(function(b) {
+              return b.map(function(b) {
+                return new BooleanField(b.name, a.reference, b, !0);
+              });
             });
-            return c;
-          }).then(function(b) {
-            return b.map(function(b) {
-              return new BooleanField(b.name, a.reference, a.source, !0);
-            });
-          }) : Promise.all([a]);
+          }
+          var d = b._model.getHeader(a.source.address), e = b._document.querySelector("#renamer-" + d.address.r + "-" + d.address.c);
+          d.label = e && !isBlank(e.value) ? e.value : d.label;
+          c.findByAddress(a.source.address).name = d.label;
+          return Promise.all([a]);
         }));
       }).then(function(a) {
         return a.flat();
       }).then(function(a) {
-        return Promise.all(e.map(function(b) {
-          return Promise.all(a.filter(function(a) {
+        return Promise.all(e.map(function(c) {
+          var e = a.filter(function(a) {
             return null != a;
-          }).map(function(a) {
-            return d.map(b, a);
+          });
+          b._loggingService.i("Trello Card \u00ab" + c.name + "\u00bb wird mit den Feldern " + JSON.stringify(e) + " exportiert");
+          return Promise.all(e.map(function(a) {
+            return d.map(c, a);
           }));
         }));
       }).reduce(function(c, d, f) {
@@ -4981,14 +5033,19 @@ ExportController.prototype._doExport = function(a) {
         return c;
       }, []).then(function(a) {
         b._model.data = a;
-        var c = b._adminService.excelService.write(b._model);
-        b._adminService.getCurrentCard().then(function(a) {
-          return b._adminService.uploadFileToCard(a, c);
+        return b._adminService.getCurrentBoard().then(function(c) {
+          c = "Export " + c.name;
+          b._loggingService.i(a.length + " Eintr\u00e4ge in die Export-Datei \u00ab" + c + "\u00bb exportiert");
+          var d = b._adminService.excelService.write(b._model, c);
+          return b._adminService.getCurrentCard().then(function(a) {
+            return b._adminService.uploadFileToCard(a, d);
+          });
         });
       });
     }).then(function(a) {
       console.debug("Saving configuration", c);
       b._propertyBag.export_configuration = c;
+      b._loggingService.d("Die Konfiguration wird f\u00fcr zuk\u00fcnftige Exports gespeichert: " + JSON.stringify(c));
       return b._pluginController.setAdminConfiguration(b._propertyBag);
     });
   }
@@ -4996,8 +5053,11 @@ ExportController.prototype._doExport = function(a) {
   b._showWarnings(document, "Die Konfiguration ist unvollst\u00e4ndig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>" + e);
 };
 ExportController.prototype._getTemplate = function(a) {
-  return Promise.all([this._getTrelloHeaders(a.header), this._getPantaHeaders(a.header)]).then(function(a) {
-    return a.flat();
+  var b = this;
+  return this._getTrelloHeaders(a.header).then(function(c) {
+    return b._getPantaHeaders(a.header, c.length, 1).then(function(a) {
+      return c.concat(a);
+    });
   });
 };
 ExportController.prototype._getTrelloHeaders = function(a) {
@@ -5005,14 +5065,14 @@ ExportController.prototype._getTrelloHeaders = function(a) {
     return new HeaderNode(a, __(b.desc), {c:c, r:1});
   }));
 };
-ExportController.prototype._getPantaHeaders = function(a) {
-  var b = this, c = a.children.length, d = a.address.r;
+ExportController.prototype._getPantaHeaders = function(a, b, c) {
+  var d = this;
   return this._getPantaFieldItems().then(function(e) {
     return Promise.all(e.flat().flatMap(function(e) {
       return e.fields.map(function(f) {
         var g = e.group;
-        return b._pluginController.findPluginModuleConfigByModuleId(e.moduleId).then(function(b) {
-          return new HeaderNode(a, b.name + "." + g + "." + f.label, {c:c++, r:d});
+        return d._pluginController.findPluginModuleConfigByModuleId(e.moduleId).then(function(d) {
+          return new HeaderNode(a, d.name + "." + g + "." + f.label, {c:b++, r:c});
         });
       });
     }));
@@ -5023,8 +5083,11 @@ ExportController.prototype._clearContent = function() {
     return a.removeChildren();
   });
 };
-ExportController.prototype._createMore = function(a) {
-  return AdminController.prototype._createMore.call(this, a);
+ExportController.prototype._createMore = function(a, b, c) {
+  b = void 0 === b ? null : b;
+  c = void 0 === c ? 3 : c;
+  a.put({name:b.findByAddress(a.address).name});
+  return AdminController.prototype._createMore.call(this, a, b, c);
 };
 // Input 45
 var ExcelService = function() {
@@ -5047,30 +5110,30 @@ ExcelService.prototype.read = function(a) {
   this._readImportData(a, b, 0, this.dataRowIndex);
   return b;
 };
-ExcelService.prototype.write = function(a) {
-  var b = XLSX.utils.book_new();
-  b.Props = {Title:"Sample Export", Subject:"Panta.Card Export", Author:"PantaRhei", CreatedDate:new Date};
-  b.SheetNames.push(a.title);
-  var c = [], d = Object.values(a.getNormalizedHeaders()).reduce(function(a, b) {
+ExcelService.prototype.write = function(a, b) {
+  var c = XLSX.utils.book_new();
+  c.Props = {Title:"Sample Export", Subject:"Panta.Card Export", Author:"PantaRhei", CreatedDate:new Date};
+  c.SheetNames.push(a.title);
+  var d = [], e = Object.values(a.getNormalizedHeaders()).reduce(function(a, b) {
     a.push(b.label);
     return a;
   }, []);
-  c.push(d);
+  d.push(e);
   a.data.map(function(a) {
     return a.values.map(function(a) {
       return a.value;
     });
   }).forEach(function(a) {
-    c.push(a);
+    d.push(a);
   });
-  b.Sheets[a.title] = XLSX.utils.aoa_to_sheet(c);
-  a = XLSX.write(b, {bookType:"xlsx", type:"binary"});
+  c.Sheets[a.title] = XLSX.utils.aoa_to_sheet(d);
+  a = XLSX.write(c, {bookType:"xlsx", type:"binary"});
   return new File([function(a) {
     for (var b = new ArrayBuffer(a.length), c = new Uint8Array(b), d = 0; d < a.length; d++) {
       c[d] = a.charCodeAt(d) & 255;
     }
     return b;
-  }(a)], "test.xlsx");
+  }(a)], b + ".xlsx");
 };
 ExcelService.prototype._parseImportHeader = function(a, b, c, d) {
   if (c < this.dataRowIndex && b <= this.boundary.e.c) {
@@ -5998,9 +6061,9 @@ template_settings_switch = '<div class="row module-switch-container">    <div cl
 template_settings_editable = '<div class="row module-editable-container">    <div class="col-1 col-phone-1 module-editable-show">       <div class="panta-module-enabled">           <label class="panta-checkbox-container hidden">               <input class="panta-js-checkbox" type="checkbox" checked="checked">               <span class="panta-checkbox-checkmark elevate"></span>           </label>       </div>    </div>    <div class="col-8 col-phone-8 module-editable-name"></div>    <div class="col-1 col-phone-1 module-helper-visible">       <button class="panta-btn panta-btn-dot panta-js-button hidden" title="Dieses Feld ist sichtbar"><img src="assets/ic_visible.png" width="12px" height="12px"/></button>    </div>    <div class="col-1 col-phone-1 module-editable-color invisible">       <button class="panta-btn panta-btn-dot panta-js-button"></button>    </div>    <div class="col-1 col-phone-1 module-helper-sortable">       <button class="panta-btn panta-btn-dot panta-js-button" title="Dieses Feld kann f\u00fcr die Sortierung verwendet werden">S</button>    </div></div>', 
 template_settings_editable_select = '<div class="row module-editable-select-container">   <select class="panta-js-select"></select></div>', template_settings_editable_option = '<div class="row module-editable-option-container">    <div class="col-10 module-editable-option-name">       <input type="text" class="panta-js-name"/>    </div>    <div class="col-2 module-editable-option-actions">       <button class="panta-btn panta-btn-icon panta-js-delete"><img src="assets/ic_trash.svg" width="16px" height="16px"/></button>       <button class="panta-btn panta-btn-icon panta-js-visible hidden"><img src="assets/ic_visible.png" width="16px" height="16px"/></button>    </div></div>', 
 template_beteiligt = '<form id="panta.module">    <div class="js-panta-editable-title">        <div class="row min"><div class="col-12">\u00a0</div></div>        <div class="row min">           <div class="col-12">                <h3 class="js-panta-module js-panta-label"></h3>           </div>        </div>    </div>    <div class="row min navigation-bar">        <div id="pa.involved.onsite" class="col-2 col-phone-4 tab" data-label="vor.Ort" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.text" class="col-2 col-phone-4 tab" data-label="Journalist" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.photo" class="col-phone-4 col-2 tab" data-label="Visual" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.video" class="col-phone-4 col-2 tab" data-label="Event" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.illu" class="col-phone-4 col-2 tab" data-label="MC/Host" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.ad" class="col-phone-4 col-2 tab" data-label="weitere" data-layout="regular"><span>Placeholder</span></div>    </div>    <span id="pa.tab.content"></span></form>', 
-template_admin_actions = '<div class="row full">            <div class="col-12">                <p>Was willst du tun?</p>            </div>        </div>        <div class="row full">            <div class="col-6 space">                <button id="btn-action-import" class="panta-btn action">Import</button>            </div>            <div class="col-6 space">                <button id="btn-action-export" class="panta-btn action js-button-export">Export</button>            </div>        </div>', 
-template_admin_import = '<div class="row full">            <div class="col-12">                <p>W\u00e4hle hier die Excel Datei aus, die importiert werden soll.</p>            </div>            <div class="col-10">                <input class="panta-btn" type="file" id="file-import">            </div>            <div class="col-2">                <button class="panta-btn" id="btn-load">Laden</button>            </div>            <div class="col-12">                <button class="panta-btn panta-bgcolor-yellow" id="btn-load-config">Konfiguration laden</button>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3 align-right">                    <b>Excel Feld</b>                </div>                <div class="col-3">                    <b>Trello Feld</b>                </div>                <div class="col-4 align-left">                    <b>Beispiel Wert</b>                </div>                <div class="col-2 align-left">                    <b>Mehr</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-10">\u00a0</div>                <div class="col-2">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-import">                        Importieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
-template_admin_export = '<div class="row">            <div class="col-12">                <p>Standardm\u00e4ssig werden alle Trello und Panta.Card Felder exportiert</p>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3 align-right">                    <b>Excel Feld</b>                </div>                <div class="col-3">                    <b>Trello Feld</b>                </div>                <div class="col-4 align-left">                    <b>Beispiel Wert</b>                </div>                <div class="col-2 align-left">                    <b>Mehr</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-10">\u00a0</div>                <div class="col-2">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-export">                        Exportieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
+template_admin_actions = '<div class="row full">            <div class="col-12">                <p class="topic">Was willst du tun?</p>            </div>        </div>        <div class="row full">            <div class="col-6 space">                <button id="btn-action-import" class="panta-btn action">Import</button>            </div>            <div class="col-6 space">                <button id="btn-action-export" class="panta-btn action js-button-export">Export</button>            </div>        </div>', 
+template_admin_import = '<div class="row full">            <div class="col-12">                <p class="topic">W\u00e4hle hier die Excel Datei aus, die importiert werden soll.</p>            </div>            <div class="col-10">                <input class="panta-btn" type="file" id="file-import">            </div>            <div class="col-2">                <button class="panta-btn" id="btn-load">Laden</button>            </div>            <div class="col-12">                <button class="panta-btn panta-bgcolor-yellow" id="btn-load-config">Konfiguration laden</button>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3 align-right">                    <b>Excel Feld</b>                </div>                <div class="col-3">                    <b>Trello Feld</b>                </div>                <div class="col-4 align-left">                    <b>Beispiel Wert</b>                </div>                <div class="col-2 align-left">                    <b>Mehr</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-10">\u00a0</div>                <div class="col-2">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-import">                        Importieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
+template_admin_export = '<div class="row full">            <div class="col-12">                <p class="topic">Standardm\u00e4ssig werden alle Trello und Panta.Card Felder exportiert</p>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3 align-right">                    <b>Excel Feld</b>                </div>                <div class="col-3">                    <b>Trello Feld</b>                </div>                <div class="col-3 align-left">                    <b>Beispiel Wert</b>                </div>                <div class="col-3 align-left">                    <b>Beschriftung \u00fcberschreiben</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-9">\u00a0</div>                <div class="col-3">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-export">                        Exportieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
 template_admin_errorpage = '<div class="row full">   <div class="col-12 hidden error-messages">       <p class="error" id="error-message"></p>   </div>   <div class="col-12 hidden warning-messages">       <p class="warning" id="warning-message"></p>   </div>   <div class="col-12 space">       <button id="btn-reset" class="panta-btn panta-bgcolor-red">Zur\u00fccksetzen</button>   </div></div>', template_admin_progress = '<div class="overlay js-panta-progress progress-overlay">            <div class="row full">                <div class="col-12">                    <p class="space"><span class="js-panta-current-record">?</span>/<span class="js-panta-total-records">?</span> <span class="js-panta-progress-postfix"></span></p>                    <p class="details js-panta-record-details"></p>';
 "                </div>            </div>        </div>";
 // Input 56

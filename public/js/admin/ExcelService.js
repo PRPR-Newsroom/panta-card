@@ -42,9 +42,10 @@ class ExcelService {
 
     /**
      * @param {Import} model
+     * @param {string} filename
      * @return {File}
      */
-    write(model) {
+    write(model, filename) {
         const wb = XLSX.utils.book_new();
         wb.Props = {
             Title: 'Sample Export',
@@ -78,7 +79,7 @@ class ExcelService {
             }
             return buf;
         }
-        return new File([s2ab(bin)], 'test.xlsx');
+        return new File([s2ab(bin)], `${filename}.xlsx`);
     }
 
     /**

@@ -86,8 +86,18 @@ class AdminService {
         return importers.length === 0 ? Promise.reject('No imports') : Promise.all(importers);
     }
 
+    /**
+     * @return {Promise<{id: string}>}
+     */
     getCurrentCard() {
         return this.trelloClient.getCurrentCard();
+    }
+
+    /**
+     * @return {Promise<{id: string, name: string}>}
+     */
+    getCurrentBoard() {
+        return this.trelloClient.getCurrentBoard();
     }
 
     /**
@@ -152,14 +162,13 @@ class AdminService {
             return that._createCard(model.data[index], configuration)
                 .then((it) => {
                     return new Promise(function (resolve, reject) {
-                        const percent = Math.min(((index+1.0)/Math.max(1.0, model.data.length))*100, 100.0);
+                        const percent = Math.min(((index + 1.0) / Math.max(1.0, model.data.length)) * 100, 100.0);
                         const progress = `${percent.toFixed(2)}%`;
-                        that.context.each.apply(that.context.context, [index+1, model.data.length, 'Einträge importiert...', progress]);
+                        that.context.each.apply(that.context.context, [index + 1, model.data.length, 'Einträge importiert...', progress]);
                         resolve(that._importCard(model, index + 1, configuration));
                     });
                 });
         } else {
-            // TODO update process on UI and close
             this._loggingService.d(`Insgesamt wurden ${this.trelloClient.requests} Anfragen an Trello geschickt`);
             return Promise.resolve(true);
         }
