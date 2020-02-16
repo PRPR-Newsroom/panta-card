@@ -51,6 +51,9 @@ class HeaderNode {
         return this._children;
     }
 
+    /**
+     * @return {Array}
+     */
     get properties() {
         return this._properties;
     }

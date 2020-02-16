@@ -336,12 +336,12 @@ class AdminController {
                                         return that._adminService.uploadFileToCard(card, file);
                                     })
                                     .then(it => {
-                                        that.closeImport(true);
+                                        that.closeProgress(true);
                                     })
                                     .catch(err => {
                                         console.error(`Konnte Datei(en) nicht hochladen`, err);
                                         that._showErrors(document, `Konnte Datei(en) nicht hochladen`);
-                                        that.closeImport(false);
+                                        that.closeProgress(false);
                                     });
                             });
                     } else {
@@ -447,14 +447,14 @@ class AdminController {
     }
 
     endProgress() {
-        this._closeImport(true, false);
+        this._closeProgress(true, false);
     }
 
-    closeImport(success) {
-        this._closeImport(success, true);
+    closeProgress(success) {
+        this._closeProgress(success, true);
     }
 
-    _closeImport(success, exit) {
+    _closeProgress(success, exit) {
         const that = this;
         setTimeout(() => {
             that._document.querySelectorAll('.js-panta-progress').forEach(it => {
@@ -601,14 +601,16 @@ class AdminController {
     /**
      *
      * @param header
+     * @param {DataConfiguration} config
+     * @param {number} columns
      * @return {HTMLElement | HTMLDivElement | any}
      * @protected
      */
-    _createMore(header) {
+    _createMore(header, config = null, columns = 2) {
         const that = this;
         const more = that._document.createElement('div');
         more.setAttribute('id', `more-${header.getAddressAsText()}`);
-        more.addClass('col-2');
+        more.addClass(`col-${columns}`);
         return more;
     }
 
@@ -622,7 +624,7 @@ class AdminController {
         const chips = that._document.createElement('div');
         chips.addClass('col-3').addClass('align-right');
         header.getPathItems().map((it, index, arr) => {
-            let chip = that._document.createElement('div');
+            const chip = that._document.createElement('div');
             chip.setAttribute('id', `chip-${header.getAddressAsText()}-${index + 1 < arr.length ? index : 'last'}`);
             chip.addClass('panta-chip');
             if (index + 2 < arr.length) {
@@ -633,7 +635,8 @@ class AdminController {
             it.comments.forEach((it, index, arr) => {
                 chip.addClass(`panta-bgcolor-${it.t.toLowerCase()}`);
             });
-            let label = that._document.createElement('p');
+            const label = that._document.createElement('p');
+            label.setAttribute('title', it.label);
             label.appendChild(that._document.createTextNode(it.label));
             chip.appendChild(label);
             return chip;
@@ -652,11 +655,11 @@ class AdminController {
      * @return {Promise<HTMLDivElement>}
      * @protected
      */
-    _createPreviewSection(header, model, configuration) {
+    _createPreviewSection(header, model, configuration, columns = 4) {
         const that = this;
         const preview = that._document.createElement('div');
         preview.setAttribute('id', `preview-${header.getAddressAsText()}`);
-        preview.addClass(`col-4 js-preview`).addClass('align-left');
+        preview.addClass(`col-${columns} preview-section js-preview`).addClass('align-left');
         preview.setEventListener('update', e => {
             const field = e.item || configuration.mapping.find(it => it.source.isSameAddress(header.address));
 
@@ -664,7 +667,8 @@ class AdminController {
                 return model.getSampleHtml(it, that._document, field) || '<p>&nbsp;</p>';
             }) : that._getBoardSample(header, field);
             sample.then(it => {
-                preview.innerHTML = it;
+                preview.setAttribute('title', it);
+                preview.innerHTML = `<p>${it}</p>`;
             });
         });
         preview.innerHTML = '<p>&nbsp;</p>';
@@ -705,7 +709,7 @@ class AdminController {
         const fields = that._document.createElement('select');
         fields.setAttribute('id', `field-mapping-${header.getAddressAsText()}`);
         fields.setEventListener('change', e => {
-            this._onFieldMappingChange(e.target.item(e.target.selectedIndex), header);
+            this.onFieldMappingChange(e.target.item(e.target.selectedIndex), header);
         });
         const none = that._document.createElement('option');
         none.setAttribute('value', '-1');
@@ -738,18 +742,18 @@ class AdminController {
     }
 
     /**
+     * TODO move to ImportController
      * @param {HTMLOptionElement} item
      * @param {HeaderNode} header
-     * @private
      */
-    _onFieldMappingChange(item, header) {
+    onFieldMappingChange(item, header) {
         if (item === null) {
             return;
         }
         const that = this;
         const address = header.getAddressAsText();
         const more = that._document.querySelector(`#more-${address}`);
-        let event = new Event('update');
+        const event = new Event('update');
         more.removeChildren();
         if (item.getAttribute('value') === 'trello.labels') {
             event.item = new BooleanField(item);

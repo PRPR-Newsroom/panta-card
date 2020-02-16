@@ -1,11 +1,21 @@
 class ExportFieldMapping extends FieldMapping {
 
+    /**
+     * @param label
+     * @param {AbstractField} field
+     * @return {boolean}
+     */
     mapLabel(label, field) {
         return !!label;
     }
 
+    /**
+     * @param label
+     * @param {BooleanField} field
+     * @return {boolean}
+     */
     labelFilter(label, field) {
-        return label.name === field.name;
+        return label.name === field.name && label.color === field.source.color;
     }
 
     mapMember(member) {
@@ -17,8 +27,12 @@ class ExportFieldMapping extends FieldMapping {
     }
 
 
+    /**
+     * @param {Array} array
+     * @return {*}
+     */
     mapArray(array) {
-        return array;
+        return array.length === 1;
     }
 
     /**

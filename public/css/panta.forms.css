@@ -61,4 +61,8 @@ form select, .settings-content select, .settings-import-export select {
   width: 100%;
 }
 
+.settings-import-export input[type=text] {
+  height: 26px;
+}
+
 /*# sourceMappingURL=panta.forms.css.map */

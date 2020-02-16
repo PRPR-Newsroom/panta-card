@@ -89,7 +89,7 @@ class TrelloClient {
                         if (request.readyState === 4) {
                             switch (request.status) {
                                 case 200:
-                                    that._loggingService.i(`Datei als «${filename}» in «${card.id}» gespeichert`);
+                                    that._loggingService.i(`Datei als "${filename}" in Card «${card.id}» gespeichert`);
                                     resolve(file);
                                     break;
                                 case 401:
@@ -265,6 +265,13 @@ class TrelloClient {
                 that._requests++;
                 return board.labels;
             });
+    }
+
+    /**
+     * @return {Promise<{id: string, name: string}>}
+     */
+    getCurrentBoard() {
+        return this.trello.board('id','name');
     }
 
     /**

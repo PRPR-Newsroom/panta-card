@@ -84,6 +84,11 @@ class FieldMapping {
         return '';
     }
 
+    /**
+     * @param {{name: string, color: string}} label
+     * @param {AbstractField} field
+     * @return {boolean}
+     */
     labelFilter(label, field) {
         return !!label;
     }
