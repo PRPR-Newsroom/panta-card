@@ -5086,7 +5086,8 @@ ExportController.prototype._clearContent = function() {
 ExportController.prototype._createMore = function(a, b, c) {
   b = void 0 === b ? null : b;
   c = void 0 === c ? 3 : c;
-  a.put({name:b.findByAddress(a.address).name});
+  var d = b.findByAddress(a.address);
+  d && isBlank(d.name) && a.put({name:d.name});
   return AdminController.prototype._createMore.call(this, a, b, c);
 };
 // Input 45

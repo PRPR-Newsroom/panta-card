@@ -382,7 +382,10 @@ class ExportController extends AdminController {
      */
     _createMore(header, config = null, columns = 3) {
         // TODO for export it must be possible to override the header column label
-        header.put({'name': config.findByAddress(header.address).name});
+        const field = config.findByAddress(header.address);
+        if (field && isBlank(field.name)) {
+            header.put({'name': field.name});
+        }
         return super._createMore(header, config, columns);
     }
 }
