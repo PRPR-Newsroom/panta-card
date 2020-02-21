@@ -105,7 +105,7 @@ class Import {
     }
 
     /**
-     *
+     * Insert the headerToInsert right before the referenced afterHeader
      * @param {HeaderNode} afterHeader
      * @param {HeaderNode} headerToInsert
      */
@@ -116,6 +116,16 @@ class Import {
         });
         if (idx !== -1) {
             parent.children.splice(idx + 1, 0, headerToInsert);
+        }
+    }
+
+    removeAt(header) {
+        const parent = this.getHeader(header.address).parent;
+        const idx = parent.children.findIndex(it => {
+            return it.isSameAddress(header.address);
+        });
+        if (idx !== -1) {
+            parent.children.splice(idx, 1);
         }
     }
 

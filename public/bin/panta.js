@@ -712,7 +712,7 @@ TrelloClient.prototype.searchMember = function(a) {
   return b.withTrelloToken().then(function(c) {
     return new Promise(function(d, e) {
       b._requests++;
-      window.Trello.get("/search/members", b._createBody(c, {query:"" + it, limit:1}), function(a) {
+      window.Trello.get("/search/members", b._createBody(c, {query:"" + a, limit:1}), function(a) {
         d(a);
       }, function() {
         e("Fehler beim Suchen des Mitglieds mit dem Namen \u00ab" + a + "\u00bb");
@@ -3992,7 +3992,7 @@ var BooleanField = function(a) {
 };
 $jscomp.inherits(BooleanField, AbstractField);
 BooleanField.getBooleanValue = function(a) {
-  return "0" != a;
+  return !isBlank(a) && "0" != a;
 };
 BooleanField.prototype.getValue = function(a) {
   return a && a.value ? BooleanField.getBooleanValue(a.value.v) : !1;
@@ -4079,6 +4079,12 @@ Import.prototype.insertAt = function(a, b) {
     return b.isSameAddress(a.address);
   });
   -1 !== d && c.children.splice(d + 1, 0, b);
+};
+Import.prototype.removeAt = function(a) {
+  var b = this.getHeader(a.address).parent, c = b.children.findIndex(function(b) {
+    return b.isSameAddress(a.address);
+  });
+  -1 !== c && b.children.splice(c, 1);
 };
 Import.prototype.getSample = function(a) {
   return 0 < this.data.length ? Promise.resolve(this.data[0].get(a)) : Promise.resolve(null);
@@ -4825,7 +4831,7 @@ ExportFieldMapping.prototype.labelFilter = function(a, b) {
   return a.name === b.name && a.color === b.source.color;
 };
 ExportFieldMapping.prototype.mapMember = function(a) {
-  return a.email;
+  return a.username;
 };
 ExportFieldMapping.prototype.emptyValue = function() {
   return "";
@@ -4995,8 +5001,19 @@ ExportController.prototype._doExport = function(a) {
         return Promise.all(a.flatMap(function(a) {
           if (a.multi && "trello.labels" === a.reference) {
             return b._adminService.getLabels().then(function(c) {
-              c.reverse().forEach(function(c, d) {
-                0 < d ? (c = new HeaderNode(a.source.parent, "" + c.name, {c:a.source.address.c + 1000 + d, r:a.source.address.r}, null, c.color), b._model.insertAt(a.source, c)) : (b._model.getHeader(a.source.address).label = c.name, b._model.getHeader(a.source.address).color = c.color);
+              b._loggingService.d("Board Labels als HeaderNode mappen " + JSON.stringify(c));
+              if (0 === c.length) {
+                return b._model.removeAt(a.source), [];
+              }
+              var d = c.map(function(b, c) {
+                return new HeaderNode(a.source.parent, "" + b.name, {c:a.source.address.c + 1000 + c, r:a.source.address.r}, null, b.color);
+              }), e = d.splice(1);
+              d = d[0];
+              b._model.getHeader(a.source.address).label = d.label;
+              b._model.getHeader(a.source.address).color = d.color;
+              b._loggingService.d("Label \u00ab" + d.label + "\u00bb (" + d.color + ") an " + JSON.stringify(a.source.address) + " gestellt");
+              e.reverse().forEach(function(c) {
+                b._model.insertAt(a.source, c);
               });
               return c;
             }).then(function(b) {
@@ -5116,7 +5133,9 @@ ExcelService.prototype.write = function(a, b) {
   c.Props = {Title:"Sample Export", Subject:"Panta.Card Export", Author:"PantaRhei", CreatedDate:new Date};
   c.SheetNames.push(a.title);
   var d = [], e = Object.values(a.getNormalizedHeaders()).reduce(function(a, b) {
-    a.push(b.label);
+    a.push({v:b.label, c:[{t:b.color}].filter(function(a) {
+      return null != a.t;
+    })});
     return a;
   }, []);
   d.push(e);

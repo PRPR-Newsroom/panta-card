@@ -221,20 +221,29 @@ class ExportController extends AdminController {
                             if (field.multi && field.reference === 'trello.labels') {
                                 return that._adminService.getLabels()
                                     .then(its => {
-                                        // reverse is necessary because otherwise the order in the model must be the same as the
-                                        // fields returned here in this 'then' block
-                                        its.reverse().forEach((it, index) => {
-                                            if (index > 0) {
-                                                const labeledHeader = new HeaderNode(field.source.parent, `${it.name}`, {
-                                                    c: field.source.address.c + 1000 + index,
-                                                    r: field.source.address.r
-                                                }, null, it.color);
-                                                that._model.insertAt(field.source, labeledHeader);
-                                            } else {
-                                                // rename first label
-                                                that._model.getHeader(field.source.address).label = it.name;
-                                                that._model.getHeader(field.source.address).color = it.color;
-                                            }
+                                        that._loggingService.d(`Board Labels als HeaderNode mappen ${JSON.stringify(its)}`);
+                                        if (its.length === 0) {
+                                            that._model.removeAt(field.source);
+                                            return [];
+                                        }
+                                        /**
+                                         * @type {HeaderNode[]}
+                                         */
+                                        const headers = its.map((it, index) => {
+                                            return new HeaderNode(field.source.parent, `${it.name}`, {
+                                                c: field.source.address.c + 1000 + index,
+                                                r: field.source.address.r
+                                            }, null, it.color);
+                                        });
+                                        const remaining = headers.splice(1);
+                                        const first = headers[0];
+                                        // rename first label
+                                        that._model.getHeader(field.source.address).label = first.label;
+                                        that._model.getHeader(field.source.address).color = first.color;
+                                        that._loggingService.d(`Label «${first.label}» (${first.color}) an ${JSON.stringify(field.source.address)} gestellt`);
+                                        // reverse is necessary to preserve correct order
+                                        remaining.reverse().forEach(it => {
+                                            that._model.insertAt(field.source, it);
                                         });
                                         return its;
                                     })

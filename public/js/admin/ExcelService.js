@@ -57,7 +57,8 @@ class ExcelService {
 
         const rows = [];
         const cols = Object.values(model.getNormalizedHeaders()).reduce((prev, cur) => {
-            prev.push(cur.label);
+
+            prev.push({v: cur.label, c: [{t: cur.color}].filter(it => it.t != null)});
             return prev;
         }, []);
         rows.push(cols);
