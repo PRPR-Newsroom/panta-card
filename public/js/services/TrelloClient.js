@@ -247,7 +247,7 @@ class TrelloClient {
                 return new Promise(function (resolve, reject) {
                     that._requests++;
                     window.Trello.get('/search/members', that._createBody(appToken, {
-                        query: `${it}`,
+                        query: `${name}`,
                         limit: 1
                     }), (members) => {
                         resolve(members);

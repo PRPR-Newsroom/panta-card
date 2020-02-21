@@ -19,7 +19,7 @@ class ExportFieldMapping extends FieldMapping {
     }
 
     mapMember(member) {
-        return member.email;
+        return member.username;
     }
 
     emptyValue() {

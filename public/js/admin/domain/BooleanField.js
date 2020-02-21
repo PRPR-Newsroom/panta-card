@@ -2,7 +2,7 @@ class BooleanField extends AbstractField {
 
     static getBooleanValue(raw) {
         // noinspection EqualityComparisonWithCoercionJS
-        return raw != "0";
+        return !isBlank(raw) && raw != "0";
     }
 
     getValue(node) {
