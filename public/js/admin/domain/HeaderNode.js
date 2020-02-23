@@ -74,7 +74,7 @@ class HeaderNode {
         if (!isBlank(this._color)) {
             return this._color;
         } else {
-            let comment = this.getComment(0);
+            const comment = this.getComment(0);
             if (!isBlank(comment)) {
                 return comment.t.toLowerCase().trim();
             }

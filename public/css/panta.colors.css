@@ -53,6 +53,13 @@
   background-color: #254659 !important;
 }
 
+.panta-bgcolor-null {
+  color: #254659;
+}
+.panta-bgcolor-null p {
+  color: #254659;
+}
+
 .panta-btn.panta-bgcolor-blue:hover {
   background-color: #00598c;
 }
