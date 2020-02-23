@@ -692,7 +692,7 @@ TrelloClient.prototype.createCard = function(a, b, c, d, e, f) {
         g._loggingService.d("Trello Card erstellt mit ID \u00ab" + a.id + "\u00bb");
         g._assertCard(a, k, l, !0);
       }, function() {
-        l("Fehler beim Erstellen der Karte mit Titel \u00ab" + a + "\u00bb");
+        l("Fehler beim Erstellen der Karte mit Titel \u00ab" + a + "\u00bb (Evtl. wurde die Karte bereits einmal ");
       });
     });
   });
@@ -4233,7 +4233,7 @@ DataConfiguration.prototype.findByAddress = function(a) {
 };
 DataConfiguration.prototype.getByAddress = function(a) {
   return Promise.resolve(this.findByAddress(a)).then(function(a) {
-    return a;
+    return null != a;
   });
 };
 DataConfiguration.prototype.setColorByHeader = function(a) {
@@ -4278,14 +4278,15 @@ var AdminController = function(a, b, c, d) {
   this._model = null;
   this._propertyBag = {};
   this._loggingService = d;
-  this._files = [];
+  this._context = "";
 };
 AdminController.create = function(a, b, c, d) {
   return new AdminController(a, c, b, d);
 };
 AdminController.prototype.render = function(a) {
-  this._context = a.page || "home";
-  return "import" === this._context ? this.importPage(a.configuration) : "export" === this._context ? this.exportPage(a) : "error" === this._context ? this.errorPage(a.error, a.error_details) : "progress" === this._context ? this.progressPage() : this.homePage();
+  var b = a.page || "home";
+  this._clear();
+  return "import" === b ? this.importPage(a.configuration) : "export" === b ? this.exportPage(a) : "error" === b ? this.errorPage(a.error, a.error_details) : "progress" === b ? this.progressPage() : this.homePage();
 };
 AdminController.prototype.errorPage = function(a, b) {
   var c = this, d = createByTemplate(template_admin_errorpage, template_admin_errorpage);
@@ -4331,75 +4332,10 @@ AdminController.prototype.exportPage = function(a) {
   return (new ExportController(this._trello, this._document, this._adminService, this._loggingService)).render(a);
 };
 AdminController.prototype.importPage = function(a) {
-  this._model = null;
-  var b = createByTemplate(template_admin_import, template_admin_import);
-  this._document.querySelectorAll(".js-content").forEach(function(a) {
-    return a.appendChild(b);
-  });
-  this._clearContent();
-  return this.renderActions(a).then(function(a) {
-    a = Import.create("Sample", SAMPLE_IMPORT);
-    var b = new DataNode(1), c = a.header;
-    b.set(c.get(0), {v:"Test Liste", t:"s"});
-    b.set(c.get(1), {v:43830, w:"31/12/2019", t:"n"});
-    b.set(c.get(2), {v:"me@m3ns1.com", t:"s"});
-    b.set(c.get(3), {v:"", t:"n"});
-    b.set(c.get(4), {v:1, t:"n"});
-    b.set(c.get(5), {v:1, t:"n"});
-    b.set(c.get(6), {v:1, t:"n"});
-    b.set(c.get(7), {v:1, t:"n"});
-    b.set(c.get(8), {v:1, t:"n"});
-    b.set(c.get(9), {v:1, t:"n"});
-    b.set(c.get(10), {v:1, t:"n"});
-    b.set(c.get(11), {v:1, t:"n"});
-    b.set(c.get(12), {v:1, t:"n"});
-    b.set(c.get(13), {v:"A cocktail a day", t:"s"});
-    b.set(c.get(14), {v:"https://a-cocktail-a-day.com/", t:"s"});
-    b.set(c.get(15), {v:"3.Begriff", t:"s"});
-    b.set(c.get(16), {v:"", t:"s"});
-    b.set(c.get(17), {v:"", t:"s"});
-    b.set(c.get(18), {v:"", t:"s"});
-    b.set(c.get(19), {v:"", t:"s"});
-    b.set(c.get(20), {v:"Blog zum Thema: Reisen, Lifestyle, Fliegen", t:"s"});
-    b.set(c.get(21), {v:"Kristina", t:"s"});
-    b.set(c.get(22), {v:"Roder", t:"s"});
-    b.set(c.get(23), {v:"Test Notiz", t:"s"});
-    b.set(c.get(24), {v:"kristina@a-cocktail-a-day.com", t:"s"});
-    b.set(c.get(25), {v:"n.a.", t:"s"});
-    b.set(c.get(26), {v:"", t:"s"});
-    b.set(c.get(27), {v:"Offen f\u00fcr Kooperationen", t:"s"});
-    b.set(c.get(28), {v:"", t:"s"});
-    b.set(c.get(29), {v:"https://facebook.com", t:"s"});
-    b.set(c.get(30), {v:"https://instagram.com", t:"s"});
-    b.set(c.get(31), {v:"https://twitter.com", t:"s"});
-    b.set(c.get(32), {v:"https://youtube.com", t:"s"});
-    b.set(c.get(33), {v:"https://flickr.com", t:"s"});
-    a.data.push(b);
-    return !0;
-  });
+  return (new ImportController(this._trello, this._adminService, this._document, this._loggingService)).render(a);
 };
 AdminController.prototype.renderActions = function(a) {
-  var b = this, c = this;
-  this._document.querySelectorAll(".js-content").forEach(function(b) {
-    b.removeClass("hidden");
-    b.querySelector("#btn-load") && b.querySelector("#btn-load").setEventListener("click", function(d) {
-      c._doLoad(d, b, a);
-    });
-    b.querySelector("#btn-load-config") && b.querySelector("#btn-load-config").setEventListener("click", function(a) {
-      a.preventDefault();
-      a = prompt("Bitte gib hier die Konfiguration: ");
-      isString(a) && !isBlank(a) && c._pluginController.parseAdminConfiguration(a).then(function(a) {
-        c.renderModel(c._model, a.configuration);
-      });
-    });
-  });
-  var d = c._getActionButton();
-  d && (d.setEventListener("update", function(a) {
-    b.onUpdateActionButton(d);
-  }), d.setEventListener("click", function(a) {
-    c._doImport(a);
-  }));
-  return Promise.resolve(!0);
+  return Promise.resolve(!1);
 };
 AdminController.prototype.onUpdateActionButton = function(a) {
   var b = this._readConfiguration(this._model);
@@ -4418,85 +4354,6 @@ AdminController.prototype.onUpdateActionButton = function(a) {
       this._showWarnings(document, "Es sind noch nicht alle notwendingen Felder konfiguriert.<br/>" + c);
     }
   }
-};
-AdminController.prototype._doImport = function(a) {
-  var b = this;
-  a.preventDefault();
-  var c = a.target;
-  c.setAttribute("disabled", "disabled");
-  b.progressPage().then(function(a) {
-    if (b._model) {
-      var d = b._readConfiguration(b._model);
-      d.isValid() ? (b._adminService.context = a, b._adminService.importCards(b._model, d).then(function(a) {
-        if (a) {
-          return b._loggingService.i("Import Datei(en) wurde(n) erfolgreich importiert"), b._propertyBag.configuration = d, b._loggingService.d("Die Konfiguration wird f\u00fcr zuk\u00fcnftige Imports gespeichert: " + JSON.stringify(b._propertyBag)), b._pluginController.setAdminConfiguration(b._propertyBag);
-        }
-        b._loggingService.i("Es konnten nicht alle Import Dateien korrekt importiert werden");
-        return Promise.reject("See log for more details");
-      }).then(function(a) {
-        b._loggingService.d("Folgende komprimierte Konfiguration wurde gespeichert: (Base64) " + a);
-        b.finishProgress(!0, "Dateien werden hochgeladen...");
-      }).catch(function(a) {
-        b._loggingService.e("Es trat folgender Fehler auf: " + a.stack);
-        b.finishProgress(!1, "Es traten Fehler beim Import auf. Ein detaillierter Rapport wurde dieser Trello Card angeh\u00e4ngt.");
-        console.error(a.stack);
-      }).finally(function() {
-        c.removeAttribute("disabled");
-        return b._adminService.getCurrentCard().then(function(a) {
-          var c = b._files.map(function(c) {
-            return b._adminService.uploadFileToCard(a, c).then(function(a) {
-              b.finishProgress(!0, "Datei \u00ab" + a.name + "\u00bb hochgeladen");
-            });
-          });
-          return Promise.all(c).then(function(b) {
-            return a;
-          });
-        }).then(function(a) {
-          b._files = [];
-          var c = b._loggingService.flush("import.log");
-          return b._adminService.uploadFileToCard(a, c).then(function(a) {
-            b.finishProgress(!0, "Datei \u00ab" + a.name + "\u00bb hochgeladen");
-          });
-        }).then(function(a) {
-          b.closeProgress(!0);
-        }).catch(function(a) {
-          console.error("Fehler beim Hochladen der Datei(en)", a);
-          b._showErrors(document, "Fehler beim Hochladen der Datei(en)");
-          b.closeProgress(!1);
-        });
-      })) : (a = d.getValidationErrors().join("<br/>"), b._showWarnings(document, "Die Konfiguration ist unvollst\u00e4ndig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>" + a));
-    }
-  });
-};
-AdminController.prototype._doLoad = function(a, b, c) {
-  var d = this;
-  a.preventDefault();
-  var e = a.target;
-  d._hideErrors(b);
-  d._hideWarnings(b);
-  e.disabled = !0;
-  d.progressPage().then(function(a) {
-    var b = d._document.querySelector("#file-import").files;
-    try {
-      d.updateProgress(0, b.length, "Datei(en) eingelesen", "Datei(en) werden eingelesen"), d._adminService.load(b).then(function(a) {
-        a.forEach(function(a, e) {
-          d._files.push(a.file);
-          d.renderModel(a.model, c);
-          d.updateProgress(e, b.length, "Datei(en) eingelesen", "Datei \u00ab" + a.file.name + "\u00bb geladen");
-        });
-      }).catch(function(b) {
-        d._showErrors(a, "Unerwarteter Fehler beim Einlesen der Datei \u00ab" + b.name + "\u00bb");
-        d.finishProgress(!1, "Fehler beim Einlesen");
-      }).finally(function() {
-        e.disabled = !1;
-        d.finishProgress(!0, "Fertig");
-      });
-    } catch (h) {
-      d._showErrors(a, "Schwerwiegender Fehler beim Einlesen: " + h), e.disabled = !1, d.finishProgress(!1, "Fehler beim Einlesen");
-    } finally {
-      d.endProgress();
-    }
-  });
 };
 AdminController.prototype.progressPage = function() {
   var a = this;
@@ -4597,49 +4454,6 @@ AdminController.prototype._createFieldOfType = function(a, b, c, d) {
   }
 };
 AdminController.prototype.renderModel = function(a, b) {
-  var c = this;
-  c._clearContent();
-  if (a) {
-    this._document.getElementsByClassName("mapping-content-header").forEach(function(a) {
-      a.removeClass("hidden");
-    });
-    var d = [];
-    this._document.getElementsByClassName("mapping-content").forEach(function(e) {
-      e.removeClass("hidden");
-      Object.entries(a.getNormalizedHeaders()).forEach(function(f) {
-        var g = f[1], h = c._document.createElement("div");
-        h.addClass("row space full");
-        d.push(c._createChipsSection(g, b).then(function(a) {
-          h.appendChild(a);
-          return c._createFieldMappingSection(g, b);
-        }).then(function(d) {
-          h.appendChild(d);
-          return c._createPreviewSection(g, a, b);
-        }).then(function(a) {
-          h.appendChild(a);
-          return c._createMore(g);
-        }).then(function(a) {
-          h.appendChild(a);
-          return h;
-        }).then(function(a) {
-          e.appendChild(a);
-          return Array.from(a.querySelectorAll("select").values());
-        }).then(function(b) {
-          c._model = a;
-          b.forEach(function(a) {
-            a.dispatchEvent(new Event("change"));
-          });
-          return Array.from(h.querySelectorAll(".js-preview").values());
-        }).then(function(a) {
-          a.forEach(function(a) {
-          });
-          return e;
-        }).then(function(a) {
-          return a;
-        }));
-      });
-    });
-  }
 };
 AdminController.prototype._createMore = function(a, b, c) {
   c = void 0 === c ? 2 : c;
@@ -4729,27 +4543,6 @@ AdminController.prototype._createFieldMappingSection = function(a, b) {
   });
 };
 AdminController.prototype.onFieldMappingChange = function(a, b, c) {
-  if (null === a) {
-    console.debug("onFieldMapping with null");
-  } else {
-    var d = this, e = b.getAddressAsText(), f = d._document.querySelector("#more-" + e), g = new Event("update");
-    f.removeChildren();
-    "trello.labels" === a.getAttribute("value") && c.setColorByHeader(b).then(function(a) {
-      a = d._createColorPicker(a);
-      a.setEventListener("change", function(a) {
-        a = a.target.item(a.target.selectedIndex).getAttribute("value");
-        var c = d._document.querySelector("#chip-" + e + "-last");
-        c.removeClassByPrefix("panta-bgcolor-");
-        null != a && c.addClass("panta-bgcolor-" + a);
-        b.color = a;
-      });
-      f.appendChild(a);
-    });
-    c = "true" === a.getAttribute("data-multi");
-    g.item = this._createFieldOfType(a.getAttribute("data-type"), b, a.value, c);
-    d._document.querySelector("#preview-" + e).dispatchEvent(g);
-    d._getActionButton().dispatchEvent(g);
-  }
 };
 AdminController.prototype._getActionButton = function() {
   return this._document.querySelector("#" + ("import" === this._context ? "btn-import" : "btn-export"));
@@ -4857,6 +4650,231 @@ $jscomp.global.Object.defineProperties(AdminController, {PROPERTY_BAG_NAME:{conf
   return "panta.Admin.PropertyBag";
 }}});
 // Input 43
+var ImportController = function(a, b, c, d) {
+  AdminController.call(this, a, b, c, d);
+  this._files = [];
+};
+$jscomp.inherits(ImportController, AdminController);
+ImportController.prototype.render = function(a) {
+  this._model = null;
+  this._context = "import";
+  var b = createByTemplate(template_admin_import, template_admin_import);
+  this._document.querySelectorAll(".js-content").forEach(function(a) {
+    return a.appendChild(b);
+  });
+  this._clearContent();
+  return this.renderActions(a).then(function(a) {
+    a = Import.create("Sample", SAMPLE_IMPORT);
+    var b = new DataNode(1), c = a.header;
+    b.set(c.get(0), {v:"Test Liste", t:"s"});
+    b.set(c.get(1), {v:43830, w:"31/12/2019", t:"n"});
+    b.set(c.get(2), {v:"me@m3ns1.com", t:"s"});
+    b.set(c.get(3), {v:"", t:"n"});
+    b.set(c.get(4), {v:1, t:"n"});
+    b.set(c.get(5), {v:1, t:"n"});
+    b.set(c.get(6), {v:1, t:"n"});
+    b.set(c.get(7), {v:1, t:"n"});
+    b.set(c.get(8), {v:1, t:"n"});
+    b.set(c.get(9), {v:1, t:"n"});
+    b.set(c.get(10), {v:1, t:"n"});
+    b.set(c.get(11), {v:1, t:"n"});
+    b.set(c.get(12), {v:1, t:"n"});
+    b.set(c.get(13), {v:"A cocktail a day", t:"s"});
+    b.set(c.get(14), {v:"https://a-cocktail-a-day.com/", t:"s"});
+    b.set(c.get(15), {v:"3.Begriff", t:"s"});
+    b.set(c.get(16), {v:"", t:"s"});
+    b.set(c.get(17), {v:"", t:"s"});
+    b.set(c.get(18), {v:"", t:"s"});
+    b.set(c.get(19), {v:"", t:"s"});
+    b.set(c.get(20), {v:"Blog zum Thema: Reisen, Lifestyle, Fliegen", t:"s"});
+    b.set(c.get(21), {v:"Kristina", t:"s"});
+    b.set(c.get(22), {v:"Roder", t:"s"});
+    b.set(c.get(23), {v:"Test Notiz", t:"s"});
+    b.set(c.get(24), {v:"kristina@a-cocktail-a-day.com", t:"s"});
+    b.set(c.get(25), {v:"n.a.", t:"s"});
+    b.set(c.get(26), {v:"", t:"s"});
+    b.set(c.get(27), {v:"Offen f\u00fcr Kooperationen", t:"s"});
+    b.set(c.get(28), {v:"", t:"s"});
+    b.set(c.get(29), {v:"https://facebook.com", t:"s"});
+    b.set(c.get(30), {v:"https://instagram.com", t:"s"});
+    b.set(c.get(31), {v:"https://twitter.com", t:"s"});
+    b.set(c.get(32), {v:"https://youtube.com", t:"s"});
+    b.set(c.get(33), {v:"https://flickr.com", t:"s"});
+    a.data.push(b);
+    return !0;
+  });
+};
+ImportController.prototype.renderActions = function(a) {
+  var b = this;
+  this._document.querySelectorAll(".js-content").forEach(function(c) {
+    c.removeClass("hidden");
+    c.querySelector("#btn-load") && c.querySelector("#btn-load").setEventListener("click", function(d) {
+      b._doLoad(d, c, a);
+    });
+    c.querySelector("#btn-load-config") && c.querySelector("#btn-load-config").setEventListener("click", function(a) {
+      a.preventDefault();
+      a = prompt("Bitte gib hier die Konfiguration: ");
+      isString(a) && !isBlank(a) && b._pluginController.parseAdminConfiguration(a).then(function(a) {
+        b.renderModel(b._model, a.configuration);
+      });
+    });
+  });
+  var c = b._getActionButton();
+  c && (c.setEventListener("update", function(a) {
+    b.onUpdateActionButton(c);
+  }), c.setEventListener("click", function(a) {
+    b._doImport(a);
+  }));
+  return Promise.resolve(!0);
+};
+ImportController.prototype._doImport = function(a) {
+  var b = this;
+  a.preventDefault();
+  var c = a.target;
+  c.setAttribute("disabled", "disabled");
+  b.progressPage().then(function(a) {
+    if (b._model) {
+      var d = b._readConfiguration(b._model);
+      d.isValid() ? (b._adminService.context = a, b._adminService.importCards(b._model, d).then(function(a) {
+        if (a) {
+          return b._loggingService.i("Import Datei(en) wurde(n) erfolgreich importiert"), b._propertyBag.configuration = d, b._loggingService.d("Die Konfiguration wird f\u00fcr zuk\u00fcnftige Imports gespeichert: " + JSON.stringify(b._propertyBag)), b._pluginController.setAdminConfiguration(b._propertyBag);
+        }
+        b._loggingService.i("Es konnten nicht alle Import Dateien korrekt importiert werden");
+        return Promise.reject("See log for more details");
+      }).then(function(a) {
+        b._loggingService.d("Folgende komprimierte Konfiguration wurde gespeichert: (Base64) " + a);
+        b.finishProgress(!0, "Dateien werden hochgeladen...");
+      }).catch(function(a) {
+        b._loggingService.e("Es trat folgender Fehler auf: " + a.stack);
+        b.finishProgress(!1, "Es traten Fehler beim Import auf. Ein detaillierter Rapport wurde dieser Trello Card angeh\u00e4ngt.");
+        console.error(a.stack);
+      }).finally(function() {
+        c.removeAttribute("disabled");
+        return b._adminService.getCurrentCard().then(function(a) {
+          var c = b._files.map(function(c) {
+            return b._adminService.uploadFileToCard(a, c).then(function(a) {
+              b.finishProgress(!0, "Datei \u00ab" + a.name + "\u00bb hochgeladen");
+            });
+          });
+          return Promise.all(c).then(function(b) {
+            return a;
+          });
+        }).then(function(a) {
+          b._files = [];
+          var c = b._loggingService.flush("import.log");
+          return b._adminService.uploadFileToCard(a, c).then(function(a) {
+            b.finishProgress(!0, "Datei \u00ab" + a.name + "\u00bb hochgeladen");
+          });
+        }).then(function(a) {
+          b.closeProgress(!0);
+        }).catch(function(a) {
+          console.error("Fehler beim Hochladen der Datei(en)", a);
+          b._showErrors(document, "Fehler beim Hochladen der Datei(en)");
+          b.closeProgress(!1);
+        });
+      })) : (a = d.getValidationErrors().join("<br/>"), b._showWarnings(document, "Die Konfiguration ist unvollst\u00e4ndig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>" + a));
+    }
+  });
+};
+ImportController.prototype._doLoad = function(a, b, c) {
+  var d = this;
+  a.preventDefault();
+  var e = a.target;
+  d._hideErrors(b);
+  d._hideWarnings(b);
+  e.disabled = !0;
+  d.progressPage().then(function(a) {
+    var b = d._document.querySelector("#file-import").files;
+    try {
+      d.updateProgress(0, b.length, "Datei(en) eingelesen", "Datei(en) werden eingelesen"), d._adminService.load(b).then(function(a) {
+        a.forEach(function(a, e) {
+          d._files.push(a.file);
+          d.renderModel(a.model, c);
+          d.updateProgress(e, b.length, "Datei(en) eingelesen", "Datei \u00ab" + a.file.name + "\u00bb geladen");
+        });
+      }).catch(function(b) {
+        d._showErrors(a, "Unerwarteter Fehler beim Einlesen der Datei \u00ab" + b.name + "\u00bb");
+        d.finishProgress(!1, "Fehler beim Einlesen");
+      }).finally(function() {
+        e.disabled = !1;
+        d.finishProgress(!0, "Fertig");
+      });
+    } catch (h) {
+      d._showErrors(a, "Schwerwiegender Fehler beim Einlesen: " + h), e.disabled = !1, d.finishProgress(!1, "Fehler beim Einlesen");
+    } finally {
+      d.endProgress();
+    }
+  });
+};
+ImportController.prototype.renderModel = function(a, b) {
+  var c = this;
+  c._clearContent();
+  if (a) {
+    this._document.getElementsByClassName("mapping-content-header").forEach(function(a) {
+      a.removeClass("hidden");
+    });
+    var d = [];
+    this._document.getElementsByClassName("mapping-content").forEach(function(e) {
+      e.removeClass("hidden");
+      Object.entries(a.getNormalizedHeaders()).forEach(function(f) {
+        var g = f[1], h = c._document.createElement("div");
+        h.addClass("row space full");
+        d.push(c._createChipsSection(g, b).then(function(a) {
+          h.appendChild(a);
+          return c._createFieldMappingSection(g, b);
+        }).then(function(d) {
+          h.appendChild(d);
+          return c._createPreviewSection(g, a, b);
+        }).then(function(a) {
+          h.appendChild(a);
+          return c._createMore(g);
+        }).then(function(a) {
+          h.appendChild(a);
+          return h;
+        }).then(function(a) {
+          e.appendChild(a);
+          return Array.from(a.querySelectorAll("select").values());
+        }).then(function(b) {
+          c._model = a;
+          b.forEach(function(a) {
+            a.dispatchEvent(new Event("change"));
+          });
+          return Array.from(h.querySelectorAll(".js-preview").values());
+        }).then(function(a) {
+          a.forEach(function(a) {
+          });
+          return e;
+        }).then(function(a) {
+          return a;
+        }));
+      });
+    });
+  }
+};
+ImportController.prototype.onFieldMappingChange = function(a, b, c) {
+  if (null === a) {
+    console.debug("onFieldMapping with null");
+  } else {
+    var d = this, e = b.getAddressAsText(), f = d._document.querySelector("#more-" + e), g = new Event("update");
+    f.removeChildren();
+    "trello.labels" === a.getAttribute("value") && c.setColorByHeader(b).then(function(a) {
+      a = d._createColorPicker(a);
+      a.setEventListener("change", function(a) {
+        a = a.target.item(a.target.selectedIndex).getAttribute("value");
+        var c = d._document.querySelector("#chip-" + e + "-last");
+        c.removeClassByPrefix("panta-bgcolor-");
+        null != a && c.addClass("panta-bgcolor-" + a);
+        b.color = a;
+      });
+      f.appendChild(a);
+    });
+    c = "true" === a.getAttribute("data-multi");
+    g.item = this._createFieldOfType(a.getAttribute("data-type"), b, a.value, c);
+    d._document.querySelector("#preview-" + e).dispatchEvent(g);
+    d._getActionButton().dispatchEvent(g);
+  }
+};
+// Input 44
 var ExportFieldMapping = function(a) {
   FieldMapping.apply(this, arguments);
 };
@@ -4879,7 +4897,7 @@ ExportFieldMapping.prototype.mapArray = function(a) {
 ExportFieldMapping.prototype.mapMembers = function(a) {
   return a.join(",");
 };
-// Input 44
+// Input 45
 var ExportController = function(a, b, c, d) {
   AdminController.call(this, a, c, b, d);
 };
@@ -4887,6 +4905,7 @@ $jscomp.inherits(ExportController, AdminController);
 ExportController.prototype.render = function(a) {
   var b = this;
   this._model = null;
+  this._context = "export";
   var c = createByTemplate(template_admin_export, template_admin_export);
   this._document.querySelectorAll(".js-content").forEach(function(a) {
     return a.appendChild(c);
@@ -5153,7 +5172,7 @@ ExportController.prototype._createMore = function(a, b, c) {
   d && !isBlank(d.name) && a.put({name:d.name});
   return AdminController.prototype._createMore.call(this, a, b, c);
 };
-// Input 45
+// Input 46
 var ExcelService = function() {
   this._treatFirstRowAsRoot = !1;
 };
@@ -5238,7 +5257,7 @@ $jscomp.global.Object.defineProperties(ExcelService.prototype, {treatFirstRowAsR
 }, set:function(a) {
   this._treatFirstRowAsRoot = a;
 }}});
-// Input 46
+// Input 47
 var Artikel = function(a, b, c, d, e, f, g, h, k, l, m, q, n, p) {
   this._id = a || uuid();
   this._topic = b;
@@ -5382,7 +5401,7 @@ $jscomp.global.Object.defineProperties(Artikel.prototype, {id:{configurable:!0, 
 $jscomp.global.Object.defineProperties(Artikel, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 3;
 }}});
-// Input 47
+// Input 48
 var PluginCardConfig = function(a, b, c) {
   this._title = a;
   this._icon = b;
@@ -5401,7 +5420,7 @@ $jscomp.global.Object.defineProperties(PluginCardConfig.prototype, {title:{confi
 }, set:function(a) {
   this._content = a;
 }}});
-// Input 48
+// Input 49
 var PluginModuleConfig = function(a, b, c) {
   this._id = a;
   this._name = b;
@@ -5437,7 +5456,7 @@ $jscomp.global.Object.defineProperties(PluginModuleConfig.prototype, {config:{co
 }, set:function(a) {
   this._id = a;
 }}});
-// Input 49
+// Input 50
 var ModuleConfig = function(a, b) {
   this._id = a || uuid();
   this._sections = b;
@@ -5687,7 +5706,7 @@ $jscomp.global.Object.defineProperties(BlogBeteiligt.prototype, {date:{configura
 }, set:function(a) {
   this._date = a;
 }}});
-// Input 50
+// Input 51
 var PluginConfiguration = function(a, b, c, d) {
   this._version = a;
   this._description = b;
@@ -5753,7 +5772,7 @@ $jscomp.global.Object.defineProperties(PluginConfiguration.prototype, {card:{con
 $jscomp.global.Object.defineProperties(PluginConfiguration, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
 }}});
-// Input 51
+// Input 52
 var Plan = function(a, b, c, d, e, f, g, h, k, l, m, q, n, p, r) {
   this._id = a || uuid();
   this._fee = d;
@@ -5855,7 +5874,7 @@ $jscomp.global.Object.defineProperties(Plan.prototype, {id:{configurable:!0, enu
 $jscomp.global.Object.defineProperties(Plan, {VERSION:{configurable:!0, enumerable:!0, get:function() {
   return 1;
 }}});
-// Input 52
+// Input 53
 var SAMPLE_IMPORT = {_title:"Test", _header:{_label:"Listen-Name", _children:[{_label:"Listen-Name", _children:[], _properties:[], _address:{c:0, r:0}, _comments:[], _color:null}, {_label:"Frist (Datum)", _children:[], _properties:[], _address:{c:1, r:0}, _comments:[], _color:null}, {_label:"Mitglieder(Mehrere M\u00f6glich)", _children:[], _properties:[], _address:{c:2, r:0}, _comments:[], _color:null}, {_label:"Wasser", _children:[], _properties:[], _address:{c:3, r:0}, _comments:[{a:" ", t:"Sky", 
 r:'<r><rPr><sz val="10"/><color rgb="FF000000"/><rFont val="Arial"/><family val="2"/><charset val="1"/></rPr><t xml:space="preserve">Sky</t></r>', h:'<span style="font-size:10pt;">Sky</span>'}], _color:null}, {_label:"Wiese", _children:[], _properties:[], _address:{c:4, r:0}, _comments:[{a:" ", t:"Lime", r:'<r><rPr><sz val="10"/><color rgb="FF000000"/><rFont val="Arial"/><family val="2"/><charset val="1"/></rPr><t xml:space="preserve">Lime</t></r>', h:'<span style="font-size:10pt;">Lime</span>'}], 
 _color:null}, {_label:"Strasse", _children:[], _properties:[], _address:{c:5, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:6, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:7, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:8, r:0}, _comments:[], _color:null}, {_label:"Label", _children:[], _properties:[], _address:{c:9, r:0}, _comments:[], _color:null}, {_label:"Label", 
@@ -5865,7 +5884,7 @@ r:0}, _comments:[], _color:null}, {_label:"Feld: Details ", _children:[], _prope
 _address:{c:28, r:0}, _comments:[], _color:null}, {_label:" Feld: Telefon", _children:[], _properties:[], _address:{c:29, r:0}, _comments:[], _color:null}, {_label:"Feld: Adresse", _children:[], _properties:[], _address:{c:30, r:0}, _comments:[], _color:null}, {_label:"Feld: Konditionen", _children:[], _properties:[], _address:{c:31, r:0}, _comments:[], _color:null}, {_label:"Feld: Erfahrungen", _children:[], _properties:[], _address:{c:32, r:0}, _comments:[], _color:null}, {_label:"Facebook Feld: Link", 
 _children:[], _properties:[], _address:{c:34, r:0}, _comments:[], _color:null}, {_label:"Instagram Feld: Link", _children:[], _properties:[], _address:{c:35, r:0}, _comments:[], _color:null}, {_label:"Twitter Feld: Link", _children:[], _properties:[], _address:{c:36, r:0}, _comments:[], _color:null}, {_label:"Youtube Feld: Link", _children:[], _properties:[], _address:{c:37, r:0}, _comments:[], _color:null}, {_label:"Flickr Feld: Link", _children:[], _properties:[], _address:{c:38, r:0}, _comments:[], 
 _color:null}], _properties:[], _address:{c:-1, r:-1}, _comments:[], _color:null}};
-// Input 53
+// Input 54
 HTMLElement.prototype.addClass = function(a) {
   this.hasClass(a) || (this.className += " " + a, this.className = this.className.trim());
   return this;
@@ -6086,7 +6105,7 @@ function extend(a, b) {
   return a;
 }
 ;
-// Input 54
+// Input 55
 var JsonSerialization = function() {
 };
 JsonSerialization.prototype.serialize = function(a) {
@@ -6115,7 +6134,7 @@ JsonSerialization.getProperty = function(a, b) {
 JsonSerialization.prototype.getAllProperties = function(a) {
   return Object.getOwnPropertyNames(a);
 };
-// Input 55
+// Input 56
 var template_regular = '<div id="template">    <div class="row">        <div class="col-6 col-phone-12">            <div class="row">                <div class="col-12 col-phone-12">                    <div class="pa.name"></div>                </div>                <div class="col-12 col-phone-12">                    <div class="pa.social"></div>                </div>            </div>        </div>        <div class="col-6 col-phone-12 line-4 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-6 col-phone-12">            <div class="pa.address"></div>        </div>        <div class="col-6 col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-12 col-phone-12">            <div class="row">                <div class="col-4 col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_regular_mobile = '<div id="template">    <div class="row">        <div class="col-phone-12">            <div class="pa.name"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.social"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.address"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="row">                <div class="col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.notes"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.format"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.placement"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.price"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.name"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.social"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.address"></div>            </div>        </div>    </div></div>', 
@@ -6132,7 +6151,7 @@ template_admin_import = '<div class="row full">            <div class="col-12"> 
 template_admin_export = '<div class="row full">            <div class="col-12">                <p class="topic">Standardm\u00e4ssig werden alle Trello und Panta.Card Felder exportiert</p>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3 align-right">                    <b>Excel Feld</b>                </div>                <div class="col-3">                    <b>Trello Feld</b>                </div>                <div class="col-3 align-left">                    <b>Beispiel Wert</b>                </div>                <div class="col-3 align-left">                    <b>Beschriftung \u00fcberschreiben</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-9">\u00a0</div>                <div class="col-3">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-export">                        Exportieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
 template_admin_errorpage = '<div class="row full">   <div class="col-12 hidden error-messages">       <p class="error" id="error-message"></p>   </div>   <div class="col-12 hidden warning-messages">       <p class="warning" id="warning-message"></p>   </div>   <div class="col-12 space">       <button id="btn-reset" class="panta-btn panta-bgcolor-red">Zur\u00fccksetzen</button>   </div></div>', template_admin_progress = '<div class="overlay js-panta-progress progress-overlay">            <div class="row full">                <div class="col-12">                    <p class="space"><span class="js-panta-current-record">?</span>/<span class="js-panta-total-records">?</span> <span class="js-panta-progress-postfix"></span></p>                    <p class="details js-panta-record-details"></p>';
 "                </div>            </div>        </div>";
-// Input 56
+// Input 57
 var Reducers = function() {
 };
 Reducers.asKeyValue = function(a, b) {
