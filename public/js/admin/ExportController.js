@@ -52,7 +52,7 @@ class ExportController extends AdminController {
             Object.values(model.getNormalizedHeaders()).map(header => {
                 const row = that._document.createElement('div');
                 row.addClass('row space full');
-                return that._createChipsSection(header)
+                return that._createChipsSection(header, config)
                     .then(it => {
                         row.appendChild(it);
                         return that._createFieldMappingSection(header, config);
@@ -81,10 +81,14 @@ class ExportController extends AdminController {
                         return Array.from(row.querySelectorAll('.js-preview').values());
                     })
                     .then(its => {
+                        const event = new Event('update');
                         its.forEach(it => {
-                            it.dispatchEvent(new Event('update'));
+                            it.dispatchEvent(event);
                         });
                         return container;
+                    })
+                    .then(it => {
+                        that._getActionButton().dispatchEvent(new Event("update"));
                     })
             });
         });
@@ -120,15 +124,19 @@ class ExportController extends AdminController {
                     })
                     .then(it => {
                         that._loggingService.i(`Export erfolgreich abgeschlossen`);
-                        that.finishProgress(true, 'Fertig');
+                        that.finishProgress(true, 'Detaillierter Rapport wird gespeichert...');
                     })
                     .finally(() => {
                         // that.endProgress();
                         e.target.disabled = false;
                         return that._adminService.getCurrentCard()
                             .then(card => {
-                                const file = that._loggingService.flush();
-                                return that._adminService.uploadFileToCard(card, file);
+                                const file = that._loggingService.flush("export.log");
+                                return that._adminService.uploadFileToCard(card, file)
+                                    .then(it => {
+                                        that.finishProgress(true, 'Rapport in Card gespeichert');
+                                        return it;
+                                    });
                             })
                             .then(it => {
                                 that.closeProgress(true);
@@ -152,8 +160,9 @@ class ExportController extends AdminController {
     /**
      * @param {HTMLOptionElement} item
      * @param {HeaderNode} header
+     * @param {DataConfiguration} configuration
      */
-    onFieldMappingChange(item, header) {
+    onFieldMappingChange(item, header, configuration) {
         if (item === null) {
             return;
         }
@@ -166,9 +175,8 @@ class ExportController extends AdminController {
         if (item.getAttribute('value') === 'trello.labels') {
             // labels are added dynamically and thus cannot be overridden
             const hint = that._document.createElement('p');
-            // TODO externalize
-            hint.setAttribute('title', 'Labels werden dynamisch anhand den verfügbaren Board Labels erstellt.');
-            hint.innerHTML = `<i>Dynamisch erstellt</i>`;
+            hint.setAttribute('title', __('admin.export.labels.hint.desc'));
+            hint.innerHTML = `<i>${__('admin.export.labels.hint.label')}</i>`;
             more.appendChild(hint);
             return null;
         }
@@ -180,6 +188,12 @@ class ExportController extends AdminController {
         renamer.value = saved ? saved.name : lastchip.innerText;
         renamer.addClass(saved && saved.name !== lastchip.innerText ? 'overridden-value' : 'default-value');
         more.appendChild(renamer);
+
+        // dispatch update event to update the preview section
+        const multi = item.getAttribute('data-multi') === 'true';
+        event.item = this._createFieldOfType(item.getAttribute('data-type'), header, item.value, multi);
+        that._document.querySelector(`#preview-${address}`).dispatchEvent(event);
+        // update the action button
         that._getActionButton().dispatchEvent(event);
 
     }
@@ -286,7 +300,6 @@ class ExportController extends AdminController {
                             const percent = Math.min(((index + 1.0) / Math.max(1.0, cards.length)) * 100, 100.0);
                             const details = `${percent.toFixed(2)}%`;
                             progress.each.apply(that, [index + 1, cards.length, 'Einträge exportiert...', details]);
-
                             return prev;
                         }, [])
                         .then(rows => {
@@ -306,7 +319,7 @@ class ExportController extends AdminController {
                 .then(it => {
                     console.debug('Saving configuration', config);
                     that._propertyBag['export_configuration'] = config;
-                    that._loggingService.d(`Die Konfiguration wird für zukünftige Exports gespeichert: ${JSON.stringify(config)}`);
+                    that._loggingService.d(`Die Konfiguration wird für zukünftige Exports gespeichert: ${JSON.stringify(that._propertyBag)}`);
                     return that._pluginController.setAdminConfiguration(that._propertyBag);
                 });
         } else {
@@ -360,10 +373,6 @@ class ExportController extends AdminController {
                             const group = it.group;
                             return that._pluginController.findPluginModuleConfigByModuleId(it.moduleId)
                                 .then(config => {
-                                    // const first = new HeaderNode(root, config.name, {c: column++, r: row});
-                                    // const second = new HeaderNode(first, group, {c: column, r: row});
-                                    // const last = new HeaderNode(second, field.label, {c: column, r: row});
-                                    // return last;
                                     return new HeaderNode(root, `${config.name}.${group}.${field.label}`, {
                                         c: column++,
                                         r: row
@@ -392,7 +401,7 @@ class ExportController extends AdminController {
     _createMore(header, config = null, columns = 3) {
         // TODO for export it must be possible to override the header column label
         const field = config.findByAddress(header.address);
-        if (field && isBlank(field.name)) {
+        if (field && !isBlank(field.name)) {
             header.put({'name': field.name});
         }
         return super._createMore(header, config, columns);

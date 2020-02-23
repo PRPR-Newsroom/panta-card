@@ -125,6 +125,44 @@ class DataConfiguration {
             }, null);
     }
 
+    /**
+     * @param address
+     * @return {Promise<AbstractField | never>}
+     */
+    getByAddress(address) {
+        return Promise.resolve(this.findByAddress(address))
+            .then(it => it);
+    }
+
+    /**
+     * @param {HeaderNode} header
+     * @return {Promise<AbstractField | never | never>}
+     */
+    setColorByHeader(header) {
+        const that = this;
+        return this.getByAddress(header.address)
+            .then(it => {
+                if (it.name === header.label) {
+                    // only remember the color if the label of that header is the same
+                    return that.getColor(it);
+                } else {
+                    return header.color;
+                }
+            })
+            .then(it => {
+                header.color = it;
+                return header.color;
+            });
+    }
+
+    /**
+     * @param {AbstractField} field
+     * @return {string} the color if set in the source
+     */
+    getColor(field) {
+        return field && field.source ? field.source.color : null;
+    }
+
     constructor() {
         /**
          * @type {AbstractField[]}

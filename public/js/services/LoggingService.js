@@ -7,9 +7,9 @@ class LoggingService {
     /**
      * @return {File}
      */
-    flush() {
+    flush(name = "log.txt") {
         const blob = new Blob([this._logs.map(it => `${it.at.toISOString()}: [${it.level}]\t${it.msg}`).join(`\n`)], {type: 'text/plain'});
-        return new File([blob], "log.txt", {type: "text/plain;charset=utf-8"});
+        return new File([blob], name, {type: "text/plain;charset=utf-8"});
     }
 
     /**

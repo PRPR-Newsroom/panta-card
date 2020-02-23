@@ -1,7 +1,7 @@
 class ArrayField extends AbstractField {
 
     static getArrayValue(raw) {
-        return raw.split(',');
+        return isString(raw) ? raw.split(',') : [];
     }
 
     getValue(node) {

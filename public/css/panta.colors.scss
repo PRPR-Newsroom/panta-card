@@ -55,6 +55,13 @@
   background-color: $trello-black !important;
 }
 
+.panta-bgcolor-null {
+  color: $trello-black;
+  p {
+    color: $trello-black;
+  }
+}
+
 .panta-btn {
   &.panta-bgcolor-blue:hover {
     background-color: darken($trello-blue, 10%);

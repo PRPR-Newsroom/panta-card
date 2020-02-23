@@ -119,13 +119,26 @@ class PluginController {
     setAdminConfiguration(config) {
         const that = this;
         if (config) {
-            const compress = LZString.compress(JSON.stringify(config));
-            return this._trelloApi.set('board', 'private', AdminController.PROPERTY_BAG_NAME, compress)
-                .then(() => Base64.encode(compress));
+            return this.getAdminConfiguration()
+                .then(it => {
+                    // merge the configs
+                    if (config.hasOwnProperty('export_configuration')) {
+                        it['export_configuration'] = config.export_configuration;
+                    }
+                    if (config.hasOwnProperty('configuration')) {
+                        it['configuration'] = config.configuration;
+                    }
+                    return it;
+                })
+                .then(it => {
+                    const compress = LZString.compress(JSON.stringify(it));
+                    return this._trelloApi.set('board', 'private', AdminController.PROPERTY_BAG_NAME, compress)
+                        .then(() => Base64.encode(compress));
+                });
         } else {
             return that.getAdminConfiguration()
                 .then(it => {
-                    return Base64.encode(LZString.compress(JSON.stringify(it.configuration)));
+                    return Base64.encode(LZString.compress(JSON.stringify(it)));
                 });
         }
     }

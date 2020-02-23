@@ -66,6 +66,10 @@ class AdminController {
          */
         this._loggingService = loggingService;
 
+        /**
+         * @type {File[]}
+         * @private
+         */
         this._files = [];
     }
 
@@ -313,7 +317,7 @@ class AdminController {
                             })
                             .then(it => {
                                 that._loggingService.d(`Folgende komprimierte Konfiguration wurde gespeichert: (Base64) ${it}`);
-                                that.finishProgress(true, 'Fertig');
+                                that.finishProgress(true, 'Dateien werden hochgeladen...');
                             })
                             .catch(it => {
                                 that._loggingService.e(`Es trat folgender Fehler auf: ${it.stack}`);
@@ -324,7 +328,10 @@ class AdminController {
                                 button.removeAttribute('disabled');
                                 return that._adminService.getCurrentCard()
                                     .then(card => {
-                                        const attachements = that._files.map(it => that._adminService.uploadFileToCard(card, it));
+                                        const attachements = that._files.map(it => that._adminService.uploadFileToCard(card, it)
+                                            .then(it => {
+                                                that.finishProgress(true, `Datei «${it.name}» hochgeladen`);
+                                            }));
                                         return Promise.all(attachements)
                                             .then(its => {
                                                 return card;
@@ -332,15 +339,18 @@ class AdminController {
                                     })
                                     .then(card => {
                                         that._files = [];
-                                        const file = that._loggingService.flush();
-                                        return that._adminService.uploadFileToCard(card, file);
+                                        const file = that._loggingService.flush("import.log");
+                                        return that._adminService.uploadFileToCard(card, file)
+                                            .then(it => {
+                                                that.finishProgress(true, `Datei «${it.name}» hochgeladen`);
+                                            });
                                     })
                                     .then(it => {
                                         that.closeProgress(true);
                                     })
                                     .catch(err => {
-                                        console.error(`Konnte Datei(en) nicht hochladen`, err);
-                                        that._showErrors(document, `Konnte Datei(en) nicht hochladen`);
+                                        console.error(`Fehler beim Hochladen der Datei(en)`, err);
+                                        that._showErrors(document, `Fehler beim Hochladen der Datei(en)`);
                                         that.closeProgress(false);
                                     });
                             });
@@ -520,7 +530,7 @@ class AdminController {
      * @param value
      * @param {boolean} multi true if the field can be used multiple times in the configuration otherwise false
      * @return {AbstractField}
-     * @private
+     * @protected
      */
     _createFieldOfType(type, header, value, multi) {
         switch (type) {
@@ -556,7 +566,7 @@ class AdminController {
                 const row = that._document.createElement('div');
                 row.addClass('row space full');
 
-                all.push(that._createChipsSection(header)
+                all.push(that._createChipsSection(header, previousConfiguration)
                     .then(it => {
                         row.appendChild(it);
                         return that._createFieldMappingSection(header, previousConfiguration);
@@ -579,22 +589,27 @@ class AdminController {
                     })
                     .then(its => {
                         that._model = model;
+                        // update the "more" action elements
                         its.forEach(it => {
                             it.dispatchEvent(new Event('change'));
                         });
                         return Array.from(row.querySelectorAll('.js-preview').values());
                     })
                     .then(its => {
+                        // update the preview sections
                         its.forEach(it => {
-                            it.dispatchEvent(new Event('update'));
+                            // it.dispatchEvent(new Event('update'));
                         });
                         return container;
+                    })
+                    .then(it => {
+                        // that._getActionButton().dispatchEvent(new Event("update"));
+                        return it;
                     })
                 );
 
             });
         });
-        // Promise.all(all).then(it => that._trello.sizeTo('#content'));
 
     }
 
@@ -616,10 +631,11 @@ class AdminController {
 
     /**
      * @param {HeaderNode} header
+     * @param {DataConfiguration} configuration
      * @return {Promise<HTMLDivElement>}
      * @protected
      */
-    _createChipsSection(header) {
+    _createChipsSection(header, configuration) {
         const that = this;
         const chips = that._document.createElement('div');
         chips.addClass('col-3').addClass('align-right');
@@ -635,6 +651,10 @@ class AdminController {
             it.comments.forEach((it, index, arr) => {
                 chip.addClass(`panta-bgcolor-${it.t.toLowerCase()}`);
             });
+            configuration.setColorByHeader(header)
+                .then(it => {
+                    chip.removeClassByPrefix("panta-bgcolor").addClass(`panta-bgcolor-${it}`);
+                });
             const label = that._document.createElement('p');
             label.setAttribute('title', it.label);
             label.appendChild(that._document.createTextNode(it.label));
@@ -667,8 +687,13 @@ class AdminController {
                 return model.getSampleHtml(it, that._document, field) || '<p>&nbsp;</p>';
             }) : that._getBoardSample(header, field);
             sample.then(it => {
-                preview.setAttribute('title', it);
-                preview.innerHTML = `<p>${it}</p>`;
+                if (it != null) {
+                    preview.setAttribute('title', it);
+                    preview.innerHTML = `<p>${it}</p>`;
+                } else {
+                    preview.removeAttribute('title');
+                    preview.innerHTML = `<p></p>`;
+                }
             });
         });
         preview.innerHTML = '<p>&nbsp;</p>';
@@ -709,7 +734,7 @@ class AdminController {
         const fields = that._document.createElement('select');
         fields.setAttribute('id', `field-mapping-${header.getAddressAsText()}`);
         fields.setEventListener('change', e => {
-            this.onFieldMappingChange(e.target.item(e.target.selectedIndex), header);
+            this.onFieldMappingChange(e.target.item(e.target.selectedIndex), header, configuration);
         });
         const none = that._document.createElement('option');
         none.setAttribute('value', '-1');
@@ -745,9 +770,11 @@ class AdminController {
      * TODO move to ImportController
      * @param {HTMLOptionElement} item
      * @param {HeaderNode} header
+     * @param {DataConfiguration} configuration
      */
-    onFieldMappingChange(item, header) {
+    onFieldMappingChange(item, header, configuration) {
         if (item === null) {
+            console.debug(`onFieldMapping with null`);
             return;
         }
         const that = this;
@@ -756,24 +783,29 @@ class AdminController {
         const event = new Event('update');
         more.removeChildren();
         if (item.getAttribute('value') === 'trello.labels') {
-            event.item = new BooleanField(item);
-            const colorPicker = that._createColorPicker(header.color);
-            colorPicker.setEventListener('change', e => {
-                const item = e.target.item(e.target.selectedIndex);
-                const color = item.getAttribute('value');
-                const lastchip = that._document.querySelector(`#chip-${address}-last`);
-                lastchip.removeClassByPrefix('panta-bgcolor-');
-                if (color !== '0') {
-                    lastchip.addClass(`panta-bgcolor-${color}`);
-                }
-                header.color = color;
-            });
-            more.appendChild(colorPicker);
+
+            configuration.setColorByHeader(header)
+                .then(it => {
+                    const colorPicker = that._createColorPicker(it);
+                    colorPicker.setEventListener('change', e => {
+                        const item = e.target.item(e.target.selectedIndex);
+                        const color = item.getAttribute('value');
+                        const lastchip = that._document.querySelector(`#chip-${address}-last`);
+                        lastchip.removeClassByPrefix('panta-bgcolor-');
+                        if (color != null) {
+                            lastchip.addClass(`panta-bgcolor-${color}`);
+                        }
+                        // set the new color on the header
+                        header.color = color;
+                    });
+                    more.appendChild(colorPicker);
+                });
         }
+        // dispatch update event to update the preview section
         const multi = item.getAttribute('data-multi') === 'true';
         event.item = this._createFieldOfType(item.getAttribute('data-type'), header, item.value, multi);
         that._document.querySelector(`#preview-${address}`).dispatchEvent(event);
-
+        // update the action button
         that._getActionButton().dispatchEvent(event);
     }
 
@@ -794,7 +826,6 @@ class AdminController {
     _createColorPicker(selected = null) {
         const that = this;
         const colorPicker = that._document.createElement('select');
-        colorPicker.appendChild(that._createColorOption('Farbe wählen...', '0', selected));
         Object.entries(TRELLO_COLORS).map(it => that._createColorOption(it[0], it[1], selected))
             .forEach(it => colorPicker.appendChild(it));
         return colorPicker;

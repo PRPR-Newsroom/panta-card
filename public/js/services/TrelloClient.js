@@ -347,7 +347,7 @@ class TrelloClient {
                     that._loggingService.d(`Label «${label}» (${color}) wird erstellt in Board «${boardId}»`);
                     const request = that._createBody(it, {
                         name: label,
-                        color: color,
+                        color: color === "transparent" ? null : color,
                         idBoard: boardId
                     });
                     window.Trello.post("/labels", request, function (label) {

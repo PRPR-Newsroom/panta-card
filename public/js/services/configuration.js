@@ -104,7 +104,7 @@ const TEXTS = {
     "module.beteiligt.field-follower.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
     "module.beteiligt.field-date.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
 
-    'trello.list.desc': 'Trello.Liste',
+    'trello.list.desc': 'Board.Liste',
     'trello.title.desc': 'Card.Titel',
     'trello.description.desc': 'Card.Beschreibung',
     'trello.members.desc': 'Card.Mitglieder',
@@ -113,6 +113,9 @@ const TEXTS = {
 
     'admin.import.select.label.text': 'Felder',
     'admin.import.select.label.select': 'Listen',
+
+    'admin.export.labels.hint.label': 'Dynamisch erstellt',
+    'admin.export.labels.hint.desc': 'Labels werden dynamisch anhand den verfügbaren Board Labels erstellt.'
 };
 
 /**
@@ -143,6 +146,7 @@ const TRELLO_FIELDS = [{
 }];
 
 const TRELLO_COLORS = {
+    'Transparent': 'transparent',
     'Blue': 'blue',
     'Green': 'green',
     'Orange': 'orange',
