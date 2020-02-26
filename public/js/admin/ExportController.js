@@ -7,6 +7,7 @@ class ExportController extends AdminController {
     render(config) {
         const that = this;
         this._model = null;
+        this._context = 'export';
         const page = createByTemplate(template_admin_export, template_admin_export);
         this._document.querySelectorAll('.js-content').forEach(it => it.appendChild(page));
         this._clearContent();

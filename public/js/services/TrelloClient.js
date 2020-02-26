@@ -214,7 +214,7 @@ class TrelloClient {
                         that._loggingService.d(`Trello Card erstellt mit ID «${card.id}»`);
                         that._assertCard(card, resolve, reject, true);
                     }, () => {
-                        reject(`Fehler beim Erstellen der Karte mit Titel «${title}»`);
+                        reject(`Fehler beim Erstellen der Karte mit Titel «${title}» (Evtl. wurde die Karte bereits einmal `);
                     });
                 });
             });

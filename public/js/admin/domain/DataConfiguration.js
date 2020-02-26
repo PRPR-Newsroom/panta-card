@@ -131,7 +131,7 @@ class DataConfiguration {
      */
     getByAddress(address) {
         return Promise.resolve(this.findByAddress(address))
-            .then(it => it);
+            .then(it => it != null);
     }
 
     /**
