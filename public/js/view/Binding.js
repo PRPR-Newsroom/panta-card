@@ -106,7 +106,7 @@ class Binding {
      * @param id
      */
     updateField(field, id) {
-        let config = this.getConfigurationFor(id);
+        const config = this.getConfigurationFor(id);
         if (config.editable.visible === false) {
             field.hide();
         } else {
@@ -148,14 +148,14 @@ class Binding {
     }
 
     getConfigurationFor(id) {
-        let editable = this._configuration.config.editables
+        const editable = this._configuration.config.editables
             .filter(function (editable) {
                 return editable.id === id;
             });
 
-        let label = editable[0].label;
+        const label = editable[0].label;
 
-        let options = editable
+        const options = editable
             .map(function (editable) {
                 return editable.values;
             })

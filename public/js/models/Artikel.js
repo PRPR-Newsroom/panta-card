@@ -108,9 +108,20 @@ class Artikel {
      * @returns {*}
      */
     isEmpty() {
-        return isBlank(this.topic) && isBlank(this.pagina) && isBlank(this.from) && isBlank(this.layout) && isBlank(this.tags) && isBlank(this.visual)
-            && isBlank(this.region) && isBlank(this.season) && isBlank(this.location) && isBlank(this.author) && isBlank(this.text);
+        return isBlank(this.topic) && isBlank(this.pagina) && isBlank(this.author) && isBlank(this.text) && isBlank(this.from) &&
+            this._isEmptySelect(this.tags) && this._isEmptySelect(this.visual) && this._isEmptySelect(this.region) &&
+            this._isEmptySelect(this.season) && this._isEmptySelect(this.location) && this._isEmptySelect(this.form);
     }
+
+    /**
+     * @param property
+     * @return {boolean}
+     * @private
+     */
+    _isEmptySelect(property) {
+        return isBlank(property) || (isNumber(property) && parseFloat(property) <= 0);
+    }
+
     /**
      * Get the associated involved container
      * @param name

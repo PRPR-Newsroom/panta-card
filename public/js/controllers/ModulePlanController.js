@@ -99,6 +99,7 @@ class ModulePlanController extends Controller {
             throw "Module is not enabled";
         }
 
+        const that = this;
         this._telephone.postMessage({
             'get': ['fee:current',
                 'fee:overall',
@@ -110,7 +111,11 @@ class ModulePlanController extends Controller {
             this._entity.capOnDepenses = this.getCapOnDepenses();
         }
         if (this._binding) {
-            this._binding.update(this._entity);
+
+            return that._window.clientManager.getModuleConfiguration(ModulePlanController.ID)
+                .then(it => {
+                    return that._binding.update(this._entity, it);
+                });
         }
         return super.update();
     }

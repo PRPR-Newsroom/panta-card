@@ -49,7 +49,7 @@ t.render(function () {
                 });
         })
         .each(function (context) {
-            let controller = cm.getController(context.id);
+            const controller = cm.getController(context.id);
             if (cm.getPluginController().upgrading) {
                 return controller.blockUi();
             } else {
