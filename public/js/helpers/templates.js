@@ -433,7 +433,7 @@ const template_admin_import = '<div class="row full">' +
     '                <button class="panta-btn" id="btn-load">Laden</button>' +
     '            </div>' +
     '            <div class="col-12">' +
-    '                <button class="panta-btn panta-bgcolor-yellow" id="btn-load-config">Konfiguration laden</button>' +
+    '                <button class="panta-btn panta-bgcolor-yellow hidden" id="btn-load-config">Konfiguration laden</button>' +
     '            </div>' +
     '        </div>' +
     '' +

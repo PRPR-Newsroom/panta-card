@@ -177,6 +177,9 @@ class TrelloClient {
             .clearToken();
     }
 
+    /**
+     * @return {PromiseLike<{username: string}>}
+     */
     getCurrentMember() {
         const that = this;
         return this.trello.member('username')

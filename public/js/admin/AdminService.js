@@ -108,7 +108,14 @@ class AdminService {
     }
 
     getListById(id) {
-        return this.trelloClient.getListById(id)
+        return this.trelloClient.getListById(id);
+    }
+
+    /**
+     * @return {PromiseLike<{username: string}>}
+     */
+    getCurrentUser() {
+        return this.trelloClient.getCurrentMember();
     }
 
     /**
