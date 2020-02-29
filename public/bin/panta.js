@@ -1973,23 +1973,26 @@ ModuleController.prototype.hide = function() {
   this.document.getElementById("panta.module").addClass("hidden");
 };
 ModuleController.prototype.update = function() {
+  var a = this;
   if (!this._window.clientManager.isBeteiligtModuleEnabled()) {
     throw "Module is not enabled";
   }
-  var a = this.getTotalPrice();
+  var b = this.getTotalPrice();
   Object.values(this._entity.sections).filter(function(a) {
     return a instanceof AdBeteiligt;
-  }).forEach(function(b) {
-    b.total = a;
+  }).forEach(function(a) {
+    a.total = b;
   });
-  var b = this.getTotalProject(), c = this.getCapOnDepenses();
+  var c = this.getTotalProject(), d = this.getCapOnDepenses();
   Object.values(this._entity.sections).filter(function(a) {
     return a instanceof OtherBeteiligt;
   }).forEach(function(a) {
-    a.project = b;
-    a.capOnDepenses = c;
+    a.project = c;
+    a.capOnDepenses = d;
   });
-  this._beteiligtBinding.update(this._entity);
+  return this._window.clientManager.getModuleConfiguration(ModuleController.ID).then(function(b) {
+    a._beteiligtBinding.update(a._entity, b);
+  });
 };
 ModuleController.prototype.onEvent = function(a, b) {
   switch(b.hasOwnProperty("event") ? b.event : "change") {
@@ -2805,8 +2808,9 @@ ArtikelController.prototype.update = function() {
       throw "Module is not enabled";
     }
     a._entity.total = a.getTotalPageCount();
-    a._binding.update(a._entity);
-    return !0;
+    return a._window.clientManager.getModuleConfiguration(ArtikelController.ID).then(function(b) {
+      return a._binding.update(a._entity, b);
+    });
   });
 };
 ArtikelController.prototype.getTotalPageCount = function() {
@@ -2897,13 +2901,16 @@ ModulePlanController.prototype.render = function(a, b) {
   return Controller.prototype.render.call(this, a);
 };
 ModulePlanController.prototype.update = function() {
+  var a = this;
   if (!this._window.clientManager.isPlanModuleEnabled()) {
     throw "Module is not enabled";
   }
+  var b = this;
   this._telephone.postMessage({get:["fee:current", "fee:overall", "charge:current", "charge:overall", "costs:overall"]});
   this._entity && (this._entity.capOnDepenses = this.getCapOnDepenses());
-  this._binding && this._binding.update(this._entity);
-  return Controller.prototype.update.call(this);
+  return this._binding ? b._window.clientManager.getModuleConfiguration(ModulePlanController.ID).then(function(c) {
+    return b._binding.update(a._entity, c);
+  }) : Controller.prototype.update.call(this);
 };
 ModulePlanController.prototype.onEvent = function(a, b) {
   switch(b.hasOwnProperty("event") ? b.event : "change") {
@@ -3216,7 +3223,7 @@ ClientManager.prototype.getPlanModuleSorters = function() {
 };
 ClientManager.prototype.getPlanModuleContext = function(a) {
   var b = this;
-  return {id:"module.plan", shared:ModulePlanController.SHARED_NAME, card:a, configuration:b.getModuleConfiguration("module.plan"), condition:b.isPlanModuleEnabled(), on:function() {
+  return {id:"module.plan", shared:ModulePlanController.SHARED_NAME, card:a, configuration:b.getModuleConfiguration(ModulePlanController.ID), condition:b.isPlanModuleEnabled(), on:function() {
     var c = [], d = b.getPlanController().getByCard(a);
     b.getPlanController().hasContent(d) && c.push({text:"", icon:"./assets/ic_plan.png"});
     return b.getModuleConfiguration("module.plan").then(function(a) {
@@ -3233,7 +3240,7 @@ ClientManager.prototype.getPlanModuleContext = function(a) {
 };
 ClientManager.prototype.getBeteiligtModuleContext = function(a) {
   var b = this;
-  return {id:"module.beteiligt", shared:ModuleController.SHARED_NAME, card:a, configuration:b.getModuleConfiguration("module.beteiligt"), condition:b.isBeteiligtModuleEnabled(), on:function() {
+  return {id:"module.beteiligt", shared:ModuleController.SHARED_NAME, card:a, configuration:b.getModuleConfiguration(ModuleController.ID), condition:b.isBeteiligtModuleEnabled(), on:function() {
     var c = [], d = b.getModuleController().getByCard(a);
     d instanceof ModuleConfig && (d = d.getContentCount(), 0 < d && c.push({text:d, icon:"./assets/ic_beteiligt.png"}));
     return c;
@@ -5304,7 +5311,10 @@ Artikel._create = function(a) {
   return new Artikel;
 };
 Artikel.prototype.isEmpty = function() {
-  return isBlank(this.topic) && isBlank(this.pagina) && isBlank(this.from) && isBlank(this.layout) && isBlank(this.tags) && isBlank(this.visual) && isBlank(this.region) && isBlank(this.season) && isBlank(this.location) && isBlank(this.author) && isBlank(this.text);
+  return isBlank(this.topic) && isBlank(this.pagina) && isBlank(this.author) && isBlank(this.text) && isBlank(this.from) && this._isEmptySelect(this.tags) && this._isEmptySelect(this.visual) && this._isEmptySelect(this.region) && this._isEmptySelect(this.season) && this._isEmptySelect(this.location) && this._isEmptySelect(this.form);
+};
+Artikel.prototype._isEmptySelect = function(a) {
+  return isBlank(a) || isNumber(a) && 0 >= parseFloat(a);
 };
 Artikel.prototype.getInvolvedFor = function(a) {
   return this._involved[a];

@@ -7,6 +7,7 @@ class ArtikelController extends Controller {
     static get ID() {
         return "module.artikel";
     }
+
     /**
      * The app version
      * @returns {number}
@@ -165,7 +166,7 @@ class ArtikelController extends Controller {
      * Called when the artikel has changed and the controller should re-compute dynamic properties (totals)
      */
     update() {
-        let that = this;
+        const that = this;
         this._window.clientManager.isArticleModuleEnabled()
             .then(function (enabled) {
                 if (!enabled) {
@@ -173,8 +174,10 @@ class ArtikelController extends Controller {
                 }
                 // calc total
                 that._entity.total = that.getTotalPageCount();
-                that._binding.update(that._entity);
-                return true;
+                return that._window.clientManager.getModuleConfiguration(ArtikelController.ID)
+                    .then(it => {
+                        return that._binding.update(that._entity, it);
+                    });
             });
     }
 

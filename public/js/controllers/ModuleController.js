@@ -196,15 +196,16 @@ class ModuleController extends Controller {
         if (!this._window.clientManager.isBeteiligtModuleEnabled()) {
             throw "Module is not enabled";
         }
+        const that = this;
         // update the total price in the "ad" section
-        let total = this.getTotalPrice();
+        const total = this.getTotalPrice();
         Object.values(this._entity.sections).filter(function (section) {
             return section instanceof AdBeteiligt
         }).forEach(function (section) {
             section.total = total;
         });
-        let totalProject = this.getTotalProject();
-        let cod = this.getCapOnDepenses();
+        const totalProject = this.getTotalProject();
+        const cod = this.getCapOnDepenses();
         // set all dynamic properties in all OtherBeteiligt sections
         Object.values(this._entity.sections).filter(function (section) {
             return section instanceof OtherBeteiligt;
@@ -212,7 +213,10 @@ class ModuleController extends Controller {
             section.project = totalProject;
             section.capOnDepenses = cod;
         });
-        this._beteiligtBinding.update(this._entity);
+        return this._window.clientManager.getModuleConfiguration(ModuleController.ID)
+            .then(it => {
+                this._beteiligtBinding.update(this._entity, it);
+            });
     }
 
     /**

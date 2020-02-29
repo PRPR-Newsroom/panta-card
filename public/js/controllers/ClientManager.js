@@ -451,7 +451,7 @@ class ClientManager {
             "id": "module.plan",
             "shared": ModulePlanController.SHARED_NAME,
             "card": card,
-            "configuration": that.getModuleConfiguration("module.plan"),
+            "configuration": that.getModuleConfiguration(ModulePlanController.ID),
             "condition": that.isPlanModuleEnabled(),
             "on": function () {
                 let badges = [];
@@ -497,7 +497,7 @@ class ClientManager {
             "id": "module.beteiligt",
             "shared": ModuleController.SHARED_NAME,
             "card": card,
-            "configuration": that.getModuleConfiguration("module.beteiligt"),
+            "configuration": that.getModuleConfiguration(ModuleController.ID),
             "condition": that.isBeteiligtModuleEnabled(),
             "on": function () {
                 let badges = [];
