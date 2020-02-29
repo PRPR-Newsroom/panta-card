@@ -12,6 +12,8 @@
 # Fixes
 
 * Error handling when there's a problem with the configuration
+* Visiblity for Artikel Badge
+* Visiblity for fields
 
 [1.4.3]
 
