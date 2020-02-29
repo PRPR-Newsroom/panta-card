@@ -116,10 +116,12 @@ HTMLElement.prototype.removeSelf = function () {
  * (Re-)Set an event listener on this HTML element
  * @param event
  * @param callback
+ * @return HTMLElement
  */
 HTMLElement.prototype.setEventListener = function (event, callback) {
     this.removeEventListener(event, callback);
     this.addEventListener(event, callback);
+    return this;
 };
 
 /**

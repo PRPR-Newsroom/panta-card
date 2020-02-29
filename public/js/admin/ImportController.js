@@ -69,6 +69,7 @@ class ImportController extends AdminController {
      */
     renderActions(previousConfiguration) {
         const that = this;
+        const resolvables = [];
         this._document.querySelectorAll(".js-content")
             .forEach(it => {
                 it.removeClass("hidden");
@@ -78,16 +79,21 @@ class ImportController extends AdminController {
                     });
                 }
                 if (it.querySelector('#btn-load-config')) {
-                    it.querySelector('#btn-load-config').setEventListener('click', (e) => {
-                        e.preventDefault();
-                        const config = prompt('Bitte gib hier die Konfiguration: ');
-                        if (isString(config) && !isBlank(config)) {
-                            that._pluginController.parseAdminConfiguration(config)
-                                .then(it => {
-                                    that.renderModel(that._model, it.configuration);
-                                });
-                        }
-                    });
+                    resolvables.push(that._adminService.getCurrentUser()
+                        .then(user => {
+                            if (user.username === 'manu29494020') {
+                                it.querySelector('#btn-load-config').setEventListener('click', (e) => {
+                                    e.preventDefault();
+                                    const config = prompt('Bitte gib hier die Konfiguration: ');
+                                    if (isString(config) && !isBlank(config)) {
+                                        that._pluginController.parseAdminConfiguration(config)
+                                            .then(it => {
+                                                that.renderModel(that._model, it.configuration);
+                                            });
+                                    }
+                                }).removeClass('hidden');
+                            }
+                        }));
                 }
 
             });
@@ -100,7 +106,7 @@ class ImportController extends AdminController {
                 that._doImport(e);
             });
         }
-        return Promise.resolve(true);
+        return Promise.all(resolvables);
     }
 
     /**

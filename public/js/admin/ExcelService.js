@@ -58,7 +58,12 @@ class ExcelService {
         const rows = [];
         const cols = Object.values(model.getNormalizedHeaders()).reduce((prev, cur) => {
 
-            prev.push({v: cur.label, c: [{t: cur.color}].filter(it => it.t != null)});
+            const comments = [];
+            comments.hidden = true;
+            if (!isBlank(cur.color)) {
+                comments.push({a: `Panta.Card`, t: `${cur.color}`});
+            }
+            prev.push({v: cur.label, c: comments});
             return prev;
         }, []);
         rows.push(cols);

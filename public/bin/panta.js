@@ -3670,6 +3670,9 @@ AdminService.prototype.getBoardCards = function() {
 AdminService.prototype.getListById = function(a) {
   return this.trelloClient.getListById(a);
 };
+AdminService.prototype.getCurrentUser = function() {
+  return this.trelloClient.getCurrentMember();
+};
 AdminService.prototype.uploadFileToCard = function(a, b) {
   var c = this;
   return c.trelloClient.getCurrentMember().then(function(d) {
@@ -4705,27 +4708,29 @@ ImportController.prototype.render = function(a) {
   });
 };
 ImportController.prototype.renderActions = function(a) {
-  var b = this;
-  this._document.querySelectorAll(".js-content").forEach(function(c) {
-    c.removeClass("hidden");
-    c.querySelector("#btn-load") && c.querySelector("#btn-load").setEventListener("click", function(d) {
-      b._doLoad(d, c, a);
+  var b = this, c = [];
+  this._document.querySelectorAll(".js-content").forEach(function(d) {
+    d.removeClass("hidden");
+    d.querySelector("#btn-load") && d.querySelector("#btn-load").setEventListener("click", function(c) {
+      b._doLoad(c, d, a);
     });
-    c.querySelector("#btn-load-config") && c.querySelector("#btn-load-config").setEventListener("click", function(a) {
-      a.preventDefault();
-      a = prompt("Bitte gib hier die Konfiguration: ");
-      isString(a) && !isBlank(a) && b._pluginController.parseAdminConfiguration(a).then(function(a) {
-        b.renderModel(b._model, a.configuration);
-      });
-    });
+    d.querySelector("#btn-load-config") && c.push(b._adminService.getCurrentUser().then(function(a) {
+      "manu29494020" === a.username && d.querySelector("#btn-load-config").setEventListener("click", function(a) {
+        a.preventDefault();
+        a = prompt("Bitte gib hier die Konfiguration: ");
+        isString(a) && !isBlank(a) && b._pluginController.parseAdminConfiguration(a).then(function(a) {
+          b.renderModel(b._model, a.configuration);
+        });
+      }).removeClass("hidden");
+    }));
   });
-  var c = b._getActionButton();
-  c && (c.setEventListener("update", function(a) {
-    b.onUpdateActionButton(c);
-  }), c.setEventListener("click", function(a) {
+  var d = b._getActionButton();
+  d && (d.setEventListener("update", function(a) {
+    b.onUpdateActionButton(d);
+  }), d.setEventListener("click", function(a) {
     b._doImport(a);
   }));
-  return Promise.resolve(!0);
+  return Promise.all(c);
 };
 ImportController.prototype._doImport = function(a) {
   var b = this;
@@ -5198,9 +5203,10 @@ ExcelService.prototype.write = function(a, b) {
   c.Props = {Title:"Sample Export", Subject:"Panta.Card Export", Author:"PantaRhei", CreatedDate:new Date};
   c.SheetNames.push(a.title);
   var d = [], e = Object.values(a.getNormalizedHeaders()).reduce(function(a, b) {
-    a.push({v:b.label, c:[{t:b.color}].filter(function(a) {
-      return null != a.t;
-    })});
+    var c = [];
+    c.hidden = !0;
+    isBlank(b.color) || c.push({a:"Panta.Card", t:"" + b.color});
+    a.push({v:b.label, c:c});
     return a;
   }, []);
   d.push(e);
@@ -5940,6 +5946,7 @@ HTMLElement.prototype.removeSelf = function() {
 HTMLElement.prototype.setEventListener = function(a, b) {
   this.removeEventListener(a, b);
   this.addEventListener(a, b);
+  return this;
 };
 HTMLElement.prototype.getMarginBottom = function() {
   var a = getComputedStyle(this);
@@ -6147,7 +6154,7 @@ template_settings_editable = '<div class="row module-editable-container">    <di
 template_settings_editable_select = '<div class="row module-editable-select-container">   <select class="panta-js-select"></select></div>', template_settings_editable_option = '<div class="row module-editable-option-container">    <div class="col-10 module-editable-option-name">       <input type="text" class="panta-js-name"/>    </div>    <div class="col-2 module-editable-option-actions">       <button class="panta-btn panta-btn-icon panta-js-delete"><img src="assets/ic_trash.svg" width="16px" height="16px"/></button>       <button class="panta-btn panta-btn-icon panta-js-visible hidden"><img src="assets/ic_visible.png" width="16px" height="16px"/></button>    </div></div>', 
 template_beteiligt = '<form id="panta.module">    <div class="js-panta-editable-title">        <div class="row min"><div class="col-12">\u00a0</div></div>        <div class="row min">           <div class="col-12">                <h3 class="js-panta-module js-panta-label"></h3>           </div>        </div>    </div>    <div class="row min navigation-bar">        <div id="pa.involved.onsite" class="col-2 col-phone-4 tab" data-label="vor.Ort" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.text" class="col-2 col-phone-4 tab" data-label="Journalist" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.photo" class="col-phone-4 col-2 tab" data-label="Visual" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.video" class="col-phone-4 col-2 tab" data-label="Event" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.illu" class="col-phone-4 col-2 tab" data-label="MC/Host" data-layout="regular"><span>Placeholder</span></div>        <div id="pa.involved.ad" class="col-phone-4 col-2 tab" data-label="weitere" data-layout="regular"><span>Placeholder</span></div>    </div>    <span id="pa.tab.content"></span></form>', 
 template_admin_actions = '<div class="row full">            <div class="col-12">                <p class="topic">Was willst du tun?</p>            </div>        </div>        <div class="row full">            <div class="col-6 space">                <button id="btn-action-import" class="panta-btn action">Import</button>            </div>            <div class="col-6 space">                <button id="btn-action-export" class="panta-btn action js-button-export">Export</button>            </div>        </div>', 
-template_admin_import = '<div class="row full">            <div class="col-12">                <p class="topic">W\u00e4hle hier die Excel Datei aus, die importiert werden soll.</p>            </div>            <div class="col-10">                <input class="panta-btn" type="file" id="file-import">            </div>            <div class="col-2">                <button class="panta-btn" id="btn-load">Laden</button>            </div>            <div class="col-12">                <button class="panta-btn panta-bgcolor-yellow" id="btn-load-config">Konfiguration laden</button>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3 align-right">                    <b>Excel Feld</b>                </div>                <div class="col-3">                    <b>Trello Feld</b>                </div>                <div class="col-4 align-left">                    <b>Beispiel Wert</b>                </div>                <div class="col-2 align-left">                    <b>Mehr</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-10">\u00a0</div>                <div class="col-2">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-import">                        Importieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
+template_admin_import = '<div class="row full">            <div class="col-12">                <p class="topic">W\u00e4hle hier die Excel Datei aus, die importiert werden soll.</p>            </div>            <div class="col-10">                <input class="panta-btn" type="file" id="file-import">            </div>            <div class="col-2">                <button class="panta-btn" id="btn-load">Laden</button>            </div>            <div class="col-12">                <button class="panta-btn panta-bgcolor-yellow hidden" id="btn-load-config">Konfiguration laden</button>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3 align-right">                    <b>Excel Feld</b>                </div>                <div class="col-3">                    <b>Trello Feld</b>                </div>                <div class="col-4 align-left">                    <b>Beispiel Wert</b>                </div>                <div class="col-2 align-left">                    <b>Mehr</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-10">\u00a0</div>                <div class="col-2">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-import">                        Importieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
 template_admin_export = '<div class="row full">            <div class="col-12">                <p class="topic">Standardm\u00e4ssig werden alle Trello und Panta.Card Felder exportiert</p>            </div>        </div>        <div class="hidden mapping-content-header">            <div class="row full">                <div class="col-12">                    <hr/>                </div>            </div>            <div class="row space full">                <div class="col-3 align-right">                    <b>Excel Feld</b>                </div>                <div class="col-3">                    <b>Trello Feld</b>                </div>                <div class="col-3 align-left">                    <b>Beispiel Wert</b>                </div>                <div class="col-3 align-left">                    <b>Beschriftung \u00fcberschreiben</b>                </div>            </div>        </div>        <form>            <div class="hidden mapping-content">            </div>            <div class="row space full">                <div class="col-9">\u00a0</div>                <div class="col-3">                    <button class="panta-btn panta-bgcolor-green panta-js-button" disabled="disabled" id="btn-export">                        Exportieren                    </button>                </div>            </div>            <div class="row">                <div class="col-12 hidden error-messages">                    <p class="error" id="error-message"></p>                </div>                <div class="col-12 hidden warning-messages">                    <p class="warning" id="warning-message"></p>                </div>            </div>        </form>', 
 template_admin_errorpage = '<div class="row full">   <div class="col-12 hidden error-messages">       <p class="error" id="error-message"></p>   </div>   <div class="col-12 hidden warning-messages">       <p class="warning" id="warning-message"></p>   </div>   <div class="col-12 space">       <button id="btn-reset" class="panta-btn panta-bgcolor-red">Zur\u00fccksetzen</button>   </div></div>', template_admin_progress = '<div class="overlay js-panta-progress progress-overlay">            <div class="row full">                <div class="col-12">                    <p class="space"><span class="js-panta-current-record">?</span>/<span class="js-panta-total-records">?</span> <span class="js-panta-progress-postfix"></span></p>                    <p class="details js-panta-record-details"></p>';
 "                </div>            </div>        </div>";
