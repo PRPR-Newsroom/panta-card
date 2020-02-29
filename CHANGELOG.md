@@ -1,6 +1,6 @@
 [UNRELEASED]
 
-[1.5.13-STAGING]
+[1.5.14-STAGING]
 
 # Changes
 
@@ -12,6 +12,8 @@
 # Fixes
 
 * Error handling when there's a problem with the configuration
+* Visiblity for Artikel Badge
+* Visiblity for fields
 
 [1.4.3]
 
