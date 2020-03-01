@@ -41,12 +41,6 @@ class AdminService {
         return this.trelloClient.getLabels();
     }
 
-    hasLabel(label, color) {
-        return this.trelloClient.getLabels()
-            .map(it => it.name === label && it.color === color)
-            .reduce((prev, cur) => prev | cur);
-    }
-
     /**
      * @param {FileList} files
      * @return {PromiseLike<T>|Promise<T>}
@@ -237,15 +231,16 @@ class AdminService {
         return that.trelloClient.findCardByTitle(title, list)
             .then(it => {
                 if (it) {
-                    that._loggingService.i(`Trello Card «${title}» ist bereits in «${list.id}» vorhanden`);
+                    that._loggingService.w(`Trello Card «${title}» ist bereits in «${list.id}» vorhanden`);
                     // CHECKME update description, due date etc.? this is not MVP
+                    that._loggingService.d(`Details zur gefundenen Trello Card: ${JSON.stringify(it)}`);
                     return it;
                 } else {
-                    const searches = members.map((it, index, arr) => {
+                    const searches = members.map(it => {
                         // trelloClient
                         return that.trelloClient.searchMember(it)
                             .catch(reason => {
-                                that._loggingService.e(`Mitglied für «${it}» nicht gefunden (${reason})`);
+                                that._loggingService.w(`Mitglied für «${it}» nicht gefunden (${reason})`);
                                 return [];
                             });
                     }).reduce((prev, cur) => {

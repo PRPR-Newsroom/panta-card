@@ -8,6 +8,7 @@
 * Import feature
 * Load a different configuration from a decompressed base64 encoded string
 * Progress dialog when importing
+* Do not show invisible/deactivated fields in sorters
 
 # Fixes
 

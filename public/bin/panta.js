@@ -227,12 +227,12 @@ $jscomp.polyfill("Promise", function(a) {
         }
       } : b;
     }
-    var d, f, h = new e(function(a, b) {
+    var d, f, g = new e(function(a, b) {
       d = a;
       f = b;
     });
     this.callWhenSettled_(c(a, d), c(b, f));
-    return h;
+    return g;
   };
   e.prototype.catch = function(a) {
     return this.then(void 0, a);
@@ -271,14 +271,14 @@ $jscomp.polyfill("Promise", function(a) {
     return d.done ? c([]) : new e(function(a, e) {
       function f(b) {
         return function(c) {
-          h[b] = c;
-          g--;
-          0 == g && a(h);
+          g[b] = c;
+          h--;
+          0 == h && a(g);
         };
       }
-      var h = [], g = 0;
+      var g = [], h = 0;
       do {
-        h.push(void 0), g++, c(d.value).callWhenSettled_(f(h.length - 1), e), d = b.next();
+        g.push(void 0), h++, c(d.value).callWhenSettled_(f(g.length - 1), e), d = b.next();
       } while (!d.done);
     });
   };
@@ -753,7 +753,7 @@ TrelloClient.prototype.createLabels = function(a) {
 TrelloClient.prototype.findCardByTitle = function(a, b) {
   this._loggingService.d("Sucht nach bestehender Trello Card mit Namen \u00ab" + a + "\u00bb in Trello Liste \u00ab" + b.id + "\u00bb");
   this._requests++;
-  return this.trello.cards("id", "name", "idList").reduce(function(c, d) {
+  return this.trello.cards("id", "name", "idList", "closed").reduce(function(c, d) {
     return c = d.name === a && d.idList === b.id ? d : c;
   }, null);
 };
@@ -1743,7 +1743,7 @@ var PluginController = function(a, b) {
   this._window = b;
   this._trelloApi = a;
   this._upgrading = !1;
-  this._upgrades = {1:this._upgrade_1, 2:this._upgrade_2, 3:this._upgrade_3_to_4};
+  this._upgrades = {1:this._upgrade_1, 2:this._upgrade_2, 3:this._upgrade_3_to_4, 4:this._upgrade_4_to_5};
   this._repository = PluginRepository.INSTANCE;
 };
 PluginController.getInstance = function(a, b) {
@@ -1759,7 +1759,7 @@ PluginController.prototype.init = function() {
 PluginController.prototype.getPluginConfiguration = function() {
   var a = this;
   return this._trelloApi.get("board", "shared", PluginController.CONFIGURATION_NAME, null).then(function(b) {
-    return b ? (b = JSON.parse(LZString.decompress(b)), PluginConfiguration.create(b)) : new PluginConfiguration(VERSION, "Panta.Card Power-Up", null, a.getAvailableModules());
+    return b ? PluginConfiguration.create(JSON.parse(LZString.decompress(b))) : new PluginConfiguration(VERSION, "Panta.Card Power-Up", null, a.getAvailableModules());
   });
 };
 PluginController.prototype.getAdminConfiguration = function() {
@@ -1872,6 +1872,15 @@ PluginController.prototype._upgrade_2 = function() {
 PluginController.prototype._upgrade_3_to_4 = function() {
   return this._trelloApi.getRestApi().clearToken();
 };
+PluginController.prototype._upgrade_4_to_5 = function() {
+  var a = this;
+  return this.findPluginModuleConfigByModuleId(ArtikelController.ID).then(function(b) {
+    var c = b.getEditable("field.e");
+    return c ? (c.sortable = !0, a.setPluginModuleConfig(b).then(function(b) {
+      return a.getPluginConfiguration();
+    })) : a.getPluginConfiguration();
+  });
+};
 PluginController.prototype._upgradeAllArticleToModuleConfig = function(a, b) {
   this._upgradeArticleToModuleConfig.call(this, a, b, Object.entries(a.list()), 0);
 };
@@ -1906,7 +1915,7 @@ $jscomp.global.Object.defineProperties(PluginController.prototype, {upgrading:{c
   return this._upgrading;
 }}});
 $jscomp.global.Object.defineProperties(PluginController, {VERSION:{configurable:!0, enumerable:!0, get:function() {
-  return 4;
+  return 5;
 }}, SHARED_NAME:{configurable:!0, enumerable:!0, get:function() {
   return "panta.App";
 }}, CONFIGURATION_NAME:{configurable:!0, enumerable:!0, get:function() {
@@ -2245,11 +2254,11 @@ ModuleSettingsController.prototype.renderEditableLayout = function(a, b, c, d) {
   f.innerHTML = e._createLabel(d);
   c.appendChild(f);
   d = Object.keys(a.config.layouts).reduce(function(c, d) {
-    var f = a.config.layouts[d], h = e.document.createElement("option");
-    h.setAttribute("value", d);
-    b.layout === d ? h.setAttribute("selected", "selected") : h.removeAttribute("selected");
-    h.innerText = f.label;
-    c.addOption(h);
+    var f = a.config.layouts[d], g = e.document.createElement("option");
+    g.setAttribute("value", d);
+    b.layout === d ? g.setAttribute("selected", "selected") : g.removeAttribute("selected");
+    g.innerText = f.label;
+    c.addOption(g);
     return c;
   }, new ModuleEditableSelectItem(b.layout));
   d.setOnTextChangeListener(function(d, f) {
@@ -3169,33 +3178,36 @@ ClientManager.prototype.getArticleModuleSorters = function() {
   return {name:"module.artikel.sorters", configuration:function() {
     return a.getModuleConfiguration("module.artikel");
   }, sorters:function(b) {
-    return b.config.enabled ? b.config.editables.filter(function(a) {
-      return a.sortable && "select" === a.type;
-    }).map(function(b) {
-      return {text:"Artikel: " + b.label + " (Position in Liste)", callback:function(c, e) {
-        return a.sortOnSelect(a.getControllerWith(a.getArticleController(), e), e, "asc", function(a) {
-          if (a instanceof Artikel) {
-            var c = b.id;
-            switch(b.id) {
-              case "online":
-                c = "tags";
-                break;
-              case "place":
-                c = "location";
-            }
-            return b.values.indexOf(a[c]);
+    if (b.config.enabled) {
+      return b.config.editables.filter(function(b) {
+        return a.canSort(b);
+      }).map(function(b) {
+        var c = isBlank(b["sortable.hint"]) ? "(Position in Liste)" : b["sortable.hint"];
+        return {text:"Artikel: " + b.label + " " + c, callback:function(c, d) {
+          var e = b.id;
+          switch(b.id) {
+            case "online":
+              e = "tags";
+              break;
+            case "place":
+              e = "location";
+              break;
+            case "field.e":
+              e = "pagina";
           }
-          return Number.MAX_VALUE;
-        });
-      }};
-    }).reduce(function(a, b) {
-      a.push(b);
-      return a;
-    }, [{text:"Artikel: Pagina (1 -> 99)", callback:function(b, d) {
-      return a.sortOnNumber(a.getControllerWith(a.getArticleController(), d), d, "asc", function(a) {
-        return a.pagina;
-      });
-    }}]) : [];
+          return "select" === b.type ? a.sortOnSelect(a.getControllerWith(a.getArticleController(), d), d, "asc", function(a) {
+            return a instanceof Artikel ? b.values.indexOf(a[e]) : Number.MAX_VALUE;
+          }) : a.sortOnText(a.getControllerWith(a.getArticleController(), d), d, "asc", function(a) {
+            return a instanceof Artikel ? a[e] : null;
+          });
+        }};
+      }).reduce(function(a, b) {
+        a.push(b);
+        return a;
+      }, []);
+    }
+    console.debug("sorters: the module \u00abArtikel\u00bb is not enabled");
+    return [];
   }};
 };
 ClientManager.prototype.getPlanModuleSorters = function() {
@@ -3204,12 +3216,14 @@ ClientManager.prototype.getPlanModuleSorters = function() {
     return a.getModuleConfiguration("module.plan");
   }, sorters:function(b) {
     if (b.config.enabled) {
-      return b.config.editables.filter(function(a) {
-        return a.sortable && "select" === a.type;
+      return b.config.editables.filter(function(b) {
+        return a.canSort(b);
       }).map(function(b) {
         return {text:"Plan: " + b.label + " (Position in Liste)", callback:function(c, e) {
-          return a.sortOnSelect(a.getControllerWith(a.getPlanController(), e), e, "asc", function(a) {
+          return "select" === b.type ? a.sortOnSelect(a.getControllerWith(a.getPlanController(), e), e, "asc", function(a) {
             return a instanceof Plan ? b.values.indexOf(a[b.id]) : Number.MAX_VALUE;
+          }) : a.sortOnText(a.getControllerWith(a.getPlanController(), e), e, "asc", function(a) {
+            return a instanceof Plan ? a[b.id] : null;
           });
         }};
       }).reduce(function(a, b) {
@@ -3217,7 +3231,7 @@ ClientManager.prototype.getPlanModuleSorters = function() {
         return a;
       }, []);
     }
-    console.log("sorters: the module is \u00abPlan\u00bb is not enabled");
+    console.log("sorters: the module \u00abPlan\u00bb is not enabled");
     return [];
   }};
 };
@@ -3270,27 +3284,35 @@ ClientManager.prototype.getControllerWith = function(a, b) {
   }
   return a;
 };
-ClientManager.prototype.sortOnNumber = function(a, b, c, d) {
-  return {sortedIds:b.cards.sort(function(b, f) {
+ClientManager.prototype.canSort = function(a) {
+  return a.sortable && ("select" === a.type || "text" === a.type) && a.visible;
+};
+ClientManager.prototype.sortOnText = function(a, b, c, d) {
+  var e = this;
+  return {sortedIds:b.cards.sort(function(b, g) {
     b = a.getByCard(b);
-    f = a.getByCard(f);
-    b = b ? parseFloat(d(b) || Number.MAX_VALUE.toString()) : Number.MAX_VALUE;
-    f = f ? parseFloat(d(f) || Number.MAX_VALUE.toString()) : Number.MAX_VALUE;
-    return b > f ? "asc" === c ? 1 : -1 : f > b ? "asc" === c ? -1 : 1 : 0;
+    g = a.getByCard(g);
+    b = b ? d(b) : null;
+    g = g ? d(g) : null;
+    return isNumber(b) && isNumber(g) ? e._compare(c, parseFloat(b), parseFloat(g)) : e._compare(c, b, g);
   }).map(function(a) {
     return a.id;
   })};
 };
 ClientManager.prototype.sortOnSelect = function(a, b, c, d) {
-  return {sortedIds:b.cards.sort(function(b, f) {
+  var e = this;
+  return {sortedIds:b.cards.sort(function(b, g) {
     b = a.getByCard(b);
-    f = a.getByCard(f);
+    g = a.getByCard(g);
     b = b ? d(b) : Number.MAX_VALUE;
-    f = f ? d(f) : Number.MAX_VALUE;
-    return b > f ? "asc" === c ? 1 : -1 : f > b ? "asc" === c ? -1 : 1 : 0;
+    g = g ? d(g) : Number.MAX_VALUE;
+    return e._compare(c, b, g);
   }).map(function(a) {
     return a.id;
   })};
+};
+ClientManager.prototype._compare = function(a, b, c) {
+  return isBlank(b) && isBlank(c) ? 0 : isBlank(b) || b > c ? "asc" === a ? 1 : -1 : isBlank(c) || c > b ? "asc" === a ? -1 : 1 : 0;
 };
 // Input 25
 var ColorPickerController = function(a, b, c) {
@@ -3342,8 +3364,8 @@ $jscomp.global.Object.defineProperties(PluginRepository, {INSTANCE:{configurable
   type:"select", label:"2.Liste", color:"green", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"online", desc:"module.artikel.editable.desc", type:"select", label:"3.Liste", color:"yellow", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"season", desc:"module.artikel.editable.desc", type:"select", label:"4.Liste", color:"sky", show:!1, sortable:!1, visible:!0, values:["1.Begriff", 
   "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"region", desc:"module.artikel.editable.desc", type:"select", label:"5.Liste", color:"lime", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"place", desc:"module.artikel.editable.desc", type:"select", label:"6.Liste", color:"orange", show:!1, sortable:!1, visible:!0, values:["1.Begriff", "2.Begriff", "3.Begriff", "4.Begriff", "5.Begriff"]}, {id:"field.a", desc:"module.artikel.field-a.desc", 
   type:"text", label:"Thema", placeholder:"Lauftext", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.b", desc:"module.artikel.field-b.desc", type:"text", label:"Input von", placeholder:"Name", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.c", desc:"module.artikel.field-c.desc", type:"text", label:"Textautor*in", placeholder:"Name", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.d", desc:"module.artikel.field-d.desc", type:"text", label:"Textbox", placeholder:"Lauftext", 
-  show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"title", desc:"module.artikel.label.desc", type:"label", placeholder:"", label:"Artikel", visible:!0, title:"Modul-Titel"}, {id:"field.e", desc:"module.artikel.field-e.desc", type:"text", label:"Pagina", placeholder:"Zahl", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.f", desc:"module.artikel.field-f.desc", type:"text", label:"Seiten Layout", placeholder:"Zahl", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.g", 
-  desc:"module.artikel.field-g.desc", type:"calc", label:"Seiten Total", placeholder:"Summe", show:!1, sortable:!1, visible:!0, color:"shades"}]}), {id:1}), PluginRepository.instance.add(new PluginModuleConfig(ModuleController.ID, "Beteiligt", {sort:3, enabled:!1, icon:"ic_beteiligt.png", desc:"module.beteiligt.desc", editables:[{id:"title", desc:"module.beteiligt.label.desc", type:"label", placeholder:"", label:"Beteiligt", title:"Modul-Titel"}, {id:"onsite", desc:"module.beteiligt.layout.onsite", 
+  show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"title", desc:"module.artikel.label.desc", type:"label", placeholder:"", label:"Artikel", visible:!0, title:"Modul-Titel"}, {id:"field.e", desc:"module.artikel.field-e.desc", type:"text", label:"Pagina", placeholder:"Zahl", show:!1, sortable:!0, visible:!0, color:"shades", "sortable.hint":"(1 -> 99)"}, {id:"field.f", desc:"module.artikel.field-f.desc", type:"text", label:"Seiten Layout", placeholder:"Zahl", show:!1, sortable:!1, visible:!0, 
+  color:"shades"}, {id:"field.g", desc:"module.artikel.field-g.desc", type:"calc", label:"Seiten Total", placeholder:"Summe", show:!1, sortable:!1, visible:!0, color:"shades"}]}), {id:1}), PluginRepository.instance.add(new PluginModuleConfig(ModuleController.ID, "Beteiligt", {sort:3, enabled:!1, icon:"ic_beteiligt.png", desc:"module.beteiligt.desc", editables:[{id:"title", desc:"module.beteiligt.label.desc", type:"label", placeholder:"", label:"Beteiligt", title:"Modul-Titel"}, {id:"onsite", desc:"module.beteiligt.layout.onsite", 
   type:"layout", label:"1.Reiter", container:"pa.involved.onsite", layout:"regular", show:!0, title:"Reiter-Titel"}, {id:"text", desc:"module.beteiligt.layout.text", type:"layout", label:"2.Reiter", container:"pa.involved.text", layout:"regular", show:!0}, {id:"photo", desc:"module.beteiligt.layout.photo", type:"layout", label:"3.Reiter", container:"pa.involved.photo", layout:"regular", show:!0}, {id:"video", desc:"module.beteiligt.layout.video", type:"layout", label:"4.Reiter", container:"pa.involved.video", 
   layout:"regular", show:!0}, {id:"illu", desc:"module.beteiligt.layout.illu", type:"layout", label:"5.Reiter", container:"pa.involved.illu", layout:"regular", show:!0}, {id:"ad", desc:"module.beteiligt.layout.ad", type:"layout", label:"6.Reiter", container:"pa.involved.ad", layout:"regular", show:!0}], layouts:{regular:{desc:"module.beteiligt.regular.desc", label:"Kontakt", fields:[{id:"field.name", desc:"module.beteiligt.field-name.desc", type:"text", label:"Name", placeholder:"eintippen\u2026", 
   show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.social", desc:"module.beteiligt.field-social.desc", type:"text", label:"Telefon.Mail.Webseite", placeholder:"notieren\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.address", desc:"module.beteiligt.field-address.desc", type:"text", label:"Adresse", placeholder:"festhalten\u2026", show:!1, sortable:!1, visible:!0, color:"shades"}, {id:"field.notes", desc:"module.beteiligt.field-notes.desc", type:"text", label:"Notizen", 
@@ -3636,13 +3658,6 @@ var AdminService = function(a, b) {
 AdminService.prototype.getLabels = function() {
   return this.trelloClient.getLabels();
 };
-AdminService.prototype.hasLabel = function(a, b) {
-  return this.trelloClient.getLabels().map(function(c) {
-    return c.name === a && c.color === b;
-  }).reduce(function(a, b) {
-    return a | b;
-  });
-};
 AdminService.prototype.load = function(a) {
   var b = this, c = [];
   if (0 < a.length) {
@@ -3740,11 +3755,11 @@ AdminService.prototype._createCardInternal = function(a, b, c) {
   }), f = this._getFieldValue(b, "trello.title", c), g = this._getFieldValue(b, "trello.description", c), h = this._getFieldValue(b, "trello.duedate", c), k = this._getFieldValue(b, "trello.members", c) || [];
   return d.trelloClient.findCardByTitle(f, a).then(function(b) {
     if (b) {
-      return d._loggingService.i("Trello Card \u00ab" + f + "\u00bb ist bereits in \u00ab" + a.id + "\u00bb vorhanden"), b;
+      return d._loggingService.w("Trello Card \u00ab" + f + "\u00bb ist bereits in \u00ab" + a.id + "\u00bb vorhanden"), d._loggingService.d("Details zur gefundenen Trello Card: " + JSON.stringify(b)), b;
     }
-    b = k.map(function(a, b, c) {
+    b = k.map(function(a) {
       return d.trelloClient.searchMember(a).catch(function(b) {
-        d._loggingService.e("Mitglied f\u00fcr \u00ab" + a + "\u00bb nicht gefunden (" + b + ")");
+        d._loggingService.w("Mitglied f\u00fcr \u00ab" + a + "\u00bb nicht gefunden (" + b + ")");
         return [];
       });
     }).reduce(function(a, b) {
@@ -3993,8 +4008,11 @@ var ArrayField = function(a) {
   AbstractField.apply(this, arguments);
 };
 $jscomp.inherits(ArrayField, AbstractField);
-ArrayField.getArrayValue = function(a) {
-  return isString(a) ? a.split(",") : [];
+ArrayField.getArrayValue = function(a, b) {
+  b = void 0 === b ? !0 : b;
+  return (isString(a) ? a.split(",") : []).filter(function(a) {
+    return !b || !isBlank(a);
+  });
 };
 ArrayField.prototype.getValue = function(a) {
   return ArrayField.getArrayValue(a.value.v);
