@@ -480,7 +480,6 @@ class AdminController {
         if (!field) {
             return Promise.resolve(mapping.emptyValue());
         }
-        // TODO use adminService.getCurrentCard()
         return that._trello.card('id', 'name', 'desc', 'due', 'members', 'labels', 'idList')
             .then(it => {
                 return mapping.map(it, field);

@@ -5,7 +5,7 @@ class PluginController {
      * @returns {number}
      */
     static get VERSION() {
-        return 4;
+        return 5;
     }
 
     /**
@@ -38,8 +38,9 @@ class PluginController {
         this._upgrades = {
             1: this._upgrade_1,
             2: this._upgrade_2,
-            3: this._upgrade_3_to_4
-        }
+            3: this._upgrade_3_to_4,
+            4: this._upgrade_4_to_5,
+        };
         /**
          * @type {PluginRepository}
          * @private
@@ -53,7 +54,7 @@ class PluginController {
      * Check the version and set the upgrading flag
      */
     init() {
-        let that = this;
+        const that = this;
         // because for switching between version 1 and 2 this helps to downgrade
         // that._trelloApi.set('board', 'shared', PluginController.SHARED_NAME, 1)
         //     .then(function() {
@@ -89,8 +90,7 @@ class PluginController {
             null
         ).then(function (data) {
             if (data) {
-                let json = JSON.parse(LZString.decompress(data));
-                return PluginConfiguration.create(json);
+                return PluginConfiguration.create(JSON.parse(LZString.decompress(data)));
             } else {
                 return new PluginConfiguration(
                     VERSION,
@@ -198,12 +198,12 @@ class PluginController {
      * @return {PromiseLike<T> | Promise<T>}
      */
     setPluginModuleConfig(pmc, card) {
-        let that = this;
+        const that = this;
         return this.getPluginConfiguration()
             .then(function (pc) {
                 if (pc instanceof PluginConfiguration) {
                     pc.card = card || pc.card;
-                    let item = pc.modules.find(function (item) {
+                    const item = pc.modules.find(function (item) {
                         return item.id === pmc.id;
                     });
                     item.config = pmc.config;
@@ -271,9 +271,8 @@ class PluginController {
      */
     update(oldVersion, newVersion) {
         // https://trello.com/1/boards/JqfSsy3y/pluginData
-        let that = this;
         // do the update for each missed version...
-        that._update(oldVersion, newVersion);
+        this._update(oldVersion, newVersion);
     }
 
     /**
@@ -283,7 +282,7 @@ class PluginController {
      * @private
      */
     _update(oldVersion, targetVersion) {
-        let that = this;
+        const that = this;
         if (oldVersion < targetVersion) {
             console.log("Applying upgrade %d ...", oldVersion);
             that._upgrades[oldVersion].call(this).then(function () {
@@ -306,10 +305,10 @@ class PluginController {
      * @private
      */
     _upgrade_1() {
-        let that = this;
+        const that = this;
 
-        let ac = this._window.clientManager.getArticleController();
-        let mc = this._window.clientManager.getModuleController();
+        const ac = this._window.clientManager.getArticleController();
+        const mc = this._window.clientManager.getModuleController();
 
         return ac.fetchAll.call(ac).then(function () {
             that._upgradeAllArticleToModuleConfig.call(that, ac, mc)
@@ -336,6 +335,29 @@ class PluginController {
     }
 
     /**
+     * Upgrade the editable field «field.e» in Artikel to be sortable
+     * @return {PromiseLike<PluginModuleConfig | never>}
+     * @private
+     * @since 1.5.15
+     */
+    _upgrade_4_to_5() {
+        const that = this;
+        return this.findPluginModuleConfigByModuleId(ArtikelController.ID)
+            .then(it => {
+                const pagina = it.getEditable('field.e');
+                if (pagina) {
+                    pagina.sortable = true;
+                    return that.setPluginModuleConfig(it)
+                        .then(it => {
+                            return that.getPluginConfiguration();
+                        })
+                } else {
+                    return that.getPluginConfiguration();
+                }
+            });
+    }
+
+    /**
      * Upgrade the articles involvements to module configs
      * @param {ArtikelController} ac the article controller
      * @param {ModuleController} mc the moduleconfig controller
@@ -355,16 +377,16 @@ class PluginController {
      */
     _upgradeArticleToModuleConfig(ac, mc, articles, index) {
         if (index < articles.length) {
-            let that = this;
-            let entry = articles[index];
-            let cardId = entry[0];
-            let article = entry[1];
+            const that = this;
+            const entry = articles[index];
+            const cardId = entry[0];
+            const article = entry[1];
             if (article.version === 1) {
                 // only update if the article is still on version 1 because articles with newer versions are already using module configs
                 if (article.involved) {
-                    let mconfig = Object.entries(article.involved).reduce(function (previous, entry) {
-                        let section = entry[0];
-                        let involved = entry[1];
+                    const mconfig = Object.entries(article.involved).reduce(function (previous, entry) {
+                        const section = entry[0];
+                        const involved = entry[1];
                         previous.sections[section] = involved;
                         return previous;
                     }, ModuleConfig.create());

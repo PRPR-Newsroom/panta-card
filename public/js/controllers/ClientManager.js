@@ -34,7 +34,7 @@ class ClientManager {
                     // delete
                     windowManager.clientManager.flushKeyBuffer.call(windowManager.clientManager);
                 } else if (e.keyCode === 13 || e.keyCode === 10) {
-                    let buffer = windowManager.clientManager.readKeyBuffer.call(windowManager.clientManager);
+                    const buffer = windowManager.clientManager.readKeyBuffer.call(windowManager.clientManager);
                     if (buffer === 'remove') {
                         windowManager.clientManager.removePluginData.call(windowManager.clientManager);
                         windowManager.clientManager.flushKeyBuffer.call(windowManager.clientManager);
@@ -117,11 +117,11 @@ class ClientManager {
     }
 
     _createMessageChannel() {
-        let that = this;
-        let mc = new MessageChannel();
+        const that = this;
+        const mc = new MessageChannel();
         mc.port1.onmessage = function (ev) {
             console.debug("Received data from sub-module: " + JSON.stringify(ev.data));
-            let req = ev.data;
+            const req = ev.data;
             // handle GET requests
             Object.values(req.get || []).forEach(function (item) {
                 switch (item) {
@@ -145,9 +145,7 @@ class ClientManager {
             // handle GET responses
             Object.values(req.result || []).forEach(function (item) {
                 Object.entries(item).forEach(function (item) {
-                    let property = item[0];
-                    let value = item[1];
-                    this._sendResponse(ModulePlanController.SHARED_NAME, property, value);
+                    this._sendResponse(ModulePlanController.SHARED_NAME, item[0], item[1]);
                 }, this);
             }, that);
 
@@ -156,7 +154,7 @@ class ClientManager {
     }
 
     _sendResponse(controller, property, value) {
-        let dto = {};
+        const dto = {};
         dto[property] = value;
         this._telephones[controller].port1.postMessage({
             'result': [dto]
@@ -321,7 +319,7 @@ class ClientManager {
      * Remove all plugin data on that board
      */
     removePluginData() {
-        let that = this;
+        const that = this;
         this._pluginController.remove()
             .then(function () {
                 return that._moduleController.removePropertyBag();
@@ -340,55 +338,63 @@ class ClientManager {
      * @return {{name: string, configuration: configuration, sorters: sorters}}
      */
     getArticleModuleSorters() {
-        let that = this;
+        const that = this;
         return {
             "name": "module.artikel.sorters",
-            "configuration": function() {
+            "configuration": function () {
                 return that.getModuleConfiguration("module.artikel");
             },
-            "sorters": function(configuration) {
+            "sorters": function (configuration) {
                 if (configuration.config.enabled) {
                     return configuration.config.editables
-                        .filter(function(editable) {
-                            return editable.sortable && editable.type === "select";
+                        .filter(function (editable) {
+                            return that.canSort(editable);
                         })
-                        .map(function(sortable) {
+                        .map(function (sortable) {
+                            const hint = !isBlank(sortable['sortable.hint']) ? sortable['sortable.hint'] : '(Position in Liste)';
                             return {
-                                text: "Artikel: " + sortable.label + " (Position in Liste)",
-                                callback: function(t,opts) {
-                                    return that.sortOnSelect(that.getControllerWith(that.getArticleController(), opts), opts, "asc", function(article) {
-                                        if (article instanceof Artikel) {
-                                            // TODO either rename all tags to online (upgrade script needed) or extract it to a mapper
-                                            let mapped = sortable.id;
-                                            switch (sortable.id) {
-                                                case "online":
-                                                    mapped = "tags";
-                                                    break;
-                                                case "place":
-                                                    mapped = "location";
-                                                    break;
+                                text: `Artikel: ${sortable.label} ${hint}`,
+                                callback: function (t, opts) {
+                                    // either rename all tags to online (upgrade script needed) or extract it to a mapper
+                                    let mapped = sortable.id;
+                                    switch (sortable.id) {
+                                        case "online":
+                                            mapped = "tags";
+                                            break;
+                                        case "place":
+                                            mapped = "location";
+                                            break;
+                                        case "field.e":
+                                            mapped = "pagina";
+                                            break;
+                                    }
+                                    if (sortable.type === 'select') {
+                                        return that.sortOnSelect(that.getControllerWith(that.getArticleController(), opts), opts, "asc", function (article) {
+                                            if (article instanceof Artikel) {
+                                                return sortable.values.indexOf(article[mapped]);
+                                            } else {
+                                                return Number.MAX_VALUE;
                                             }
-                                            return sortable.values.indexOf(article[mapped]);
-                                        } else {
-                                            return Number.MAX_VALUE;
-                                        }
-                                    });
+                                        });
+                                    } else {
+                                        return that.sortOnText(that.getControllerWith(that.getArticleController(), opts), opts, "asc", function (article) {
+                                            if (article instanceof Artikel) {
+                                                return article[mapped];
+                                            } else {
+                                                return null;
+                                            }
+                                        });
+                                    }
                                 }
                             }
                         })
-                        .reduce(function(prev, cur) {
+                        .reduce(function (prev, cur) {
                             prev.push(cur);
                             return prev;
-                        }, [{
-                            text: "Artikel: Pagina (1 -> 99)",
-                            callback: function (t, opts) {
-                                return that.sortOnNumber(that.getControllerWith(that.getArticleController(), opts), opts, "asc", function(article) {
-                                    return article.pagina;
-                                });
-                            }
-                        }]);
+                        }, []);
 
                 } else {
+                    console.debug(`sorters: the module «Artikel» is not enabled`);
                     return [];
                 }
             }
@@ -400,40 +406,49 @@ class ClientManager {
      * @return {{name: string, configuration: configuration, sorters: sorters}}
      */
     getPlanModuleSorters() {
-        let that = this;
+        const that = this;
         return {
             "name": "module.plan.sorters",
-            "configuration": function() {
+            "configuration": function () {
                 return that.getModuleConfiguration("module.plan");
             },
-            "sorters": function(configuration) {
+            "sorters": function (configuration) {
                 if (configuration.config.enabled) {
-                    let sorters = configuration.config.editables
-                        .filter(function(editable) {
-                            return editable.sortable && editable.type === "select";
+                    return configuration.config.editables
+                        .filter(function (editable) {
+                            return that.canSort(editable);
                         })
-                        .map(function(sortable) {
+                        .map(function (sortable) {
                             return {
                                 text: "Plan: " + sortable.label + " (Position in Liste)",
-                                callback: function(t,opts) {
-                                    return that.sortOnSelect(that.getControllerWith(that.getPlanController(), opts), opts, "asc", function(entity) {
-                                        if (entity instanceof Plan) {
-                                            return sortable.values.indexOf(entity[sortable.id]);
-                                        } else {
-                                            return Number.MAX_VALUE;
-                                        }
-                                    });
+                                callback: function (t, opts) {
+                                    if (sortable.type === 'select') {
+                                        return that.sortOnSelect(that.getControllerWith(that.getPlanController(), opts), opts, "asc", function (entity) {
+                                            if (entity instanceof Plan) {
+                                                return sortable.values.indexOf(entity[sortable.id]);
+                                            } else {
+                                                return Number.MAX_VALUE;
+                                            }
+                                        });
+                                    } else {
+                                        return that.sortOnText(that.getControllerWith(that.getPlanController(), opts), opts, "asc", function (entity) {
+                                            if (entity instanceof Plan) {
+                                                return entity[sortable.id];
+                                            } else {
+                                                return null;
+                                            }
+                                        });
+                                    }
                                 }
                             }
                         })
-                        .reduce(function(prev, cur) {
+                        .reduce(function (prev, cur) {
                             prev.push(cur);
                             return prev;
                         }, []);
-                    return sorters;
 
                 } else {
-                    console.log("sorters: the module is «Plan» is not enabled");
+                    console.log("sorters: the module «Plan» is not enabled");
                     return [];
                 }
             }
@@ -446,7 +461,7 @@ class ClientManager {
      * @return {{condition: PromiseLike<T>|Promise<T>, on: on, card: card, configuration: PromiseLike<T>|Promise<T>}}
      */
     getPlanModuleContext(card) {
-        let that = this;
+        const that = this;
         return {
             "id": "module.plan",
             "shared": ModulePlanController.SHARED_NAME,
@@ -454,8 +469,8 @@ class ClientManager {
             "configuration": that.getModuleConfiguration(ModulePlanController.ID),
             "condition": that.isPlanModuleEnabled(),
             "on": function () {
-                let badges = [];
-                let entity = that.getPlanController().getByCard(card);
+                const badges = [];
+                const entity = that.getPlanController().getByCard(card);
                 if (that.getPlanController().hasContent(entity)) {
                     badges.push({
                         text: "",
@@ -463,21 +478,21 @@ class ClientManager {
                     });
                 }
                 return that.getModuleConfiguration("module.plan")
-                    .then(function(pmc) {
+                    .then(function (pmc) {
                         return pmc.config.editables;
                     })
-                    .filter(function(editable) {
-                        let val = that.getPlanController().getMapping(editable, entity, 'main',null);
+                    .filter(function (editable) {
+                        const val = that.getPlanController().getMapping(editable, entity, 'main', null);
                         return val !== null && editable.show === true;
                     })
-                    .map(function(editable) {
+                    .map(function (editable) {
 
                         return {
-                            "text": editable.label + ": " + that.getPlanController().getMapping(editable, entity, 'main',"-"),
+                            "text": editable.label + ": " + that.getPlanController().getMapping(editable, entity, 'main', "-"),
                             "color": editable.color
                         };
                     })
-                    .reduce(function(prev, cur) {
+                    .reduce(function (prev, cur) {
                         prev.push(cur);
                         return prev;
                     }, badges);
@@ -492,7 +507,7 @@ class ClientManager {
      * @return {{condition: PromiseLike<T>|Promise<T>, on: on, card: card}}
      */
     getBeteiligtModuleContext(card) {
-        let that = this;
+        const that = this;
         return {
             "id": "module.beteiligt",
             "shared": ModuleController.SHARED_NAME,
@@ -500,10 +515,10 @@ class ClientManager {
             "configuration": that.getModuleConfiguration(ModuleController.ID),
             "condition": that.isBeteiligtModuleEnabled(),
             "on": function () {
-                let badges = [];
-                let config = that.getModuleController().getByCard(card);
+                const badges = [];
+                const config = that.getModuleController().getByCard(card);
                 if (config instanceof ModuleConfig) {
-                    let sections = config.getContentCount();
+                    const sections = config.getContentCount();
                     if (sections > 0) {
                         badges.push({
                             text: sections,
@@ -531,8 +546,8 @@ class ClientManager {
             "configuration": that.getModuleConfiguration(ArtikelController.ID),
             "condition": that.isArticleModuleEnabled(),
             "on": function () {
-                let badges = [];
-                let entity = that.getArticleController().getByCard(card);
+                const badges = [];
+                const entity = that.getArticleController().getByCard(card);
                 if (that.getArticleController().hasContent(entity)) {
                     badges.push({
                         text: "",
@@ -541,20 +556,20 @@ class ClientManager {
                 }
 
                 return that.getModuleConfiguration(ArtikelController.ID)
-                    .then(function(pmc) {
+                    .then(function (pmc) {
                         return pmc.config.editables;
                     })
-                    .filter(function(editable) {
+                    .filter(function (editable) {
                         const val = that.getArticleController().getMapping(editable, entity, 'main', null);
                         return val && editable.show === true;
                     })
-                    .map(function(editable) {
+                    .map(function (editable) {
                         return {
-                            "text": editable.label + ": " + that.getArticleController().getMapping(editable, entity, 'main',""),
+                            "text": editable.label + ": " + that.getArticleController().getMapping(editable, entity, 'main', ""),
                             "color": editable.color
                         };
                     })
-                    .reduce(function(prev, cur) {
+                    .reduce(function (prev, cur) {
                         prev.push(cur);
                         return prev;
                     }, badges);
@@ -572,13 +587,21 @@ class ClientManager {
     getControllerWith(controller, opts) {
 
         for (let index in opts.cards) {
-            let card = opts.cards[index];
-            let entity = controller.getByCard(card);
+            const card = opts.cards[index];
+            const entity = controller.getByCard(card);
             if (entity && !card.closed) {
                 controller.insert(entity, card);
             }
         }
         return controller;
+    }
+
+    /**
+     * @param editable
+     * @return {*|boolean}
+     */
+    canSort(editable) {
+        return editable.sortable && (editable.type === "select" || editable.type === "text") && editable.visible;
     }
 
     /**
@@ -588,19 +611,19 @@ class ClientManager {
      * @param provider
      * @return {{sortedIds: any[]}}
      */
-    sortOnNumber(controller, opts, sort, provider) {
-        let sortedCards = opts.cards.sort(
+    sortOnText(controller, opts, sort, provider) {
+        const that = this;
+        const sortedCards = opts.cards.sort(
             function (lhs_card, rhs_card) {
-                let lhs = controller.getByCard(lhs_card);
-                let rhs = controller.getByCard(rhs_card);
-                let lhsp = lhs ? parseFloat(provider(lhs) || Number.MAX_VALUE.toString()) : Number.MAX_VALUE;
-                let rhsp = rhs ? parseFloat(provider(rhs) || Number.MAX_VALUE.toString()) : Number.MAX_VALUE;
-                if (lhsp > rhsp) {
-                    return sort === "asc" ? 1 : -1;
-                } else if (rhsp > lhsp) {
-                    return sort === "asc" ? -1 : 1;
+                const lhs = controller.getByCard(lhs_card);
+                const rhs = controller.getByCard(rhs_card);
+                const lhsp = lhs ? provider(lhs) : null;
+                const rhsp = rhs ? provider(rhs) : null;
+                if (isNumber(lhsp) && isNumber(rhsp)) {
+                    return that._compare(sort, parseFloat(lhsp), parseFloat(rhsp));
+                } else {
+                    return that._compare(sort, lhsp, rhsp);
                 }
-                return 0;
             });
 
         return {
@@ -611,18 +634,14 @@ class ClientManager {
     }
 
     sortOnSelect(controller, opts, sort, provider) {
-        let sortedCards = opts.cards.sort(
+        const that = this;
+        const sortedCards = opts.cards.sort(
             function (lhs_card, rhs_card) {
-                let lhs = controller.getByCard(lhs_card);
-                let rhs = controller.getByCard(rhs_card);
-                let lhsp = lhs ? provider(lhs) : Number.MAX_VALUE;
-                let rhsp = rhs ? provider(rhs) : Number.MAX_VALUE;
-                if (lhsp > rhsp) {
-                    return sort === "asc" ? 1 : -1;
-                } else if (rhsp > lhsp) {
-                    return sort === "asc" ? -1 : 1;
-                }
-                return 0;
+                const lhs = controller.getByCard(lhs_card);
+                const rhs = controller.getByCard(rhs_card);
+                const lhsp = lhs ? provider(lhs) : Number.MAX_VALUE;
+                const rhsp = rhs ? provider(rhs) : Number.MAX_VALUE;
+                return that._compare(sort, lhsp, rhsp);
             });
 
         return {
@@ -630,6 +649,18 @@ class ClientManager {
                 return c.id;
             })
         };
+    }
+
+    _compare(sort, lhs, rhs) {
+        if (isBlank(lhs) && isBlank(rhs)) {
+            return 0;
+        } else if (isBlank(lhs) || lhs > rhs) {
+            return sort === "asc" ? 1 : -1;
+        } else if (isBlank(rhs) || rhs > lhs) {
+            return sort === "asc" ? -1 : 1;
+        } else {
+            return 0;
+        }
     }
 
 }

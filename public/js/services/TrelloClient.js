@@ -310,13 +310,13 @@ class TrelloClient {
     /**
      * @param title
      * @param {{id: string}} list
-     * @return {Promise<{id: string, name: string}>}
+     * @return {Promise<{id: string, name: string, idList: string, closed: boolean}>}
      */
     findCardByTitle(title, list) {
         // trello.cards sucht in allen offenen cards vom aktuellen board
         this._loggingService.d(`Sucht nach bestehender Trello Card mit Namen «${title}» in Trello Liste «${list.id}»`);
         this._requests++;
-        return this.trello.cards('id', 'name', 'idList')
+        return this.trello.cards('id', 'name', 'idList', 'closed')
             .reduce((prev, cur) => {
                 prev = cur.name === title && cur.idList === list.id ? cur : prev;
                 return prev;

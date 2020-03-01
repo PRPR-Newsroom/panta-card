@@ -170,9 +170,10 @@ class PluginRepository extends Repository {
                     "label": "Pagina",
                     "placeholder": "Zahl",
                     "show": false,
-                    "sortable": false,
+                    "sortable": true,
                     "visible": true,
-                    "color": "shades"
+                    "color": "shades",
+                    "sortable.hint": '(1 -> 99)'
                 }, {
                     "id": "field.f",
                     "desc": "module.artikel.field-f.desc",
