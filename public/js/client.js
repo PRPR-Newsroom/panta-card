@@ -4,7 +4,7 @@ TrelloPowerUp.initialize({
         return [{
             icon: './assets/ic_pantarhei.png',
             text: 'Panta.Card.Setup',
-            condition: 'admin',
+            condition: 'edit',
             callback: function (t) {
                 return t.member('all')
                     .then(function (member) {
@@ -25,9 +25,6 @@ TrelloPowerUp.initialize({
                     url: "admin.html",
                     accentColor: 'blue',
                     fullscreen: true
-                    // ,args: {
-                    //     "page": 'progress'
-                    // }
                 });
             }
         }];

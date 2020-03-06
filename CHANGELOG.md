@@ -4,6 +4,7 @@
 
 # Changes
 
+* Enable feature for board members
 * Export feature
 * Import feature
 * Load a different configuration from a decompressed base64 encoded string
