@@ -1,33 +1,53 @@
 TrelloPowerUp.initialize({
     // https://developers.trello.com/v1.0/reference#card-buttons
     'card-buttons': function (t, options) {
-        return [{
-            icon: './assets/ic_pantarhei.png',
-            text: 'Panta.Card.Setup',
-            condition: 'edit',
-            callback: function (t) {
-                return t.member('all')
-                    .then(function (member) {
-                        return t.popup({
-                            title: "Einstellungen",
-                            url: "settings.html",
-                            height: 184
-                        });
+        return t.board('id','members')
+            .then(it => {
+                /**
+                 * @type {string[]}
+                 */
+                const members = it.members.map(it => it.username);
+                return t.member('id','username')
+                    .then(me => {
+                        if (members.indexOf(me.username) !== -1) {
+                            return {
+                                icon: './assets/ic_import_export.png',
+                                text: 'Panta.Card.Data',
+                                callback: function (t) {
+                                    return t.modal({
+                                        title: "Administration",
+                                        url: "admin.html",
+                                        accentColor: 'blue',
+                                        fullscreen: true
+                                    });
+                                }
+                            };
+                        } else {
+                            return null;
+                        }
                     });
-            }
-        }, {
-            icon: './assets/ic_import_export.png',
-            text: 'Panta.Card.Data',
-            condition: 'admin',
-            callback: function (t) {
-                return t.modal({
-                    title: "Administration",
-                    url: "admin.html",
-                    accentColor: 'blue',
-                    fullscreen: true
-                });
-            }
-        }];
+            })
+            .then(it => {
+                const features = [{
+                    icon: './assets/ic_pantarhei.png',
+                    text: 'Panta.Card.Setup',
+                    condition: 'admin',
+                    callback: function (t) {
+                        return t.member('all')
+                            .then(function (member) {
+                                return t.popup({
+                                    title: "Einstellungen",
+                                    url: "settings.html",
+                                    height: 184
+                                });
+                            });
+                    }
+                }];
+                if (it != null) {
+                    features.push(it);
+                }
+                return features;
+            });
     },
     // https://developers.trello.com/v1.0/reference#card-badges
     'card-badges': function (t, options) {
