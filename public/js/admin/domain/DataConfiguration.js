@@ -87,7 +87,10 @@ class DataConfiguration {
             .reduce(Reducers.asOccurrenceMap, {})
         ).filter(it => it[0] !== '-1' && it[1] > 1);
         if (multi.length > 0) {
-            errors.push({id: `validation.error.multiple-mapping`, details: `${multi.map(it => it[0]).join(',')}`});
+            errors.push({
+                id: `validation.error.multiple-mapping`,
+                details: `${multi.map(it => it[0]).join(',')}`
+            });
         }
         return errors;
     }
