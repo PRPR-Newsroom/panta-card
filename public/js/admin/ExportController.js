@@ -325,7 +325,7 @@ class ExportController extends AdminController {
                 });
         } else {
             const validations = config.getValidationErrors();
-            const errors = validations.join('<br/>');
+            const errors = '<ul>' + validations.map(it => `<li>${__(it.id)}</li>`).join('') + '</ul>';
             that._showWarnings(document, `Die Konfiguration ist unvollständig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>${errors}`);
         }
     }

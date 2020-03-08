@@ -862,8 +862,8 @@ var VERSION = "1.5.17-STAGING", APP_NAME = "Panta.Cards", APP_KEY = "0bdd0023d8f
 "module.beteiligt.field-c.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-total.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-price.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-placement.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
 "module.beteiligt.field-format.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-sujet.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-link.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-follower.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
 "module.beteiligt.field-date.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "trello.list.desc":"Board.Liste", "trello.title.desc":"Card.Titel", "trello.description.desc":"Card.Beschreibung", "trello.members.desc":"Card.Mitglieder", "trello.duedate.desc":"Card.Frist", "trello.labels.desc":"Card.Label", "admin.import.select.label.text":"Felder", "admin.import.select.label.select":"Listen", "admin.export.labels.hint.label":"Dynamisch erstellt", 
-"admin.export.labels.hint.desc":"Labels werden dynamisch anhand den verf\u00fcgbaren Board Labels erstellt."}, TRELLO_FIELDS = [{id:"trello.list", desc:"trello.list.desc"}, {id:"trello.title", desc:"trello.title.desc"}, {id:"trello.description", desc:"trello.description.desc"}, {id:"trello.members", desc:"trello.members.desc", type:"array"}, {id:"trello.duedate", desc:"trello.duedate.desc", type:"date"}, {id:"trello.labels", desc:"trello.labels.desc", type:"boolean", multi:!0}], TRELLO_COLORS = {Transparent:"transparent", 
-Blue:"blue", Green:"green", Orange:"orange", Red:"red", Yellow:"yellow", Purple:"purple", Pink:"pink", Sky:"sky", Lime:"lime", Black:"black"};
+"admin.export.labels.hint.desc":"Labels werden dynamisch anhand den verf\u00fcgbaren Board Labels erstellt.", "validation.error.multiple-mapping":"Excel Felder werden mehrfach dem gleichen Trello/Panta.Card Feld zugeordnet", "validation.error.trello-list":"Es muss mindestens die Trello Liste angegeben werden"}, TRELLO_FIELDS = [{id:"trello.list", desc:"trello.list.desc"}, {id:"trello.title", desc:"trello.title.desc"}, {id:"trello.description", desc:"trello.description.desc"}, {id:"trello.members", 
+desc:"trello.members.desc", type:"array"}, {id:"trello.duedate", desc:"trello.duedate.desc", type:"date"}, {id:"trello.labels", desc:"trello.labels.desc", type:"boolean", multi:!0}], TRELLO_COLORS = {Transparent:"transparent", Blue:"blue", Green:"green", Orange:"orange", Red:"red", Yellow:"yellow", Purple:"purple", Pink:"pink", Sky:"sky", Lime:"lime", Black:"black"};
 // Input 6
 var DI = function() {
 };
@@ -4372,9 +4372,9 @@ AdminController.prototype.onUpdateActionButton = function(a) {
   } else {
     if (!a.hasAttribute("data-validation")) {
       b = b.getValidationErrors();
-      var c = b.map(function(a) {
-        return a.id;
-      }).join("<br/>");
+      var c = "<ul>" + b.map(function(a) {
+        return "<li>" + __(a.id) + "</li>";
+      }).join("") + "</ul>";
       a.setAttribute("disabled", "disabled");
       a.setAttribute("data-validation", "invalid");
       a.setAttribute("title", "Es sind noch nicht alle notwendingen Felder konfiguriert.");
@@ -5161,7 +5161,9 @@ ExportController.prototype._doExport = function(a) {
       return b._pluginController.setAdminConfiguration(b._propertyBag);
     });
   }
-  var e = c.getValidationErrors().join("<br/>");
+  var e = "<ul>" + c.getValidationErrors().map(function(a) {
+    return "<li>" + __(a.id) + "</li>";
+  }).join("") + "</ul>";
   b._showWarnings(document, "Die Konfiguration ist unvollst\u00e4ndig. Bitte korrigieren sie die Konfiguration und versuchen sie es erneut.<br/>" + e);
 };
 ExportController.prototype._getTemplate = function(a) {

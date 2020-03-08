@@ -219,7 +219,7 @@ class AdminController {
             btnImport.removeAttribute('data-validation');
         } else if (!btnImport.hasAttribute('data-validation')) {
             const validations = configuration.getValidationErrors();
-            const errors = validations.map(it => it.id).join('<br/>');
+            const errors = '<ul>' + validations.map(it => `<li>${__(it.id)}</li>`).join('') + '</ul>';
             btnImport.setAttribute('disabled', 'disabled');
             btnImport.setAttribute('data-validation', 'invalid');
             btnImport.setAttribute('title', 'Es sind noch nicht alle notwendingen Felder konfiguriert.');

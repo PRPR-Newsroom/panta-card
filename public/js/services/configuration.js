@@ -115,7 +115,10 @@ const TEXTS = {
     'admin.import.select.label.select': 'Listen',
 
     'admin.export.labels.hint.label': 'Dynamisch erstellt',
-    'admin.export.labels.hint.desc': 'Labels werden dynamisch anhand den verfügbaren Board Labels erstellt.'
+    'admin.export.labels.hint.desc': 'Labels werden dynamisch anhand den verfügbaren Board Labels erstellt.',
+
+    'validation.error.multiple-mapping': 'Excel Felder werden mehrfach dem gleichen Trello/Panta.Card Feld zugeordnet',
+    'validation.error.trello-list': 'Es muss mindestens die Trello Liste angegeben werden'
 };
 
 /**
