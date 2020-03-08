@@ -1,9 +1,10 @@
 [UNRELEASED]
 
-[1.5.17-STAGING]
+[1.5.18-STAGING]
 
 # Changes
 
+* Validation texts
 * Enable feature for board members
 * Export feature
 * Import feature
