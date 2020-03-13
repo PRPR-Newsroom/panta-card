@@ -1,6 +1,6 @@
 [UNRELEASED]
 
-[1.5.18-STAGING]
+[1.5.18]
 
 # Changes
 
