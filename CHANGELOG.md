@@ -4,15 +4,10 @@
 
 # Changes
 
-* Enable feature for board members
-* Export feature
-* Import feature
-* Load a different configuration from a decompressed base64 encoded string
-* Progress dialog when importing
-* Do not show invisible/deactivated fields in sorters
+* Reiter zentrieren
+* Import von Listen Werten anhand fuzzy Check (ignore case und trim)
+* Import von Listen Werten anhand des angegebenen Indexes (wenn kein Text Match gefunden wurde)
 
 # Fixes
 
-* Error handling when there's a problem with the configuration
-* Visiblity for Artikel Badge
-* Visiblity for fields
+* NPE Prüfungen
