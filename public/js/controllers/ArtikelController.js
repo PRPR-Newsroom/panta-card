@@ -110,33 +110,36 @@ class ArtikelController extends Controller {
      * @return {*}
      */
     getPropertyByName(entity, context, name, defaultValue) {
+        if (!entity) {
+            return defaultValue;
+        }
         switch (name) {
             case "visual":
-                return entity.visual || defaultValue;
+                return entity.visual != null ? entity.visual : defaultValue;
             case "form":
-                return entity.form || defaultValue;
+                return entity.form != null ? entity.form : defaultValue;
             case "online":
-                return entity.tags || defaultValue;
+                return entity.tags != null ? entity.tags : defaultValue;
             case "season":
-                return entity.season || defaultValue;
+                return entity.season != null ? entity.season : defaultValue;
             case "region":
-                return entity.region || defaultValue;
+                return entity.region != null ? entity.region : defaultValue;
             case "place":
-                return entity.location || defaultValue;
+                return entity.location != null ? entity.location : defaultValue;
             case "field.a":
-                return entity.topic || defaultValue;
+                return entity.topic != null ? entity.topic : defaultValue;
             case "field.b":
-                return entity.from || defaultValue;
+                return entity.form != null ? entity.from : defaultValue;
             case "field.c":
-                return entity.author || defaultValue;
+                return entity.author != null ? entity.author : defaultValue;
             case "field.d":
-                return entity.text || defaultValue;
+                return entity.text != null ? entity.text : defaultValue;
             case "field.e":
-                return entity.pagina || defaultValue;
+                return entity.pagina != null ? entity.pagina : defaultValue;
             case "field.f":
-                return entity.layout || defaultValue;
+                return entity.layout != null ? entity.layout : defaultValue;
             case "field.g":
-                return entity.total || defaultValue;
+                return entity.total != null ? entity.total : defaultValue;
             default:
                 if (entity.hasOwnProperty(name)) {
                     return entity[name];

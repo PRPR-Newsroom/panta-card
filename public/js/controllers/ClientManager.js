@@ -561,7 +561,7 @@ class ClientManager {
                     })
                     .filter(function (editable) {
                         const val = that.getArticleController().getMapping(editable, entity, 'main', null);
-                        return val && editable.show === true;
+                        return val != null && editable.show === true;
                     })
                     .map(function (editable) {
                         return {
