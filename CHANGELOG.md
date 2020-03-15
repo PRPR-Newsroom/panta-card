@@ -1,5 +1,17 @@
 [UNRELEASED]
 
+[1.5.19-STAGING]
+
+# Changes
+
+* Reiter zentrieren
+* Import von Listen Werten anhand fuzzy Check (ignore case und trim)
+* Import von Listen Werten anhand des angegebenen Indexes (wenn kein Text Match gefunden wurde)
+
+# Fixes
+
+* NPE Prüfungen
+
 [1.5.18-STAGING]
 
 # Changes
