@@ -60,6 +60,9 @@ html, body {
 .tab :first-child span {
   margin-left: 0;
 }
+.tab[data-label] {
+  text-align: center;
+}
 
 .navigation-bar {
   margin-left: 0;

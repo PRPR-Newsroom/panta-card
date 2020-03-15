@@ -184,20 +184,23 @@ class ModulePlanController extends Controller {
      * @return {*}
      */
     getPropertyByName(entity, context, name, defaultValue) {
+        if (!entity) {
+            return defaultValue;
+        }
         // TODO calculated fields cannot yet be shown as card badges because the value is actually not really stored on the entity
         switch (name) {
             case "field.a":
-                return entity.measures || defaultValue;
+                return entity.measures != null ? entity.measures : defaultValue;
             case "field.b":
-                return entity.description || defaultValue;
+                return entity.description != null ? entity.description : defaultValue;
             case "field.c":
-                return entity.fee || defaultValue;
+                return entity.fee != null ? entity.fee : defaultValue;
             case "field.d":
-                return entity.projectFee || defaultValue;
+                return entity.projectFee != null ? entity.projectFee : defaultValue;
             case "field.e":
-                return entity.thirdPartyCharges || defaultValue;
+                return entity.thirdPartyCharges != null ? entity.thirdPartyCharges : defaultValue;
             case "field.f":
-                return entity.thirdPartyTotalCosts || defaultValue;
+                return entity.thirdPartyTotalCosts != null ? entity.thirdPartyTotalCosts : defaultValue;
             case "field.g":
                 let cod = this.getCapOnDepenses();
                 if (!isBlank(cod)) {
@@ -206,19 +209,19 @@ class ModulePlanController extends Controller {
                     return defaultValue;
                 }
             case "field.h":
-                return entity.totalCosts || defaultValue;
+                return entity.totalCosts != null ? entity.totalCosts : defaultValue;
             case "visual":
-                return entity.visual || defaultValue;
+                return entity.visual != null ? entity.visual : defaultValue;
             case "form":
-                return entity.form || defaultValue;
+                return entity.form != null ? entity.form : defaultValue;
             case "online":
-                return entity.online || defaultValue;
+                return entity.online != null ? entity.online : defaultValue;
             case "season":
-                return entity.season || defaultValue;
+                return entity.season != null ? entity.season : defaultValue;
             case "region":
-                return entity.region || defaultValue;
+                return entity.region != null ? entity.region : defaultValue;
             case "place":
-                return entity.place || defaultValue;
+                return entity.place != null ? entity.place : defaultValue;
             default:
                 if (entity.hasOwnProperty(name)) {
                     return entity[name];

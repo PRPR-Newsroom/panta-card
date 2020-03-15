@@ -2154,7 +2154,7 @@ ModuleController.prototype.getFields = function(a) {
   });
 };
 ModuleController.prototype.getPropertyByName = function(a, b, c, d) {
-  return this._getSectionByName(a, b).getByEditable(c);
+  return a ? this._getSectionByName(a, b).getByEditable(c) : d;
 };
 ModuleController.prototype._getSectionByName = function(a, b) {
   switch(b) {
@@ -2773,33 +2773,36 @@ ArtikelController.prototype.create = function(a, b) {
   return Artikel.create(a);
 };
 ArtikelController.prototype.getPropertyByName = function(a, b, c, d) {
+  if (!a) {
+    return d;
+  }
   switch(c) {
     case "visual":
-      return a.visual || d;
+      return null != a.visual ? a.visual : d;
     case "form":
-      return a.form || d;
+      return null != a.form ? a.form : d;
     case "online":
-      return a.tags || d;
+      return null != a.tags ? a.tags : d;
     case "season":
-      return a.season || d;
+      return null != a.season ? a.season : d;
     case "region":
-      return a.region || d;
+      return null != a.region ? a.region : d;
     case "place":
-      return a.location || d;
+      return null != a.location ? a.location : d;
     case "field.a":
-      return a.topic || d;
+      return null != a.topic ? a.topic : d;
     case "field.b":
-      return a.from || d;
+      return null != a.form ? a.from : d;
     case "field.c":
-      return a.author || d;
+      return null != a.author ? a.author : d;
     case "field.d":
-      return a.text || d;
+      return null != a.text ? a.text : d;
     case "field.e":
-      return a.pagina || d;
+      return null != a.pagina ? a.pagina : d;
     case "field.f":
-      return a.layout || d;
+      return null != a.layout ? a.layout : d;
     case "field.g":
-      return a.total || d;
+      return null != a.total ? a.total : d;
     default:
       return a.hasOwnProperty(c), a[c];
   }
@@ -2945,35 +2948,38 @@ ModulePlanController.prototype.getCapOnDepenses = function() {
   return isNaN(a) ? null : parseFloat(a);
 };
 ModulePlanController.prototype.getPropertyByName = function(a, b, c, d) {
+  if (!a) {
+    return d;
+  }
   switch(c) {
     case "field.a":
-      return a.measures || d;
+      return null != a.measures ? a.measures : d;
     case "field.b":
-      return a.description || d;
+      return null != a.description ? a.description : d;
     case "field.c":
-      return a.fee || d;
+      return null != a.fee ? a.fee : d;
     case "field.d":
-      return a.projectFee || d;
+      return null != a.projectFee ? a.projectFee : d;
     case "field.e":
-      return a.thirdPartyCharges || d;
+      return null != a.thirdPartyCharges ? a.thirdPartyCharges : d;
     case "field.f":
-      return a.thirdPartyTotalCosts || d;
+      return null != a.thirdPartyTotalCosts ? a.thirdPartyTotalCosts : d;
     case "field.g":
       return a = this.getCapOnDepenses(), isBlank(a) ? d : a;
     case "field.h":
-      return a.totalCosts || d;
+      return null != a.totalCosts ? a.totalCosts : d;
     case "visual":
-      return a.visual || d;
+      return null != a.visual ? a.visual : d;
     case "form":
-      return a.form || d;
+      return null != a.form ? a.form : d;
     case "online":
-      return a.online || d;
+      return null != a.online ? a.online : d;
     case "season":
-      return a.season || d;
+      return null != a.season ? a.season : d;
     case "region":
-      return a.region || d;
+      return null != a.region ? a.region : d;
     case "place":
-      return a.place || d;
+      return null != a.place ? a.place : d;
     default:
       return a.hasOwnProperty(c), a[c];
   }
@@ -3268,7 +3274,7 @@ ClientManager.prototype.getArticleModuleContext = function(a) {
     return b.getModuleConfiguration(ArtikelController.ID).then(function(a) {
       return a.config.editables;
     }).filter(function(a) {
-      return b.getArticleController().getMapping(a, d, "main", null) && !0 === a.show;
+      return null != b.getArticleController().getMapping(a, d, "main", null) && !0 === a.show;
     }).map(function(a) {
       return {text:a.label + ": " + b.getArticleController().getMapping(a, d, "main", ""), color:a.color};
     }).reduce(function(a, b) {
@@ -4291,7 +4297,7 @@ var TextField = function(a) {
 };
 $jscomp.inherits(TextField, AbstractField);
 TextField.prototype.getValue = function(a) {
-  return a.value.v;
+  return a && a.value && a.value.v ? ("" + a.value.v).trim() : null;
 };
 TextField.prototype.getType = function() {
   return "text";
@@ -5468,7 +5474,13 @@ PluginModuleConfig.prototype.getEditable = function(a) {
   });
 };
 PluginModuleConfig.prototype.getEditableOptionValue = function(a, b) {
-  return (a = this.getEditable(a)) && a.values ? a.values.indexOf(b) : -1;
+  if (null == b) {
+    return -1;
+  }
+  a = this.getEditable(a);
+  return null != a && a.values && (a = a.values.map(function(a) {
+    return a.toLowerCase().trim();
+  }).indexOf(("" + b).toLowerCase().trim()), -1 !== a) ? a : isNumber(b) ? b : -1;
 };
 PluginModuleConfig.prototype.getEditableLayout = function(a) {
   a = this.getEditable(a);
