@@ -308,13 +308,10 @@ HTMLDocument.prototype.createStylesheet = function (href) {
  * @returns {boolean} true if the argument contains no or only space characters otherwise false
  */
 Window.prototype.isBlank = function (totest) {
-    return (!totest || 0 === (totest + "").trim().length);
-};
-
-String.prototype.toHTML = function () {
-    var txt = document.createElement('textarea');
-    txt.innerHTML = this;
-    return txt.value;
+    if (totest == null) {
+        return true;
+    }
+    return 0 === (totest + "").trim().length;
 };
 
 /**
@@ -341,16 +338,6 @@ String.prototype.htmlify = function () {
     });
     return html.replace(/(\r\n|\n|\r)/g, function (match) {
         return "<br />";
-    });
-};
-
-/**
- * Convert a string to an escaped HTML version
- * @return {string}
- */
-String.prototype.toHtmlEntities = function () {
-    return this.replace(/[\u00A0-\u9999<>\&]/gim, function (i) {
-        return '&#' + i.charCodeAt(0) + ';';
     });
 };
 
