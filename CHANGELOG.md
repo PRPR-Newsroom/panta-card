@@ -1,5 +1,16 @@
 [UNRELEASED]
 
+[1.5.20-STAGING]
+
+# Changes
+
+* Hinweis für Layout-Konfiguration
+* Notiz Feld in Blog Layout vergrössert und die zwei Felder «Follower» und «Date» ausgeblendet
+
+# Fixes
+
+* Fehler bei der Sortierung gefixt
+
 [1.5.19-STAGING]
 
 # Changes
