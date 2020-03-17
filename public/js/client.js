@@ -166,7 +166,7 @@ TrelloPowerUp.initialize({
     },
     // https://developers.trello.com/v1.0/reference#list-sorters
     'list-sorters': function (t) {
-        let cm = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION).init();
+        const cm = ClientManager.getOrCreateClientManager(window, t, PLUGIN_CONFIGURATION).init();
         return t.list('id', 'name')
             .then(function (list) {
                 // i didn't manage to do it without t.list()... somehow t.list returns another promise than Promise.all()

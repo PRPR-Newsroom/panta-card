@@ -356,22 +356,10 @@ class ClientManager {
                                 text: `Artikel: ${sortable.label} ${hint}`,
                                 callback: function (t, opts) {
                                     // either rename all tags to online (upgrade script needed) or extract it to a mapper
-                                    let mapped = sortable.id;
-                                    switch (sortable.id) {
-                                        case "online":
-                                            mapped = "tags";
-                                            break;
-                                        case "place":
-                                            mapped = "location";
-                                            break;
-                                        case "field.e":
-                                            mapped = "pagina";
-                                            break;
-                                    }
                                     if (sortable.type === 'select') {
                                         return that.sortOnSelect(that.getControllerWith(that.getArticleController(), opts), opts, "asc", function (article) {
                                             if (article instanceof Artikel) {
-                                                return sortable.values.indexOf(article[mapped]);
+                                                return that.getArticleController().getPropertyByName(article, 'main', sortable.id, Number.MAX_VALUE);
                                             } else {
                                                 return Number.MAX_VALUE;
                                             }
@@ -379,7 +367,7 @@ class ClientManager {
                                     } else {
                                         return that.sortOnText(that.getControllerWith(that.getArticleController(), opts), opts, "asc", function (article) {
                                             if (article instanceof Artikel) {
-                                                return article[mapped];
+                                                return that.getArticleController().getPropertyByName(article, 'main', sortable.id, Number.MAX_VALUE);
                                             } else {
                                                 return null;
                                             }
@@ -425,7 +413,7 @@ class ClientManager {
                                     if (sortable.type === 'select') {
                                         return that.sortOnSelect(that.getControllerWith(that.getPlanController(), opts), opts, "asc", function (entity) {
                                             if (entity instanceof Plan) {
-                                                return sortable.values.indexOf(entity[sortable.id]);
+                                                return that.getPlanController().getPropertyByName(entity, 'main', sortable.id, Number.MAX_VALUE);
                                             } else {
                                                 return Number.MAX_VALUE;
                                             }
@@ -433,7 +421,7 @@ class ClientManager {
                                     } else {
                                         return that.sortOnText(that.getControllerWith(that.getPlanController(), opts), opts, "asc", function (entity) {
                                             if (entity instanceof Plan) {
-                                                return entity[sortable.id];
+                                                return that.getPlanController().getPropertyByName(entity, 'main', sortable.id, null);
                                             } else {
                                                 return null;
                                             }
@@ -561,7 +549,7 @@ class ClientManager {
                     })
                     .filter(function (editable) {
                         const val = that.getArticleController().getMapping(editable, entity, 'main', null);
-                        return val && editable.show === true;
+                        return val != null && editable.show === true;
                     })
                     .map(function (editable) {
                         return {
@@ -654,9 +642,9 @@ class ClientManager {
     _compare(sort, lhs, rhs) {
         if (isBlank(lhs) && isBlank(rhs)) {
             return 0;
-        } else if (isBlank(lhs) || lhs > rhs) {
+        } else if (isBlank(rhs) || lhs > rhs) {
             return sort === "asc" ? 1 : -1;
-        } else if (isBlank(rhs) || rhs > lhs) {
+        } else if (isBlank(lhs) || rhs > lhs) {
             return sort === "asc" ? -1 : 1;
         } else {
             return 0;

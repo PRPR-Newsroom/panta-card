@@ -6,7 +6,7 @@ class TextField extends AbstractField {
      * @return {string|{}|*}
      */
     getValue(node) {
-        return node.value.v;
+        return node && node.value && node.value.v ? `${node.value.v}`.trim() : null;
     }
 
     getType() {

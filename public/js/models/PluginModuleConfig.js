@@ -38,9 +38,26 @@ class PluginModuleConfig {
         return this.config.editables.find(it => it.id  === id);
     }
 
+    /**
+     * Get the index of this option value. If the option is not found by text it will return the value as the index
+     * if the value is a number otherwise -1 is returned
+     * @param id
+     * @param value if null it will return -1 immediatly
+     * @return {number}
+     */
     getEditableOptionValue(id, value) {
+        if (value == null) {
+            return -1;
+        }
         const editable = this.getEditable(id);
-        return editable && editable.values ? editable.values.indexOf(value) : -1;
+        if (editable != null && editable.values) {
+            // because users are making mistakes it makes sense to ignore case
+            const idx = editable.values.map(it => it.toLowerCase().trim()).indexOf(`${value}`.toLowerCase().trim());
+            if (idx !== -1) {
+                return idx;
+            }
+        }
+        return isNumber(value) ? value : -1;
     }
 
     /**

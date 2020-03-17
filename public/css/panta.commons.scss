@@ -72,6 +72,10 @@ html, body {
     }
     padding-left: 0;
   }
+
+  &[data-label] {
+    text-align: center;
+  }
 }
 
 .navigation-bar {

@@ -848,21 +848,23 @@ LoggingService.prototype._log = function(a, b, c) {
   return this;
 };
 // Input 5
-var VERSION = "1.5.18", APP_NAME = "Panta.Cards", APP_KEY = "0bdd0023d8f9b9a23ed80260495bbe9b", PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.settings.hint":"Folgende MODULE sind f\u00fcr dieses BOARD verf\u00fcgbar:<br/>Sobald mindestens ein MODUL aktiviert ist, wird dieses in jeder CARD auf dem BOARD dargestellt.", "module.artikel.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.", "module.artikel.desc":"ARTIKEL-Eingabefelder und LISTEN f\u00fcr dieses BOARD konfigurieren:<br/>F\u00fcr jedes Feld kann eine Farbe definiert werden.<br/>Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf der CARD Vorderseite \u2013 ansonsten wird es nur auf der CARD Innenseite dargestellt.", 
-"module.artikel.editable.desc":"Beschriftung und Stichworte der maximal sechs LISTEN definieren:<br/>Die Reihenfolge der Stichwort muss fix erfasst werden.<br/>Die Zahl der Stichwort ist NICHT begrenzt.<br/>Maximal vier der sechs LISTEN lassen sich sortieren.<br/>LISTEN ohne Beschriftung werden auf der CARD nicht dargestellt.", "module.artikel.field-a.desc":"Das Textfeld \u00abA\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-b.desc":"Das Textfeld \u00abB\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
-"module.artikel.field-c.desc":"Das Textfeld \u00abC\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-d.desc":"Das Textfeld \u00abD\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-e.desc":"Das Textfeld \u00abE\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-f.desc":"Das Textfeld \u00abF\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
-"module.artikel.field-g.desc":"Das Textfeld \u00abG\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.beteiligt.desc":"BETEILIGT kann als Erg\u00e4nzung zum ARTIKEL oder PLAN aktiviert werden.<br/>Hier die Eingabefelder und LISTEN f\u00fcr das ganze BOARD konfigurieren:", "module.beteiligt.label.desc":"Dieser Titel wird oberhalb des Modul BETEILIGT auf jeder CARD sichtbar.", "module.beteiligt.layout.onsite":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", 
-"module.beteiligt.layout.text":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.layout.photo":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.layout.video":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.layout.illu":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.layout.ad":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.regular.desc":"Standard-Layout", "module.beteiligt.special.desc":"Inserat-Layout", "module.beteiligt.blog.desc":"Blog-Layout", 
-"module.plan.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.", "module.plan.desc":"PLAN-Eingabefelder und Auswahllisten f\u00fcr das BOARD konfigurieren:<br/>F\u00fcr jedes Feld kann eine Farbe definiert werden.<br/>Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf der CARD Vorderseite \u2013 ansonsten wird es nur auf der CARD Innenseite dargestellt.", "module.plan.editable.desc":"Beschriftung und Stichworte der maximal sechs LISTEN definieren:<br/>Die Reihenfolge der Stichwort muss fix erfasst werden.<br/>Die Zahl der Stichwort ist NICHT begrenzt.<br/>Maximal vier der sechs LISTEN lassen sich sortieren.<br/>LISTEN ohne Beschriftung werden auf der CARD nicht dargestellt.", 
-"module.plan.field-a.desc":"Das Textfeld \u00abA\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.plan.field-b.desc":"Das Textfeld \u00abB\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.plan.field-c.desc":"Das Textfeld \u00abC\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.plan.field-d.desc":"Das Textfeld \u00abD\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
-"module.plan.field-e.desc":"Das Textfeld \u00abE\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.plan.field-f.desc":"Das Textfeld \u00abF\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.plan.field-g.desc":"Das Textfeld \u00abG\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.plan.field-h.desc":"Das Textfeld \u00abH\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
-"module.beteiligt.layout-regular.desc":"Das Kontakt-Formular hat folgende Felder, die individualisert werden k\u00f6nnen", "module.beteiligt.layout-ad.desc":"Das Inserat-Formular hat folgende Felder, die individualisert werden k\u00f6nnen", "module.beteiligt.layout-blog.desc":"Das Blog-Formular hat folgende Felder, die individualisert werden k\u00f6nnen", "module.beteiligt.field-name.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-social.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
-"module.beteiligt.field-address.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-notes.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-deadline.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-a.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
-"module.beteiligt.field-b.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-c.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-total.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-price.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
-"module.beteiligt.field-placement.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-format.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-sujet.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-link.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
-"module.beteiligt.field-follower.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-date.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "trello.list.desc":"Board.Liste", "trello.title.desc":"Card.Titel", "trello.description.desc":"Card.Beschreibung", "trello.members.desc":"Card.Mitglieder", "trello.duedate.desc":"Card.Frist", "trello.labels.desc":"Card.Label", 
-"admin.import.select.label.text":"Felder", "admin.import.select.label.select":"Listen", "admin.export.labels.hint.label":"Dynamisch erstellt", "admin.export.labels.hint.desc":"Labels werden dynamisch anhand den verf\u00fcgbaren Board Labels erstellt.", "validation.error.multiple-mapping":"Excel Felder werden mehrfach dem gleichen Trello/Panta.Card Feld zugeordnet", "validation.error.trello-list":"Es muss mindestens die Trello Liste angegeben werden"}, TRELLO_FIELDS = [{id:"trello.list", desc:"trello.list.desc"}, 
-{id:"trello.title", desc:"trello.title.desc"}, {id:"trello.description", desc:"trello.description.desc"}, {id:"trello.members", desc:"trello.members.desc", type:"array"}, {id:"trello.duedate", desc:"trello.duedate.desc", type:"date"}, {id:"trello.labels", desc:"trello.labels.desc", type:"boolean", multi:!0}], TRELLO_COLORS = {Transparent:"transparent", Blue:"blue", Green:"green", Orange:"orange", Red:"red", Yellow:"yellow", Purple:"purple", Pink:"pink", Sky:"sky", Lime:"lime", Black:"black"};
+var VERSION = "1.5.20-STAGING", APP_NAME = "Panta.Cards", APP_KEY = "0bdd0023d8f9b9a23ed80260495bbe9b", PLUGIN_CONFIGURATION = {"module.artikel.enabled":!1, "module.beteiligt.enabled":!0, "module.plan.enabled":!0}, TEXTS = {"module.settings.hint":"Folgende MODULE sind f\u00fcr dieses BOARD verf\u00fcgbar:<br/>Sobald mindestens ein MODUL aktiviert ist, wird dieses in jeder CARD auf dem BOARD dargestellt.", "module.artikel.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.", 
+"module.artikel.desc":"ARTIKEL-Eingabefelder und LISTEN f\u00fcr dieses BOARD konfigurieren:<br/>F\u00fcr jedes Feld kann eine Farbe definiert werden.<br/>Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf der CARD Vorderseite \u2013 ansonsten wird es nur auf der CARD Innenseite dargestellt.", "module.artikel.editable.desc":"Beschriftung und Stichworte der maximal sechs LISTEN definieren:<br/>Die Reihenfolge der Stichwort muss fix erfasst werden.<br/>Die Zahl der Stichwort ist NICHT begrenzt.<br/>Maximal vier der sechs LISTEN lassen sich sortieren.<br/>LISTEN ohne Beschriftung werden auf der CARD nicht dargestellt.", 
+"module.artikel.field-a.desc":"Das Textfeld \u00abA\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-b.desc":"Das Textfeld \u00abB\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-c.desc":"Das Textfeld \u00abC\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-d.desc":"Das Textfeld \u00abD\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
+"module.artikel.field-e.desc":"Das Textfeld \u00abE\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-f.desc":"Das Textfeld \u00abF\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.artikel.field-g.desc":"Das Textfeld \u00abG\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.beteiligt.desc":"BETEILIGT kann als Erg\u00e4nzung zum ARTIKEL oder PLAN aktiviert werden.<br/>Hier die Eingabefelder und LISTEN f\u00fcr das ganze BOARD konfigurieren:", 
+"module.beteiligt.label.desc":"Dieser Titel wird oberhalb des Modul BETEILIGT auf jeder CARD sichtbar.", "module.beteiligt.layout.onsite":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.layout.text":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.layout.photo":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.layout.video":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.layout.illu":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", "module.beteiligt.layout.ad":"TAB-Titel tippen und LAYOUT ausw\u00e4hlen.", 
+"module.beteiligt.regular.desc":"Standard-Layout", "module.beteiligt.special.desc":"Inserat-Layout", "module.beteiligt.blog.desc":"Blog-Layout", "module.plan.label.desc":"Dieser Titel wird oberhalb des Moduls auf jeder CARD sichtbar.", "module.plan.desc":"PLAN-Eingabefelder und Auswahllisten f\u00fcr das BOARD konfigurieren:<br/>F\u00fcr jedes Feld kann eine Farbe definiert werden.<br/>Ist ein Feld aktiviert, dann erscheint es in dieser Farbe auf der CARD Vorderseite \u2013 ansonsten wird es nur auf der CARD Innenseite dargestellt.", 
+"module.plan.editable.desc":"Beschriftung und Stichworte der maximal sechs LISTEN definieren:<br/>Die Reihenfolge der Stichwort muss fix erfasst werden.<br/>Die Zahl der Stichwort ist NICHT begrenzt.<br/>Maximal vier der sechs LISTEN lassen sich sortieren.<br/>LISTEN ohne Beschriftung werden auf der CARD nicht dargestellt.", "module.plan.field-a.desc":"Das Textfeld \u00abA\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.plan.field-b.desc":"Das Textfeld \u00abB\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
+"module.plan.field-c.desc":"Das Textfeld \u00abC\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.plan.field-d.desc":"Das Textfeld \u00abD\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.plan.field-e.desc":"Das Textfeld \u00abE\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.plan.field-f.desc":"Das Textfeld \u00abF\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", 
+"module.plan.field-g.desc":"Das Textfeld \u00abG\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.plan.field-h.desc":"Das Textfeld \u00abH\u00bb ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.", "module.beteiligt.layout-regular.desc":"Das Kontakt-Formular hat folgende Felder, die individualisert werden k\u00f6nnen.<p><i>Hinweis: Die hier konfigurierten Felder gelten f\u00fcr alle Reiter, die dieses Layout verwenden. Eine Konfiguration pro Reiter ist nicht m\u00f6glich.</i></p>", 
+"module.beteiligt.layout-ad.desc":"Das Inserat-Formular hat folgende Felder, die individualisert werden k\u00f6nnen.<p><i>Hinweis: Die hier konfigurierten Felder gelten f\u00fcr alle Reiter, die dieses Layout verwenden. Eine Konfiguration pro Reiter ist nicht m\u00f6glich.</i></p>", "module.beteiligt.layout-blog.desc":"Das Blog-Formular hat folgende Felder, die individualisert werden k\u00f6nnen.<p><i>Hinweis: Die hier konfigurierten Felder gelten f\u00fcr alle Reiter, die dieses Layout verwenden. Eine Konfiguration pro Reiter ist nicht m\u00f6glich.</i></p>", 
+"module.beteiligt.field-name.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-social.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-address.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-notes.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
+"module.beteiligt.field-deadline.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-a.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-b.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-c.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
+"module.beteiligt.field-total.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-price.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-placement.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-format.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
+"module.beteiligt.field-sujet.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-link.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-follower.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", "module.beteiligt.field-date.desc":"Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.", 
+"trello.list.desc":"Board.Liste", "trello.title.desc":"Card.Titel", "trello.description.desc":"Card.Beschreibung", "trello.members.desc":"Card.Mitglieder", "trello.duedate.desc":"Card.Frist", "trello.labels.desc":"Card.Label", "admin.import.select.label.text":"Felder", "admin.import.select.label.select":"Listen", "admin.export.labels.hint.label":"Dynamisch erstellt", "admin.export.labels.hint.desc":"Labels werden dynamisch anhand den verf\u00fcgbaren Board Labels erstellt.", "validation.error.multiple-mapping":"Excel Felder werden mehrfach dem gleichen Trello/Panta.Card Feld zugeordnet", 
+"validation.error.trello-list":"Es muss mindestens die Trello Liste angegeben werden"}, TRELLO_FIELDS = [{id:"trello.list", desc:"trello.list.desc"}, {id:"trello.title", desc:"trello.title.desc"}, {id:"trello.description", desc:"trello.description.desc"}, {id:"trello.members", desc:"trello.members.desc", type:"array"}, {id:"trello.duedate", desc:"trello.duedate.desc", type:"date"}, {id:"trello.labels", desc:"trello.labels.desc", type:"boolean", multi:!0}], TRELLO_COLORS = {Transparent:"transparent", 
+Blue:"blue", Green:"green", Orange:"orange", Red:"red", Yellow:"yellow", Purple:"purple", Pink:"pink", Sky:"sky", Lime:"lime", Black:"black"};
 // Input 6
 var DI = function() {
 };
@@ -2153,7 +2155,7 @@ ModuleController.prototype.getFields = function(a) {
   });
 };
 ModuleController.prototype.getPropertyByName = function(a, b, c, d) {
-  return this._getSectionByName(a, b).getByEditable(c);
+  return a ? this._getSectionByName(a, b).getByEditable(c) : d;
 };
 ModuleController.prototype._getSectionByName = function(a, b) {
   switch(b) {
@@ -2772,33 +2774,36 @@ ArtikelController.prototype.create = function(a, b) {
   return Artikel.create(a);
 };
 ArtikelController.prototype.getPropertyByName = function(a, b, c, d) {
+  if (!a) {
+    return d;
+  }
   switch(c) {
     case "visual":
-      return a.visual || d;
+      return null != a.visual ? a.visual : d;
     case "form":
-      return a.form || d;
+      return null != a.form ? a.form : d;
     case "online":
-      return a.tags || d;
+      return null != a.tags ? a.tags : d;
     case "season":
-      return a.season || d;
+      return null != a.season ? a.season : d;
     case "region":
-      return a.region || d;
+      return null != a.region ? a.region : d;
     case "place":
-      return a.location || d;
+      return null != a.location ? a.location : d;
     case "field.a":
-      return a.topic || d;
+      return null != a.topic ? a.topic : d;
     case "field.b":
-      return a.from || d;
+      return null != a.form ? a.from : d;
     case "field.c":
-      return a.author || d;
+      return null != a.author ? a.author : d;
     case "field.d":
-      return a.text || d;
+      return null != a.text ? a.text : d;
     case "field.e":
-      return a.pagina || d;
+      return null != a.pagina ? a.pagina : d;
     case "field.f":
-      return a.layout || d;
+      return null != a.layout ? a.layout : d;
     case "field.g":
-      return a.total || d;
+      return null != a.total ? a.total : d;
     default:
       return a.hasOwnProperty(c), a[c];
   }
@@ -2944,35 +2949,38 @@ ModulePlanController.prototype.getCapOnDepenses = function() {
   return isNaN(a) ? null : parseFloat(a);
 };
 ModulePlanController.prototype.getPropertyByName = function(a, b, c, d) {
+  if (!a) {
+    return d;
+  }
   switch(c) {
     case "field.a":
-      return a.measures || d;
+      return null != a.measures ? a.measures : d;
     case "field.b":
-      return a.description || d;
+      return null != a.description ? a.description : d;
     case "field.c":
-      return a.fee || d;
+      return null != a.fee ? a.fee : d;
     case "field.d":
-      return a.projectFee || d;
+      return null != a.projectFee ? a.projectFee : d;
     case "field.e":
-      return a.thirdPartyCharges || d;
+      return null != a.thirdPartyCharges ? a.thirdPartyCharges : d;
     case "field.f":
-      return a.thirdPartyTotalCosts || d;
+      return null != a.thirdPartyTotalCosts ? a.thirdPartyTotalCosts : d;
     case "field.g":
       return a = this.getCapOnDepenses(), isBlank(a) ? d : a;
     case "field.h":
-      return a.totalCosts || d;
+      return null != a.totalCosts ? a.totalCosts : d;
     case "visual":
-      return a.visual || d;
+      return null != a.visual ? a.visual : d;
     case "form":
-      return a.form || d;
+      return null != a.form ? a.form : d;
     case "online":
-      return a.online || d;
+      return null != a.online ? a.online : d;
     case "season":
-      return a.season || d;
+      return null != a.season ? a.season : d;
     case "region":
-      return a.region || d;
+      return null != a.region ? a.region : d;
     case "place":
-      return a.place || d;
+      return null != a.place ? a.place : d;
     default:
       return a.hasOwnProperty(c), a[c];
   }
@@ -3183,21 +3191,10 @@ ClientManager.prototype.getArticleModuleSorters = function() {
       }).map(function(b) {
         var c = isBlank(b["sortable.hint"]) ? "(Position in Liste)" : b["sortable.hint"];
         return {text:"Artikel: " + b.label + " " + c, callback:function(c, d) {
-          var e = b.id;
-          switch(b.id) {
-            case "online":
-              e = "tags";
-              break;
-            case "place":
-              e = "location";
-              break;
-            case "field.e":
-              e = "pagina";
-          }
-          return "select" === b.type ? a.sortOnSelect(a.getControllerWith(a.getArticleController(), d), d, "asc", function(a) {
-            return a instanceof Artikel ? b.values.indexOf(a[e]) : Number.MAX_VALUE;
-          }) : a.sortOnText(a.getControllerWith(a.getArticleController(), d), d, "asc", function(a) {
-            return a instanceof Artikel ? a[e] : null;
+          return "select" === b.type ? a.sortOnSelect(a.getControllerWith(a.getArticleController(), d), d, "asc", function(c) {
+            return c instanceof Artikel ? a.getArticleController().getPropertyByName(c, "main", b.id, Number.MAX_VALUE) : Number.MAX_VALUE;
+          }) : a.sortOnText(a.getControllerWith(a.getArticleController(), d), d, "asc", function(c) {
+            return c instanceof Artikel ? a.getArticleController().getPropertyByName(c, "main", b.id, Number.MAX_VALUE) : null;
           });
         }};
       }).reduce(function(a, b) {
@@ -3219,10 +3216,10 @@ ClientManager.prototype.getPlanModuleSorters = function() {
         return a.canSort(b);
       }).map(function(b) {
         return {text:"Plan: " + b.label + " (Position in Liste)", callback:function(c, e) {
-          return "select" === b.type ? a.sortOnSelect(a.getControllerWith(a.getPlanController(), e), e, "asc", function(a) {
-            return a instanceof Plan ? b.values.indexOf(a[b.id]) : Number.MAX_VALUE;
-          }) : a.sortOnText(a.getControllerWith(a.getPlanController(), e), e, "asc", function(a) {
-            return a instanceof Plan ? a[b.id] : null;
+          return "select" === b.type ? a.sortOnSelect(a.getControllerWith(a.getPlanController(), e), e, "asc", function(c) {
+            return c instanceof Plan ? a.getPlanController().getPropertyByName(c, "main", b.id, Number.MAX_VALUE) : Number.MAX_VALUE;
+          }) : a.sortOnText(a.getControllerWith(a.getPlanController(), e), e, "asc", function(c) {
+            return c instanceof Plan ? a.getPlanController().getPropertyByName(c, "main", b.id, null) : null;
           });
         }};
       }).reduce(function(a, b) {
@@ -3267,7 +3264,7 @@ ClientManager.prototype.getArticleModuleContext = function(a) {
     return b.getModuleConfiguration(ArtikelController.ID).then(function(a) {
       return a.config.editables;
     }).filter(function(a) {
-      return b.getArticleController().getMapping(a, d, "main", null) && !0 === a.show;
+      return null != b.getArticleController().getMapping(a, d, "main", null) && !0 === a.show;
     }).map(function(a) {
       return {text:a.label + ": " + b.getArticleController().getMapping(a, d, "main", ""), color:a.color};
     }).reduce(function(a, b) {
@@ -3311,7 +3308,7 @@ ClientManager.prototype.sortOnSelect = function(a, b, c, d) {
   })};
 };
 ClientManager.prototype._compare = function(a, b, c) {
-  return isBlank(b) && isBlank(c) ? 0 : isBlank(b) || b > c ? "asc" === a ? 1 : -1 : isBlank(c) || c > b ? "asc" === a ? -1 : 1 : 0;
+  return isBlank(b) && isBlank(c) ? 0 : isBlank(c) || b > c ? "asc" === a ? 1 : -1 : isBlank(b) || c > b ? "asc" === a ? -1 : 1 : 0;
 };
 // Input 25
 var ColorPickerController = function(a, b, c) {
@@ -4290,7 +4287,7 @@ var TextField = function(a) {
 };
 $jscomp.inherits(TextField, AbstractField);
 TextField.prototype.getValue = function(a) {
-  return a.value.v;
+  return a && a.value && a.value.v ? ("" + a.value.v).trim() : null;
 };
 TextField.prototype.getType = function() {
   return "text";
@@ -5467,7 +5464,13 @@ PluginModuleConfig.prototype.getEditable = function(a) {
   });
 };
 PluginModuleConfig.prototype.getEditableOptionValue = function(a, b) {
-  return (a = this.getEditable(a)) && a.values ? a.values.indexOf(b) : -1;
+  if (null == b) {
+    return -1;
+  }
+  a = this.getEditable(a);
+  return null != a && a.values && (a = a.values.map(function(a) {
+    return a.toLowerCase().trim();
+  }).indexOf(("" + b).toLowerCase().trim()), -1 !== a) ? a : isNumber(b) ? b : -1;
 };
 PluginModuleConfig.prototype.getEditableLayout = function(a) {
   a = this.getEditable(a);
@@ -6058,12 +6061,7 @@ HTMLDocument.prototype.createStylesheet = function(a) {
   return b;
 };
 Window.prototype.isBlank = function(a) {
-  return !a || 0 === (a + "").trim().length;
-};
-String.prototype.toHTML = function() {
-  var a = document.createElement("textarea");
-  a.innerHTML = this;
-  return a.value;
+  return null == a ? !0 : 0 === (a + "").trim().length;
 };
 Window.prototype.isString = function(a) {
   return "string" === typeof a;
@@ -6080,11 +6078,6 @@ String.prototype.htmlify = function() {
     return '<a href="mailto:' + a + "\" title='Schreib eine Mail an \u00ab" + a + "\u00bb'>" + a + "</a>";
   }).replace(/(\r\n|\n|\r)/g, function(a) {
     return "<br />";
-  });
-};
-String.prototype.toHtmlEntities = function() {
-  return this.replace(/[\u00A0-\u9999<>&]/gim, function(a) {
-    return "&#" + a.charCodeAt(0) + ";";
   });
 };
 Window.prototype.addCss = function(a) {
@@ -6174,7 +6167,7 @@ JsonSerialization.prototype.getAllProperties = function(a) {
 var template_regular = '<div id="template">    <div class="row">        <div class="col-6 col-phone-12">            <div class="row">                <div class="col-12 col-phone-12">                    <div class="pa.name"></div>                </div>                <div class="col-12 col-phone-12">                    <div class="pa.social"></div>                </div>            </div>        </div>        <div class="col-6 col-phone-12 line-4 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-6 col-phone-12">            <div class="pa.address"></div>        </div>        <div class="col-6 col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-12 col-phone-12">            <div class="row">                <div class="col-4 col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-4 col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_regular_mobile = '<div id="template">    <div class="row">        <div class="col-phone-12">            <div class="pa.name"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12 line-phone-4">            <div class="pa.notes"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.social"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.address"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="pa.duedate"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12">            <div class="row">                <div class="col-phone-4">                    <div class="pa.fee"></div>                </div>                <div class="col-phone-4">                    <div class="pa.charges"></div>                </div>                <div class="col-phone-4">                    <div class="pa.project"></div>                </div>            </div>        </div>    </div></div>', 
 template_ad = '<div id="template" class="row">    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.notes"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.format"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.placement"></div>            </div>        </div>        <div class="row">            <div class="col-6 col-phone-6">                <div class="pa.price"></div>            </div>            <div class="col-6 col-phone-6">                <div class="pa.total"></div>            </div>        </div>    </div>    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.name"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.social"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.address"></div>            </div>        </div>    </div></div>', 
-template_blog = '<div id="template" class="row">    <div class="col-12 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.link"></div>            </div>        </div>    </div>    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12 line-7 line-phone-7">                <div class="pa.notes"></div>            </div>        </div>    </div>    <div class="col-6 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12 phone-hidden">                <div class="empty-cell"><div class="field">                   <label class="invisible prop-textarea" for="empty-cell1">Empty</label> <textarea id="empty-cell1" class="invisible text u-border"></textarea>               </div>            </div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.follower"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.date"></div>            </div>        </div>    </div></div>', 
+template_blog = '<div id="template" class="row">    <div class="col-12 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12">                <div class="pa.link"></div>            </div>        </div>    </div>    <div class="col-12 col-phone-12">        <div class="row">            <div class="col-12 col-phone-12 line-7 line-phone-7">                <div class="pa.notes"></div>            </div>        </div>    </div>    <div class="col-6 col-phone-12 hidden">        <div class="row">            <div class="col-12 col-phone-12 phone-hidden">                <div class="empty-cell"><div class="field">                   <label class="invisible prop-textarea" for="empty-cell1">Empty</label> <textarea id="empty-cell1" class="invisible text u-border"></textarea>               </div>            </div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.follower"></div>            </div>            <div class="col-12 col-phone-12">                <div class="pa.date"></div>            </div>        </div>    </div></div>', 
 template_plan = '<div id="template">    <div class="row">        <div class="col-6 line-2">            <div class="pa.plan.measures"></div>        </div>        <div class="col-3">            <div class="pa.plan.fee"></div>        </div>        <div class="col-3">            <div class="pa.plan.projectFee"></div>        </div>    </div>    <div class="row">        <div class="col-6 line-6">            <div class="pa.plan.description"></div>        </div>        <div class="col-6">            <div class="row">                <div class="col-6">                    <div class="pa.plan.thirdPartyCharges"></div>                </div>                <div class="col-6">                    <div class="pa.plan.thirdPartyTotalCosts"></div>                </div>                <div class="col-6">                    <div class="pa.plan.capOnDepenses"></div>                </div>                <div class="col-6 line-2">                    <div class="pa.plan.totalCosts"></div>                </div>            </div>        </div>    </div>    <div class="row">        <div class="col-2">            <div id="pa.plan.visual"></div>        </div>        <div class="col-2">            <div id="pa.plan.form"></div>        </div>        <div class="col-2">            <div id="pa.plan.online"></div>        </div>        <div class="col-2">            <div id="pa.plan.season"></div>        </div>        <div class="col-2">            <div id="pa.plan.region"></div>        </div>        <div class="col-2">            <div id="pa.plan.place"></div>        </div>    </div></div>', 
 template_artikel = '<div id="template">    <div class="row">        <div class="col-9 col-phone-9">            <div id="pa.topic"></div>        </div>        <div class="col-3 col-phone-3">            <div id="pa.pagina"></div>        </div>    </div>    <div class="row mobile-row">        <div class="col-9 col-phone-9">            <div class="row">                <div class="col-6 col-phone-6">                    <div id="pa.input-from"></div>                </div>                <div class="col-6 col-phone-6">                    <div id="pa.author"></div>                </div>            </div>        </div>        <div class="col-3 col-phone-3">            <div id="pa.layout"></div>        </div>    </div>    <div class="row mobile-row">        <div class="col-9 col-phone-9">            <div id="pa.text"></div>        </div>        <div class="col-3 col-phone-3">            <div id="pa.total"></div>        </div>    </div>    <div class="col-12 col-phone-12">        <div class="row">            <div class="col-2 col-phone-4">                <div id="pa.visual"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.form"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.tags"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.season"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.region"></div>            </div>            <div class="col-2 col-phone-4">                <div id="pa.location"></div>            </div>        </div>    </div></div>', 
 template_plan_mobile = '<div id="template">    <div class="row">        <div class="col-phone-12 line-phone-2">            <div class="pa.plan.measures"></div>        </div>    </div>    <div class="row">        <div class="col-phone-12 line-phone-4">            <div class="pa.plan.description"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.fee"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.projectFee"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.thirdPartyCharges"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.thirdPartyTotalCosts"></div>        </div>    </div>    <div class="row">        <div class="col-phone-6">            <div class="pa.plan.capOnDepenses"></div>        </div>        <div class="col-phone-6">            <div class="pa.plan.totalCosts"></div>        </div>    </div>    <div class="row">        <div class=" col-phone-4">            <div id="pa.plan.visual"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.form"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.online"></div>        </div>    </div>    <div class="row">        <div class=" col-phone-4">            <div id="pa.plan.season"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.region"></div>        </div>        <div class=" col-phone-4">            <div id="pa.plan.place"></div>        </div>    </div></div>', 

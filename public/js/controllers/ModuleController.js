@@ -540,6 +540,9 @@ class ModuleController extends Controller {
      * @return {string}
      */
     getPropertyByName(entity, context, editableId, defaultValue) {
+        if (!entity) {
+            return defaultValue;
+        }
         const section = this._getSectionByName(entity, context);
         return section.getByEditable(editableId);
     }

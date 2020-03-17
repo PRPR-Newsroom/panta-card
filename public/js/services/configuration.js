@@ -1,5 +1,5 @@
 // SEE ALSO VERSION FILE
-const VERSION = "1.5.18";
+const VERSION = "1.5.20-STAGING";
 
 const APP_NAME = "Panta.Cards";
 // when changing this API Key you should also change the key parameter where you load the Trello client.js
@@ -78,9 +78,9 @@ const TEXTS = {
     'module.plan.field-h.desc': "Das Textfeld «H» ist individuell konfigurierbar:<br/>Hier Beschriftungs- und Platzhalter-Text anpassen.",
 
     // the description text for the layouts
-    "module.beteiligt.layout-regular.desc": "Das Kontakt-Formular hat folgende Felder, die individualisert werden können",
-    "module.beteiligt.layout-ad.desc": "Das Inserat-Formular hat folgende Felder, die individualisert werden können",
-    "module.beteiligt.layout-blog.desc": "Das Blog-Formular hat folgende Felder, die individualisert werden können",
+    "module.beteiligt.layout-regular.desc": "Das Kontakt-Formular hat folgende Felder, die individualisert werden können.<p><i>Hinweis: Die hier konfigurierten Felder gelten für alle Reiter, die dieses Layout verwenden. Eine Konfiguration pro Reiter ist nicht möglich.</i></p>",
+    "module.beteiligt.layout-ad.desc": "Das Inserat-Formular hat folgende Felder, die individualisert werden können.<p><i>Hinweis: Die hier konfigurierten Felder gelten für alle Reiter, die dieses Layout verwenden. Eine Konfiguration pro Reiter ist nicht möglich.</i></p>",
+    "module.beteiligt.layout-blog.desc": "Das Blog-Formular hat folgende Felder, die individualisert werden können.<p><i>Hinweis: Die hier konfigurierten Felder gelten für alle Reiter, die dieses Layout verwenden. Eine Konfiguration pro Reiter ist nicht möglich.</i></p>",
 
     "module.beteiligt.field-name.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
     "module.beteiligt.field-social.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
