@@ -6067,14 +6067,14 @@ Window.prototype.isString = function(a) {
   return "string" === typeof a;
 };
 String.prototype.htmlify = function() {
-  return this.replace(/(@?(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-.][a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?)/g, function(a) {
+  return this.replace(/(@?(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9_]+([\-.][a-z0-9_]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?)/gi, function(a) {
     var b = a;
     if (a.startsWith("@")) {
       return a;
     }
     a.startsWith("http") || (b = "http://" + a);
     return '<a href="' + b + '" target="_blank" title=\'\u00d6ffne die Webseite \u00ab' + b + "\u00bb in einem neuen Fenster'>" + a + "</a>";
-  }).replace(/([a-z0-9]+([\-.][a-z0-9]+)*@[a-z0-9]+([\-.][a-z0-9]+)*\.[a-z]{2,5})/g, function(a) {
+  }).replace(/([a-z0-9_]+([\-.][a-z0-9_]+)*@[a-z0-9_]+([\-.][a-z0-9_]+)*\.[a-z]{2,5})/gi, function(a) {
     return '<a href="mailto:' + a + "\" title='Schreib eine Mail an \u00ab" + a + "\u00bb'>" + a + "</a>";
   }).replace(/(\r\n|\n|\r)/g, function(a) {
     return "<br />";

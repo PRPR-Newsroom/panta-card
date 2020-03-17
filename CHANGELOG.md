@@ -10,6 +10,7 @@
 # Fixes
 
 * Fehler bei der Sortierung gefixt
+* Mail- & Webadressen Prüfung
 
 [1.5.19-STAGING]
 
