@@ -453,26 +453,6 @@ class PluginRepository extends Repository {
                             "sortable": false,
                             "visible": true,
                             "color": "shades"
-                        }, {
-                            "id": "field.follower",
-                            "desc": "module.beteiligt.field-follower.desc",
-                            "type": "text",
-                            "label": "Follower.Fans.Abos",
-                            "placeholder": "eintippen…",
-                            "show": false,
-                            "sortable": false,
-                            "visible": true,
-                            "color": "shades"
-                        }, {
-                            "id": "field.date",
-                            "desc": "module.beteiligt.field-date.desc",
-                            "type": "text",
-                            "label": "Stand.Datum",
-                            "placeholder": "notieren…",
-                            "show": false,
-                            "sortable": false,
-                            "visible": true,
-                            "color": "shades"
                         }]
                     }
                 },

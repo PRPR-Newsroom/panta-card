@@ -14,3 +14,4 @@
 
 * Fehler bei der Sortierung gefixt
 * NPE Prüfungen
+* Mail- & Webadressen Prüfung

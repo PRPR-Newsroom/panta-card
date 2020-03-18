@@ -1,4 +1,3 @@
-
 class ModuleConfig {
 
     static get VERSION() {
@@ -34,7 +33,7 @@ class ModuleConfig {
      */
     static _getSectionFactory(configuration, id) {
         if (!configuration || !configuration.config || !configuration.config.editables) {
-            return function(jsonObj) {
+            return function (jsonObj) {
                 return OtherBeteiligt.create(jsonObj);
             };
         }
@@ -47,16 +46,16 @@ class ModuleConfig {
                 return OtherBeteiligt.create(jsonObj);
             };
         } else if (editable.layout === "blog") {
-            return function(jsonObj) {
+            return function (jsonObj) {
                 return BlogBeteiligt.create(jsonObj);
             };
         } else {
-            return function(jsonObj) {
+            return function (jsonObj) {
                 return AdBeteiligt.create(jsonObj);
             };
         }
     }
-    
+
     constructor(id, sections) {
         this._id = id || uuid();
         /**
@@ -72,7 +71,7 @@ class ModuleConfig {
      * @return {number}
      */
     getContentCount() {
-        return Object.values(this.sections).filter(function(section) {
+        return Object.values(this.sections).filter(function (section) {
             return !section.isEmpty();
         }).length;
     }
@@ -418,31 +417,18 @@ class BlogBeteiligt extends CommonBeteiligt {
      */
     static _create(jsonObj) {
         if (jsonObj) {
-            let model = new BlogBeteiligt(
+            return new BlogBeteiligt(
                 JsonSerialization.getProperty(jsonObj, 'id'),
-                JsonSerialization.getProperty(jsonObj, 'social'),
                 JsonSerialization.getProperty(jsonObj, 'address'),
-                JsonSerialization.getProperty(jsonObj, 'notes'),
-                JsonSerialization.getProperty(jsonObj, 'date')
-            );
-            return model;
+                JsonSerialization.getProperty(jsonObj, 'notes'));
         } else {
             return new BlogBeteiligt();
         }
     }
 
-    constructor(id, social, address, notes, date) {
-        super(id, "", social, address, notes);
-        this._date = date;
+    constructor(id, address, notes) {
+        super(id, "", null, address, notes);
         this.type = "blog";
-    }
-
-    get date() {
-        return this._date;
-    }
-
-    set date(value) {
-        this._date = value;
     }
 
     isEmpty() {
@@ -454,12 +440,8 @@ class BlogBeteiligt extends CommonBeteiligt {
         switch (editable) {
             case 'field.id':
                 return this.id;
-            case 'field.follower':
-                return this.social;
             case 'field.notes':
                 return this.notes;
-            case 'field.date':
-                return this.date;
             case 'field.link':
                 return this.address;
             default:
@@ -467,8 +449,3 @@ class BlogBeteiligt extends CommonBeteiligt {
         }
     }
 }
-
-// exports.ModuleConfig = ModuleConfig;
-// exports.CommonBeteiligt = CommonBeteiligt;
-// exports.OtherBeteiligt = OtherBeteiligt;
-// exports.AdBeteiligt = AdBeteiligt;
