@@ -137,22 +137,6 @@ let template_blog = '<div id="template" class="row">' +
     '            </div>' +
     '        </div>' +
     '    </div>' +
-    '    <div class="col-6 col-phone-12 hidden">' +
-    '        <div class="row">' +
-    '            <div class="col-12 col-phone-12 phone-hidden">' +
-    '                <div class="empty-cell"><div class="field">' +
-    '                   <label class="invisible prop-textarea" for="empty-cell1">Empty</label> <textarea id="empty-cell1" class="invisible text u-border"></textarea>' +
-    '               </div>' +
-    '            </div>' +
-    '            </div>' +
-    '            <div class="col-12 col-phone-12">' +
-    '                <div class="pa.follower"></div>' +
-    '            </div>' +
-    '            <div class="col-12 col-phone-12">' +
-    '                <div class="pa.date"></div>' +
-    '            </div>' +
-    '        </div>' +
-    '    </div>' +
     '</div>';
 
 let template_plan = '<div id="template">' +

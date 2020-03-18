@@ -1,5 +1,11 @@
 [UNRELEASED]
 
+[1.5.21-STAGING]
+
+# Changes
+
+* Follower und Date aus Blog Layout komplett entfernt
+
 [1.5.20-STAGING]
 
 # Changes
