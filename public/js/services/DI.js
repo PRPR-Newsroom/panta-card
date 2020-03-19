@@ -37,11 +37,6 @@ class DI {
                      * @type {TabIndexProvider}
                      */
                     this.tabIndexProvider = new TabIndexProvider();
-                    //
-                    // /**
-                    //  * @type {AdminService}
-                    //  */
-                    // this.adminService = new AdminService("0bdd0023d8f9b9a23ed80260495bbe9b");
                     this.loggingService = new LoggingService().open();
 
                 }
