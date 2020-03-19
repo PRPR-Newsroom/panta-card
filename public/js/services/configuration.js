@@ -1,10 +1,10 @@
 // SEE ALSO VERSION FILE
-const VERSION = "1.5.21-STAGING";
+const VERSION = "1.5.22-STAGING";
 
 const APP_NAME = "Panta.Cards";
 // when changing this API Key you should also change the key parameter where you load the Trello client.js
 // const APP_KEY = "86b7da26cc27ae039a161c97dfa56156";
-const APP_KEY = "0bdd0023d8f9b9a23ed80260495bbe9b";
+const APP_KEY = "86b7da26cc27ae039a161c97dfa56156";
 
 const PLUGIN_CONFIGURATION = {
     'module.artikel.enabled': false, // 1

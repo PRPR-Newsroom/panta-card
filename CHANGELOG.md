@@ -1,5 +1,11 @@
 [UNRELEASED]
 
+[1.5.22-STAGING]
+
+# Changes
+
+* API Key von Koni verwenden
+
 [1.5.21-STAGING]
 
 # Changes
