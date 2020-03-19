@@ -1,5 +1,12 @@
 [UNRELEASED]
 
+[1.5.22]
+
+# Changes
+
+* API Key von Koni verwenden
+* Follower und Date aus Blog Layout komplett entfernt
+
 [1.5.20]
 
 # Changes

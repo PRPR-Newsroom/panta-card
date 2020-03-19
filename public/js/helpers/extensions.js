@@ -323,7 +323,7 @@ Window.prototype.isString = function (totest) {
 }
 
 String.prototype.htmlify = function () {
-    const webaddresses = this.replace(/(@?(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-.][a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?)/g, function (match) {
+    const webaddresses = this.replace(/(@?(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9_]+([\-.][a-z0-9_]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?)/gi, function (match) {
         let link = match;
         if (match.startsWith("@")) {
             return match;
@@ -333,7 +333,7 @@ String.prototype.htmlify = function () {
         }
         return "<a href=\"" + link + "\" target=\"_blank\" title='Öffne die Webseite «" + link + "» in einem neuen Fenster'>" + match + "</a>";
     });
-    let html = webaddresses.replace(/([a-z0-9]+([\-.][a-z0-9]+)*@[a-z0-9]+([\-.][a-z0-9]+)*\.[a-z]{2,5})/g, function (match) {
+    let html = webaddresses.replace(/([a-z0-9_]+([\-.][a-z0-9_]+)*@[a-z0-9_]+([\-.][a-z0-9_]+)*\.[a-z]{2,5})/gi, function (match) {
         return "<a href=\"mailto:" + match + "\" title='Schreib eine Mail an «" + match + "»'>" + match + "</a>";
     });
     return html.replace(/(\r\n|\n|\r)/g, function (match) {

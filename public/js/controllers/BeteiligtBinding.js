@@ -232,9 +232,6 @@ class BeteiligtBinding extends Binding {
         forms.setFieldValue("format", valueHolder.data, "format");
         forms.setFieldValue("placement", valueHolder.data, "placement");
         forms.setFieldValue("total", valueHolder.data, "total");
-
-        // BLOG Layout
-        forms.setFieldValue("date", valueHolder.data, "date");
     }
 
     /**
@@ -365,12 +362,6 @@ class BeteiligtBinding extends Binding {
 
             config = this.getLayoutConfigurationFor("blog", "field.notes");
             forms.setField("notes", this.document.newMultiLineInput(valueHolder, ".pa.notes", "notes", config.label, params, this._action, 6, config.placeholder, config.visible));
-
-            config = this.getLayoutConfigurationFor("blog", "field.follower");
-            forms.setField("social", this.document.newSingleLineInput(valueHolder, ".pa.follower", 'social', config.label, params, this._action, config.placeholder, "text", false, config.visible));
-
-            config = this.getLayoutConfigurationFor("blog", "field.date");
-            forms.setField("date", this.document.newSingleLineInput(valueHolder, ".pa.date", "date", config.label, params, this._action, config.placeholder, "text", false, config.visible));
         }
     }
 
@@ -404,8 +395,6 @@ class BeteiligtBinding extends Binding {
                 switch (field.id) {
                     case 'field.link':
                         return 'address';
-                    case 'field.follower':
-                        return 'social';
                     default:
                         return field.id.substr(field.id.indexOf('.') + 1);
                 }

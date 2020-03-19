@@ -5,7 +5,7 @@ class PluginController {
      * @returns {number}
      */
     static get VERSION() {
-        return 5;
+        return 6;
     }
 
     /**
@@ -40,6 +40,7 @@ class PluginController {
             2: this._upgrade_2,
             3: this._upgrade_3_to_4,
             4: this._upgrade_4_to_5,
+            5: this._upgrade_5_to_6,
         };
         /**
          * @type {PluginRepository}
@@ -354,6 +355,26 @@ class PluginController {
                 } else {
                     return that.getPluginConfiguration();
                 }
+            });
+    }
+
+    /**
+     * Upgrade the blog layout by removing two fields (folllower and date)
+     * @return {PromiseLike<boolean | never>}
+     * @private
+     */
+    _upgrade_5_to_6() {
+        const that = this;
+        return this.findPluginModuleConfigByModuleId(ModuleController.ID)
+            .then(it => {
+                if (it.config.layouts.hasOwnProperty('blog')) {
+                    console.debug(`Upgrading layout «blog» by removing fields «field.follower» and «field.date»`);
+                    it.config.layouts['blog'].fields = it.config.layouts['blog'].fields
+                        .filter(it => it.id !== "field.follower" && it.id !== "field.date");
+                    return that.setPluginModuleConfig(it)
+                        .then(it => that.getPluginConfiguration());
+                }
+                return that.getPluginConfiguration();
             });
     }
 

@@ -1,10 +1,10 @@
 // SEE ALSO VERSION FILE
-const VERSION = "1.5.20";
+const VERSION = "1.5.22";
 
 const APP_NAME = "Panta.Cards";
 // when changing this API Key you should also change the key parameter where you load the Trello client.js
 // const APP_KEY = "86b7da26cc27ae039a161c97dfa56156";
-const APP_KEY = "0bdd0023d8f9b9a23ed80260495bbe9b";
+const APP_KEY = "86b7da26cc27ae039a161c97dfa56156";
 
 const PLUGIN_CONFIGURATION = {
     'module.artikel.enabled': false, // 1
@@ -101,8 +101,6 @@ const TEXTS = {
     "module.beteiligt.field-sujet.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
 
     "module.beteiligt.field-link.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
-    "module.beteiligt.field-follower.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
-    "module.beteiligt.field-date.desc": "Das Feld ist ein individuell konfigurierbares Feld. Geben Sie hier die Beschriftung und Platzhalter an.",
 
     'trello.list.desc': 'Board.Liste',
     'trello.title.desc': 'Card.Titel',
